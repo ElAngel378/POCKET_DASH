@@ -24,7 +24,7 @@ Info: The project was renamed to Geometry Dash Pocket, and was formerly known as
 </p>
 
 <p align="center">
-  <img src=".github/artwork/pocketdash_001.png?v=2" width="350">
+  <img src=".github/artwork/pocketdash_dmg.png?v=2" width="350">
 </p>
 
 ---
