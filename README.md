@@ -31,7 +31,7 @@ Unlike GB Dash by TiTi, this one features a Famidash-style gameplay with the act
 This game is being actively developed (coding and music) by Sotospro24 and ElAngel378
 
 # Features (as of now)
-- All levels up to Cycles
+- All levels up to Xstep
 - Gameplay (Cube, Ship, Ball)
 - Accurate Physics
 - Collision (Death and block collision)
@@ -84,7 +84,7 @@ The output is `bin/POCKETDASH.gb`. Music playback uses [hUGEDriver](https://gith
 ---
 
 # TODO (for 1.0 release)
-- Add all objects, mechanics, levels up to 1.3
+- Add all objects, mechanics, levels up to 1.5
 - A proper menu and level select
 - Decoration (supported only in GBC mode)
 - Graphical improvements
