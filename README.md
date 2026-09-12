@@ -10,7 +10,7 @@ Info: The project was renamed to Geometry Dash Pocket, and was formerly known as
 ### Images:
 <p align="center">
   <img src=".github/artwork/POCKETDASH_004.png" width="350">
-  <img src=".github/artwork/POCKETDASH_000.png" width="350">
+  <img src=".github/artwork/POCKETDASH_007.png" width="350">
 </p>
 
 <p align="center">
