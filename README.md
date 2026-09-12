@@ -9,17 +9,22 @@ Info: The project was renamed to Geometry Dash Pocket, and was formerly known as
 
 ### Images:
 <p align="center">
-  <img src=".github/artwork/pocketdash_000.png" width="350">
+  <img src=".github/artwork/POCKETDASH_004.png" width="350">
+  <img src=".github/artwork/POCKETDASH_000.png" width="350">
+</p>
+
+<p align="center">
+  <img src=".github/artwork/POCKETDASH_001.png" width="350">
+  <img src=".github/artwork/POCKETDASH_002.png" width="350">
+</p>
+
+<p align="center">
+  <img src=".github/artwork/POCKETDASH_003.png" width="350">
+  <img src=".github/artwork/POCKETDASH_006.png" width="350">
+</p>
+
+<p align="center">
   <img src=".github/artwork/pocketdash_001.png" width="350">
-</p>
-
-<p align="center">
-  <img src=".github/artwork/pocketdash_002.png" width="350">
-  <img src=".github/artwork/pocketdash_004.png" width="350">
-</p>
-
-<p align="center">
-  <img src=".github/artwork/pocketdash_003.png" width="350">
 </p>
 
 ---
