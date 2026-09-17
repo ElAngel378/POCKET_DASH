@@ -339,26 +339,32 @@ static void draw_selected_level(void) {
 }
 
 // =============================================================================
-// Level Select Banner & Progress Bar Scroll Animation Configuration
+// Level Select Banner & Progress Bar Loose Spring Animation Configuration
 // =============================================================================
-// The scroll effect sweeps the level box and progress bars across the screen,
-// wrapping around with a soft spring overshoot and settle.
-// You can adjust the spring force, duration, and swap timing below:
+// Tunable parameters:
+// - SPRING_ANIM_FRAMES: Total animation length in frames (19 frames ≈ 0.31s at 60 FPS)
+// - SPRING_SWAP_FRAME:  Frame index where banner is offscreen and content swaps (~50ms)
+// - Loose spring trajectory:
+//     * Frames 0..2:   Fast slide-out of old level
+//     * Frame 3:       Offscreen swap to new level
+//     * Frames 4..6:   Fast slide-in from opposite side
+//     * Frames 7..9:   1st Overshoot past center by ~18px
+//     * Frames 10..13: Rebound past center to opposite side by ~8px
+//     * Frames 14..15: 2nd Rebound by ~3px
+//     * Frames 16..18: Settle to 0px
 // =============================================================================
-#define SPRING_ANIM_FRAMES  16  // Total animation length in frames (16 frames ≈ 0.26s at 60fps)
-#define SPRING_SWAP_FRAME   5   // Frame index where banner is completely offscreen
+#define SPRING_ANIM_FRAMES  19
+#define SPRING_SWAP_FRAME   3
 
-// Soft spring curve for scrolling RIGHT (pressing Right / Down)
+// Loose spring curve for scrolling RIGHT (pressing Right / Down)
 // Values represent horizontal pixel offset (SCX) wrapping around 256px.
-// Peak overshoot is soft (+4px past 0), settling gently.
 static const uint8_t scx_table_right[SPRING_ANIM_FRAMES] = {
-    0, 12, 32, 68, 112, 150, 186, 218, 242, 253, 4, 3, 1, 255, 0, 0
+    0, 32, 90, 150, 196, 232, 252, 12, 18, 17, 10, 1, 248, 249, 254, 3, 0, 255, 0
 };
 
-// Soft spring curve for scrolling LEFT (pressing Left / Up)
-// Peak overshoot is soft (-4px / 252 past 0), settling gently.
+// Loose spring curve for scrolling LEFT (pressing Left / Up)
 static const uint8_t scx_table_left[SPRING_ANIM_FRAMES] = {
-    0, 244, 224, 188, 144, 106, 70, 38, 14, 3, 252, 253, 255, 1, 0, 0
+    0, 224, 166, 106, 60, 24, 4, 244, 238, 239, 246, 255, 8, 7, 2, 253, 0, 1, 0
 };
 
 GameState update_new_menu_select_state(void) BANKED {
@@ -426,23 +432,90 @@ GameState update_new_menu_select_state(void) BANKED {
     int8_t anim_dir = 0;
     uint8_t anim_frame = 0;
     uint8_t prev_joy = joypad();
+    uint8_t hold_timer = 0;
 
     while (1) {
         wait_vbl_done();
         SCX_REG = 0;
         LYC_REG = 31;
 
+        // --- Process Joypad Every Single Frame for Instant Responsiveness ---
+        uint8_t joy = joypad();
+        uint8_t pressed = joy & ~prev_joy;
+        prev_joy = joy;
+
+        // Auto-repeat when holding directional buttons for fast list navigation
+        uint8_t repeat = 0;
+        if (joy & (J_RIGHT | J_DOWN | J_LEFT | J_UP)) {
+            hold_timer++;
+            if (hold_timer >= 18 && (hold_timer % 7) == 0) {
+                repeat = 1;
+            }
+        } else {
+            hold_timer = 0;
+        }
+
+        if ((pressed & (J_RIGHT | J_DOWN)) || (repeat && (joy & (J_RIGHT | J_DOWN)))) {
+            // Every button input immediately switches selected level variable!
+            if (selected < MAX_LEVELS - 1) selected++;
+            else selected = 0;
+
+            anim_dir = 1;
+            if (!animating || anim_frame >= SPRING_SWAP_FRAME) {
+                animating = 1;
+                anim_frame = 0;
+            }
+        } else if ((pressed & (J_LEFT | J_UP)) || (repeat && (joy & (J_LEFT | J_UP)))) {
+            // Every button input immediately switches selected level variable!
+            if (selected > 0) selected--;
+            else selected = MAX_LEVELS - 1;
+
+            anim_dir = -1;
+            if (!animating || anim_frame >= SPRING_SWAP_FRAME) {
+                animating = 1;
+                anim_frame = 0;
+            }
+        } else if (pressed & (J_A | J_START)) {
+            // Instant launch: if currently animating, settle graphics immediately
+            if (animating) {
+                animating = 0;
+                level_banner_scx = 0;
+                draw_selected_level();
+                if (_cpu == CGB_TYPE) apply_cgb_palettes(selected);
+            }
+
+            disable_interrupts();
+            remove_LCD(level_select_stat_isr);
+            set_interrupts(VBL_IFLAG | TIM_IFLAG);
+            enable_interrupts();
+            HIDE_SPRITES;
+            for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
+            SCX_REG = 0;
+
+            waitpadup();
+            music_ready = 0;
+            TAC_REG = 0x00;
+            play_sample(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
+            fade_to_black(2);
+            return STATE_PLAY_LEVEL;
+        } else if (pressed & J_B) {
+            disable_interrupts();
+            remove_LCD(level_select_stat_isr);
+            set_interrupts(VBL_IFLAG | TIM_IFLAG);
+            enable_interrupts();
+            HIDE_SPRITES;
+            for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
+            SCX_REG = 0;
+
+            waitpadup();
+            return STATE_MENU;
+        }
+
+        // --- Loose Spring Animation Update ---
         if (animating) {
             anim_frame++;
             if (anim_frame == SPRING_SWAP_FRAME) {
                 // Banner is completely off-screen: update level content seamlessly
-                if (anim_dir > 0) {
-                    if (selected < MAX_LEVELS - 1) selected++;
-                    else selected = 0;
-                } else {
-                    if (selected > 0) selected--;
-                    else selected = MAX_LEVELS - 1;
-                }
                 draw_selected_level();
                 if (_cpu == CGB_TYPE) {
                     apply_cgb_palettes(selected);
@@ -454,49 +527,6 @@ GameState update_new_menu_select_state(void) BANKED {
                 level_banner_scx = 0;
             } else {
                 level_banner_scx = (anim_dir > 0) ? scx_table_right[anim_frame] : scx_table_left[anim_frame];
-            }
-        } else {
-            uint8_t joy = joypad();
-            uint8_t pressed = joy & ~prev_joy;
-            prev_joy = joy;
-
-            if (pressed & (J_RIGHT | J_DOWN)) {
-                animating = 1;
-                anim_dir = 1;
-                anim_frame = 0;
-                level_banner_scx = scx_table_right[0];
-            } else if (pressed & (J_LEFT | J_UP)) {
-                animating = 1;
-                anim_dir = -1;
-                anim_frame = 0;
-                level_banner_scx = scx_table_left[0];
-            } else if (pressed & (J_A | J_START)) {
-                // Teardown STAT ISR before fade
-                disable_interrupts();
-                remove_LCD(level_select_stat_isr);
-                set_interrupts(VBL_IFLAG | TIM_IFLAG);
-                enable_interrupts();
-                HIDE_SPRITES;
-                for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
-                SCX_REG = 0;
-
-                waitpadup();
-                music_ready = 0;
-                TAC_REG = 0x00;
-                play_sample(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
-                fade_to_black(2);
-                return STATE_PLAY_LEVEL;
-            } else if (pressed & J_B) {
-                disable_interrupts();
-                remove_LCD(level_select_stat_isr);
-                set_interrupts(VBL_IFLAG | TIM_IFLAG);
-                enable_interrupts();
-                HIDE_SPRITES;
-                for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
-                SCX_REG = 0;
-
-                waitpadup();
-                return STATE_MENU;
             }
         }
     }
