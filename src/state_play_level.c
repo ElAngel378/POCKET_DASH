@@ -21,5 +21,5 @@ GameState update_play_level_state(void) {
     TAC_REG = 0x04;
     music_ready = 1;
 
-    return STATE_LEVEL_SELECT;
+    return STATE_NEW_MENU_SELECT;
 }

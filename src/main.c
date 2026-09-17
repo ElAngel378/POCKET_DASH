@@ -103,6 +103,9 @@ void main(void) {
       case STATE_LEVEL_SELECT:
         current_state = update_level_select_state();
         break;
+      case STATE_NEW_MENU_SELECT:
+        current_state = update_new_menu_select_state();
+        break;
       case STATE_PLAY_LEVEL:
         current_state = update_play_level_state();
         break;

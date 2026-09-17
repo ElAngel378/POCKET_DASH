@@ -7,12 +7,14 @@
 typedef enum {
     STATE_MENU,
     STATE_LEVEL_SELECT,
+    STATE_NEW_MENU_SELECT,
     STATE_PLAY_LEVEL
 } GameState;
 
 // State functions. Each returns the next state to transition to.
 GameState update_menu_state(void);
 GameState update_level_select_state(void);
+GameState update_new_menu_select_state(void) BANKED;
 GameState update_play_level_state(void);
 
 #endif

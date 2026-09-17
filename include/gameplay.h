@@ -10,6 +10,8 @@ extern uint8_t redraw;
 extern uint8_t selected;
 extern volatile uint8_t current_song_bank;
 
+#define FONT_PUSAB_START 0xD0
+
 void draw_text(uint8_t x, uint8_t y, const char *str) BANKED;
 void setup_menu_font(void) BANKED;
 void draw_levels(void) BANKED;

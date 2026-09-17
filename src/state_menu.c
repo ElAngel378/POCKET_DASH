@@ -218,7 +218,7 @@ GameState update_menu_state(void) {
             HIDE_SPRITES;
             HIDE_WIN;
             for (uint8_t s = 0; s < 13; s++) hide_sprite(s);
-            return STATE_LEVEL_SELECT;
+            return STATE_NEW_MENU_SELECT;
         }
 
         frame_counter++;
