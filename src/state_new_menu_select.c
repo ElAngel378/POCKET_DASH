@@ -177,12 +177,6 @@ static void setup_cgb_attributes(void) {
         // Difficulty Face: Columns 4..5, Rows 6..7 use Palette 4
         fill_bkg_rect(4, 6, 2, 2, 4);
 
-        // Left Navigation Arrow: Column 1, Rows 7..10 use Palette 7 (Pure White Arrow)
-        fill_bkg_rect(1, 7, 1, 4, 7);
-
-        // Right Navigation Arrow: Column 18, Rows 7..10 use Palette 7 (Pure White Arrow)
-        fill_bkg_rect(18, 7, 1, 4, 7);
-
         // Normal Mode bar: Columns 3..16, Rows 11..12 use Palette 2 (Green bar, white text)
         fill_bkg_rect(3, 11, 14, 2, 2);
 
@@ -194,6 +188,56 @@ static void setup_cgb_attributes(void) {
 
         VBK_REG = 0;
     }
+}
+
+extern const unsigned char FontPusab[];
+
+static void setup_menu_select_font(void) {
+    if (_cpu == CGB_TYPE) {
+        set_bkg_data(FONT_PUSAB_START, 39, FontPusab);
+    } else {
+        // On DMG, replace background color 0 with color 1 (Light Gray)
+        // so font background seamlessly blends into box interior tile 0x16.
+        uint8_t tile_buf[16];
+        for (uint8_t t = 0; t < 39; t++) {
+            const uint8_t *src = &FontPusab[t * 16];
+            for (uint8_t r = 0; r < 8; r++) {
+                uint8_t b0 = src[2 * r];
+                uint8_t b1 = src[2 * r + 1];
+                tile_buf[2 * r] = b0 | (uint8_t)(~(b0 | b1));
+                tile_buf[2 * r + 1] = b1;
+            }
+            set_bkg_data(FONT_PUSAB_START + t, 1, tile_buf);
+        }
+    }
+}
+
+static void setup_arrow_sprites(void) {
+    SPRITES_8x8;
+    // Left arrow (4 tiles stacked vertically at screen x=8, y=56 -> OAM x=16, y=72)
+    move_sprite(0, 16, 72); set_sprite_tile(0, 26);
+    move_sprite(1, 16, 80); set_sprite_tile(1, 30);
+    move_sprite(2, 16, 88); set_sprite_tile(2, 32);
+    move_sprite(3, 16, 96); set_sprite_tile(3, 37);
+
+    // Right arrow (4 tiles stacked vertically at screen x=144, y=56 -> OAM x=152, y=72)
+    move_sprite(4, 152, 72); set_sprite_tile(4, 29);
+    move_sprite(5, 152, 80); set_sprite_tile(5, 31);
+    move_sprite(6, 152, 88); set_sprite_tile(6, 36);
+    move_sprite(7, 152, 96); set_sprite_tile(7, 38);
+
+    if (_cpu == CGB_TYPE) {
+        palette_color_t obj_pals[4];
+        obj_pals[0] = RGB8(0, 0, 0);       // Transparent
+        obj_pals[1] = RGB8(255, 255, 255); // Pure White arrow body
+        obj_pals[2] = RGB8(255, 255, 255); // Pure White highlight
+        obj_pals[3] = RGB8(0, 0, 0);       // Black outline
+        set_sprite_palette(0, 1, obj_pals);
+        for (uint8_t s = 0; s < 8; s++) set_sprite_prop(s, 0);
+    } else {
+        OBP0_REG = 0xE0; // Color 1 = White, Color 3 = Black
+    }
+    SHOW_SPRITES;
 }
 
 static uint8_t get_name_length(const char *s) {
@@ -225,11 +269,38 @@ static void draw_menu_text(uint8_t x, uint8_t y, const char *str) {
 static void draw_selected_level(void) {
     // Restore rows 6 and 7 from background map before drawing new text
     set_bkg_tiles(0, 6, 20, 2, &menu_select_bg_map[6 * 20]);
+    // Clear arrow background positions
+    set_bkg_tile_xy(1, 7, 0);
+    set_bkg_tile_xy(18, 7, 0);
 
     // Update difficulty face tiles in VRAM to match the level difficulty
     uint8_t diff = level_difficulties[selected % 11];
-    set_bkg_data(24, 2, &difficulty_face_tiles[diff][0]);
-    set_bkg_data(27, 2, &difficulty_face_tiles[diff][32]);
+    if (_cpu == CGB_TYPE) {
+        set_bkg_data(24, 2, &difficulty_face_tiles[diff][0]);
+        set_bkg_data(27, 2, &difficulty_face_tiles[diff][32]);
+    } else {
+        // On DMG, transform 2BPP bitplanes for solid, high-contrast face graphics:
+        //   Pixel 0 (exterior) -> Color 1 (Light Gray, blends into box background)
+        //   Pixel 1 (face skin) -> Color 2 (Dark Gray, solid head standing out against box)
+        //   Pixel 2 (teeth/eyes/horns) -> Color 0 (Pure White, pops brightly on dark face)
+        //   Pixel 3 (outline/pupils) -> Color 3 (Pitch Black, sharp definition)
+        // Formula: new_b0 = ~(b0 ^ b1), new_b1 = b0
+        uint8_t buf[32];
+        for (uint8_t i = 0; i < 16; i++) {
+            uint8_t b0 = difficulty_face_tiles[diff][2 * i];
+            uint8_t b1 = difficulty_face_tiles[diff][2 * i + 1];
+            buf[2 * i] = (uint8_t)(~(b0 ^ b1));
+            buf[2 * i + 1] = b0;
+        }
+        set_bkg_data(24, 2, buf);
+        for (uint8_t i = 0; i < 16; i++) {
+            uint8_t b0 = difficulty_face_tiles[diff][32 + 2 * i];
+            uint8_t b1 = difficulty_face_tiles[diff][32 + 2 * i + 1];
+            buf[2 * i] = (uint8_t)(~(b0 ^ b1));
+            buf[2 * i + 1] = b0;
+        }
+        set_bkg_data(27, 2, buf);
+    }
 
     const char *name = game_levels[selected]->name;
     uint8_t len = get_name_length(name);
@@ -267,6 +338,29 @@ static void draw_selected_level(void) {
     }
 }
 
+// =============================================================================
+// Level Select Banner & Progress Bar Scroll Animation Configuration
+// =============================================================================
+// The scroll effect sweeps the level box and progress bars across the screen,
+// wrapping around with a soft spring overshoot and settle.
+// You can adjust the spring force, duration, and swap timing below:
+// =============================================================================
+#define SPRING_ANIM_FRAMES  16  // Total animation length in frames (16 frames ≈ 0.26s at 60fps)
+#define SPRING_SWAP_FRAME   5   // Frame index where banner is completely offscreen
+
+// Soft spring curve for scrolling RIGHT (pressing Right / Down)
+// Values represent horizontal pixel offset (SCX) wrapping around 256px.
+// Peak overshoot is soft (+4px past 0), settling gently.
+static const uint8_t scx_table_right[SPRING_ANIM_FRAMES] = {
+    0, 12, 32, 68, 112, 150, 186, 218, 242, 253, 4, 3, 1, 255, 0, 0
+};
+
+// Soft spring curve for scrolling LEFT (pressing Left / Up)
+// Peak overshoot is soft (-4px / 252 past 0), settling gently.
+static const uint8_t scx_table_left[SPRING_ANIM_FRAMES] = {
+    0, 244, 224, 188, 144, 106, 70, 38, 14, 3, 252, 253, 255, 1, 0, 0
+};
+
 GameState update_new_menu_select_state(void) BANKED {
     fade_set_black();
     DISPLAY_OFF;
@@ -280,12 +374,26 @@ GameState update_new_menu_select_state(void) BANKED {
     for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
     HIDE_WIN;
 
+    // Clear entire 32x32 background map so offscreen tiles (cols 20..31) are clean
+    fill_bkg_rect(0, 0, 32, 32, 0);
+    if (_cpu == CGB_TYPE) {
+        VBK_REG = 1;
+        fill_bkg_rect(0, 0, 32, 32, 0);
+        VBK_REG = 0;
+    }
+
     // Load background artwork (both this code and menu_select_bg reside in Bank 22)
     set_bkg_data(0, menu_select_bg_TILE_COUNT, menu_select_bg_tiles);
     set_bkg_tiles(0, 0, 20, 18, menu_select_bg_map);
 
-    // Setup standard Pusab font tiles at FONT_PUSAB_START
-    setup_menu_font();
+    // Clear arrow background tiles (they are now rendered as stationary hardware sprites)
+    for (uint8_t r = 7; r <= 10; r++) {
+        set_bkg_tile_xy(1, r, 0);
+        set_bkg_tile_xy(18, r, 0);
+    }
+
+    // Setup Pusab font tiles (with DMG background fix)
+    setup_menu_select_font();
 
     if (_cpu == CGB_TYPE) {
         setup_cgb_attributes();
@@ -295,49 +403,101 @@ GameState update_new_menu_select_state(void) BANKED {
     BGP_REG = 0xE4;
 
     draw_selected_level();
-    redraw = 0;
+    setup_arrow_sprites();
 
     SHOW_BKG;
     fade_set_black();
     DISPLAY_ON;
     fade_from_black(2);
 
+    // Setup HBlank / STAT scanline split-screen:
+    // Scanlines 0..31: SCX = 0 (top header locked)
+    // Scanlines 32..119: SCX = level_banner_scx (level box + progress bars scrolling)
+    // Scanlines 120..143: SCX = 0 (bottom floor locked)
+    level_banner_scx = 0;
+    disable_interrupts();
+    add_LCD(level_select_stat_isr);
+    STAT_REG |= STATF_LYC;
+    LYC_REG = 31;
+    set_interrupts(VBL_IFLAG | LCD_IFLAG | TIM_IFLAG);
+    enable_interrupts();
+
+    uint8_t animating = 0;
+    int8_t anim_dir = 0;
+    uint8_t anim_frame = 0;
+    uint8_t prev_joy = joypad();
+
     while (1) {
-        if (redraw) {
-            draw_selected_level();
-            apply_cgb_palettes(selected);
-            redraw = 0;
-        }
-
-        uint8_t joy = joypad();
-        if (joy & (J_LEFT | J_UP)) {
-            if (selected > 0) {
-                selected--;
-            } else {
-                selected = MAX_LEVELS - 1;
-            }
-            redraw = 1;
-            waitpadup();
-        } else if (joy & (J_RIGHT | J_DOWN)) {
-            if (selected < MAX_LEVELS - 1) {
-                selected++;
-            } else {
-                selected = 0;
-            }
-            redraw = 1;
-            waitpadup();
-        } else if (joy & (J_A | J_START)) {
-            waitpadup();
-            music_ready = 0;
-            TAC_REG = 0x00;
-            play_sample(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
-            fade_to_black(2);
-            return STATE_PLAY_LEVEL;
-        } else if (joy & J_B) {
-            waitpadup();
-            return STATE_MENU;
-        }
-
         wait_vbl_done();
+        SCX_REG = 0;
+        LYC_REG = 31;
+
+        if (animating) {
+            anim_frame++;
+            if (anim_frame == SPRING_SWAP_FRAME) {
+                // Banner is completely off-screen: update level content seamlessly
+                if (anim_dir > 0) {
+                    if (selected < MAX_LEVELS - 1) selected++;
+                    else selected = 0;
+                } else {
+                    if (selected > 0) selected--;
+                    else selected = MAX_LEVELS - 1;
+                }
+                draw_selected_level();
+                if (_cpu == CGB_TYPE) {
+                    apply_cgb_palettes(selected);
+                }
+            }
+
+            if (anim_frame >= SPRING_ANIM_FRAMES) {
+                animating = 0;
+                level_banner_scx = 0;
+            } else {
+                level_banner_scx = (anim_dir > 0) ? scx_table_right[anim_frame] : scx_table_left[anim_frame];
+            }
+        } else {
+            uint8_t joy = joypad();
+            uint8_t pressed = joy & ~prev_joy;
+            prev_joy = joy;
+
+            if (pressed & (J_RIGHT | J_DOWN)) {
+                animating = 1;
+                anim_dir = 1;
+                anim_frame = 0;
+                level_banner_scx = scx_table_right[0];
+            } else if (pressed & (J_LEFT | J_UP)) {
+                animating = 1;
+                anim_dir = -1;
+                anim_frame = 0;
+                level_banner_scx = scx_table_left[0];
+            } else if (pressed & (J_A | J_START)) {
+                // Teardown STAT ISR before fade
+                disable_interrupts();
+                remove_LCD(level_select_stat_isr);
+                set_interrupts(VBL_IFLAG | TIM_IFLAG);
+                enable_interrupts();
+                HIDE_SPRITES;
+                for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
+                SCX_REG = 0;
+
+                waitpadup();
+                music_ready = 0;
+                TAC_REG = 0x00;
+                play_sample(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
+                fade_to_black(2);
+                return STATE_PLAY_LEVEL;
+            } else if (pressed & J_B) {
+                disable_interrupts();
+                remove_LCD(level_select_stat_isr);
+                set_interrupts(VBL_IFLAG | TIM_IFLAG);
+                enable_interrupts();
+                HIDE_SPRITES;
+                for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
+                SCX_REG = 0;
+
+                waitpadup();
+                return STATE_MENU;
+            }
+        }
     }
 }

@@ -17,4 +17,7 @@ GameState update_level_select_state(void);
 GameState update_new_menu_select_state(void) BANKED;
 GameState update_play_level_state(void);
 
+extern volatile uint8_t level_banner_scx;
+void level_select_stat_isr(void);
+
 #endif

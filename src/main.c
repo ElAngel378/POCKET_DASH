@@ -18,6 +18,18 @@ static uint16_t music_time_acc = 0;
 
 GameState current_state = STATE_MENU;
 
+volatile uint8_t level_banner_scx = 0;
+
+void level_select_stat_isr(void) {
+  if (LYC_REG == 31) {
+    SCX_REG = level_banner_scx;
+    LYC_REG = 119;
+  } else {
+    SCX_REG = 0;
+    LYC_REG = 255;
+  }
+}
+
 #define HUGE_ORDER_CNT     (*((volatile uint8_t *)(&hUGE_mute_mask - 0x1D)))
 #define HUGE_CURRENT_ORDER (*((volatile uint8_t *)(&hUGE_mute_mask + 6)))
 
