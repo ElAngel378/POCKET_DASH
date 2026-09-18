@@ -40,7 +40,7 @@ jobs:
           path: bin/POCKETDASH.gb
 
       - name: Nightly Release
-        if: github.ref == 'refs/heads/Soteris24_Branch'
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: nightly
