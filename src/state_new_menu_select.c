@@ -130,11 +130,11 @@ static void apply_cgb_palettes(palette_color_t bg_col, uint8_t level_idx) {
         palette_color_t box_bg = get_box_tint(bg_col);
         palette_color_t pals[32];
 
-        // Palette 0: Screen Background & Default
-        pals[0] = bg_col;
-        pals[1] = RGB8(84, 216, 0);    // Back button / Stage green accent
-        pals[2] = RGB8(255, 255, 255);  // Pure White
-        pals[3] = RGB8(0, 0, 0);        // Pitch Black
+        // Palette 0: Cyan Top & Bottom Blocks (with 2-tone lighting gradient)
+        pals[0] = bg_col;                        // Color 0: Screen background color
+        pals[1] = RGB8(60, 245, 230);            // Color 1: Light Cyan (Hex #3cf5e6 from GD)
+        pals[2] = RGB8(15, 110, 115);            // Color 2: Dark Cyan / Teal (Hex #0f6e73 from GD)
+        pals[3] = RGB8(0, 0, 0);                 // Color 3: Pitch Black outline
 
         // Palette 1: Center Box & Level Title Text
         // Color 0 is bg_col: seamlessly removes sharp black corners outside the rounded border!
@@ -144,17 +144,17 @@ static void apply_cgb_palettes(palette_color_t bg_col, uint8_t level_idx) {
         pals[6] = RGB8(180, 215, 255);  // Font dropshadow / highlight: Light Sky Blue
         pals[7] = RGB8(255, 255, 255);  // Font letter face & white box border: Pure White
 
-        // Palette 2: Normal Mode Section
-        pals[8] = bg_col;
-        pals[9] = RGB8(84, 216, 0);     // Progress bar fill: Green
-        pals[10] = RGB8(255, 255, 255); // White
-        pals[11] = RGB8(0, 0, 0);       // Black outline
+        // Palette 2: Normal Mode Progress Bar (Body, Caps, Text & Outline)
+        pals[8] = bg_col;               // Color 0: Outside rounded cap
+        pals[9] = RGB8(84, 216, 0);     // Color 1: Progress bar fill: Green
+        pals[10] = RGB8(255, 255, 255); // Color 2: Pure White text face
+        pals[11] = RGB8(0, 0, 0);       // Color 3: Pitch Black bar border & text outline
 
-        // Palette 3: Practice Mode Section
-        pals[12] = bg_col;
-        pals[13] = RGB8(0, 168, 252);   // Progress bar fill: Cyan/Blue
-        pals[14] = RGB8(255, 255, 255); // White
-        pals[15] = RGB8(0, 0, 0);       // Black outline
+        // Palette 3: Practice Mode Progress Bar (Body, Caps, Text & Outline)
+        pals[12] = bg_col;              // Color 0: Outside rounded cap
+        pals[13] = RGB8(0, 168, 252);   // Color 1: Progress bar fill: Cyan/Blue
+        pals[14] = RGB8(255, 255, 255); // Color 2: Pure White text face
+        pals[15] = RGB8(0, 0, 0);       // Color 3: Pitch Black bar border & text outline
 
         // Palette 4: Difficulty Face
         uint8_t diff = level_difficulties[level_idx % 11];
@@ -163,23 +163,23 @@ static void apply_cgb_palettes(palette_color_t bg_col, uint8_t level_idx) {
         pals[18] = RGB8(255, 255, 255);         // Color 2: White eyes / teeth / horns
         pals[19] = RGB8(0, 0, 0);               // Color 3: Black outline / pupils / mouth
 
-        // Palette 5: Top & Bottom Stage Blocks
+        // Palette 5: Back Button & Green Blocks (Top Wings & Bottom Steps)
         pals[20] = bg_col;
-        pals[21] = RGB8(0, 88, 248);    // Stage Blue
-        pals[22] = RGB8(84, 216, 0);    // Stage Green
-        pals[23] = RGB8(0, 0, 0);       // Black outline
+        pals[21] = RGB8(189, 242, 71);    // Color 1: Light Lime Green (Hex #bdf247 from GD)
+        pals[22] = RGB8(67, 156, 24);     // Color 2: Darker Green (Hex #439c18 from GD)
+        pals[23] = RGB8(0, 0, 0);         // Color 3: Pitch Black outline
 
-        // Palette 6: Info (i) Button (Top Right)
-        pals[24] = bg_col;                        // Color 0: Background behind button
-        pals[25] = RGB8(0, 180, 255);             // Color 1: GD Info Sky Blue
-        pals[26] = RGB8(255, 255, 255);           // Color 2: Pure White 'i' symbol
-        pals[27] = RGB8(0, 0, 0);                 // Color 3: Black outline
+        // Palette 6: Headers ("NORMAL" & "PRACTICE") & Default Screen BG
+        pals[24] = bg_col;                        // Color 0: Background behind button & text
+        pals[25] = RGB8(0, 0, 0);                 // Color 1: Pitch Black outline
+        pals[26] = RGB8(180, 215, 255);           // Color 2: Light Sky Blue Pusab highlight
+        pals[27] = RGB8(255, 255, 255);           // Color 3: Pure White text face
 
-        // Palette 7: Navigation Arrows (Left & Right)
-        pals[28] = bg_col;
-        pals[29] = RGB8(255, 255, 255);
-        pals[30] = RGB8(255, 255, 255);
-        pals[31] = RGB8(0, 0, 0);
+        // Palette 7: Info (i) Button (Top Right)
+        pals[28] = bg_col;                        // Color 0: Background behind button
+        pals[29] = RGB8(5, 210, 253);             // Color 1: GD Info Cyan Body
+        pals[30] = RGB8(255, 255, 255);           // Color 2: Pure White 'i' symbol
+        pals[31] = RGB8(0, 0, 0);                 // Color 3: Pitch Black outline
 
         set_bkg_palette(0, 8, pals);
         fade_set_bkg_palette(0, 8, pals);
@@ -189,14 +189,27 @@ static void apply_cgb_palettes(palette_color_t bg_col, uint8_t level_idx) {
 static void setup_cgb_attributes(void) {
     if (_cpu == CGB_TYPE) {
         VBK_REG = 1;
-        // Default: Palette 0 for entire screen
-        fill_bkg_rect(0, 0, 20, 18, 0);
+        // Default: Palette 6 for entire 32x32 screen (Color 0 is bg_col)
+        fill_bkg_rect(0, 0, 32, 32, 6);
 
-        // Top banner: Palette 5 (Stage blocks)
-        fill_bkg_rect(0, 0, 20, 1, 5);
+        // Top banner:
+        // Col 5: Cyan tab (Palette 0)
+        // Cols 6..8: Green wing (Palette 5)
+        // Cols 9..10: Center Cyan block (Palette 0)
+        // Cols 11..13: Green wing (Palette 5)
+        // Col 14: Cyan tab (Palette 0)
+        set_bkg_tile_xy(5, 0, 0);
+        fill_bkg_rect(6, 0, 3, 1, 5);
+        set_bkg_tile_xy(9, 0, 0);
+        set_bkg_tile_xy(10, 0, 0);
+        fill_bkg_rect(11, 0, 3, 1, 5);
+        set_bkg_tile_xy(14, 0, 0);
 
-        // Info (i) button: Columns 17..18, Rows 1..2 use Palette 6 (Vibrant Blue button)
-        fill_bkg_rect(17, 1, 2, 2, 6);
+        // Back button: Columns 1..2, Rows 1..2 use Palette 5 (All Green 3D lighting effect)
+        fill_bkg_rect(1, 1, 2, 2, 5);
+
+        // Info (i) button: Columns 17..18, Rows 1..2 use Palette 7 (Black border, Cyan body, White 'i')
+        fill_bkg_rect(17, 1, 2, 2, 7);
 
         // Center Box: Columns 3..16, Rows 4..9 use Palette 1 (Pitch black box, pure white text)
         fill_bkg_rect(3, 4, 14, 6, 1);
@@ -204,14 +217,32 @@ static void setup_cgb_attributes(void) {
         // Difficulty Face: Columns 4..5, Rows 6..7 use Palette 4
         fill_bkg_rect(4, 6, 2, 2, 4);
 
-        // Normal Mode bar: Columns 3..16, Rows 11..12 use Palette 2 (Green bar, white text)
-        fill_bkg_rect(3, 11, 14, 2, 2);
+        // Normal Mode header: Columns 3..16, Row 11 uses Palette 6 (Pure White Pusab, black outline, sky blue highlight)
+        fill_bkg_rect(3, 11, 14, 1, 6);
 
-        // Practice Mode bar: Columns 3..16, Rows 13..14 use Palette 3 (Blue bar, white text)
-        fill_bkg_rect(3, 13, 14, 2, 3);
+        // Normal Mode bar: Columns 3..16, Row 12 uses Palette 2 (Green fill, black borders & white text)
+        fill_bkg_rect(3, 12, 14, 1, 2);
 
-        // Bottom stage blocks: Rows 16..17 use Palette 5
-        fill_bkg_rect(0, 16, 20, 2, 5);
+        // Practice Mode header: Columns 3..16, Row 13 uses Palette 6 (Pure White Pusab, black outline, sky blue highlight)
+        fill_bkg_rect(3, 13, 14, 1, 6);
+
+        // Practice Mode bar: Columns 3..16, Row 14 uses Palette 3 (Cyan fill, black borders & white text)
+        fill_bkg_rect(3, 14, 14, 1, 3);
+
+        // Bottom stage blocks: Alternating Cyan (Pal 0) and Green (Pal 5) steps
+        // Left corner steps:
+        set_bkg_tile_xy(0, 15, 0); // Palette 0 (Cyan)
+        set_bkg_tile_xy(0, 16, 5); // Palette 5 (Green)
+        set_bkg_tile_xy(0, 17, 0); // Palette 0 (Cyan)
+        set_bkg_tile_xy(1, 17, 5); // Palette 5 (Green)
+        set_bkg_tile_xy(2, 17, 0); // Palette 0 (Cyan)
+
+        // Right corner steps:
+        set_bkg_tile_xy(19, 15, 0); // Palette 0 (Cyan)
+        set_bkg_tile_xy(19, 16, 5); // Palette 5 (Green)
+        set_bkg_tile_xy(19, 17, 0); // Palette 0 (Cyan)
+        set_bkg_tile_xy(18, 17, 5); // Palette 5 (Green)
+        set_bkg_tile_xy(17, 17, 0); // Palette 0 (Cyan)
 
         VBK_REG = 0;
     }
@@ -306,9 +337,27 @@ static void draw_menu_text(uint8_t x, uint8_t y, const char *str) {
     }
 }
 
+// High score percentage for each level (0..100)
+// Ready for save data and gameplay progress tracking
+uint8_t level_progress_normal[11] = {0};
+uint8_t level_progress_practice[11] = {0};
+
+static void update_level_progress_bars(uint8_t level_idx) {
+    uint8_t norm_p = level_progress_normal[level_idx % 11];
+    uint8_t prac_p = level_progress_practice[level_idx % 11];
+
+    // For 0% progress, place the percentage badge tiles (0x2f and 0x30)
+    set_bkg_tile_xy(9, 12, 0x2f);
+    set_bkg_tile_xy(10, 12, 0x30);
+
+    set_bkg_tile_xy(9, 14, 0x2f);
+    set_bkg_tile_xy(10, 14, 0x30);
+}
+
 static void draw_selected_level(void) {
     // Restore rows 6 and 7 from background map before drawing new text
     set_bkg_tiles(0, 6, 20, 2, &menu_select_bg_map[6 * 20]);
+    update_level_progress_bars(selected);
     // Clear arrow background positions
     set_bkg_tile_xy(1, 7, 0);
     set_bkg_tile_xy(18, 7, 0);
@@ -425,7 +474,7 @@ GameState update_new_menu_select_state(void) BANKED {
     fill_bkg_rect(0, 0, 32, 32, 0);
     if (_cpu == CGB_TYPE) {
         VBK_REG = 1;
-        fill_bkg_rect(0, 0, 32, 32, 0);
+        fill_bkg_rect(0, 0, 32, 32, 6);
         VBK_REG = 0;
     }
 
