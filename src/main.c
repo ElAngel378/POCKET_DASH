@@ -23,7 +23,7 @@ volatile uint8_t level_banner_scx = 0;
 void level_select_stat_isr(void) {
   if (LYC_REG == 31) {
     SCX_REG = level_banner_scx;
-    LYC_REG = 119;
+    LYC_REG = 120;
   } else {
     SCX_REG = 0;
     LYC_REG = 255;

@@ -17,19 +17,19 @@ extern uint8_t music_ready;
 extern volatile uint8_t current_song_bank;
 extern const hUGESong_t menuloop;
 
-// Authentic Geometry Dash / Famidash level background colors
+// Accurate official Geometry Dash level background colors (sampled from levelselect)
 static const palette_color_t cgb_level_bg_colors[11] = {
-    RGB8(40, 84, 252),   // 0: Stereo Madness (Famidash Cobalt Blue)
-    RGB8(181, 62, 180),  // 1: Back On Track (Famidash Magenta / Pink)
-    RGB8(0, 180, 40),    // 2: Polargeist (Famidash Lime Green)
-    RGB8(210, 50, 10),   // 3: Dry Out (Famidash Red-Orange)
-    RGB8(80, 30, 160),   // 4: Base After Base (Famidash Indigo / Purple)
-    RGB8(160, 20, 90),   // 5: Cant Let Go (Famidash Dark Magenta)
-    RGB8(0, 140, 230),   // 6: Jumper (Famidash Sky Blue / Cyan)
-    RGB8(200, 30, 20),   // 7: Time Machine (Famidash Crimson / Red)
-    RGB8(145, 75, 10),   // 8: Cycles (Famidash Amber / Brown)
-    RGB8(0, 70, 140),    // 9: xStep (Famidash Navy Blue)
-    RGB8(110, 20, 130)   // 10: Ultimate Destruction (Famidash Deep Violet)
+    RGB8(  0,   0, 255), // 0: Stereo Madness (Pure Cobalt Blue)
+    RGB8(248,   0, 248), // 1: Back On Track (Pure Magenta / Pink)
+    RGB8(248,   0, 122), // 2: Polargeist (Rose / Red-Pink)
+    RGB8(248,   0,   0), // 3: Dry Out (Pure Red)
+    RGB8(248, 120,   0), // 4: Base After Base (Orange)
+    RGB8(248, 248,   0), // 5: Cant Let Go (Bright Golden Yellow)
+    RGB8(  0, 248,   0), // 6: Jumper (Electric Lime Green)
+    RGB8(  0, 248, 248), // 7: Time Machine (Bright Cyan / Teal)
+    RGB8(  0, 122, 248), // 8: Cycles (Dodger Sky Blue)
+    RGB8(130,   0, 255), // 9: xStep (Deep Purple)
+    RGB8(180,   0,   0)  // 10: Ultimate Destruction (Crimson Red / Demon)
 };
 
 static const palette_color_t diff_skin_colors[6] = {
@@ -101,9 +101,35 @@ static const uint8_t difficulty_face_tiles[6][64] = {
     },
 };
 
-static void apply_cgb_palettes(uint8_t level_idx) {
+static inline palette_color_t get_box_tint(palette_color_t c) {
+    uint8_t r = (uint8_t)(((c & 0x1F) * 7) / 31);
+    uint8_t g = (uint8_t)((((c >> 5) & 0x1F) * 7) / 31);
+    uint8_t b = (uint8_t)((((c >> 10) & 0x1F) * 7) / 31);
+    return RGB(r, g, b);
+}
+
+static palette_color_t lerp_color(palette_color_t c1, palette_color_t c2, uint8_t step, uint8_t max_steps) {
+    if (step >= max_steps) return c2;
+    if (step == 0) return c1;
+
+    int16_t r1 = (int16_t)(c1 & 0x1F);
+    int16_t g1 = (int16_t)((c1 >> 5) & 0x1F);
+    int16_t b1 = (int16_t)((c1 >> 10) & 0x1F);
+
+    int16_t r2 = (int16_t)(c2 & 0x1F);
+    int16_t g2 = (int16_t)((c2 >> 5) & 0x1F);
+    int16_t b2 = (int16_t)((c2 >> 10) & 0x1F);
+
+    uint8_t r = (uint8_t)(r1 + ((r2 - r1) * (int16_t)step) / (int16_t)max_steps);
+    uint8_t g = (uint8_t)(g1 + ((g2 - g1) * (int16_t)step) / (int16_t)max_steps);
+    uint8_t b = (uint8_t)(b1 + ((b2 - b1) * (int16_t)step) / (int16_t)max_steps);
+
+    return RGB(r, g, b);
+}
+
+static void apply_cgb_palettes(palette_color_t bg_col, uint8_t level_idx) {
     if (_cpu == CGB_TYPE) {
-        palette_color_t bg_col = cgb_level_bg_colors[level_idx % 11];
+        palette_color_t box_bg = get_box_tint(bg_col);
         palette_color_t pals[32];
 
         // Palette 0: Screen Background & Default
@@ -112,11 +138,13 @@ static void apply_cgb_palettes(uint8_t level_idx) {
         pals[2] = RGB8(255, 255, 255);  // Pure White
         pals[3] = RGB8(0, 0, 0);        // Pitch Black
 
-        // Palette 1: Center Box & Level Title Text (Solid pitch black box, pure white text)
-        pals[4] = RGB8(0, 0, 0);        // Box / font background: PITCH BLACK
-        pals[5] = RGB8(0, 0, 0);        // Box interior: PITCH BLACK
-        pals[6] = RGB8(180, 215, 255);  // Font inner highlight: Light Sky Blue
-        pals[7] = RGB8(255, 255, 255);  // Font letter face: PURE WHITE
+        // Palette 1: Center Box & Level Title Text
+        // Color 0 is bg_col: seamlessly removes sharp black corners outside the rounded border!
+        // Color 1 is box_bg: darker tint of the background color for the box interior!
+        pals[4] = bg_col;               // Outside rounded corners: Screen background color
+        pals[5] = box_bg;               // Box interior: Dark tint of background
+        pals[6] = RGB8(180, 215, 255);  // Font dropshadow / highlight: Light Sky Blue
+        pals[7] = RGB8(255, 255, 255);  // Font letter face & white box border: Pure White
 
         // Palette 2: Normal Mode Section
         pals[8] = bg_col;
@@ -130,12 +158,12 @@ static void apply_cgb_palettes(uint8_t level_idx) {
         pals[14] = RGB8(255, 255, 255); // White
         pals[15] = RGB8(0, 0, 0);       // Black outline
 
-        // Palette 4: Difficulty Face (Dynamic per level difficulty!)
+        // Palette 4: Difficulty Face
         uint8_t diff = level_difficulties[level_idx % 11];
-        pals[16] = RGB8(0, 0, 0);                 // Color 0: Pitch Black (seamless with box)
-        pals[17] = diff_skin_colors[diff];        // Color 1: Skin (Cyan, Green, Orange, Red, Pink, Purple)
-        pals[18] = RGB8(255, 255, 255);           // Color 2: White eyes / teeth / horns
-        pals[19] = RGB8(0, 0, 0);                 // Color 3: Black outline / pupils / mouth
+        pals[16] = box_bg;                      // Color 0: Box interior tint (seamless blend with box interior)
+        pals[17] = diff_skin_colors[diff];      // Color 1: Skin
+        pals[18] = RGB8(255, 255, 255);         // Color 2: White eyes / teeth / horns
+        pals[19] = RGB8(0, 0, 0);               // Color 3: Black outline / pupils / mouth
 
         // Palette 5: Top & Bottom Stage Blocks
         pals[20] = bg_col;
@@ -150,11 +178,12 @@ static void apply_cgb_palettes(uint8_t level_idx) {
         pals[27] = RGB8(0, 0, 0);                 // Color 3: Black outline
 
         // Palette 7: Navigation Arrows (Left & Right)
-        pals[28] = bg_col;                        // Color 0: Background behind arrow
-        pals[29] = RGB8(255, 255, 255);           // Color 1: Pure White arrow body
-        pals[30] = RGB8(255, 255, 255);           // Color 2: Pure White arrow highlight
-        pals[31] = RGB8(0, 0, 0);                 // Color 3: Black outline
+        pals[28] = bg_col;
+        pals[29] = RGB8(255, 255, 255);
+        pals[30] = RGB8(255, 255, 255);
+        pals[31] = RGB8(0, 0, 0);
 
+        set_bkg_palette(0, 8, pals);
         fade_set_bkg_palette(0, 8, pals);
     }
 }
@@ -193,38 +222,51 @@ static void setup_cgb_attributes(void) {
 extern const unsigned char FontPusab[];
 
 static void setup_menu_select_font(void) {
-    if (_cpu == CGB_TYPE) {
-        set_bkg_data(FONT_PUSAB_START, 39, FontPusab);
-    } else {
-        // On DMG, replace background color 0 with color 1 (Light Gray)
-        // so font background seamlessly blends into box interior tile 0x16.
-        uint8_t tile_buf[16];
-        for (uint8_t t = 0; t < 39; t++) {
-            const uint8_t *src = &FontPusab[t * 16];
-            for (uint8_t r = 0; r < 8; r++) {
-                uint8_t b0 = src[2 * r];
-                uint8_t b1 = src[2 * r + 1];
-                tile_buf[2 * r] = b0 | (uint8_t)(~(b0 | b1));
-                tile_buf[2 * r + 1] = b1;
-            }
-            set_bkg_data(FONT_PUSAB_START + t, 1, tile_buf);
+    // Replace background color 0 with color 1 (box interior tint)
+    // so font background seamlessly blends into box interior tile 0x16 on both CGB and DMG.
+    uint8_t tile_buf[16];
+    for (uint8_t t = 0; t < 39; t++) {
+        const uint8_t *src = &FontPusab[t * 16];
+        for (uint8_t r = 0; r < 8; r++) {
+            uint8_t b0 = src[2 * r];
+            uint8_t b1 = src[2 * r + 1];
+            tile_buf[2 * r] = b0 | (uint8_t)(~(b0 | b1));
+            tile_buf[2 * r + 1] = b1;
         }
+        set_bkg_data(FONT_PUSAB_START + t, 1, tile_buf);
     }
 }
 
+// 4 tiles (8x32) generated from arrow.png:
+static const uint8_t arrow_sprite_tiles[64] = {
+    // Tile 0 (top of left arrow)
+    0x01, 0x01, 0x01, 0x01, 0x03, 0x03, 0x03, 0x03, 0x07, 0x05, 0x07, 0x05, 0x0f, 0x09, 0x0f, 0x09,
+    // Tile 1
+    0x1f, 0x11, 0x1f, 0x11, 0x3f, 0x21, 0x3f, 0x21, 0x7f, 0x41, 0x7f, 0x41, 0xff, 0x81, 0xff, 0x81,
+    // Tile 2
+    0xff, 0x81, 0xff, 0x81, 0x7f, 0x41, 0x7f, 0x41, 0x3f, 0x21, 0x3f, 0x21, 0x1f, 0x11, 0x1f, 0x11,
+    // Tile 3 (bottom of left arrow)
+    0x0f, 0x09, 0x0f, 0x09, 0x07, 0x05, 0x07, 0x05, 0x03, 0x03, 0x03, 0x03, 0x01, 0x01, 0x01, 0x01,
+};
+
 static void setup_arrow_sprites(void) {
     SPRITES_8x8;
-    // Left arrow (4 tiles stacked vertically at screen x=8, y=56 -> OAM x=16, y=72)
-    move_sprite(0, 16, 72); set_sprite_tile(0, 26);
-    move_sprite(1, 16, 80); set_sprite_tile(1, 30);
-    move_sprite(2, 16, 88); set_sprite_tile(2, 32);
-    move_sprite(3, 16, 96); set_sprite_tile(3, 37);
+    set_sprite_data(0, 4, arrow_sprite_tiles);
 
-    // Right arrow (4 tiles stacked vertically at screen x=144, y=56 -> OAM x=152, y=72)
-    move_sprite(4, 152, 72); set_sprite_tile(4, 29);
-    move_sprite(5, 152, 80); set_sprite_tile(5, 31);
-    move_sprite(6, 152, 88); set_sprite_tile(6, 36);
-    move_sprite(7, 152, 96); set_sprite_tile(7, 38);
+    // Left arrow (screen x=8, y=56..87 -> OAM x=16, y=72..96)
+    move_sprite(0, 16, 72); set_sprite_tile(0, 0); set_sprite_prop(0, 0);
+    move_sprite(1, 16, 80); set_sprite_tile(1, 1); set_sprite_prop(1, 0);
+    move_sprite(2, 16, 88); set_sprite_tile(2, 2); set_sprite_prop(2, 0);
+    move_sprite(3, 16, 96); set_sprite_tile(3, 3); set_sprite_prop(3, 0);
+
+    // Right arrow (screen x=144, y=56..87 -> OAM x=152, y=72..96, horizontally flipped)
+    move_sprite(4, 152, 72); set_sprite_tile(4, 0); set_sprite_prop(4, S_FLIPX);
+    move_sprite(5, 152, 80); set_sprite_tile(5, 1); set_sprite_prop(5, S_FLIPX);
+    move_sprite(6, 152, 88); set_sprite_tile(6, 2); set_sprite_prop(6, S_FLIPX);
+    move_sprite(7, 152, 96); set_sprite_tile(7, 3); set_sprite_prop(7, S_FLIPX);
+
+    // Hide remaining sprites (8..39) to prevent any leftover gameplay sprites from showing
+    for (uint8_t s = 8; s < 40; s++) hide_sprite(s);
 
     if (_cpu == CGB_TYPE) {
         palette_color_t obj_pals[4];
@@ -233,9 +275,8 @@ static void setup_arrow_sprites(void) {
         obj_pals[2] = RGB8(255, 255, 255); // Pure White highlight
         obj_pals[3] = RGB8(0, 0, 0);       // Black outline
         set_sprite_palette(0, 1, obj_pals);
-        for (uint8_t s = 0; s < 8; s++) set_sprite_prop(s, 0);
     } else {
-        OBP0_REG = 0xE0; // Color 1 = White, Color 3 = Black
+        OBP0_REG = 0xC0; // Color 0 transparent, Color 1/2 white, Color 3 black
     }
     SHOW_SPRITES;
 }
@@ -339,33 +380,38 @@ static void draw_selected_level(void) {
 }
 
 // =============================================================================
-// Level Select Banner & Progress Bar Loose Spring Animation Configuration
+// Level Select Banner & Progress Bar Authentic Geometry Dash Spring Animation
 // =============================================================================
-// Tunable parameters:
-// - SPRING_ANIM_FRAMES: Total animation length in frames (19 frames ≈ 0.31s at 60 FPS)
-// - SPRING_SWAP_FRAME:  Frame index where banner is offscreen and content swaps (~50ms)
-// - Loose spring trajectory:
-//     * Frames 0..2:   Fast slide-out of old level
-//     * Frame 3:       Offscreen swap to new level
-//     * Frames 4..6:   Fast slide-in from opposite side
-//     * Frames 7..9:   1st Overshoot past center by ~18px
-//     * Frames 10..13: Rebound past center to opposite side by ~8px
-//     * Frames 14..15: 2nd Rebound by ~3px
-//     * Frames 16..18: Settle to 0px
+// Derived directly from Geometry Dash level select animation (selectanim.mp4):
+// - Total duration: 37 frames (~0.61s at 60 FPS)
+// - Trajectory:
+//     * Frames 0..3:   Snappy slide-out of previous level
+//     * Frame 4:       Offscreen swap to new level, face & background palette
+//     * Frames 5..9:   New level banner enters from side
+//     * Frames 10..14: Peak 1 Overshoot (~18px past center, touching/overlapping arrow)
+//     * Frames 15..22: Smooth harmonic rebound across center
+//     * Frames 23..27: Peak 2 Rebound (~4px to opposite side)
+//     * Frames 28..36: Gentle easing decay into center rest (0px)
 // =============================================================================
-#define SPRING_ANIM_FRAMES  19
-#define SPRING_SWAP_FRAME   3
+#define SPRING_ANIM_FRAMES  37
+#define SPRING_SWAP_FRAME   4
 
 // Loose spring curve for scrolling RIGHT (pressing Right / Down)
 // Values represent horizontal pixel offset (SCX) wrapping around 256px.
 static const uint8_t scx_table_right[SPRING_ANIM_FRAMES] = {
-    0, 32, 90, 150, 196, 232, 252, 12, 18, 17, 10, 1, 248, 249, 254, 3, 0, 255, 0
+    0, 24, 64, 110, 145, 185, 215, 235, 248, 255, 6, 12, 16, 18, 18,
+    17, 15, 12, 9, 6, 3, 1, 0, 255, 254, 253, 252, 252, 253, 253,
+    254, 254, 255, 255, 0, 0, 0
 };
 
 // Loose spring curve for scrolling LEFT (pressing Left / Up)
 static const uint8_t scx_table_left[SPRING_ANIM_FRAMES] = {
-    0, 224, 166, 106, 60, 24, 4, 244, 238, 239, 246, 255, 8, 7, 2, 253, 0, 1, 0
+    0, 232, 192, 146, 111, 71, 41, 21, 8, 1, 250, 244, 240, 238, 238,
+    239, 241, 244, 247, 250, 253, 255, 0, 1, 2, 3, 4, 4, 3, 3,
+    2, 2, 1, 1, 0, 0, 0
 };
+
+#define COLOR_FADE_MAX 16
 
 GameState update_new_menu_select_state(void) BANKED {
     fade_set_black();
@@ -398,14 +444,19 @@ GameState update_new_menu_select_state(void) BANKED {
         set_bkg_tile_xy(18, r, 0);
     }
 
-    // Setup Pusab font tiles (with DMG background fix)
+    // Setup Pusab font tiles (with background converted to color 1)
     setup_menu_select_font();
+
+    palette_color_t current_bg_color = cgb_level_bg_colors[selected % 11];
+    palette_color_t bg_color_from = current_bg_color;
+    palette_color_t bg_color_to = current_bg_color;
+    uint8_t color_fade_step = COLOR_FADE_MAX;
 
     if (_cpu == CGB_TYPE) {
         setup_cgb_attributes();
-        apply_cgb_palettes(selected);
+        apply_cgb_palettes(current_bg_color, selected);
     }
-    fade_set_dmg_palettes(0xE4, 0xE4, 0xE4);
+    fade_set_dmg_palettes(0xE4, 0xC0, 0xC0);
     BGP_REG = 0xE4;
 
     draw_selected_level();
@@ -418,8 +469,8 @@ GameState update_new_menu_select_state(void) BANKED {
 
     // Setup HBlank / STAT scanline split-screen:
     // Scanlines 0..31: SCX = 0 (top header locked)
-    // Scanlines 32..119: SCX = level_banner_scx (level box + progress bars scrolling)
-    // Scanlines 120..143: SCX = 0 (bottom floor locked)
+    // Scanlines 32..120: SCX = level_banner_scx (level box + progress bars scrolling)
+    // Scanlines 121..143: SCX = 0 (bottom floor locked)
     level_banner_scx = 0;
     disable_interrupts();
     add_LCD(level_select_stat_isr);
@@ -438,6 +489,13 @@ GameState update_new_menu_select_state(void) BANKED {
         wait_vbl_done();
         SCX_REG = 0;
         LYC_REG = 31;
+
+        // --- Smooth Background Color Fade (Accurate to Geometry Dash) ---
+        if (color_fade_step < COLOR_FADE_MAX) {
+            color_fade_step++;
+            current_bg_color = lerp_color(bg_color_from, bg_color_to, color_fade_step, COLOR_FADE_MAX);
+            apply_cgb_palettes(current_bg_color, selected);
+        }
 
         // --- Process Joypad Every Single Frame for Instant Responsiveness ---
         uint8_t joy = joypad();
@@ -460,6 +518,10 @@ GameState update_new_menu_select_state(void) BANKED {
             if (selected < MAX_LEVELS - 1) selected++;
             else selected = 0;
 
+            bg_color_from = current_bg_color;
+            bg_color_to = cgb_level_bg_colors[selected % 11];
+            color_fade_step = 0;
+
             anim_dir = 1;
             if (!animating || anim_frame >= SPRING_SWAP_FRAME) {
                 animating = 1;
@@ -469,6 +531,10 @@ GameState update_new_menu_select_state(void) BANKED {
             // Every button input immediately switches selected level variable!
             if (selected > 0) selected--;
             else selected = MAX_LEVELS - 1;
+
+            bg_color_from = current_bg_color;
+            bg_color_to = cgb_level_bg_colors[selected % 11];
+            color_fade_step = 0;
 
             anim_dir = -1;
             if (!animating || anim_frame >= SPRING_SWAP_FRAME) {
@@ -481,7 +547,7 @@ GameState update_new_menu_select_state(void) BANKED {
                 animating = 0;
                 level_banner_scx = 0;
                 draw_selected_level();
-                if (_cpu == CGB_TYPE) apply_cgb_palettes(selected);
+                if (_cpu == CGB_TYPE) apply_cgb_palettes(bg_color_to, selected);
             }
 
             disable_interrupts();
@@ -518,7 +584,7 @@ GameState update_new_menu_select_state(void) BANKED {
                 // Banner is completely off-screen: update level content seamlessly
                 draw_selected_level();
                 if (_cpu == CGB_TYPE) {
-                    apply_cgb_palettes(selected);
+                    apply_cgb_palettes(current_bg_color, selected);
                 }
             }
 
