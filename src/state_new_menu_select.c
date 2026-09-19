@@ -126,64 +126,47 @@ static palette_color_t lerp_color(palette_color_t c1, palette_color_t c2, uint8_
     return RGB(r, g, b);
 }
 
+static palette_color_t cgb_menu_pals[32] = {
+    0, RGB8(60, 245, 230), RGB8(15, 110, 115), RGB8(0, 0, 0),        // Pal 0: Cyan Top/Bottom
+    0, 0,                  RGB8(180, 215, 255), RGB8(255, 255, 255),  // Pal 1: Center Box
+    0, RGB8(84, 216, 0),   RGB8(255, 255, 255), RGB8(0, 0, 0),        // Pal 2: Normal Bar
+    0, RGB8(0, 168, 252),  RGB8(255, 255, 255), RGB8(0, 0, 0),        // Pal 3: Practice Bar
+    0, 0,                  RGB8(255, 255, 255), RGB8(0, 0, 0),        // Pal 4: Diff Face
+    0, RGB8(189, 242, 71), RGB8(67, 156, 24),  RGB8(0, 0, 0),        // Pal 5: Green Blocks
+    0, RGB8(0, 0, 0),      RGB8(180, 215, 255), RGB8(255, 255, 255),  // Pal 6: Headers & BG
+    0, RGB8(5, 210, 253),  RGB8(255, 255, 255), RGB8(0, 0, 0),        // Pal 7: Info Button
+};
+
 static void apply_cgb_palettes(palette_color_t bg_col, uint8_t level_idx) {
     if (_cpu == CGB_TYPE) {
         palette_color_t box_bg = get_box_tint(bg_col);
-        palette_color_t pals[32];
-
-        // Palette 0: Cyan Top & Bottom Blocks (with 2-tone lighting gradient)
-        pals[0] = bg_col;                        // Color 0: Screen background color
-        pals[1] = RGB8(60, 245, 230);            // Color 1: Light Cyan (Hex #3cf5e6 from GD)
-        pals[2] = RGB8(15, 110, 115);            // Color 2: Dark Cyan / Teal (Hex #0f6e73 from GD)
-        pals[3] = RGB8(0, 0, 0);                 // Color 3: Pitch Black outline
-
-        // Palette 1: Center Box & Level Title Text
-        // Color 0 is bg_col: seamlessly removes sharp black corners outside the rounded border!
-        // Color 1 is box_bg: darker tint of the background color for the box interior!
-        pals[4] = bg_col;               // Outside rounded corners: Screen background color
-        pals[5] = box_bg;               // Box interior: Dark tint of background
-        pals[6] = RGB8(180, 215, 255);  // Font dropshadow / highlight: Light Sky Blue
-        pals[7] = RGB8(255, 255, 255);  // Font letter face & white box border: Pure White
-
-        // Palette 2: Normal Mode Progress Bar (Body, Caps, Text & Outline)
-        pals[8] = bg_col;               // Color 0: Outside rounded cap
-        pals[9] = RGB8(84, 216, 0);     // Color 1: Progress bar fill: Green
-        pals[10] = RGB8(255, 255, 255); // Color 2: Pure White text face
-        pals[11] = RGB8(0, 0, 0);       // Color 3: Pitch Black bar border & text outline
-
-        // Palette 3: Practice Mode Progress Bar (Body, Caps, Text & Outline)
-        pals[12] = bg_col;              // Color 0: Outside rounded cap
-        pals[13] = RGB8(0, 168, 252);   // Color 1: Progress bar fill: Cyan/Blue
-        pals[14] = RGB8(255, 255, 255); // Color 2: Pure White text face
-        pals[15] = RGB8(0, 0, 0);       // Color 3: Pitch Black bar border & text outline
-
-        // Palette 4: Difficulty Face
         uint8_t diff = level_difficulties[level_idx % 11];
-        pals[16] = box_bg;                      // Color 0: Box interior tint (seamless blend with box interior)
-        pals[17] = diff_skin_colors[diff];      // Color 1: Skin
-        pals[18] = RGB8(255, 255, 255);         // Color 2: White eyes / teeth / horns
-        pals[19] = RGB8(0, 0, 0);               // Color 3: Black outline / pupils / mouth
 
-        // Palette 5: Back Button & Green Blocks (Top Wings & Bottom Steps)
-        pals[20] = bg_col;
-        pals[21] = RGB8(189, 242, 71);    // Color 1: Light Lime Green (Hex #bdf247 from GD)
-        pals[22] = RGB8(67, 156, 24);     // Color 2: Darker Green (Hex #439c18 from GD)
-        pals[23] = RGB8(0, 0, 0);         // Color 3: Pitch Black outline
+        cgb_menu_pals[0]  = bg_col;
+        cgb_menu_pals[4]  = bg_col;
+        cgb_menu_pals[5]  = box_bg;
+        cgb_menu_pals[8]  = box_bg;
+        cgb_menu_pals[12] = box_bg;
+        cgb_menu_pals[16] = box_bg;
+        cgb_menu_pals[17] = diff_skin_colors[diff];
+        cgb_menu_pals[20] = bg_col;
+        cgb_menu_pals[24] = bg_col;
+        cgb_menu_pals[28] = bg_col;
 
-        // Palette 6: Headers ("NORMAL" & "PRACTICE") & Default Screen BG
-        pals[24] = bg_col;                        // Color 0: Background behind button & text
-        pals[25] = RGB8(0, 0, 0);                 // Color 1: Pitch Black outline
-        pals[26] = RGB8(180, 215, 255);           // Color 2: Light Sky Blue Pusab highlight
-        pals[27] = RGB8(255, 255, 255);           // Color 3: Pure White text face
+        set_bkg_palette(0, 8, cgb_menu_pals);
 
-        // Palette 7: Info (i) Button (Top Right)
-        pals[28] = bg_col;                        // Color 0: Background behind button
-        pals[29] = RGB8(5, 210, 253);             // Color 1: GD Info Cyan Body
-        pals[30] = RGB8(255, 255, 255);           // Color 2: Pure White 'i' symbol
-        pals[31] = RGB8(0, 0, 0);                 // Color 3: Pitch Black outline
-
-        set_bkg_palette(0, 8, pals);
-        fade_set_bkg_palette(0, 8, pals);
+        palette_color_t cap_pals[8];
+        // OBJ Pal 1 (Normal Bar Caps: 0=trans, 1=green, 2=box_bg, 3=black)
+        cap_pals[0] = RGB8(0, 0, 0);
+        cap_pals[1] = RGB8(84, 216, 0);
+        cap_pals[2] = box_bg;
+        cap_pals[3] = RGB8(0, 0, 0);
+        // OBJ Pal 2 (Practice Bar Caps: 0=trans, 1=cyan, 2=box_bg, 3=black)
+        cap_pals[4] = RGB8(0, 0, 0);
+        cap_pals[5] = RGB8(0, 168, 252);
+        cap_pals[6] = box_bg;
+        cap_pals[7] = RGB8(0, 0, 0);
+        set_sprite_palette(1, 2, cap_pals);
     }
 }
 
@@ -221,14 +204,14 @@ static void setup_cgb_attributes(void) {
         // Normal Mode header: Columns 3..16, Row 11 uses Palette 6 (Pure White Pusab, black outline, sky blue highlight)
         fill_bkg_rect(3, 11, 14, 1, 6);
 
-        // Normal Mode bar: Columns 3..16, Row 12 uses Palette 2 (Green fill, black borders & white text)
-        fill_bkg_rect(3, 12, 14, 1, 2);
+        // Normal Mode bar body: Columns 4..15, Row 12 uses Palette 2 (Green fill, black borders & white text)
+        fill_bkg_rect(4, 12, 12, 1, 2);
 
         // Practice Mode header: Columns 3..16, Row 13 uses Palette 6 (Pure White Pusab, black outline, sky blue highlight)
         fill_bkg_rect(3, 13, 14, 1, 6);
 
-        // Practice Mode bar: Columns 3..16, Row 14 uses Palette 3 (Cyan fill, black borders & white text)
-        fill_bkg_rect(3, 14, 14, 1, 3);
+        // Practice Mode bar body: Columns 4..15, Row 14 uses Palette 3 (Cyan fill, black borders & white text)
+        fill_bkg_rect(4, 14, 12, 1, 3);
 
         // Bottom stage blocks: Alternating Cyan (Pal 0) and Green (Pal 5) steps
         // Left corner steps:
@@ -279,9 +262,30 @@ static const uint8_t arrow_sprite_tiles[64] = {
     0x0f, 0x09, 0x0f, 0x09, 0x07, 0x05, 0x07, 0x05, 0x03, 0x03, 0x03, 0x03, 0x01, 0x01, 0x01, 0x01,
 };
 
+static const uint8_t cap_sprite_tiles[64] = {
+    // Tile 4: Left Cap Empty (0=trans, 2=box_bg, 3=black)
+    0x3f, 0x3f, 0x40, 0x7f, 0x80, 0xff, 0x80, 0xff, 0x80, 0xff, 0x80, 0xff, 0x40, 0x7f, 0x3f, 0x3f,
+    // Tile 5: Left Cap Filled (0=trans, 1=fill, 3=black)
+    0x3f, 0x3f, 0x7f, 0x40, 0xff, 0x80, 0xff, 0x80, 0xff, 0x80, 0xff, 0x80, 0x7f, 0x40, 0x3f, 0x3f,
+    // Tile 6: Right Cap Empty (0=trans, 2=box_bg, 3=black)
+    0xfc, 0xfc, 0x02, 0xfe, 0x01, 0xff, 0x01, 0xff, 0x01, 0xff, 0x01, 0xff, 0x02, 0xfe, 0xfc, 0xfc,
+    // Tile 7: Right Cap Filled (0=trans, 1=fill, 3=black)
+    0xfc, 0xfc, 0xfe, 0x02, 0xff, 0x01, 0xff, 0x01, 0xff, 0x01, 0xff, 0x01, 0xfe, 0x02, 0xfc, 0xfc
+};
+
+static void update_cap_sprite_positions(uint8_t scx) {
+    uint8_t lx = (uint8_t)((uint8_t)(24 - scx) + 8);
+    uint8_t rx = (uint8_t)((uint8_t)(128 - scx) + 8);
+    move_sprite(8, lx, 112);
+    move_sprite(9, rx, 112);
+    move_sprite(10, lx, 128);
+    move_sprite(11, rx, 128);
+}
+
 static void setup_arrow_sprites(void) {
     SPRITES_8x8;
     set_sprite_data(0, 4, arrow_sprite_tiles);
+    set_sprite_data(4, 4, cap_sprite_tiles);
 
     // Left arrow (screen x=8, y=56..87 -> OAM x=16, y=72..96)
     move_sprite(0, 16, 72); set_sprite_tile(0, 0); set_sprite_prop(0, 0);
@@ -295,19 +299,44 @@ static void setup_arrow_sprites(void) {
     move_sprite(6, 152, 88); set_sprite_tile(6, 2); set_sprite_prop(6, S_FLIPX);
     move_sprite(7, 152, 96); set_sprite_tile(7, 3); set_sprite_prop(7, S_FLIPX);
 
-    // Hide remaining sprites (8..39) to prevent any leftover gameplay sprites from showing
-    for (uint8_t s = 8; s < 40; s++) hide_sprite(s);
+    // Progress bar rounded cap sprites (Color 0 transparent -> shows screen bg_col naturally!):
+    // Normal Mode Left/Right Caps: Palette 1
+    move_sprite(8, 32, 112); set_sprite_tile(8, 4); set_sprite_prop(8, 1 | S_PALETTE);
+    move_sprite(9, 136, 112); set_sprite_tile(9, 6); set_sprite_prop(9, 1 | S_PALETTE);
+    // Practice Mode Left/Right Caps: Palette 2
+    move_sprite(10, 32, 128); set_sprite_tile(10, 4); set_sprite_prop(10, 2 | S_PALETTE);
+    move_sprite(11, 136, 128); set_sprite_tile(11, 6); set_sprite_prop(11, 2 | S_PALETTE);
+
+    // Hide remaining sprites (12..39)
+    for (uint8_t s = 12; s < 40; s++) hide_sprite(s);
 
     if (_cpu == CGB_TYPE) {
-        palette_color_t obj_pals[4];
+        palette_color_t obj_pals[12];
+        palette_color_t box_bg = get_box_tint(cgb_level_bg_colors[selected % 9]);
+
+        // Pal 0: Arrows (Pure White arrow body, Black outline)
         obj_pals[0] = RGB8(0, 0, 0);       // Transparent
         obj_pals[1] = RGB8(255, 255, 255); // Pure White arrow body
         obj_pals[2] = RGB8(255, 255, 255); // Pure White highlight
         obj_pals[3] = RGB8(0, 0, 0);       // Black outline
-        set_sprite_palette(0, 1, obj_pals);
-        fade_set_sprite_palette(0, 1, obj_pals);
+
+        // Pal 1: Normal Bar Caps (Green fill, box_bg empty, Black border)
+        obj_pals[4] = RGB8(0, 0, 0);       // Transparent
+        obj_pals[5] = RGB8(84, 216, 0);    // Green
+        obj_pals[6] = box_bg;              // Box interior tint
+        obj_pals[7] = RGB8(0, 0, 0);       // Black border
+
+        // Pal 2: Practice Bar Caps (Cyan fill, box_bg empty, Black border)
+        obj_pals[8] = RGB8(0, 0, 0);       // Transparent
+        obj_pals[9] = RGB8(0, 168, 252);   // Cyan
+        obj_pals[10] = box_bg;             // Box interior tint
+        obj_pals[11] = RGB8(0, 0, 0);      // Black border
+
+        set_sprite_palette(0, 3, obj_pals);
+        fade_set_sprite_palette(0, 3, obj_pals);
     } else {
         OBP0_REG = 0xC0; // Color 0 transparent, Color 1/2 white, Color 3 black
+        OBP1_REG = 0xE4; // Color 0 transparent, Color 1 light gray, Color 2 dark gray, Color 3 black
     }
     SHOW_SPRITES;
 }
@@ -338,16 +367,15 @@ static void draw_menu_text(uint8_t x, uint8_t y, const char *str) {
     }
 }
 
-static void render_progress_bar(uint8_t pct, uint8_t vram_start_tile, uint8_t y_row) {
+static const uint8_t empty_mask_table[9] = {
+    0xff, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01, 0x00
+};
+
+static void render_progress_bar(uint8_t pct, uint8_t vram_start_tile) {
     if (pct > 100) pct = 100;
 
-    // 14 tiles:
-    // Tile 0: Left Cap
-    // Tiles 1..12: Body (12 tiles = 96 pixels)
-    // Tile 13: Right Cap
-    uint8_t tiles_buffer[14 * 16];
+    uint8_t tiles_buffer[12 * 16];
 
-    // Format percentage string: e.g. "0%", "45%", "100%"
     char text[6];
     uint8_t text_len = 0;
     if (pct >= 100) {
@@ -364,110 +392,75 @@ static void render_progress_bar(uint8_t pct, uint8_t vram_start_tile, uint8_t y_
         text_len = 2;
     }
 
-    // Text starting tile in body (0..11):
-    // For len 2: tiles 5 and 6 (Columns 9 and 10) -> exactly centered!
-    // For len 3: tiles 4, 5, 6 (Columns 8, 9, 10)
-    // For len 4: tiles 4, 5, 6, 7 (Columns 8, 9, 10, 11) -> exactly centered!
     uint8_t text_start_body = (text_len == 2) ? 5 : 4;
     uint16_t fill_px = ((uint16_t)pct * 96u) / 100u;
 
-    // Tile 0: Left Cap
-    static const uint8_t left_cap_filled[16] = {
-        0x3f, 0x3f, 0x7f, 0x60, 0xff, 0xc0, 0xff, 0x80, 0xff, 0x80, 0xff, 0xc0, 0x7f, 0x60, 0x3f, 0x3f
-    };
-    static const uint8_t left_cap_empty[16] = {
-        0x3f, 0x3f, 0x60, 0x60, 0xc0, 0xc0, 0x80, 0x80, 0x80, 0x80, 0xc0, 0xc0, 0x60, 0x60, 0x3f, 0x3f
-    };
-    const uint8_t *lcap_src = (pct > 0) ? left_cap_filled : left_cap_empty;
-    for (uint8_t i = 0; i < 16; i++) tiles_buffer[i] = lcap_src[i];
-
-    // Tiles 1..12: Body tiles (body index 0..11)
     for (uint8_t b = 0; b < 12; b++) {
-        uint8_t *t_dst = &tiles_buffer[(b + 1) * 16];
+        uint8_t *t_dst = &tiles_buffer[b * 16];
         uint16_t x_tile_start = (uint16_t)(b * 8);
 
-        int8_t char_idx = -1;
-        if (b >= text_start_body && b < (uint8_t)(text_start_body + text_len)) {
-            char_idx = (int8_t)(b - text_start_body);
+        uint8_t empty_mask;
+        if (fill_px <= x_tile_start) {
+            empty_mask = 0xff;
+        } else if (fill_px >= (uint16_t)(x_tile_start + 8)) {
+            empty_mask = 0x00;
+        } else {
+            empty_mask = empty_mask_table[fill_px - x_tile_start];
         }
 
+        int8_t char_idx = (int8_t)(b - text_start_body);
         const uint8_t *glyph_src = NULL;
-        if (char_idx >= 0) {
+        if (char_idx >= 0 && char_idx < (int8_t)text_len) {
             char c = text[char_idx];
             uint8_t g_idx = (c == '%') ? 1 : (uint8_t)((c - '0') + 3);
             glyph_src = &FontPusab[g_idx * 16];
         }
 
-        // Row 0: Black top border (Color 3)
         t_dst[0] = 0xff;
         t_dst[1] = 0xff;
 
-        // Rows 1..6: Body interior
-        for (uint8_t r = 1; r <= 6; r++) {
-            uint8_t b0 = 0;
-            uint8_t b1 = 0;
-
-            uint8_t gb0 = glyph_src ? glyph_src[2 * r] : 0;
-            uint8_t gb1 = glyph_src ? glyph_src[2 * r + 1] : 0;
-
-            for (uint8_t px = 0; px < 8; px++) {
-                uint8_t bit = (uint8_t)(7 - px);
-                uint8_t color_val = 0;
-
-                if (glyph_src) {
-                    uint8_t gv = (uint8_t)((((gb1 >> bit) & 1) << 1) | ((gb0 >> bit) & 1));
-                    if (gv == 3 || gv == 2) {
-                        color_val = 2; // Pure White text face
-                    } else if (gv == 1) {
-                        color_val = 3; // Pitch Black text outline
-                    } else {
-                        // Background behind text
-                        if ((x_tile_start + px) < fill_px) color_val = 1; // Filled
-                        else color_val = 0; // Empty
-                    }
-                } else {
-                    if ((x_tile_start + px) < fill_px) color_val = 1; // Filled
-                    else color_val = 0; // Empty
-                }
-
-                if (color_val & 1) b0 |= (uint8_t)(1 << bit);
-                if (color_val & 2) b1 |= (uint8_t)(1 << bit);
+        if (glyph_src) {
+            for (uint8_t r = 1; r <= 6; r++) {
+                uint8_t gb0 = glyph_src[2 * r];
+                uint8_t gb1 = glyph_src[2 * r + 1];
+                t_dst[2 * r]     = (uint8_t)((gb0 & (uint8_t)(~gb1)) | ((uint8_t)(~(gb0 | gb1)) & (uint8_t)(~empty_mask)));
+                t_dst[2 * r + 1] = (uint8_t)(gb0 | gb1);
             }
-
-            t_dst[2 * r] = b0;
-            t_dst[2 * r + 1] = b1;
+        } else {
+            for (uint8_t r = 1; r <= 6; r++) {
+                t_dst[2 * r]     = (uint8_t)(~empty_mask);
+                t_dst[2 * r + 1] = 0x00;
+            }
         }
 
-        // Row 7: Black bottom border (Color 3)
         t_dst[14] = 0xff;
         t_dst[15] = 0xff;
     }
 
-    // Tile 13: Right Cap
-    static const uint8_t right_cap_filled[16] = {
-        0xfc, 0xfc, 0xfe, 0x06, 0xff, 0x03, 0xff, 0x01, 0xff, 0x01, 0xff, 0x03, 0xfe, 0x06, 0xfc, 0xfc
-    };
-    static const uint8_t right_cap_empty[16] = {
-        0xfc, 0xfc, 0x06, 0x06, 0x03, 0x03, 0x01, 0x01, 0x01, 0x01, 0x03, 0x03, 0x06, 0x06, 0xfc, 0xfc
-    };
-    const uint8_t *rcap_src = (pct >= 100) ? right_cap_filled : right_cap_empty;
-    for (uint8_t i = 0; i < 16; i++) tiles_buffer[13 * 16 + i] = rcap_src[i];
-
-    // Upload 14 tiles to VRAM at vram_start_tile
-    set_bkg_data(vram_start_tile, 14, tiles_buffer);
-
-    // Update tilemap: row y_row, columns 3..16
-    for (uint8_t c = 0; c < 14; c++) {
-        set_bkg_tile_xy((uint8_t)(3 + c), y_row, (uint8_t)(vram_start_tile + c));
-    }
+    set_bkg_data(vram_start_tile, 12, tiles_buffer);
 }
+
+static uint8_t last_rendered_norm = 0xFF;
+static uint8_t last_rendered_prac = 0xFF;
 
 static void update_level_progress_bars(uint8_t level_idx) {
     uint8_t norm_p = level_progress_normal[level_idx % NUM_SAVE_LEVELS];
     uint8_t prac_p = level_progress_practice[level_idx % NUM_SAVE_LEVELS];
 
-    render_progress_bar(norm_p, 0x50, 12);
-    render_progress_bar(prac_p, 0x60, 14);
+    if (norm_p != last_rendered_norm) {
+        render_progress_bar(norm_p, 0x50);
+        last_rendered_norm = norm_p;
+    }
+    if (prac_p != last_rendered_prac) {
+        render_progress_bar(prac_p, 0x60);
+        last_rendered_prac = prac_p;
+    }
+
+    // Update rounded cap sprite tiles (Left: tile 5 if filled else 4, Right: tile 7 if filled else 6)
+    set_sprite_tile(8, (norm_p > 0) ? 5 : 4);
+    set_sprite_tile(9, (norm_p >= 100) ? 7 : 6);
+    set_sprite_tile(10, (prac_p > 0) ? 5 : 4);
+    set_sprite_tile(11, (prac_p >= 100) ? 7 : 6);
 }
 
 static void draw_selected_level(void) {
@@ -616,12 +609,24 @@ GameState update_new_menu_select_state(void) BANKED {
     if (_cpu == CGB_TYPE) {
         setup_cgb_attributes();
         apply_cgb_palettes(current_bg_color, selected);
+        fade_set_bkg_palette(0, 8, cgb_menu_pals);
     }
     fade_set_dmg_palettes(0xE4, 0xC0, 0xC0);
     BGP_REG = 0xE4;
 
-    draw_selected_level();
+    last_rendered_norm = 0xFF;
+    last_rendered_prac = 0xFF;
+    for (uint8_t c = 0; c < 12; c++) {
+        set_bkg_tile_xy((uint8_t)(4 + c), 12, (uint8_t)(0x50 + c));
+        set_bkg_tile_xy((uint8_t)(4 + c), 14, (uint8_t)(0x60 + c));
+    }
+    set_bkg_tile_xy(3, 12, 0);
+    set_bkg_tile_xy(16, 12, 0);
+    set_bkg_tile_xy(3, 14, 0);
+    set_bkg_tile_xy(16, 14, 0);
+
     setup_arrow_sprites();
+    draw_selected_level();
 
     SHOW_BKG;
     fade_set_black();
@@ -649,14 +654,26 @@ GameState update_new_menu_select_state(void) BANKED {
 
     while (1) {
         wait_vbl_done();
-        SCX_REG = 0;
-        LYC_REG = 31;
 
         // --- Smooth Background Color Fade (Accurate to Geometry Dash) ---
         if (color_fade_step < COLOR_FADE_MAX) {
             color_fade_step++;
             current_bg_color = lerp_color(bg_color_from, bg_color_to, color_fade_step, COLOR_FADE_MAX);
             apply_cgb_palettes(current_bg_color, selected);
+            if (color_fade_step == COLOR_FADE_MAX && _cpu == CGB_TYPE) {
+                fade_set_bkg_palette(0, 8, cgb_menu_pals);
+                palette_color_t box_bg = get_box_tint(current_bg_color);
+                palette_color_t cap_pals[8];
+                cap_pals[0] = RGB8(0, 0, 0);
+                cap_pals[1] = RGB8(84, 216, 0);
+                cap_pals[2] = box_bg;
+                cap_pals[3] = RGB8(0, 0, 0);
+                cap_pals[4] = RGB8(0, 0, 0);
+                cap_pals[5] = RGB8(0, 168, 252);
+                cap_pals[6] = box_bg;
+                cap_pals[7] = RGB8(0, 0, 0);
+                fade_set_sprite_palette(1, 2, cap_pals);
+            }
         }
 
         // --- Process Joypad Every Single Frame for Instant Responsiveness ---
@@ -708,6 +725,7 @@ GameState update_new_menu_select_state(void) BANKED {
             if (animating) {
                 animating = 0;
                 level_banner_scx = 0;
+                update_cap_sprite_positions(0);
                 draw_selected_level();
                 if (_cpu == CGB_TYPE) apply_cgb_palettes(bg_color_to, selected);
             }
@@ -725,6 +743,7 @@ GameState update_new_menu_select_state(void) BANKED {
             music_ready = 0;
             TAC_REG = 0x00;
             play_sample(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
+            if (_cpu == CGB_TYPE) fade_set_bkg_palette(0, 8, cgb_menu_pals);
             fade_to_black(2);
             return STATE_PLAY_LEVEL;
         } else if (pressed & J_B) {
@@ -738,6 +757,7 @@ GameState update_new_menu_select_state(void) BANKED {
             SCX_REG = 0;
 
             waitpadup();
+            if (_cpu == CGB_TYPE) fade_set_bkg_palette(0, 8, cgb_menu_pals);
             return STATE_MENU;
         }
 
@@ -758,6 +778,7 @@ GameState update_new_menu_select_state(void) BANKED {
             } else {
                 level_banner_scx = (anim_dir > 0) ? scx_table_right[anim_frame] : scx_table_left[anim_frame];
             }
+            update_cap_sprite_positions(level_banner_scx);
         }
     }
 }
