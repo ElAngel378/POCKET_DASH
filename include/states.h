@@ -19,5 +19,6 @@ GameState update_play_level_state(void);
 
 extern volatile uint8_t level_banner_scx;
 void level_select_stat_isr(void);
+void level_select_vbl_isr(void);
 
 #endif

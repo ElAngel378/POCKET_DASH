@@ -30,6 +30,11 @@ void level_select_stat_isr(void) {
   }
 }
 
+void level_select_vbl_isr(void) {
+  SCX_REG = 0;
+  LYC_REG = 31;
+}
+
 #define HUGE_ORDER_CNT     (*((volatile uint8_t *)(&hUGE_mute_mask - 0x1D)))
 #define HUGE_CURRENT_ORDER (*((volatile uint8_t *)(&hUGE_mute_mask + 6)))
 

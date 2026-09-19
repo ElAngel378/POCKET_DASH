@@ -18,7 +18,7 @@ extern volatile uint8_t current_song_bank;
 extern const hUGESong_t menuloop;
 
 // Accurate official Geometry Dash level background colors (sampled from levelselect)
-static const palette_color_t cgb_level_bg_colors[11] = {
+static const palette_color_t cgb_level_bg_colors[9] = {
     RGB8(  0,   0, 255), // 0: Stereo Madness (Pure Cobalt Blue)
     RGB8(248,   0, 248), // 1: Back On Track (Pure Magenta / Pink)
     RGB8(248,   0, 122), // 2: Polargeist (Rose / Red-Pink)
@@ -28,8 +28,6 @@ static const palette_color_t cgb_level_bg_colors[11] = {
     RGB8(  0, 248,   0), // 6: Jumper (Electric Lime Green)
     RGB8(  0, 248, 248), // 7: Time Machine (Bright Cyan / Teal)
     RGB8(  0, 122, 248), // 8: Cycles (Dodger Sky Blue)
-    RGB8(130,   0, 255), // 9: xStep (Deep Purple)
-    RGB8(180,   0,   0)  // 10: Ultimate Destruction (Crimson Red / Demon)
 };
 
 static const palette_color_t diff_skin_colors[6] = {
@@ -275,6 +273,7 @@ static void setup_arrow_sprites(void) {
         obj_pals[2] = RGB8(255, 255, 255); // Pure White highlight
         obj_pals[3] = RGB8(0, 0, 0);       // Black outline
         set_sprite_palette(0, 1, obj_pals);
+        fade_set_sprite_palette(0, 1, obj_pals);
     } else {
         OBP0_REG = 0xC0; // Color 0 transparent, Color 1/2 white, Color 3 black
     }
@@ -393,22 +392,18 @@ static void draw_selected_level(void) {
 //     * Frames 23..27: Peak 2 Rebound (~4px to opposite side)
 //     * Frames 28..36: Gentle easing decay into center rest (0px)
 // =============================================================================
-#define SPRING_ANIM_FRAMES  37
+#define SPRING_ANIM_FRAMES  21
 #define SPRING_SWAP_FRAME   4
 
 // Loose spring curve for scrolling RIGHT (pressing Right / Down)
 // Values represent horizontal pixel offset (SCX) wrapping around 256px.
 static const uint8_t scx_table_right[SPRING_ANIM_FRAMES] = {
-    0, 24, 64, 110, 145, 185, 215, 235, 248, 255, 6, 12, 16, 18, 18,
-    17, 15, 12, 9, 6, 3, 1, 0, 255, 254, 253, 252, 252, 253, 253,
-    254, 254, 255, 255, 0, 0, 0
+    0, 35, 80, 120, 145, 180, 215, 242, 254, 6, 14, 18, 17, 13, 7, 0, 253, 251, 253, 255, 0
 };
 
 // Loose spring curve for scrolling LEFT (pressing Left / Up)
 static const uint8_t scx_table_left[SPRING_ANIM_FRAMES] = {
-    0, 232, 192, 146, 111, 71, 41, 21, 8, 1, 250, 244, 240, 238, 238,
-    239, 241, 244, 247, 250, 253, 255, 0, 1, 2, 3, 4, 4, 3, 3,
-    2, 2, 1, 1, 0, 0, 0
+    0, 221, 176, 136, 111, 76, 41, 14, 2, 250, 242, 238, 239, 243, 249, 0, 3, 5, 3, 1, 0
 };
 
 #define COLOR_FADE_MAX 16
@@ -447,7 +442,7 @@ GameState update_new_menu_select_state(void) BANKED {
     // Setup Pusab font tiles (with background converted to color 1)
     setup_menu_select_font();
 
-    palette_color_t current_bg_color = cgb_level_bg_colors[selected % 11];
+    palette_color_t current_bg_color = cgb_level_bg_colors[selected % 9];
     palette_color_t bg_color_from = current_bg_color;
     palette_color_t bg_color_to = current_bg_color;
     uint8_t color_fade_step = COLOR_FADE_MAX;
@@ -473,6 +468,7 @@ GameState update_new_menu_select_state(void) BANKED {
     // Scanlines 121..143: SCX = 0 (bottom floor locked)
     level_banner_scx = 0;
     disable_interrupts();
+    add_VBL(level_select_vbl_isr);
     add_LCD(level_select_stat_isr);
     STAT_REG |= STATF_LYC;
     LYC_REG = 31;
@@ -519,7 +515,7 @@ GameState update_new_menu_select_state(void) BANKED {
             else selected = 0;
 
             bg_color_from = current_bg_color;
-            bg_color_to = cgb_level_bg_colors[selected % 11];
+            bg_color_to = cgb_level_bg_colors[selected % 9];
             color_fade_step = 0;
 
             anim_dir = 1;
@@ -533,7 +529,7 @@ GameState update_new_menu_select_state(void) BANKED {
             else selected = MAX_LEVELS - 1;
 
             bg_color_from = current_bg_color;
-            bg_color_to = cgb_level_bg_colors[selected % 11];
+            bg_color_to = cgb_level_bg_colors[selected % 9];
             color_fade_step = 0;
 
             anim_dir = -1;
@@ -552,6 +548,7 @@ GameState update_new_menu_select_state(void) BANKED {
 
             disable_interrupts();
             remove_LCD(level_select_stat_isr);
+            remove_VBL(level_select_vbl_isr);
             set_interrupts(VBL_IFLAG | TIM_IFLAG);
             enable_interrupts();
             HIDE_SPRITES;
@@ -567,6 +564,7 @@ GameState update_new_menu_select_state(void) BANKED {
         } else if (pressed & J_B) {
             disable_interrupts();
             remove_LCD(level_select_stat_isr);
+            remove_VBL(level_select_vbl_isr);
             set_interrupts(VBL_IFLAG | TIM_IFLAG);
             enable_interrupts();
             HIDE_SPRITES;
