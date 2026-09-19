@@ -19,10 +19,11 @@ static uint16_t music_time_acc = 0;
 GameState current_state = STATE_MENU;
 
 volatile uint8_t level_banner_scx = 0;
+static volatile uint8_t active_banner_scx = 0;
 
 void level_select_stat_isr(void) {
   if (LYC_REG == 31) {
-    SCX_REG = level_banner_scx;
+    SCX_REG = active_banner_scx;
     LYC_REG = 120;
   } else {
     SCX_REG = 0;
@@ -33,6 +34,7 @@ void level_select_stat_isr(void) {
 void level_select_vbl_isr(void) {
   SCX_REG = 0;
   LYC_REG = 31;
+  active_banner_scx = level_banner_scx;
 }
 
 #define HUGE_ORDER_CNT     (*((volatile uint8_t *)(&hUGE_mute_mask - 0x1D)))

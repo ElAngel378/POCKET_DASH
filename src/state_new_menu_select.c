@@ -464,41 +464,43 @@ static void update_level_progress_bars(uint8_t level_idx) {
     set_sprite_tile(11, (prac_p >= 100) ? 7 : 6);
 }
 
-static void draw_selected_level(void) {
-    // Restore rows 6 and 7 from background map before drawing new text
-    set_bkg_tiles(0, 6, 20, 2, &menu_select_bg_map[6 * 20]);
-    update_level_progress_bars(selected);
-    // Clear arrow background positions
-    set_bkg_tile_xy(1, 7, 0);
-    set_bkg_tile_xy(18, 7, 0);
+static uint8_t last_rendered_diff = 0xFF;
 
-    // Update difficulty face tiles in VRAM to match the level difficulty
+static void draw_selected_level(void) {
+    // Clear only the 10 columns of text area on rows 6 and 7 with box interior tile 0x16
+    fill_bkg_rect(6, 6, 10, 2, 0x16);
+    update_level_progress_bars(selected);
+
+    // Update difficulty face tiles in VRAM only if difficulty changed
     uint8_t diff = level_difficulties[selected % 11];
-    if (_cpu == CGB_TYPE) {
-        set_bkg_data(24, 2, &difficulty_face_tiles[diff][0]);
-        set_bkg_data(27, 2, &difficulty_face_tiles[diff][32]);
-    } else {
-        // On DMG, transform 2BPP bitplanes for solid, high-contrast face graphics:
-        //   Pixel 0 (exterior) -> Color 1 (Light Gray, blends into box background)
-        //   Pixel 1 (face skin) -> Color 2 (Dark Gray, solid head standing out against box)
-        //   Pixel 2 (teeth/eyes/horns) -> Color 0 (Pure White, pops brightly on dark face)
-        //   Pixel 3 (outline/pupils) -> Color 3 (Pitch Black, sharp definition)
-        // Formula: new_b0 = ~(b0 ^ b1), new_b1 = b0
-        uint8_t buf[32];
-        for (uint8_t i = 0; i < 16; i++) {
-            uint8_t b0 = difficulty_face_tiles[diff][2 * i];
-            uint8_t b1 = difficulty_face_tiles[diff][2 * i + 1];
-            buf[2 * i] = (uint8_t)(~(b0 ^ b1));
-            buf[2 * i + 1] = b0;
+    if (diff != last_rendered_diff) {
+        if (_cpu == CGB_TYPE) {
+            set_bkg_data(24, 2, &difficulty_face_tiles[diff][0]);
+            set_bkg_data(27, 2, &difficulty_face_tiles[diff][32]);
+        } else {
+            // On DMG, transform 2BPP bitplanes for solid, high-contrast face graphics:
+            //   Pixel 0 (exterior) -> Color 1 (Light Gray, blends into box background)
+            //   Pixel 1 (face skin) -> Color 2 (Dark Gray, solid head standing out against box)
+            //   Pixel 2 (teeth/eyes/horns) -> Color 0 (Pure White, pops brightly on dark face)
+            //   Pixel 3 (outline/pupils) -> Color 3 (Pitch Black, sharp definition)
+            // Formula: new_b0 = ~(b0 ^ b1), new_b1 = b0
+            uint8_t buf[32];
+            for (uint8_t i = 0; i < 16; i++) {
+                uint8_t b0 = difficulty_face_tiles[diff][2 * i];
+                uint8_t b1 = difficulty_face_tiles[diff][2 * i + 1];
+                buf[2 * i] = (uint8_t)(~(b0 ^ b1));
+                buf[2 * i + 1] = b0;
+            }
+            set_bkg_data(24, 2, buf);
+            for (uint8_t i = 0; i < 16; i++) {
+                uint8_t b0 = difficulty_face_tiles[diff][32 + 2 * i];
+                uint8_t b1 = difficulty_face_tiles[diff][32 + 2 * i + 1];
+                buf[2 * i] = (uint8_t)(~(b0 ^ b1));
+                buf[2 * i + 1] = b0;
+            }
+            set_bkg_data(27, 2, buf);
         }
-        set_bkg_data(24, 2, buf);
-        for (uint8_t i = 0; i < 16; i++) {
-            uint8_t b0 = difficulty_face_tiles[diff][32 + 2 * i];
-            uint8_t b1 = difficulty_face_tiles[diff][32 + 2 * i + 1];
-            buf[2 * i] = (uint8_t)(~(b0 ^ b1));
-            buf[2 * i + 1] = b0;
-        }
-        set_bkg_data(27, 2, buf);
+        last_rendered_diff = diff;
     }
 
     const char *name = game_levels[selected]->name;
@@ -617,6 +619,7 @@ GameState update_new_menu_select_state(void) BANKED {
 
     last_rendered_norm = 0xFF;
     last_rendered_prac = 0xFF;
+    last_rendered_diff = 0xFF;
     for (uint8_t c = 0; c < 12; c++) {
         set_bkg_tile_xy((uint8_t)(4 + c), 12, (uint8_t)(0x50 + c));
         set_bkg_tile_xy((uint8_t)(4 + c), 14, (uint8_t)(0x60 + c));
