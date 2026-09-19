@@ -423,8 +423,9 @@ static void render_progress_bar(uint8_t pct, uint8_t vram_start_tile) {
             for (uint8_t r = 1; r <= 6; r++) {
                 uint8_t gb0 = glyph_src[2 * r];
                 uint8_t gb1 = glyph_src[2 * r + 1];
-                t_dst[2 * r]     = (uint8_t)((gb0 & (uint8_t)(~gb1)) | ((uint8_t)(~(gb0 | gb1)) & (uint8_t)(~empty_mask)));
-                t_dst[2 * r + 1] = (uint8_t)(gb0 | gb1);
+                uint8_t glyph_mask = (uint8_t)(gb0 | gb1);
+                t_dst[2 * r]     = (uint8_t)((gb0 ^ gb1) | ((uint8_t)(~glyph_mask) & (uint8_t)(~empty_mask)));
+                t_dst[2 * r + 1] = glyph_mask;
             }
         } else {
             for (uint8_t r = 1; r <= 6; r++) {
@@ -653,8 +654,6 @@ GameState update_new_menu_select_state(void) BANKED {
     uint8_t hold_timer = 0;
 
     while (1) {
-        wait_vbl_done();
-
         // --- Smooth Background Color Fade (Accurate to Geometry Dash) ---
         if (color_fade_step < COLOR_FADE_MAX) {
             color_fade_step++;
@@ -780,5 +779,7 @@ GameState update_new_menu_select_state(void) BANKED {
             }
             update_cap_sprite_positions(level_banner_scx);
         }
+
+        wait_vbl_done();
     }
 }
