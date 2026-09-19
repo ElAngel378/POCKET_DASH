@@ -1247,7 +1247,7 @@ void play_level(uint8_t idx) BANKED {
             final_py = 0;
         }
 
-        // 1. Draw player sprite first at OAM index 0 so it has top hardware priority (always on top of all sprites)
+        // Player sprite
         uint8_t oam_index = 0;
 
         if (end_anim_state != END_ANIM_SHAKE) {
@@ -1282,7 +1282,6 @@ void play_level(uint8_t idx) BANKED {
         if (end_anim_state == END_ANIM_SHAKE) {
             if (end_shake_timer > 0) {
                 end_shake_timer--;
-                // Random shake between -2 and +2 pixels using hardware DIV timer
                 uint8_t r = DIV_REG;
                 cur_shake_x = (int8_t)((r % 5) - 2);
                 cur_shake_y = (int8_t)(((r >> 3) % 5) - 2);
@@ -1294,13 +1293,11 @@ void play_level(uint8_t idx) BANKED {
             }
         }
 
-        // 2. Draw level sprites behind player (shakes in lockstep with BG)
+        // Level sprites
         oam_index = draw_sprites(
             &active_sp, (uint16_t)((int16_t)cam_px + cur_shake_x), (uint16_t)((int16_t)cam_py + cur_shake_y),
             player.reversed, oam_index
         );
-        // Only clear entries that were used by the previous frame but not by
-        // this one. Direct pointer write avoids library call overhead.
         if (oam_index < previous_oam_index) {
             uint8_t *oam_ptr = (uint8_t *)&shadow_OAM[oam_index];
             while (oam_index < previous_oam_index) {
@@ -1317,7 +1314,6 @@ void play_level(uint8_t idx) BANKED {
             vram_slot = (uint8_t)(need_col & 15);
             if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
             
-            // Do the heavy 16-bit math and array formatting BEFORE VBlank starts
             prepare_mt_column(need_col, level_map, level_map_bank, player.reversed);
         }
 
@@ -1327,11 +1323,7 @@ void play_level(uint8_t idx) BANKED {
             apply_idx = 0;
         }
         BGP_REG = bg_pals[apply_idx];
-        // DMG: when apply_idx==3 (bg_pals[3]=0x3F, all colours -> black),
-        // OBP0/OBP1 would also map to all-black, making portal sprites invisible
-        // against the black background.  Lock sprite palettes to bg_pals[0]
-        // (0xE4 = normal shading) for idx 3 only so portals stay visible.
-        // BGP still flashes normally.  CGB ignores OBP registers entirely.
+        // Keep sprites visible on DMG during full-black flash
         if (_cpu != CGB_TYPE && apply_idx == 3) {
             OBP0_REG = bg_pals[0];
             OBP1_REG = bg_pals[0];
@@ -1344,7 +1336,6 @@ void play_level(uint8_t idx) BANKED {
         move_bkg(final_scx, final_scy);
 
         if (needs_render) {
-            // Only execute the actual VRAM writes inside VBlank
             flush_mt_column(vram_slot);
         }
 
@@ -1357,14 +1348,9 @@ void play_level(uint8_t idx) BANKED {
             disable_interrupts();
             DISPLAY_OFF;
 
-            // Restore normal tileset on death.
-            // NOTE: BG tiles share VRAM 8000h-8FFFh with sprite tiles, and the
-            // chr_gb tileset is a full 256 tiles, so this upload wipes the
-            // famidash portal/orb/pad graphics (tiles 112-195) AND the
-            // player/ship/ball tiles (0-15).
+            // Reload tileset and sprite data on respawn
             load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
 
-            // Re-upload ALL sprite tiles afterwards or portals render corrupted on the next attempt.
             set_sprite_data(0, 8, icon1_tiles);
             set_sprite_data(8, 4, ship_tiles);
             set_sprite_data(12, 8, ball_tiles);

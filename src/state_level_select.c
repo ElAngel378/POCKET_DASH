@@ -35,25 +35,25 @@ GameState update_level_select_state(void) {
     DISPLAY_ON;
     fade_from_black(2);
 
+    uint8_t prev_joy = joypad();
     while (1) {
         if (redraw) draw_levels();
 
         uint8_t joy = joypad();
-        if (joy & J_UP) {
+        uint8_t pressed = joy & ~prev_joy;
+        prev_joy = joy;
+
+        if (pressed & J_UP) {
             if (selected > 0) { selected--; redraw = 1; }
-            waitpadup();
-        } else if (joy & J_DOWN) {
+        } else if (pressed & J_DOWN) {
             if (selected < MAX_LEVELS - 1) { selected++; redraw = 1; }
-            waitpadup();
-        } else if (joy & J_A) {
-            waitpadup();
+        } else if (pressed & J_A) {
             music_ready = 0;
             TAC_REG = 0x00;
             play_sample(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
             fade_to_black(2);
             return STATE_PLAY_LEVEL;
-        } else if (joy & J_B) {
-            waitpadup();
+        } else if (pressed & J_B) {
             return STATE_MENU;
         }
 

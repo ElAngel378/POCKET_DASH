@@ -34,7 +34,6 @@ void init_save_system(void) BANKED {
 
         uint8_t chk = calc_checksum((const uint8_t *)&sram[5], NUM_SAVE_LEVELS * 2);
         if (sram[5 + NUM_SAVE_LEVELS * 2] == chk) {
-            // Valid save data found in SRAM!
             for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
                 level_progress_normal[i] = sram[5 + i];
                 level_progress_practice[i] = sram[5 + NUM_SAVE_LEVELS + i];
@@ -46,7 +45,7 @@ void init_save_system(void) BANKED {
         }
     }
 
-    // First boot or invalid save: initialize all to 0
+    // Default to 0 on first boot or corrupt save
     for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
         level_progress_normal[i] = 0;
         level_progress_practice[i] = 0;

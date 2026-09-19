@@ -111,7 +111,7 @@ void main(void) {
 
   init_music_banked(&menuloop, 1, 176);
   current_song_bank = 1;
-  music_ready = 1; // Explicitly ensure music starts
+  music_ready = 1;
   enable_interrupts();
 
   while (1) {

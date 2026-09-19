@@ -18,43 +18,43 @@ extern uint8_t music_ready;
 extern volatile uint8_t current_song_bank;
 extern const hUGESong_t menuloop;
 
-// Accurate official Geometry Dash level background colors (sampled from levelselect)
+// Level background colors
 static const palette_color_t cgb_level_bg_colors[9] = {
-    RGB8(  0,   0, 255), // 0: Stereo Madness (Pure Cobalt Blue)
-    RGB8(248,   0, 248), // 1: Back On Track (Pure Magenta / Pink)
-    RGB8(248,   0, 122), // 2: Polargeist (Rose / Red-Pink)
-    RGB8(248,   0,   0), // 3: Dry Out (Pure Red)
-    RGB8(248, 120,   0), // 4: Base After Base (Orange)
-    RGB8(248, 248,   0), // 5: Cant Let Go (Bright Golden Yellow)
-    RGB8(  0, 248,   0), // 6: Jumper (Electric Lime Green)
-    RGB8(  0, 248, 248), // 7: Time Machine (Bright Cyan / Teal)
-    RGB8(  0, 122, 248), // 8: Cycles (Dodger Sky Blue)
+    RGB8(  0,   0, 255), // Stereo Madness
+    RGB8(248,   0, 248), // Back On Track
+    RGB8(248,   0, 122), // Polargeist
+    RGB8(248,   0,   0), // Dry Out
+    RGB8(248, 120,   0), // Base After Base
+    RGB8(248, 248,   0), // Cant Let Go
+    RGB8(  0, 248,   0), // Jumper
+    RGB8(  0, 248, 248), // Time Machine
+    RGB8(  0, 122, 248), // Cycles
 };
 
 static const palette_color_t diff_skin_colors[6] = {
-    RGB8(0, 190, 255),  // 0: Easy (Sky Blue)
-    RGB8(0, 245, 0),    // 1: Normal (Vibrant Electric Lime Green)
-    RGB8(255, 215, 0),  // 2: Hard (Vibrant Golden Yellow)
-    RGB8(255, 50, 0),   // 3: Harder (Vibrant Red-Orange)
-    RGB8(255, 75, 215), // 4: Insane (Vibrant Hot Pink)
-    RGB8(225, 30, 40)   // 5: Demon (Vibrant Crimson Red)
+    RGB8(0, 190, 255),  // Easy
+    RGB8(0, 245, 0),    // Normal
+    RGB8(255, 215, 0),  // Hard
+    RGB8(255, 50, 0),   // Harder
+    RGB8(255, 75, 215), // Insane
+    RGB8(225, 30, 40)   // Demon
 };
 
 static const uint8_t level_difficulties[11] = {
-    0, // 0: Stereo Madness (Easy)
-    0, // 1: Back On Track (Easy)
-    1, // 2: Polargeist (Normal)
-    1, // 3: Dry Out (Normal)
-    2, // 4: Base After Base (Hard)
-    2, // 5: Cant Let Go (Hard)
-    3, // 6: Jumper (Harder)
-    3, // 7: Time Machine (Harder)
-    3, // 8: Cycles (Harder)
-    4, // 9: xStep (Insane)
-    5  // 10: Ultimate Destruction (Demon)
+    0, // Stereo Madness
+    0, // Back On Track
+    1, // Polargeist
+    1, // Dry Out
+    2, // Base After Base
+    2, // Cant Let Go
+    3, // Jumper
+    3, // Time Machine
+    3, // Cycles
+    4, // xStep
+    5  // Ultimate Destruction
 };
 
-// 6 Difficulty Faces x 4 tiles (16x16 pixels)
+// Difficulty faces (16x16)
 static const uint8_t difficulty_face_tiles[6][64] = {
     // 0: Easy
     {
@@ -156,12 +156,12 @@ static void apply_cgb_palettes(palette_color_t bg_col, uint8_t level_idx) {
         set_bkg_palette(0, 8, cgb_menu_pals);
 
         palette_color_t cap_pals[8];
-        // OBJ Pal 1 (Normal Bar Caps: 0=trans, 1=green, 2=box_bg, 3=black)
+        // Normal Bar Cap Palette
         cap_pals[0] = RGB8(0, 0, 0);
         cap_pals[1] = RGB8(84, 216, 0);
         cap_pals[2] = box_bg;
         cap_pals[3] = RGB8(0, 0, 0);
-        // OBJ Pal 2 (Practice Bar Caps: 0=trans, 1=cyan, 2=box_bg, 3=black)
+        // Practice Bar Cap Palette
         cap_pals[4] = RGB8(0, 0, 0);
         cap_pals[5] = RGB8(0, 168, 252);
         cap_pals[6] = box_bg;
@@ -173,15 +173,9 @@ static void apply_cgb_palettes(palette_color_t bg_col, uint8_t level_idx) {
 static void setup_cgb_attributes(void) {
     if (_cpu == CGB_TYPE) {
         VBK_REG = 1;
-        // Default: Palette 6 for entire 32x32 screen (Color 0 is bg_col)
         fill_bkg_rect(0, 0, 32, 32, 6);
 
-        // Top banner:
-        // Col 5: Cyan tab (Palette 0)
-        // Cols 6..8: Green wing (Palette 5)
-        // Cols 9..10: Center Cyan block (Palette 0)
-        // Cols 11..13: Green wing (Palette 5)
-        // Col 14: Cyan tab (Palette 0)
+        // Top banner attributes
         set_bkg_tile_xy(5, 0, 0);
         fill_bkg_rect(6, 0, 3, 1, 5);
         set_bkg_tile_xy(9, 0, 0);
@@ -189,44 +183,38 @@ static void setup_cgb_attributes(void) {
         fill_bkg_rect(11, 0, 3, 1, 5);
         set_bkg_tile_xy(14, 0, 0);
 
-        // Back button: Columns 1..2, Rows 1..2 use Palette 5 (All Green 3D lighting effect)
+        // Back button
         fill_bkg_rect(1, 1, 2, 2, 5);
 
-        // Info (i) button: Columns 17..18, Rows 1..2 use Palette 7 (Black border, Cyan body, White 'i')
+        // Info button
         fill_bkg_rect(17, 1, 2, 2, 7);
 
-        // Center Box: Columns 3..16, Rows 4..9 use Palette 1 (Pitch black box, pure white text)
+        // Center Box
         fill_bkg_rect(3, 4, 14, 6, 1);
 
-        // Difficulty Face: Columns 4..5, Rows 6..7 use Palette 4
+        // Difficulty Face
         fill_bkg_rect(4, 6, 2, 2, 4);
 
-        // Normal Mode header: Columns 3..16, Row 11 uses Palette 6 (Pure White Pusab, black outline, sky blue highlight)
+        // Normal Mode header & bar
         fill_bkg_rect(3, 11, 14, 1, 6);
-
-        // Normal Mode bar body: Columns 4..15, Row 12 uses Palette 2 (Green fill, black borders & white text)
         fill_bkg_rect(4, 12, 12, 1, 2);
 
-        // Practice Mode header: Columns 3..16, Row 13 uses Palette 6 (Pure White Pusab, black outline, sky blue highlight)
+        // Practice Mode header & bar
         fill_bkg_rect(3, 13, 14, 1, 6);
-
-        // Practice Mode bar body: Columns 4..15, Row 14 uses Palette 3 (Cyan fill, black borders & white text)
         fill_bkg_rect(4, 14, 12, 1, 3);
 
-        // Bottom stage blocks: Alternating Cyan (Pal 0) and Green (Pal 5) steps
-        // Left corner steps:
-        set_bkg_tile_xy(0, 15, 0); // Palette 0 (Cyan)
-        set_bkg_tile_xy(0, 16, 5); // Palette 5 (Green)
-        set_bkg_tile_xy(0, 17, 0); // Palette 0 (Cyan)
-        set_bkg_tile_xy(1, 17, 5); // Palette 5 (Green)
-        set_bkg_tile_xy(2, 17, 0); // Palette 0 (Cyan)
+        // Bottom stage blocks
+        set_bkg_tile_xy(0, 15, 0);
+        set_bkg_tile_xy(0, 16, 5);
+        set_bkg_tile_xy(0, 17, 0);
+        set_bkg_tile_xy(1, 17, 5);
+        set_bkg_tile_xy(2, 17, 0);
 
-        // Right corner steps:
-        set_bkg_tile_xy(19, 15, 0); // Palette 0 (Cyan)
-        set_bkg_tile_xy(19, 16, 5); // Palette 5 (Green)
-        set_bkg_tile_xy(19, 17, 0); // Palette 0 (Cyan)
-        set_bkg_tile_xy(18, 17, 5); // Palette 5 (Green)
-        set_bkg_tile_xy(17, 17, 0); // Palette 0 (Cyan)
+        set_bkg_tile_xy(19, 15, 0);
+        set_bkg_tile_xy(19, 16, 5);
+        set_bkg_tile_xy(19, 17, 0);
+        set_bkg_tile_xy(18, 17, 5);
+        set_bkg_tile_xy(17, 17, 0);
 
         VBK_REG = 0;
     }
@@ -235,8 +223,7 @@ static void setup_cgb_attributes(void) {
 extern const unsigned char FontPusab[];
 
 static void setup_menu_select_font(void) {
-    // Replace background color 0 with color 1 (box interior tint)
-    // so font background seamlessly blends into box interior tile 0x16 on both CGB and DMG.
+    // Remap font background color 0 to color 1 to match box interior
     uint8_t tile_buf[16];
     for (uint8_t t = 0; t < 39; t++) {
         const uint8_t *src = &FontPusab[t * 16];
@@ -287,56 +274,53 @@ static void setup_arrow_sprites(void) {
     set_sprite_data(0, 4, arrow_sprite_tiles);
     set_sprite_data(4, 4, cap_sprite_tiles);
 
-    // Left arrow (screen x=8, y=56..87 -> OAM x=16, y=72..96)
+    // Left arrow
     move_sprite(0, 16, 72); set_sprite_tile(0, 0); set_sprite_prop(0, 0);
     move_sprite(1, 16, 80); set_sprite_tile(1, 1); set_sprite_prop(1, 0);
     move_sprite(2, 16, 88); set_sprite_tile(2, 2); set_sprite_prop(2, 0);
     move_sprite(3, 16, 96); set_sprite_tile(3, 3); set_sprite_prop(3, 0);
 
-    // Right arrow (screen x=144, y=56..87 -> OAM x=152, y=72..96, horizontally flipped)
+    // Right arrow (flipped)
     move_sprite(4, 152, 72); set_sprite_tile(4, 0); set_sprite_prop(4, S_FLIPX);
     move_sprite(5, 152, 80); set_sprite_tile(5, 1); set_sprite_prop(5, S_FLIPX);
     move_sprite(6, 152, 88); set_sprite_tile(6, 2); set_sprite_prop(6, S_FLIPX);
     move_sprite(7, 152, 96); set_sprite_tile(7, 3); set_sprite_prop(7, S_FLIPX);
 
-    // Progress bar rounded cap sprites (Color 0 transparent -> shows screen bg_col naturally!):
-    // Normal Mode Left/Right Caps: Palette 1
+    // Progress bar end caps
     move_sprite(8, 32, 112); set_sprite_tile(8, 4); set_sprite_prop(8, 1 | S_PALETTE);
     move_sprite(9, 136, 112); set_sprite_tile(9, 6); set_sprite_prop(9, 1 | S_PALETTE);
-    // Practice Mode Left/Right Caps: Palette 2
     move_sprite(10, 32, 128); set_sprite_tile(10, 4); set_sprite_prop(10, 2 | S_PALETTE);
     move_sprite(11, 136, 128); set_sprite_tile(11, 6); set_sprite_prop(11, 2 | S_PALETTE);
 
-    // Hide remaining sprites (12..39)
     for (uint8_t s = 12; s < 40; s++) hide_sprite(s);
 
     if (_cpu == CGB_TYPE) {
         palette_color_t obj_pals[12];
         palette_color_t box_bg = get_box_tint(cgb_level_bg_colors[selected % 9]);
 
-        // Pal 0: Arrows (Pure White arrow body, Black outline)
-        obj_pals[0] = RGB8(0, 0, 0);       // Transparent
-        obj_pals[1] = RGB8(255, 255, 255); // Pure White arrow body
-        obj_pals[2] = RGB8(255, 255, 255); // Pure White highlight
-        obj_pals[3] = RGB8(0, 0, 0);       // Black outline
+        // Pal 0: Arrows
+        obj_pals[0] = RGB8(0, 0, 0);
+        obj_pals[1] = RGB8(255, 255, 255);
+        obj_pals[2] = RGB8(255, 255, 255);
+        obj_pals[3] = RGB8(0, 0, 0);
 
-        // Pal 1: Normal Bar Caps (Green fill, box_bg empty, Black border)
-        obj_pals[4] = RGB8(0, 0, 0);       // Transparent
-        obj_pals[5] = RGB8(84, 216, 0);    // Green
-        obj_pals[6] = box_bg;              // Box interior tint
-        obj_pals[7] = RGB8(0, 0, 0);       // Black border
+        // Pal 1: Normal Bar Caps
+        obj_pals[4] = RGB8(0, 0, 0);
+        obj_pals[5] = RGB8(84, 216, 0);
+        obj_pals[6] = box_bg;
+        obj_pals[7] = RGB8(0, 0, 0);
 
-        // Pal 2: Practice Bar Caps (Cyan fill, box_bg empty, Black border)
-        obj_pals[8] = RGB8(0, 0, 0);       // Transparent
-        obj_pals[9] = RGB8(0, 168, 252);   // Cyan
-        obj_pals[10] = box_bg;             // Box interior tint
-        obj_pals[11] = RGB8(0, 0, 0);      // Black border
+        // Pal 2: Practice Bar Caps
+        obj_pals[8] = RGB8(0, 0, 0);
+        obj_pals[9] = RGB8(0, 168, 252);
+        obj_pals[10] = box_bg;
+        obj_pals[11] = RGB8(0, 0, 0);
 
         set_sprite_palette(0, 3, obj_pals);
         fade_set_sprite_palette(0, 3, obj_pals);
     } else {
-        OBP0_REG = 0xC0; // Color 0 transparent, Color 1/2 white, Color 3 black
-        OBP1_REG = 0xE4; // Color 0 transparent, Color 1 light gray, Color 2 dark gray, Color 3 black
+        OBP0_REG = 0xC0;
+        OBP1_REG = 0xE4;
     }
     SHOW_SPRITES;
 }
@@ -478,12 +462,7 @@ static void draw_selected_level(void) {
             set_bkg_data(24, 2, &difficulty_face_tiles[diff][0]);
             set_bkg_data(27, 2, &difficulty_face_tiles[diff][32]);
         } else {
-            // On DMG, transform 2BPP bitplanes for solid, high-contrast face graphics:
-            //   Pixel 0 (exterior) -> Color 1 (Light Gray, blends into box background)
-            //   Pixel 1 (face skin) -> Color 2 (Dark Gray, solid head standing out against box)
-            //   Pixel 2 (teeth/eyes/horns) -> Color 0 (Pure White, pops brightly on dark face)
-            //   Pixel 3 (outline/pupils) -> Color 3 (Pitch Black, sharp definition)
-            // Formula: new_b0 = ~(b0 ^ b1), new_b1 = b0
+            // DMG 2BPP bitplane remap for difficulty face
             uint8_t buf[32];
             for (uint8_t i = 0; i < 16; i++) {
                 uint8_t b0 = difficulty_face_tiles[diff][2 * i];
@@ -507,10 +486,8 @@ static void draw_selected_level(void) {
     uint8_t len = get_name_length(name);
 
     if (len <= 10) {
-        // Single line left-aligned at x=6, y=6
         draw_menu_text(6, 6, name);
     } else {
-        // Find best word split point <= 10
         int8_t split_idx = -1;
         for (int8_t i = 10; i >= 0; i--) {
             if (name[i] == ' ') {
@@ -530,7 +507,7 @@ static void draw_selected_level(void) {
         line1[i] = '\0';
 
         const char *line2 = &name[split_idx];
-        while (*line2 == ' ') line2++; // skip spaces
+        while (*line2 == ' ') line2++;
 
         draw_menu_text(6, 6, line1);
         if (*line2 != '\0') {
@@ -539,30 +516,14 @@ static void draw_selected_level(void) {
     }
 }
 
-// =============================================================================
-// Level Select Banner & Progress Bar Authentic Geometry Dash Spring Animation
-// =============================================================================
-// Derived directly from Geometry Dash level select animation (selectanim.mp4):
-// - Total duration: 37 frames (~0.61s at 60 FPS)
-// - Trajectory:
-//     * Frames 0..3:   Snappy slide-out of previous level
-//     * Frame 4:       Offscreen swap to new level, face & background palette
-//     * Frames 5..9:   New level banner enters from side
-//     * Frames 10..14: Peak 1 Overshoot (~18px past center, touching/overlapping arrow)
-//     * Frames 15..22: Smooth harmonic rebound across center
-//     * Frames 23..27: Peak 2 Rebound (~4px to opposite side)
-//     * Frames 28..36: Gentle easing decay into center rest (0px)
-// =============================================================================
+// Spring animation scroll curves for level select transition
 #define SPRING_ANIM_FRAMES  21
 #define SPRING_SWAP_FRAME   4
 
-// Loose spring curve for scrolling RIGHT (pressing Right / Down)
-// Values represent horizontal pixel offset (SCX) wrapping around 256px.
 static const uint8_t scx_table_right[SPRING_ANIM_FRAMES] = {
     0, 35, 80, 120, 145, 180, 215, 242, 254, 6, 14, 18, 17, 13, 7, 0, 253, 251, 253, 255, 0
 };
 
-// Loose spring curve for scrolling LEFT (pressing Left / Up)
 static const uint8_t scx_table_left[SPRING_ANIM_FRAMES] = {
     0, 221, 176, 136, 111, 76, 41, 14, 2, 250, 242, 238, 239, 243, 249, 0, 3, 5, 3, 1, 0
 };
@@ -574,16 +535,13 @@ GameState update_new_menu_select_state(void) BANKED {
     fade_set_black();
     DISPLAY_OFF;
 
-    // Reset scroll registers
     SCX_REG = 0;
     SCY_REG = 0;
 
-    // Hide any sprites or window leftover from other states
     HIDE_SPRITES;
     for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
     HIDE_WIN;
 
-    // Clear entire 32x32 background map so offscreen tiles (cols 20..31) are clean
     fill_bkg_rect(0, 0, 32, 32, 0);
     if (_cpu == CGB_TYPE) {
         VBK_REG = 1;
@@ -591,17 +549,15 @@ GameState update_new_menu_select_state(void) BANKED {
         VBK_REG = 0;
     }
 
-    // Load background artwork (both this code and menu_select_bg reside in Bank 22)
     set_bkg_data(0, menu_select_bg_TILE_COUNT, menu_select_bg_tiles);
     set_bkg_tiles(0, 0, 20, 18, menu_select_bg_map);
 
-    // Clear arrow background tiles (they are now rendered as stationary hardware sprites)
+    // Clear arrow background tiles (rendered via sprites)
     for (uint8_t r = 7; r <= 10; r++) {
         set_bkg_tile_xy(1, r, 0);
         set_bkg_tile_xy(18, r, 0);
     }
 
-    // Setup Pusab font tiles (with background converted to color 1)
     setup_menu_select_font();
 
     palette_color_t current_bg_color = cgb_level_bg_colors[selected % 9];
@@ -637,10 +593,7 @@ GameState update_new_menu_select_state(void) BANKED {
     DISPLAY_ON;
     fade_from_black(2);
 
-    // Setup HBlank / STAT scanline split-screen:
-    // Scanlines 0..31: SCX = 0 (top header locked)
-    // Scanlines 32..120: SCX = level_banner_scx (level box + progress bars scrolling)
-    // Scanlines 121..143: SCX = 0 (bottom floor locked)
+    // Scanline split: scanlines 32..120 scroll with level banner
     level_banner_scx = 0;
     disable_interrupts();
     add_VBL(level_select_vbl_isr);
@@ -657,7 +610,7 @@ GameState update_new_menu_select_state(void) BANKED {
     uint8_t hold_timer = 0;
 
     while (1) {
-        // --- Smooth Background Color Fade (Accurate to Geometry Dash) ---
+        // Background color fade
         if (color_fade_step < COLOR_FADE_MAX) {
             color_fade_step++;
             current_bg_color = lerp_color(bg_color_from, bg_color_to, color_fade_step, COLOR_FADE_MAX);
@@ -678,12 +631,11 @@ GameState update_new_menu_select_state(void) BANKED {
             }
         }
 
-        // --- Process Joypad Every Single Frame for Instant Responsiveness ---
         uint8_t joy = joypad();
         uint8_t pressed = joy & ~prev_joy;
         prev_joy = joy;
 
-        // Auto-repeat when holding directional buttons for fast list navigation
+        // Auto-repeat when holding directional buttons
         uint8_t repeat = 0;
         if (joy & (J_RIGHT | J_DOWN | J_LEFT | J_UP)) {
             hold_timer++;
@@ -695,7 +647,6 @@ GameState update_new_menu_select_state(void) BANKED {
         }
 
         if ((pressed & (J_RIGHT | J_DOWN)) || (repeat && (joy & (J_RIGHT | J_DOWN)))) {
-            // Every button input immediately switches selected level variable!
             if (selected < MAX_LEVELS - 1) selected++;
             else selected = 0;
 
@@ -709,7 +660,6 @@ GameState update_new_menu_select_state(void) BANKED {
                 anim_frame = 0;
             }
         } else if ((pressed & (J_LEFT | J_UP)) || (repeat && (joy & (J_LEFT | J_UP)))) {
-            // Every button input immediately switches selected level variable!
             if (selected > 0) selected--;
             else selected = MAX_LEVELS - 1;
 
@@ -723,7 +673,6 @@ GameState update_new_menu_select_state(void) BANKED {
                 anim_frame = 0;
             }
         } else if (pressed & (J_A | J_START)) {
-            // Instant launch: if currently animating, settle graphics immediately
             if (animating) {
                 animating = 0;
                 level_banner_scx = 0;
@@ -737,16 +686,15 @@ GameState update_new_menu_select_state(void) BANKED {
             remove_VBL(level_select_vbl_isr);
             set_interrupts(VBL_IFLAG | TIM_IFLAG);
             enable_interrupts();
-            HIDE_SPRITES;
-            for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
             SCX_REG = 0;
 
-            waitpadup();
             music_ready = 0;
             TAC_REG = 0x00;
             play_sample(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
             if (_cpu == CGB_TYPE) fade_set_bkg_palette(0, 8, cgb_menu_pals);
             fade_to_black(2);
+            HIDE_SPRITES;
+            for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
             return STATE_PLAY_LEVEL;
         } else if (pressed & J_B) {
             disable_interrupts();
@@ -758,16 +706,14 @@ GameState update_new_menu_select_state(void) BANKED {
             for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
             SCX_REG = 0;
 
-            waitpadup();
             if (_cpu == CGB_TYPE) fade_set_bkg_palette(0, 8, cgb_menu_pals);
             return STATE_MENU;
         }
 
-        // --- Loose Spring Animation Update ---
+        // Spring animation update
         if (animating) {
             anim_frame++;
             if (anim_frame == SPRING_SWAP_FRAME) {
-                // Banner is completely off-screen: update level content seamlessly
                 draw_selected_level();
                 if (_cpu == CGB_TYPE) {
                     apply_cgb_palettes(current_bg_color, selected);
