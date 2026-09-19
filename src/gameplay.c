@@ -23,6 +23,7 @@
 #include "level_complete_sfx.h"
 #include "fade.h"
 #include "death_effect.h"
+#include "save_manager.h"
 
 extern const uint8_t chr_gb_cgb_tiles[];
 extern const uint8_t chr_gb_cgb_tiles_rev[];
@@ -1037,9 +1038,13 @@ void play_level(uint8_t idx) BANKED {
     sp_cache_reset(&active_sp, &sp_stream_idx);
     while (1) {
         uint8_t joy = joypad();
-        if (joy & J_START) break;
+        if (joy & J_START) {
+            record_level_progress_from_cam(idx, cam_px, max_scroll_px);
+            break;
+        }
 
         if (player.level_complete) {
+            record_level_progress(idx, 100, 0);
             HIDE_SPRITES;
             move_bkg(0, 0);
             disable_interrupts();
@@ -1344,6 +1349,7 @@ void play_level(uint8_t idx) BANKED {
         }
 
         if (died) {
+            record_level_progress_from_cam(idx, cam_px, max_scroll_px);
             play_death_animation(sprite_x_final, (uint8_t)final_py, (uint8_t)scroll_px, (uint8_t)cam_py);
             NR52_REG = 0x80;
             NR51_REG = 0xFF;

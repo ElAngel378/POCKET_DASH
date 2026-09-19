@@ -8,6 +8,7 @@
 #include "fade.h"
 #include "hUGEDriver.h"
 #include "menu_select_bg.h"
+#include "save_manager.h"
 #include <gb/gb.h>
 #include <gb/cgb.h>
 
@@ -337,21 +338,136 @@ static void draw_menu_text(uint8_t x, uint8_t y, const char *str) {
     }
 }
 
-// High score percentage for each level (0..100)
-// Ready for save data and gameplay progress tracking
-uint8_t level_progress_normal[11] = {0};
-uint8_t level_progress_practice[11] = {0};
+static void render_progress_bar(uint8_t pct, uint8_t vram_start_tile, uint8_t y_row) {
+    if (pct > 100) pct = 100;
+
+    // 14 tiles:
+    // Tile 0: Left Cap
+    // Tiles 1..12: Body (12 tiles = 96 pixels)
+    // Tile 13: Right Cap
+    uint8_t tiles_buffer[14 * 16];
+
+    // Format percentage string: e.g. "0%", "45%", "100%"
+    char text[6];
+    uint8_t text_len = 0;
+    if (pct >= 100) {
+        text[0] = '1'; text[1] = '0'; text[2] = '0'; text[3] = '%'; text[4] = '\0';
+        text_len = 4;
+    } else if (pct >= 10) {
+        text[0] = (char)('0' + (pct / 10));
+        text[1] = (char)('0' + (pct % 10));
+        text[2] = '%'; text[3] = '\0';
+        text_len = 3;
+    } else {
+        text[0] = (char)('0' + pct);
+        text[1] = '%'; text[2] = '\0';
+        text_len = 2;
+    }
+
+    // Text starting tile in body (0..11):
+    // For len 2: tiles 5 and 6 (Columns 9 and 10) -> exactly centered!
+    // For len 3: tiles 4, 5, 6 (Columns 8, 9, 10)
+    // For len 4: tiles 4, 5, 6, 7 (Columns 8, 9, 10, 11) -> exactly centered!
+    uint8_t text_start_body = (text_len == 2) ? 5 : 4;
+    uint16_t fill_px = ((uint16_t)pct * 96u) / 100u;
+
+    // Tile 0: Left Cap
+    static const uint8_t left_cap_filled[16] = {
+        0x3f, 0x3f, 0x7f, 0x60, 0xff, 0xc0, 0xff, 0x80, 0xff, 0x80, 0xff, 0xc0, 0x7f, 0x60, 0x3f, 0x3f
+    };
+    static const uint8_t left_cap_empty[16] = {
+        0x3f, 0x3f, 0x60, 0x60, 0xc0, 0xc0, 0x80, 0x80, 0x80, 0x80, 0xc0, 0xc0, 0x60, 0x60, 0x3f, 0x3f
+    };
+    const uint8_t *lcap_src = (pct > 0) ? left_cap_filled : left_cap_empty;
+    for (uint8_t i = 0; i < 16; i++) tiles_buffer[i] = lcap_src[i];
+
+    // Tiles 1..12: Body tiles (body index 0..11)
+    for (uint8_t b = 0; b < 12; b++) {
+        uint8_t *t_dst = &tiles_buffer[(b + 1) * 16];
+        uint16_t x_tile_start = (uint16_t)(b * 8);
+
+        int8_t char_idx = -1;
+        if (b >= text_start_body && b < (uint8_t)(text_start_body + text_len)) {
+            char_idx = (int8_t)(b - text_start_body);
+        }
+
+        const uint8_t *glyph_src = NULL;
+        if (char_idx >= 0) {
+            char c = text[char_idx];
+            uint8_t g_idx = (c == '%') ? 1 : (uint8_t)((c - '0') + 3);
+            glyph_src = &FontPusab[g_idx * 16];
+        }
+
+        // Row 0: Black top border (Color 3)
+        t_dst[0] = 0xff;
+        t_dst[1] = 0xff;
+
+        // Rows 1..6: Body interior
+        for (uint8_t r = 1; r <= 6; r++) {
+            uint8_t b0 = 0;
+            uint8_t b1 = 0;
+
+            uint8_t gb0 = glyph_src ? glyph_src[2 * r] : 0;
+            uint8_t gb1 = glyph_src ? glyph_src[2 * r + 1] : 0;
+
+            for (uint8_t px = 0; px < 8; px++) {
+                uint8_t bit = (uint8_t)(7 - px);
+                uint8_t color_val = 0;
+
+                if (glyph_src) {
+                    uint8_t gv = (uint8_t)((((gb1 >> bit) & 1) << 1) | ((gb0 >> bit) & 1));
+                    if (gv == 3 || gv == 2) {
+                        color_val = 2; // Pure White text face
+                    } else if (gv == 1) {
+                        color_val = 3; // Pitch Black text outline
+                    } else {
+                        // Background behind text
+                        if ((x_tile_start + px) < fill_px) color_val = 1; // Filled
+                        else color_val = 0; // Empty
+                    }
+                } else {
+                    if ((x_tile_start + px) < fill_px) color_val = 1; // Filled
+                    else color_val = 0; // Empty
+                }
+
+                if (color_val & 1) b0 |= (uint8_t)(1 << bit);
+                if (color_val & 2) b1 |= (uint8_t)(1 << bit);
+            }
+
+            t_dst[2 * r] = b0;
+            t_dst[2 * r + 1] = b1;
+        }
+
+        // Row 7: Black bottom border (Color 3)
+        t_dst[14] = 0xff;
+        t_dst[15] = 0xff;
+    }
+
+    // Tile 13: Right Cap
+    static const uint8_t right_cap_filled[16] = {
+        0xfc, 0xfc, 0xfe, 0x06, 0xff, 0x03, 0xff, 0x01, 0xff, 0x01, 0xff, 0x03, 0xfe, 0x06, 0xfc, 0xfc
+    };
+    static const uint8_t right_cap_empty[16] = {
+        0xfc, 0xfc, 0x06, 0x06, 0x03, 0x03, 0x01, 0x01, 0x01, 0x01, 0x03, 0x03, 0x06, 0x06, 0xfc, 0xfc
+    };
+    const uint8_t *rcap_src = (pct >= 100) ? right_cap_filled : right_cap_empty;
+    for (uint8_t i = 0; i < 16; i++) tiles_buffer[13 * 16 + i] = rcap_src[i];
+
+    // Upload 14 tiles to VRAM at vram_start_tile
+    set_bkg_data(vram_start_tile, 14, tiles_buffer);
+
+    // Update tilemap: row y_row, columns 3..16
+    for (uint8_t c = 0; c < 14; c++) {
+        set_bkg_tile_xy((uint8_t)(3 + c), y_row, (uint8_t)(vram_start_tile + c));
+    }
+}
 
 static void update_level_progress_bars(uint8_t level_idx) {
-    uint8_t norm_p = level_progress_normal[level_idx % 11];
-    uint8_t prac_p = level_progress_practice[level_idx % 11];
+    uint8_t norm_p = level_progress_normal[level_idx % NUM_SAVE_LEVELS];
+    uint8_t prac_p = level_progress_practice[level_idx % NUM_SAVE_LEVELS];
 
-    // For 0% progress, place the percentage badge tiles (0x2f and 0x30)
-    set_bkg_tile_xy(9, 12, 0x2f);
-    set_bkg_tile_xy(10, 12, 0x30);
-
-    set_bkg_tile_xy(9, 14, 0x2f);
-    set_bkg_tile_xy(10, 14, 0x30);
+    render_progress_bar(norm_p, 0x50, 12);
+    render_progress_bar(prac_p, 0x60, 14);
 }
 
 static void draw_selected_level(void) {
@@ -458,6 +574,7 @@ static const uint8_t scx_table_left[SPRING_ANIM_FRAMES] = {
 #define COLOR_FADE_MAX 16
 
 GameState update_new_menu_select_state(void) BANKED {
+    init_save_system();
     fade_set_black();
     DISPLAY_OFF;
 
