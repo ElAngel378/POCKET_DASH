@@ -914,6 +914,7 @@ void play_level(uint8_t idx) BANKED {
             // Pause music and mute active sound
             uint8_t saved_music_ready = music_ready;
             music_ready = 0;
+            TAC_REG = 0x00; // Stop hardware timer to prevent music drift/desync
             NR12_REG = 0; NR14_REG = 0x80;
             NR22_REG = 0; NR24_REG = 0x80;
             NR30_REG = 0;
@@ -1021,9 +1022,6 @@ void play_level(uint8_t idx) BANKED {
                         restart_level = 1;
                         break;
                     }
-                } else if (p_pressed & J_SELECT) {
-                    exit_level = 1;
-                    break;
                 }
             }
 
@@ -1034,6 +1032,7 @@ void play_level(uint8_t idx) BANKED {
             if (_cpu == CGB_TYPE) {
                 apply_pause_box_attributes(0);
                 fade_restore_pause_box_palettes();
+                set_sprite_palette(0, 8, gbc_sprite_palettes);
             } else {
                 BGP_REG = saved_bgp;
                 OBP0_REG = saved_obp0;
@@ -1058,11 +1057,17 @@ void play_level(uint8_t idx) BANKED {
 
             NR30_REG = 0x80;
             hUGE_reset_wave();
-            music_ready = saved_music_ready;
 
             wait_vbl_done();
 
             while (joypad() & (J_A | J_START | J_B)) wait_vbl_done();
+
+            // Synchronize music timer on VBLANK to prevent desync
+            TIMA_REG = TMA_REG;
+            IF_REG &= ~TIM_IFLAG;
+            cgb_music_tick = 0;
+            TAC_REG = 0x04;
+            music_ready = saved_music_ready;
 
             prev_joy = joypad();
             if (prev_joy & J_UP) prev_joy |= J_A;
@@ -1088,9 +1093,6 @@ void play_level(uint8_t idx) BANKED {
             break;
         }
 
-        if ((joy & J_SELECT) && !(prev_joy & J_SELECT)) {
-            break;
-        }
         prev_joy = joy;
 
         uint16_t px_prev = cam_px >> 4;

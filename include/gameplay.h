@@ -9,6 +9,7 @@ extern uint8_t music_ready;
 extern uint8_t redraw;
 extern uint8_t selected;
 extern volatile uint8_t current_song_bank;
+extern volatile uint8_t cgb_music_tick;
 
 #define FONT_PUSAB_START 0xD0
 

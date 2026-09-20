@@ -13,7 +13,7 @@ uint8_t redraw = 1;
 uint8_t selected = 0;
 volatile uint8_t current_song_bank = 0;
 volatile uint8_t current_music_divider = 176;
-static uint8_t cgb_music_tick = 0;
+volatile uint8_t cgb_music_tick = 0;
 static uint16_t music_time_acc = 0;
 
 GameState current_state = STATE_MENU;
