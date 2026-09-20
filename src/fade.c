@@ -145,7 +145,7 @@ void fade_apply_pause_box_palettes(void) BANKED {
         palette_color_t temp_bkg[16];
         uint8_t i;
         for (i = 0; i < 16; i++) {
-            temp_bkg[i] = dim_color(shadow_bkg_palettes[i], 3);
+            temp_bkg[i] = dim_color(shadow_bkg_palettes[i], 1);
         }
         set_bkg_palette(4, 4, temp_bkg);
     }
