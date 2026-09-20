@@ -899,13 +899,13 @@ void play_level(uint8_t idx) BANKED {
             if (_cpu == CGB_TYPE) {
                 fade_apply_pause_tint();
                 static const palette_color_t pause_pal[4] = {
-                    RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(255, 255, 255), RGB8(0, 0, 0)
+                    RGB8(0, 0, 0), RGB8(0, 0, 0), RGB8(180, 215, 255), RGB8(255, 255, 255)
                 };
                 set_sprite_palette(7, 1, pause_pal);
             } else {
                 BGP_REG = dim_dmg_byte(saved_bgp, 1);
                 OBP0_REG = dim_dmg_byte(saved_obp0, 1);
-                OBP1_REG = 0xC0;
+                OBP1_REG = 0x1C;
             }
 
             // Draw "Paused" label centered at top
@@ -919,14 +919,22 @@ void play_level(uint8_t idx) BANKED {
             }
             wait_vbl_done();
 
-            while (joypad() & J_START) wait_vbl_done();
+            uint8_t exit_level = 0;
+            while (joypad() & (J_START | J_SELECT)) wait_vbl_done();
 
             while (1) {
                 wait_vbl_done();
-                if (joypad() & J_START) break;
+                uint8_t p_joy = joypad();
+                if (p_joy & J_START) {
+                    while (joypad() & J_START) wait_vbl_done();
+                    break;
+                }
+                if (p_joy & J_SELECT) {
+                    while (joypad() & J_SELECT) wait_vbl_done();
+                    exit_level = 1;
+                    break;
+                }
             }
-
-            while (joypad() & J_START) wait_vbl_done();
 
             for (uint8_t i = 0; i < 6; i++) {
                 shadow_OAM[34 + i] = saved_pause_oam[i];
@@ -938,6 +946,10 @@ void play_level(uint8_t idx) BANKED {
                 BGP_REG = saved_bgp;
                 OBP0_REG = saved_obp0;
                 OBP1_REG = saved_obp1;
+            }
+
+            if (exit_level) {
+                break;
             }
 
             NR30_REG = 0x80;
@@ -971,7 +983,7 @@ void play_level(uint8_t idx) BANKED {
         }
 
         if ((joy & J_SELECT) && !(prev_joy & J_SELECT)) {
-            reduce_flash = !reduce_flash;
+            break;
         }
         prev_joy = joy;
 
