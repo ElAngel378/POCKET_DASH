@@ -6,12 +6,6 @@
 
 #include "famidash_sprites.h"
 
-INCBIN(famidash_sprites_tiles, "levels/chr_data/famidash/famidash_sprites_dmg_tiles.bin")
-INCBIN_EXTERN(famidash_sprites_tiles)
-
-INCBIN(famidash_deco_tiles, "levels/chr_data/famidash/famidash_deco_cgb_tiles.bin")
-INCBIN_EXTERN(famidash_deco_tiles)
-
 #define P0 S_PAL(0)
 #define P1 S_PAL(1)
 #define P2 S_PAL(2)

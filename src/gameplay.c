@@ -161,12 +161,6 @@ static const uint16_t vibrant_palette_default[16] = {
     RGB(0, 7, 19), RGB(0, 0, 17), RGB(0, 0, 0), RGB(0, 0, 0)  // palette 3
 };
 
-static const uint8_t level_sprite_cost_table[38] = {
-    9, 9, 0, 0, 0, 2, 2, 0, 9, 9, 2, 2, 2, 2, 2,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    2
-};
-
 static palette_color_t famidash_bg_palettes[16];
 
 static palette_color_t famidash_darker(palette_color_t color) {
@@ -219,16 +213,9 @@ static void famidash_apply_g_trigger(uint8_t color_id) {
     fade_set_bkg_palette(1, 1, &famidash_bg_palettes[4]);
 }
 
-static const uint8_t is_dmg_portal[128] = {
-    1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0,
-    1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0
-};
+static inline uint8_t is_dmg_portal(uint8_t o) {
+    return (o <= 2) || (o == 8) || (o == 9) || (o >= 16 && o <= 19) || (o == 121) || (o == 126);
+}
 static uint8_t sp_has_portals = 0;
 
 void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) {
@@ -251,7 +238,7 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
             // DMG: If already activated and not a portal, prune immediately so it frees cache space
             if (_cpu != CGB_TYPE && cache->activated[i]) {
                 uint8_t o = cache->obj[i];
-                if (o >= 128 || !is_dmg_portal[o]) continue;
+                if (o >= 128 || !is_dmg_portal(o)) continue;
             }
             if (cache->px[i] + 48u >= cam_px) {
                 if (count != i) {
@@ -273,7 +260,7 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
         if (!cache->active[i]) break;
         uint8_t o = cache->obj[i];
-        if (o < 128 && is_dmg_portal[o]) {
+        if (o < 128 && is_dmg_portal(o)) {
             sp_has_portals = 1;
             break;
         }
@@ -293,146 +280,6 @@ static uint8_t draw_oam_2x1(const metasprite_t* meta, uint8_t tile_base, uint8_t
         *oam++ = sy; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX;
     }
     return 2;
-}
-
-static uint8_t draw_oam_2x2(uint8_t tile_base, uint8_t oam_idx,
-                            uint8_t sx, uint8_t sy, uint8_t reversed) __naked {
-__asm
-    ; Build &shadow_OAM[oam_idx] while preserving tile_base in A.
-    push    af
-    xor     a
-    ld      l, e
-    ld      h, a
-    add     hl, hl
-    add     hl, hl
-    ld      de, #_shadow_OAM
-    add     hl, de
-    pop     af
-    ld      e, a                   ; E = tile_base
-
-    ; Save the OAM pointer while reading the stack arguments.
-    ; Stack after PUSH HL: saved OAM pointer, return address, sx, sy, reversed.
-    push    hl
-    ldhl    sp, #4
-    ld      b, (hl)                ; B = sx
-    inc     hl
-    ld      c, (hl)                ; C = sy
-    inc     hl
-    ld      a, (hl)
-    pop     hl                     ; Restore the OAM pointer.
-    or      a
-    jr      NZ, 00102$
-
-    ; Normal order: top-left, top-right, bottom-left, bottom-right.
-    ld      (hl), c
-    inc     hl
-    ld      (hl), b
-    inc     hl
-    ld      a, e
-    ld      (hl), a
-    inc     hl
-    ld      (hl), #3
-    inc     hl
-
-    ld      (hl), c
-    inc     hl
-    ld      a, b
-    add     #8
-    ld      (hl), a
-    inc     hl
-    ld      a, e
-    add     #2
-    ld      (hl), a
-    inc     hl
-    ld      (hl), #3
-    inc     hl
-
-    ld      a, c
-    add     #16
-    ld      (hl), a
-    inc     hl
-    ld      (hl), b
-    inc     hl
-    ld      a, e
-    add     #4
-    ld      (hl), a
-    inc     hl
-    ld      (hl), #3
-    inc     hl
-
-    ld      a, c
-    add     #16
-    ld      (hl), a
-    inc     hl
-    ld      a, b
-    add     #8
-    ld      (hl), a
-    inc     hl
-    ld      a, e
-    add     #6
-    ld      (hl), a
-    inc     hl
-    ld      (hl), #3
-    jr      00103$
-
-00102$:
-    ; Mirror order: reverse columns and set horizontal flip.
-    ld      (hl), c
-    inc     hl
-    ld      a, b
-    add     #8
-    ld      (hl), a
-    inc     hl
-    ld      a, e
-    ld      (hl), a
-    inc     hl
-    ld      (hl), #0x23
-    inc     hl
-
-    ld      (hl), c
-    inc     hl
-    ld      (hl), b
-    inc     hl
-    ld      a, e
-    add     #2
-    ld      (hl), a
-    inc     hl
-    ld      (hl), #0x23
-    inc     hl
-
-    ld      a, c
-    add     #16
-    ld      (hl), a
-    inc     hl
-    ld      a, b
-    add     #8
-    ld      (hl), a
-    inc     hl
-    ld      a, e
-    add     #4
-    ld      (hl), a
-    inc     hl
-    ld      (hl), #0x23
-    inc     hl
-
-    ld      a, c
-    add     #16
-    ld      (hl), a
-    inc     hl
-    ld      (hl), b
-    inc     hl
-    ld      a, e
-    add     #6
-    ld      (hl), a
-    inc     hl
-    ld      (hl), #0x23
-
-00103$:
-    ld      a, #4
-    pop     hl                     ; Return address
-    add     sp, #3                 ; sy, sx, reversed
-    jp      (hl)
-__endasm;
 }
 
 // 2x3 metasprite (gravity portals)
@@ -819,7 +666,7 @@ static uint8_t draw_sprites(
         uint8_t obj = cache->obj[i];
         if (obj == OBJ_LEVEL_END || obj >= 128) continue;
 
-        if (_cpu != CGB_TYPE && (obj >= 128 || !is_dmg_portal[obj])) continue;
+        if (_cpu != CGB_TYPE && (obj >= 128 || !is_dmg_portal(obj))) continue;
 
         dist_x = (uint8_t)obj_x - (uint8_t)cam_px;
 
@@ -893,30 +740,6 @@ void draw_text(uint8_t x, uint8_t y, const char *str) BANKED {
     }
 }
 
-void draw_levels(void) BANKED {
-    if (_cpu == CGB_TYPE) {
-        fade_set_bkg_palette(0, 1, menu_pal);
-
-        VBK_REG = 1;
-        fill_bkg_rect(0, 0, 32, 32, 0x00);
-        VBK_REG = 0;
-    }
-    fade_set_dmg_palettes(0x2F, 0xE4, 0xE4);
-    fill_bkg_rect(0, 0, 20, 18, 0x00);
-    draw_text(0, 0, "LEVEL SELECT");
-    for (uint8_t i = 0; i < MAX_LEVELS; i++) {
-        if (i == selected) {
-            draw_text(1, 2 + i, "0");
-            draw_text(3, 2 + i, game_levels[i]->name);
-        } else {
-            draw_text(3, 2 + i, game_levels[i]->name);
-        }
-    }
-    draw_text(0, 16, "PRESS A TO PLAY");
-    SHOW_BKG;
-    redraw = 0;
-}
-
 SpCache active_sp;
 uint8_t collision_columns[32];
 
@@ -955,6 +778,26 @@ static const uint8_t bg_pals[] = {
     0x3F  // 3: Inverse (W:B, LG:B, DG:B, B:W)
 };
 
+#define PAUSE_SPRITE_TILE_BASE 144
+
+static const uint8_t pause_glyph_indices[6] = {
+    13 + ('P' - 'A'),
+    13 + ('A' - 'A'),
+    13 + ('U' - 'A'),
+    13 + ('S' - 'A'),
+    13 + ('E' - 'A'),
+    13 + ('D' - 'A')
+};
+
+static void init_pause_tiles(void) {
+    static const uint8_t blank_tile[16] = {0};
+    for (uint8_t i = 0; i < 6; i++) {
+        uint8_t t = PAUSE_SPRITE_TILE_BASE + (i << 1);
+        set_sprite_data(t, 1, &FontPusab[pause_glyph_indices[i] * 16]);
+        set_sprite_data(t + 1, 1, blank_tile);
+    }
+}
+
 void play_level(uint8_t idx) BANKED {
     l = game_levels[idx];
     level_tiles = l->tiles;
@@ -983,12 +826,8 @@ void play_level(uint8_t idx) BANKED {
     set_sprite_data(8, 4, ship_tiles);
     set_sprite_data(12, 8, ball_tiles);
     init_death_effect_tiles();
-    set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
-    if (_cpu == CGB_TYPE) {
-        VBK_REG = 1;
-        set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_DECO_TILE_COUNT, famidash_deco_tiles);
-        VBK_REG = 0;
-    }
+    init_pause_tiles();
+    load_famidash_sprite_tiles();
     move_bkg(0, (uint8_t)cam_py);
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
 
@@ -1038,9 +877,79 @@ void play_level(uint8_t idx) BANKED {
     sp_cache_reset(&active_sp, &sp_stream_idx);
     while (1) {
         uint8_t joy = joypad();
-        if (joy & J_START) {
-            record_level_progress_from_cam(idx, cam_px, max_scroll_px);
-            break;
+        if (joy & J_UP) joy |= J_A;
+
+        // Pause game on Start press
+        if (!player.dead && end_anim_state == END_ANIM_INACTIVE && (joy & J_START) && !(prev_joy & J_START)) {
+            wait_vbl_done();
+
+            // Pause music and mute active sound
+            uint8_t saved_music_ready = music_ready;
+            music_ready = 0;
+            NR12_REG = 0; NR14_REG = 0x80;
+            NR22_REG = 0; NR24_REG = 0x80;
+            NR30_REG = 0;
+            NR42_REG = 0; NR44_REG = 0x80;
+
+            // Tint screen 1 gradient step down
+            uint8_t saved_bgp = BGP_REG;
+            uint8_t saved_obp0 = OBP0_REG;
+            uint8_t saved_obp1 = OBP1_REG;
+
+            if (_cpu == CGB_TYPE) {
+                fade_apply_pause_tint();
+                static const palette_color_t pause_pal[4] = {
+                    RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(255, 255, 255), RGB8(0, 0, 0)
+                };
+                set_sprite_palette(7, 1, pause_pal);
+            } else {
+                BGP_REG = dim_dmg_byte(saved_bgp, 1);
+                OBP0_REG = dim_dmg_byte(saved_obp0, 1);
+                OBP1_REG = 0xC0;
+            }
+
+            // Draw "Paused" label centered at top
+            OAM_item_t saved_pause_oam[6];
+            for (uint8_t i = 0; i < 6; i++) {
+                saved_pause_oam[i] = shadow_OAM[34 + i];
+                shadow_OAM[34 + i].x = 64 + (i << 3);
+                shadow_OAM[34 + i].y = 24;
+                shadow_OAM[34 + i].tile = PAUSE_SPRITE_TILE_BASE + (i << 1);
+                shadow_OAM[34 + i].prop = (_cpu == CGB_TYPE) ? S_PAL(7) : S_PALETTE;
+            }
+            wait_vbl_done();
+
+            while (joypad() & J_START) wait_vbl_done();
+
+            while (1) {
+                wait_vbl_done();
+                if (joypad() & J_START) break;
+            }
+
+            while (joypad() & J_START) wait_vbl_done();
+
+            for (uint8_t i = 0; i < 6; i++) {
+                shadow_OAM[34 + i] = saved_pause_oam[i];
+            }
+
+            if (_cpu == CGB_TYPE) {
+                fade_restore_pause_tint();
+            } else {
+                BGP_REG = saved_bgp;
+                OBP0_REG = saved_obp0;
+                OBP1_REG = saved_obp1;
+            }
+
+            NR30_REG = 0x80;
+            hUGE_reset_wave();
+            music_ready = saved_music_ready;
+
+            wait_vbl_done();
+
+            prev_joy = joypad();
+            if (prev_joy & J_UP) prev_joy |= J_A;
+            player.last_joy = prev_joy;
+            continue;
         }
 
         if (player.level_complete) {
@@ -1139,12 +1048,8 @@ void play_level(uint8_t idx) BANKED {
             set_sprite_data(0, 8, icon1_tiles);
             set_sprite_data(8, 4, ship_tiles);
             set_sprite_data(12, 8, ball_tiles);
-            set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
-            if (_cpu == CGB_TYPE) {
-                VBK_REG = 1;
-                set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_DECO_TILE_COUNT, famidash_deco_tiles);
-                VBK_REG = 0;
-            }
+            init_pause_tiles();
+            load_famidash_sprite_tiles();
 
             uint16_t init_scroll_px = player.reversed
                 ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
@@ -1355,12 +1260,8 @@ void play_level(uint8_t idx) BANKED {
             set_sprite_data(8, 4, ship_tiles);
             set_sprite_data(12, 8, ball_tiles);
             init_death_effect_tiles();
-            set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
-            if (_cpu == CGB_TYPE) {
-                VBK_REG = 1;
-                set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_DECO_TILE_COUNT, famidash_deco_tiles);
-                VBK_REG = 0;
-            }
+            init_pause_tiles();
+            load_famidash_sprite_tiles();
 
             cam_px = 0;
             cam_py = 112;

@@ -5,6 +5,7 @@
 #include "sfx_data.h"
 #include "fade.h"
 #include "hUGEDriver.h"
+#include "gbc_palettes.h"
 #include <gb/gb.h>
 
 extern uint8_t selected;
@@ -12,6 +13,30 @@ extern uint8_t redraw;
 extern uint8_t music_ready;
 extern volatile uint8_t current_song_bank;
 extern const hUGESong_t menuloop;
+
+void draw_levels(void) {
+    if (_cpu == CGB_TYPE) {
+        fade_set_bkg_palette(0, 1, menu_pal);
+
+        VBK_REG = 1;
+        fill_bkg_rect(0, 0, 32, 32, 0x00);
+        VBK_REG = 0;
+    }
+    fade_set_dmg_palettes(0x2F, 0xE4, 0xE4);
+    fill_bkg_rect(0, 0, 20, 18, 0x00);
+    draw_text(0, 0, "LEVEL SELECT");
+    for (uint8_t i = 0; i < MAX_LEVELS; i++) {
+        if (i == selected) {
+            draw_text(1, 2 + i, "0");
+            draw_text(3, 2 + i, game_levels[i]->name);
+        } else {
+            draw_text(3, 2 + i, game_levels[i]->name);
+        }
+    }
+    draw_text(0, 16, "PRESS A TO PLAY");
+    SHOW_BKG;
+    redraw = 0;
+}
 
 GameState update_level_select_state(void) {
     fade_set_black();

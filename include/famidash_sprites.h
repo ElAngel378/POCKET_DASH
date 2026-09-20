@@ -16,6 +16,8 @@ extern const uint8_t famidash_sprites_tiles[FAMIDASH_SPRITE_TILE_COUNT * 16];
 #define FAMIDASH_DECO_TILE_COUNT 36
 extern const uint8_t famidash_deco_tiles[FAMIDASH_DECO_TILE_COUNT * 16];
 
+void load_famidash_sprite_tiles(void) BANKED;
+
 extern const metasprite_t famidash_cube_portal[];
 extern const metasprite_t famidash_ship_portal[];
 extern const metasprite_t famidash_ball_portal[];

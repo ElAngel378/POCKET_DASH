@@ -113,18 +113,31 @@ static void apply_cgb_fade_step(uint8_t step) {
     }
 }
 
-static uint8_t dim_dmg_byte(uint8_t pal, uint8_t step) {
-    if (step == 0) return pal;
-    if (step >= 3) return 0xFF;
-    uint8_t out = 0;
-    uint8_t shift;
-    for (shift = 0; shift < 8; shift += 2) {
-        uint8_t col = (pal >> shift) & 0x03;
-        col += step;
-        if (col > 3) col = 3;
-        out |= (col << shift);
+void fade_apply_pause_tint(void) BANKED {
+    if (_cpu == CGB_TYPE) {
+        palette_color_t temp_bkg[32];
+        palette_color_t temp_spr[32];
+        uint8_t i;
+        uint8_t bkg_colors = (active_bkg_count > 0 ? active_bkg_count : 8) << 2;
+        uint8_t spr_colors = (active_spr_count > 0 ? active_spr_count : 8) << 2;
+        for (i = 0; i < bkg_colors; i++) {
+            temp_bkg[i] = dim_color(shadow_bkg_palettes[i], 3);
+        }
+        for (i = 0; i < spr_colors; i++) {
+            temp_spr[i] = dim_color(shadow_spr_palettes[i], 3);
+        }
+        set_bkg_palette(0, (active_bkg_count > 0 ? active_bkg_count : 8), temp_bkg);
+        set_sprite_palette(0, (active_spr_count > 0 ? active_spr_count : 8), temp_spr);
     }
-    return out;
+}
+
+void fade_restore_pause_tint(void) BANKED {
+    if (_cpu == CGB_TYPE) {
+        uint8_t bkg_cnt = (active_bkg_count > 0 ? active_bkg_count : 8);
+        uint8_t spr_cnt = (active_spr_count > 0 ? active_spr_count : 8);
+        set_bkg_palette(0, bkg_cnt, shadow_bkg_palettes);
+        set_sprite_palette(0, spr_cnt, shadow_spr_palettes);
+    }
 }
 
 void fade_to_black(uint8_t delay_frames) BANKED {
