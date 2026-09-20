@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <gb/gb.h>
+#include <gb/cgb.h>
 #include "pause_buttons.h"
 
 void load_pause_button_tiles(void) BANKED {
@@ -48,5 +49,144 @@ const uint8_t pause_button_tiles[PAUSE_BTN_TILE_COUNT * 16] = {
     0x00, 0x00, 0x80, 0x00, 0x60, 0x80, 0x10, 0xE0, 0x08, 0xF0, 0x84, 0x78, 0xC4, 0x38, 0x62, 0x9C, // tile 36
     0x72, 0x8C, 0x31, 0xCE, 0x31, 0xCE, 0x31, 0xCE, 0xFF, 0x4E, 0xFF, 0x0E, 0xFF, 0x0E, 0xFE, 0x04, // tile 37
     0xFE, 0x0C, 0xFC, 0x18, 0xFC, 0x78, 0xF8, 0xF0, 0xF0, 0xE0, 0xE0, 0x80, 0x80, 0x00, 0x00, 0x00, // tile 38
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // tile 39
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  // tile 39
 };
+
+extern const unsigned char FontPusab[];
+
+static const uint8_t pause_glyph_indices[6] = {
+    13 + ('P' - 'A'),
+    13 + ('A' - 'A'),
+    13 + ('U' - 'A'),
+    13 + ('S' - 'A'),
+    13 + ('E' - 'A'),
+    13 + ('D' - 'A')
+};
+
+static const uint8_t pause_cursor_tiles[32] = {
+    // Tile 0 (top 8x8: upward-pointing chevron/arrow)
+    0x00, 0x18, // row 0: blue tip
+    0x18, 0x3C, // row 1: white center, blue border
+    0x3C, 0x7E, // row 2: white center, blue border
+    0x7E, 0xFF, // row 3: white center, blue border
+    0x7E, 0xFF, // row 4: white center, blue border
+    0x00, 0xFF, // row 5: blue base border
+    0x00, 0x00, // row 6: blank
+    0x00, 0x00, // row 7: blank
+    // Tile 1 (bottom 8x8: blank for 8x16 mode)
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+void apply_pause_box_attributes(uint8_t apply) BANKED {
+    if (_cpu != CGB_TYPE) return;
+    uint8_t scx_tile = (SCX_REG >> 3);
+    uint8_t scy_tile = (SCY_REG >> 3);
+
+    VBK_REG = 1;
+    for (uint8_t sy = 2; sy < 16; sy++) {
+        uint8_t my = (uint8_t)(scy_tile + sy) & 31;
+        for (uint8_t sx = 1; sx < 19; sx++) {
+            uint8_t mx = (uint8_t)(scx_tile + sx) & 31;
+            uint8_t *addr = (uint8_t *)(0x9800 + ((uint16_t)my << 5) + mx);
+            while (STAT_REG & 0x02);
+            if (apply) {
+                *addr |= 0x04;
+            } else {
+                *addr &= 0xFB;
+            }
+        }
+    }
+    VBK_REG = 0;
+}
+
+void init_pause_tiles(void) BANKED {
+    static const uint8_t blank_tile[16] = {0};
+    for (uint8_t i = 0; i < 6; i++) {
+        uint8_t t = PAUSE_SPRITE_TILE_BASE + (i << 1);
+        set_sprite_data(t, 1, &FontPusab[pause_glyph_indices[i] * 16]);
+        set_sprite_data(t + 1, 1, blank_tile);
+    }
+    set_sprite_data(PAUSE_CURSOR_TILE_BASE, 2, pause_cursor_tiles);
+    load_pause_button_tiles();
+}
+
+void draw_pause_menu_sprites(uint8_t selected_btn) BANKED {
+    uint8_t prop_txt = (_cpu == CGB_TYPE) ? S_PAL(7) : S_PALETTE;
+    uint8_t prop_play = (_cpu == CGB_TYPE) ? S_PAL(6) : 0;
+    uint8_t prop_misc = (_cpu == CGB_TYPE) ? S_PAL(5) : 0;
+
+    // "PAUSED" text banner moved 24px down (OAM Y = 48, screen Y = 32)
+    for (uint8_t i = 0; i < 6; i++) {
+        shadow_OAM[i].x = 64 + (i << 3);
+        shadow_OAM[i].y = 48;
+        shadow_OAM[i].tile = PAUSE_SPRITE_TILE_BASE + (i << 1);
+        shadow_OAM[i].prop = prop_txt;
+    }
+
+    // Menu button on left (6 sprites: Slots 6..11, Screen X = 24, base Y = 68)
+    uint8_t menu_y = (selected_btn == PAUSE_BTN_MENU) ? 82 : 84;
+    for (uint8_t c = 0; c < 3; c++) {
+        uint8_t spr_x = 32 + (c << 3);
+        uint8_t t = PAUSE_BTN_TILE_BASE + BTN_MENU_TILE_OFFSET + (c << 2);
+        shadow_OAM[6 + (c << 1)].x = spr_x;
+        shadow_OAM[6 + (c << 1)].y = menu_y;
+        shadow_OAM[6 + (c << 1)].tile = t;
+        shadow_OAM[6 + (c << 1)].prop = prop_misc;
+
+        shadow_OAM[7 + (c << 1)].x = spr_x;
+        shadow_OAM[7 + (c << 1)].y = menu_y + 16;
+        shadow_OAM[7 + (c << 1)].tile = t + 2;
+        shadow_OAM[7 + (c << 1)].prop = prop_misc;
+    }
+
+    // Play button in center (8 sprites: Slots 12..19, Screen X = 64, base Y = 64)
+    uint8_t play_y = (selected_btn == PAUSE_BTN_PLAY) ? 78 : 80;
+    for (uint8_t c = 0; c < 4; c++) {
+        uint8_t spr_x = 72 + (c << 3);
+        uint8_t t = PAUSE_BTN_TILE_BASE + BTN_PLAY_TILE_OFFSET + (c << 2);
+        shadow_OAM[12 + (c << 1)].x = spr_x;
+        shadow_OAM[12 + (c << 1)].y = play_y;
+        shadow_OAM[12 + (c << 1)].tile = t;
+        shadow_OAM[12 + (c << 1)].prop = prop_play;
+
+        shadow_OAM[13 + (c << 1)].x = spr_x;
+        shadow_OAM[13 + (c << 1)].y = play_y + 16;
+        shadow_OAM[13 + (c << 1)].tile = t + 2;
+        shadow_OAM[13 + (c << 1)].prop = prop_play;
+    }
+
+    // Restart button on right (6 sprites: Slots 20..25, Screen X = 112, base Y = 68)
+    uint8_t restart_y = (selected_btn == PAUSE_BTN_RESTART) ? 82 : 84;
+    for (uint8_t c = 0; c < 3; c++) {
+        uint8_t spr_x = 120 + (c << 3);
+        uint8_t t = PAUSE_BTN_TILE_BASE + BTN_RESTART_TILE_OFFSET + (c << 2);
+        shadow_OAM[20 + (c << 1)].x = spr_x;
+        shadow_OAM[20 + (c << 1)].y = restart_y;
+        shadow_OAM[20 + (c << 1)].tile = t;
+        shadow_OAM[20 + (c << 1)].prop = prop_misc;
+
+        shadow_OAM[21 + (c << 1)].x = spr_x;
+        shadow_OAM[21 + (c << 1)].y = restart_y + 16;
+        shadow_OAM[21 + (c << 1)].tile = t + 2;
+        shadow_OAM[21 + (c << 1)].prop = prop_misc;
+    }
+
+    // Cursor indicator sprite (Slot 26)
+    uint8_t cur_x = 84;
+    uint8_t cur_y = 116;
+    if (selected_btn == PAUSE_BTN_MENU) {
+        cur_x = 40;
+        cur_y = 112;
+    } else if (selected_btn == PAUSE_BTN_PLAY) {
+        cur_x = 84;
+        cur_y = 116;
+    } else if (selected_btn == PAUSE_BTN_RESTART) {
+        cur_x = 128;
+        cur_y = 112;
+    }
+    shadow_OAM[26].x = cur_x;
+    shadow_OAM[26].y = cur_y;
+    shadow_OAM[26].tile = PAUSE_CURSOR_TILE_BASE;
+    shadow_OAM[26].prop = prop_txt;
+}

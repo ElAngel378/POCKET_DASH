@@ -779,111 +779,51 @@ static const uint8_t bg_pals[] = {
     0x3F  // 3: Inverse (W:B, LG:B, DG:B, B:W)
 };
 
-#define PAUSE_SPRITE_TILE_BASE 144
+static void reload_level_state(uint8_t idx) {
+    NR52_REG = 0x80;
+    NR51_REG = 0xFF;
+    NR50_REG = 0x77;
+    disable_interrupts();
+    DISPLAY_OFF;
 
-static const uint8_t pause_glyph_indices[6] = {
-    13 + ('P' - 'A'),
-    13 + ('A' - 'A'),
-    13 + ('U' - 'A'),
-    13 + ('S' - 'A'),
-    13 + ('E' - 'A'),
-    13 + ('D' - 'A')
-};
+    // Reload tileset and sprite data on respawn/restart
+    load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
 
-static void apply_pause_box_attributes(uint8_t apply) {
-    if (_cpu != CGB_TYPE) return;
-    uint8_t scx_tile = (SCX_REG >> 3);
-    uint8_t scy_tile = (SCY_REG >> 3);
+    set_sprite_data(0, 8, icon1_tiles);
+    set_sprite_data(8, 4, ship_tiles);
+    set_sprite_data(12, 8, ball_tiles);
+    init_death_effect_tiles();
+    init_pause_tiles();
+    load_famidash_sprite_tiles();
 
-    VBK_REG = 1;
-    for (uint8_t sy = 2; sy < 16; sy++) {
-        uint8_t my = (uint8_t)(scy_tile + sy) & 31;
-        for (uint8_t sx = 1; sx < 19; sx++) {
-            uint8_t mx = (uint8_t)(scx_tile + sx) & 31;
-            uint8_t *addr = (uint8_t *)(0x9800 + ((uint16_t)my << 5) + mx);
-            while (STAT_REG & 0x02);
-            if (apply) {
-                *addr |= 0x04;
-            } else {
-                *addr &= 0xFB;
-            }
-        }
+    cam_px = 0;
+    cam_py = 112;
+    scroll_acc = 0;
+    loaded_r = BKG_MT_W - 1;
+    target_bg_idx = 0;
+    end_anim_state = END_ANIM_INACTIVE;
+    end_anim_frame = 0;
+    end_shake_timer = 0;
+    end_trigger_requested = 0;
+    player_init(&player, 0, 240);
+    sp_cache_reset(&active_sp, &sp_stream_idx);
+    sp_cache_col = 0xFFFF;
+    previous_oam_index = MAX_HARDWARE_SPRITES;
+    cached_collision_col = 0xFFFF;
+    move_bkg(0, (uint8_t)cam_py);
+    BGP_REG = bg_pals[0];
+    if (_cpu == CGB_TYPE) {
+        famidash_reset_bg_palettes();
     }
-    VBK_REG = 0;
-}
-
-static void init_pause_tiles(void) {
-    static const uint8_t blank_tile[16] = {0};
-    for (uint8_t i = 0; i < 6; i++) {
-        uint8_t t = PAUSE_SPRITE_TILE_BASE + (i << 1);
-        set_sprite_data(t, 1, &FontPusab[pause_glyph_indices[i] * 16]);
-        set_sprite_data(t + 1, 1, blank_tile);
+    fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
+    DISPLAY_ON;
+    if (level_songs[idx]) {
+        init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
+        current_song_bank = song_bank[idx];
+        TAC_REG = 0x04;
+        music_ready = 1;
     }
-    load_pause_button_tiles();
-}
-
-static void draw_pause_menu_sprites(void) {
-    uint8_t prop_txt = (_cpu == CGB_TYPE) ? S_PAL(7) : S_PALETTE;
-    uint8_t prop_play = (_cpu == CGB_TYPE) ? S_PAL(6) : 0;
-    uint8_t prop_misc = (_cpu == CGB_TYPE) ? S_PAL(5) : 0;
-
-    // "PAUSED" text banner moved 24px down (OAM Y = 48, screen Y = 32)
-    for (uint8_t i = 0; i < 6; i++) {
-        shadow_OAM[i].x = 64 + (i << 3);
-        shadow_OAM[i].y = 48;
-        shadow_OAM[i].tile = PAUSE_SPRITE_TILE_BASE + (i << 1);
-        shadow_OAM[i].prop = prop_txt;
-    }
-
-    // Menu button on left (6 sprites: Slots 6..11, Screen X = 24, Y = 68)
-    for (uint8_t c = 0; c < 3; c++) {
-        uint8_t spr_x = 32 + (c << 3);
-        uint8_t t = PAUSE_BTN_TILE_BASE + BTN_MENU_TILE_OFFSET + (c << 2);
-        shadow_OAM[6 + (c << 1)].x = spr_x;
-        shadow_OAM[6 + (c << 1)].y = 84;
-        shadow_OAM[6 + (c << 1)].tile = t;
-        shadow_OAM[6 + (c << 1)].prop = prop_misc;
-
-        shadow_OAM[7 + (c << 1)].x = spr_x;
-        shadow_OAM[7 + (c << 1)].y = 100;
-        shadow_OAM[7 + (c << 1)].tile = t + 2;
-        shadow_OAM[7 + (c << 1)].prop = prop_misc;
-    }
-
-    // Play button in center (8 sprites: Slots 12..19, Screen X = 64, Y = 64)
-    for (uint8_t c = 0; c < 4; c++) {
-        uint8_t spr_x = 72 + (c << 3);
-        uint8_t t = PAUSE_BTN_TILE_BASE + BTN_PLAY_TILE_OFFSET + (c << 2);
-        shadow_OAM[12 + (c << 1)].x = spr_x;
-        shadow_OAM[12 + (c << 1)].y = 80;
-        shadow_OAM[12 + (c << 1)].tile = t;
-        shadow_OAM[12 + (c << 1)].prop = prop_play;
-
-        shadow_OAM[13 + (c << 1)].x = spr_x;
-        shadow_OAM[13 + (c << 1)].y = 96;
-        shadow_OAM[13 + (c << 1)].tile = t + 2;
-        shadow_OAM[13 + (c << 1)].prop = prop_play;
-    }
-
-    // Restart button on right (6 sprites: Slots 20..25, Screen X = 112, Y = 68)
-    for (uint8_t c = 0; c < 3; c++) {
-        uint8_t spr_x = 120 + (c << 3);
-        uint8_t t = PAUSE_BTN_TILE_BASE + BTN_RESTART_TILE_OFFSET + (c << 2);
-        shadow_OAM[20 + (c << 1)].x = spr_x;
-        shadow_OAM[20 + (c << 1)].y = 84;
-        shadow_OAM[20 + (c << 1)].tile = t;
-        shadow_OAM[20 + (c << 1)].prop = prop_misc;
-
-        shadow_OAM[21 + (c << 1)].x = spr_x;
-        shadow_OAM[21 + (c << 1)].y = 100;
-        shadow_OAM[21 + (c << 1)].tile = t + 2;
-        shadow_OAM[21 + (c << 1)].prop = prop_misc;
-    }
-
-    // Hide remaining sprites (26..39)
-    for (uint8_t s = 26; s < 40; s++) {
-        shadow_OAM[s].y = 0;
-    }
+    enable_interrupts();
 }
 
 void play_level(uint8_t idx) BANKED {
@@ -984,6 +924,14 @@ void play_level(uint8_t idx) BANKED {
             uint8_t saved_obp0 = OBP0_REG;
             uint8_t saved_obp1 = OBP1_REG;
 
+            uint8_t saved_scx = SCX_REG;
+            uint8_t saved_scy = SCY_REG;
+            uint8_t fine_scx = saved_scx & 7;
+            uint8_t fine_scy = saved_scy & 7;
+
+            // Grid-lock background
+            move_bkg((uint8_t)(saved_scx - fine_scx), (uint8_t)(saved_scy - fine_scy));
+
             if (_cpu == CGB_TYPE) {
                 fade_apply_pause_box_palettes();
                 apply_pause_box_attributes(1);
@@ -1014,21 +962,66 @@ void play_level(uint8_t idx) BANKED {
                 saved_pause_oam[i] = shadow_OAM[i];
             }
 
-            draw_pause_menu_sprites();
+            // Offset player (0..3) into slots 27..30 with grid-lock offset
+            for (uint8_t i = 0; i < 4; i++) {
+                if (saved_pause_oam[i].y > 0) {
+                    shadow_OAM[27 + i].y = (uint8_t)(saved_pause_oam[i].y + fine_scy);
+                    shadow_OAM[27 + i].x = (uint8_t)(saved_pause_oam[i].x + fine_scx);
+                    shadow_OAM[27 + i].tile = saved_pause_oam[i].tile;
+                    shadow_OAM[27 + i].prop = saved_pause_oam[i].prop;
+                } else {
+                    shadow_OAM[27 + i].y = 0;
+                }
+            }
+
+            // Offset active level sprites (4..12) into slots 31..39 with grid-lock offset
+            for (uint8_t i = 4; i < 13; i++) {
+                if (saved_pause_oam[i].y > 0) {
+                    shadow_OAM[27 + i].y = (uint8_t)(saved_pause_oam[i].y + fine_scy);
+                    shadow_OAM[27 + i].x = (uint8_t)(saved_pause_oam[i].x + fine_scx);
+                    shadow_OAM[27 + i].tile = saved_pause_oam[i].tile;
+                    shadow_OAM[27 + i].prop = saved_pause_oam[i].prop;
+                } else {
+                    shadow_OAM[27 + i].y = 0;
+                }
+            }
+
+            uint8_t selected_btn = PAUSE_BTN_PLAY;
+            draw_pause_menu_sprites(selected_btn);
             wait_vbl_done();
 
             uint8_t exit_level = 0;
-            while (joypad() & (J_START | J_SELECT)) wait_vbl_done();
+            uint8_t restart_level = 0;
+            while (joypad() & (J_START | J_SELECT | J_A | J_B)) wait_vbl_done();
 
+            uint8_t p_prev_joy = 0;
             while (1) {
                 wait_vbl_done();
                 uint8_t p_joy = joypad();
-                if (p_joy & J_START) {
-                    while (joypad() & J_START) wait_vbl_done();
+                uint8_t p_pressed = p_joy & ~p_prev_joy;
+                p_prev_joy = p_joy;
+
+                if (p_pressed & J_LEFT) {
+                    if (selected_btn == 0) selected_btn = 2;
+                    else selected_btn--;
+                    draw_pause_menu_sprites(selected_btn);
+                } else if (p_pressed & J_RIGHT) {
+                    if (selected_btn >= 2) selected_btn = 0;
+                    else selected_btn++;
+                    draw_pause_menu_sprites(selected_btn);
+                } else if ((p_pressed & J_START) || (p_pressed & J_B)) {
                     break;
-                }
-                if (p_joy & J_SELECT) {
-                    while (joypad() & J_SELECT) wait_vbl_done();
+                } else if (p_pressed & J_A) {
+                    if (selected_btn == PAUSE_BTN_PLAY) {
+                        break;
+                    } else if (selected_btn == PAUSE_BTN_MENU) {
+                        exit_level = 1;
+                        break;
+                    } else if (selected_btn == PAUSE_BTN_RESTART) {
+                        restart_level = 1;
+                        break;
+                    }
+                } else if (p_pressed & J_SELECT) {
                     exit_level = 1;
                     break;
                 }
@@ -1047,8 +1040,20 @@ void play_level(uint8_t idx) BANKED {
                 OBP1_REG = saved_obp1;
             }
 
+            // Restore fractional background scroll
+            move_bkg(saved_scx, saved_scy);
+
             if (exit_level) {
                 break;
+            }
+
+            if (restart_level) {
+                while (joypad() & (J_A | J_START)) wait_vbl_done();
+                reload_level_state(idx);
+                prev_joy = joypad();
+                if (prev_joy & J_UP) prev_joy |= J_A;
+                player.last_joy = prev_joy;
+                continue;
             }
 
             NR30_REG = 0x80;
@@ -1056,6 +1061,8 @@ void play_level(uint8_t idx) BANKED {
             music_ready = saved_music_ready;
 
             wait_vbl_done();
+
+            while (joypad() & (J_A | J_START | J_B)) wait_vbl_done();
 
             prev_joy = joypad();
             if (prev_joy & J_UP) prev_joy |= J_A;
@@ -1361,50 +1368,7 @@ void play_level(uint8_t idx) BANKED {
             NR52_REG = 0x80;
             NR51_REG = 0xFF;
             NR50_REG = 0x77;
-            disable_interrupts();
-            DISPLAY_OFF;
-
-            // Reload tileset and sprite data on respawn
-            load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
-
-            set_sprite_data(0, 8, icon1_tiles);
-            set_sprite_data(8, 4, ship_tiles);
-            set_sprite_data(12, 8, ball_tiles);
-            init_death_effect_tiles();
-            init_pause_tiles();
-            load_famidash_sprite_tiles();
-
-            cam_px = 0;
-            cam_py = 112;
-            scroll_acc = 0;
-            loaded_r = BKG_MT_W - 1;
-            target_bg_idx = 0;
-            end_anim_state = END_ANIM_INACTIVE;
-            end_anim_frame = 0;
-            end_shake_timer = 0;
-            end_trigger_requested = 0;
-            player_init(&player, 0, 240);
-            sp_cache_reset(&active_sp, &sp_stream_idx);
-            sp_cache_col = 0xFFFF;
-            previous_oam_index = MAX_HARDWARE_SPRITES;
-            cached_collision_col = 0xFFFF;
-            move_bkg(0, (uint8_t)cam_py);
-            BGP_REG = bg_pals[0];
-            if (_cpu == CGB_TYPE) {
-                // Reset to the default light theme on respawn, matching
-                // target_bg_idx = 0. Without this the palette from the
-                // death spot would persist until the first trigger.
-                famidash_reset_bg_palettes();
-            }
-            fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
-            DISPLAY_ON;
-            if (level_songs[idx]) {
-                init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
-                current_song_bank = song_bank[idx];
-                TAC_REG = 0x04;
-                music_ready = 1;
-            }
-            enable_interrupts();
+            reload_level_state(idx);
         }
     }
 
