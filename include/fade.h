@@ -13,6 +13,8 @@ void fade_to_black(uint8_t delay_frames) BANKED;
 void fade_from_black(uint8_t delay_frames) BANKED;
 void fade_apply_pause_tint(void) BANKED;
 void fade_restore_pause_tint(void) BANKED;
+void fade_apply_pause_box_palettes(void) BANKED;
+void fade_restore_pause_box_palettes(void) BANKED;
 
 inline static uint8_t dim_dmg_byte(uint8_t pal, uint8_t step) {
     uint8_t out = 0;

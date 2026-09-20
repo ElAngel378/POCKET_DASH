@@ -24,6 +24,7 @@
 #include "fade.h"
 #include "death_effect.h"
 #include "save_manager.h"
+#include "pause_buttons.h"
 
 extern const uint8_t chr_gb_cgb_tiles[];
 extern const uint8_t chr_gb_cgb_tiles_rev[];
@@ -789,12 +790,99 @@ static const uint8_t pause_glyph_indices[6] = {
     13 + ('D' - 'A')
 };
 
+static void apply_pause_box_attributes(uint8_t apply) {
+    if (_cpu != CGB_TYPE) return;
+    uint8_t scx_tile = (SCX_REG >> 3);
+    uint8_t scy_tile = (SCY_REG >> 3);
+
+    VBK_REG = 1;
+    for (uint8_t sy = 2; sy < 16; sy++) {
+        uint8_t my = (uint8_t)(scy_tile + sy) & 31;
+        for (uint8_t sx = 1; sx < 19; sx++) {
+            uint8_t mx = (uint8_t)(scx_tile + sx) & 31;
+            uint8_t *addr = (uint8_t *)(0x9800 + ((uint16_t)my << 5) + mx);
+            while (STAT_REG & 0x02);
+            if (apply) {
+                *addr |= 0x04;
+            } else {
+                *addr &= 0xFB;
+            }
+        }
+    }
+    VBK_REG = 0;
+}
+
 static void init_pause_tiles(void) {
     static const uint8_t blank_tile[16] = {0};
     for (uint8_t i = 0; i < 6; i++) {
         uint8_t t = PAUSE_SPRITE_TILE_BASE + (i << 1);
         set_sprite_data(t, 1, &FontPusab[pause_glyph_indices[i] * 16]);
         set_sprite_data(t + 1, 1, blank_tile);
+    }
+    load_pause_button_tiles();
+}
+
+static void draw_pause_menu_sprites(void) {
+    uint8_t prop_txt = (_cpu == CGB_TYPE) ? S_PAL(7) : S_PALETTE;
+    uint8_t prop_play = (_cpu == CGB_TYPE) ? S_PAL(6) : 0;
+    uint8_t prop_misc = (_cpu == CGB_TYPE) ? S_PAL(5) : 0;
+
+    // "PAUSED" text banner moved 24px down (OAM Y = 48, screen Y = 32)
+    for (uint8_t i = 0; i < 6; i++) {
+        shadow_OAM[i].x = 64 + (i << 3);
+        shadow_OAM[i].y = 48;
+        shadow_OAM[i].tile = PAUSE_SPRITE_TILE_BASE + (i << 1);
+        shadow_OAM[i].prop = prop_txt;
+    }
+
+    // Menu button on left (6 sprites: Slots 6..11, Screen X = 24, Y = 68)
+    for (uint8_t c = 0; c < 3; c++) {
+        uint8_t spr_x = 32 + (c << 3);
+        uint8_t t = PAUSE_BTN_TILE_BASE + BTN_MENU_TILE_OFFSET + (c << 2);
+        shadow_OAM[6 + (c << 1)].x = spr_x;
+        shadow_OAM[6 + (c << 1)].y = 84;
+        shadow_OAM[6 + (c << 1)].tile = t;
+        shadow_OAM[6 + (c << 1)].prop = prop_misc;
+
+        shadow_OAM[7 + (c << 1)].x = spr_x;
+        shadow_OAM[7 + (c << 1)].y = 100;
+        shadow_OAM[7 + (c << 1)].tile = t + 2;
+        shadow_OAM[7 + (c << 1)].prop = prop_misc;
+    }
+
+    // Play button in center (8 sprites: Slots 12..19, Screen X = 64, Y = 64)
+    for (uint8_t c = 0; c < 4; c++) {
+        uint8_t spr_x = 72 + (c << 3);
+        uint8_t t = PAUSE_BTN_TILE_BASE + BTN_PLAY_TILE_OFFSET + (c << 2);
+        shadow_OAM[12 + (c << 1)].x = spr_x;
+        shadow_OAM[12 + (c << 1)].y = 80;
+        shadow_OAM[12 + (c << 1)].tile = t;
+        shadow_OAM[12 + (c << 1)].prop = prop_play;
+
+        shadow_OAM[13 + (c << 1)].x = spr_x;
+        shadow_OAM[13 + (c << 1)].y = 96;
+        shadow_OAM[13 + (c << 1)].tile = t + 2;
+        shadow_OAM[13 + (c << 1)].prop = prop_play;
+    }
+
+    // Restart button on right (6 sprites: Slots 20..25, Screen X = 112, Y = 68)
+    for (uint8_t c = 0; c < 3; c++) {
+        uint8_t spr_x = 120 + (c << 3);
+        uint8_t t = PAUSE_BTN_TILE_BASE + BTN_RESTART_TILE_OFFSET + (c << 2);
+        shadow_OAM[20 + (c << 1)].x = spr_x;
+        shadow_OAM[20 + (c << 1)].y = 84;
+        shadow_OAM[20 + (c << 1)].tile = t;
+        shadow_OAM[20 + (c << 1)].prop = prop_misc;
+
+        shadow_OAM[21 + (c << 1)].x = spr_x;
+        shadow_OAM[21 + (c << 1)].y = 100;
+        shadow_OAM[21 + (c << 1)].tile = t + 2;
+        shadow_OAM[21 + (c << 1)].prop = prop_misc;
+    }
+
+    // Hide remaining sprites (26..39)
+    for (uint8_t s = 26; s < 40; s++) {
+        shadow_OAM[s].y = 0;
     }
 }
 
@@ -897,26 +985,36 @@ void play_level(uint8_t idx) BANKED {
             uint8_t saved_obp1 = OBP1_REG;
 
             if (_cpu == CGB_TYPE) {
-                fade_apply_pause_tint();
+                fade_apply_pause_box_palettes();
+                apply_pause_box_attributes(1);
                 static const palette_color_t pause_pal[4] = {
                     RGB8(0, 0, 0), RGB8(0, 0, 0), RGB8(180, 215, 255), RGB8(255, 255, 255)
                 };
                 set_sprite_palette(7, 1, pause_pal);
+
+                // Play Button: Vibrant golden yellow icon & rim, rich 2-tone green body
+                static const palette_color_t play_btn_pal[4] = {
+                    RGB8(0, 0, 0), RGB8(255, 235, 20), RGB8(80, 210, 20), RGB8(15, 110, 10)
+                };
+                set_sprite_palette(6, 1, play_btn_pal);
+
+                // Menu & Restart Buttons: Electric cyan icon & rim, rich 2-tone green body
+                static const palette_color_t misc_btn_pal[4] = {
+                    RGB8(0, 0, 0), RGB8(30, 245, 255), RGB8(80, 210, 20), RGB8(15, 110, 10)
+                };
+                set_sprite_palette(5, 1, misc_btn_pal);
             } else {
                 BGP_REG = dim_dmg_byte(saved_bgp, 1);
-                OBP0_REG = dim_dmg_byte(saved_obp0, 1);
+                OBP0_REG = 0x90;
                 OBP1_REG = 0x1C;
             }
 
-            // Draw "Paused" label centered at top
-            OAM_item_t saved_pause_oam[6];
-            for (uint8_t i = 0; i < 6; i++) {
-                saved_pause_oam[i] = shadow_OAM[34 + i];
-                shadow_OAM[34 + i].x = 64 + (i << 3);
-                shadow_OAM[34 + i].y = 24;
-                shadow_OAM[34 + i].tile = PAUSE_SPRITE_TILE_BASE + (i << 1);
-                shadow_OAM[34 + i].prop = (_cpu == CGB_TYPE) ? S_PAL(7) : S_PALETTE;
+            OAM_item_t saved_pause_oam[40];
+            for (uint8_t i = 0; i < 40; i++) {
+                saved_pause_oam[i] = shadow_OAM[i];
             }
+
+            draw_pause_menu_sprites();
             wait_vbl_done();
 
             uint8_t exit_level = 0;
@@ -936,12 +1034,13 @@ void play_level(uint8_t idx) BANKED {
                 }
             }
 
-            for (uint8_t i = 0; i < 6; i++) {
-                shadow_OAM[34 + i] = saved_pause_oam[i];
+            for (uint8_t i = 0; i < 40; i++) {
+                shadow_OAM[i] = saved_pause_oam[i];
             }
 
             if (_cpu == CGB_TYPE) {
-                fade_restore_pause_tint();
+                apply_pause_box_attributes(0);
+                fade_restore_pause_box_palettes();
             } else {
                 BGP_REG = saved_bgp;
                 OBP0_REG = saved_obp0;
