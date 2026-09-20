@@ -963,16 +963,9 @@ void play_level(uint8_t idx) BANKED {
                 saved_pause_oam[i] = shadow_OAM[i];
             }
 
-            // Offset player (0..3) into slots 27..30 with grid-lock offset
+            // Hide player sprite during pause (slots 27..30)
             for (uint8_t i = 0; i < 4; i++) {
-                if (saved_pause_oam[i].y > 0) {
-                    shadow_OAM[27 + i].y = (uint8_t)(saved_pause_oam[i].y + fine_scy);
-                    shadow_OAM[27 + i].x = (uint8_t)(saved_pause_oam[i].x + fine_scx);
-                    shadow_OAM[27 + i].tile = saved_pause_oam[i].tile;
-                    shadow_OAM[27 + i].prop = saved_pause_oam[i].prop;
-                } else {
-                    shadow_OAM[27 + i].y = 0;
-                }
+                shadow_OAM[27 + i].y = 0;
             }
 
             // Offset active level sprites (4..12) into slots 31..39 with grid-lock offset
@@ -1093,6 +1086,9 @@ void play_level(uint8_t idx) BANKED {
             break;
         }
 
+        if ((joy & J_SELECT) && !(prev_joy & J_SELECT)) {
+            reduce_flash = !reduce_flash;
+        }
         prev_joy = joy;
 
         uint16_t px_prev = cam_px >> 4;
