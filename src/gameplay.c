@@ -767,6 +767,7 @@ static uint16_t sp_cache_col;
 static uint16_t cached_collision_col;
 static uint8_t prev_reversed;
 static uint8_t reduce_flash;
+static uint8_t pause_suppress_jump;
 static uint8_t target_bg_idx;
 static uint8_t died;
 static int16_t py;
@@ -801,6 +802,7 @@ static void reload_level_state(uint8_t idx) {
     scroll_acc = 0;
     loaded_r = BKG_MT_W - 1;
     target_bg_idx = 0;
+    pause_suppress_jump = 0;
     end_anim_state = END_ANIM_INACTIVE;
     end_anim_frame = 0;
     end_shake_timer = 0;
@@ -898,6 +900,7 @@ void play_level(uint8_t idx) BANKED {
     cached_collision_col = 0xFFFF;
     prev_reversed = player.reversed;
     reduce_flash = 0;
+    pause_suppress_jump = 0;
     end_anim_state = END_ANIM_INACTIVE;
     end_anim_frame = 0;
     end_shake_timer = 0;
@@ -906,6 +909,14 @@ void play_level(uint8_t idx) BANKED {
     while (1) {
         uint8_t joy = joypad();
         if (joy & J_UP) joy |= J_A;
+
+        if (pause_suppress_jump) {
+            if (!(joy & J_A)) {
+                pause_suppress_jump = 0;
+            } else {
+                joy &= ~J_A;
+            }
+        }
 
         // Pause game on Start press
         if (!player.dead && end_anim_state == END_ANIM_INACTIVE && (joy & J_START) && !(prev_joy & J_START)) {
@@ -1001,6 +1012,11 @@ void play_level(uint8_t idx) BANKED {
                 }
             }
 
+            // Hide all pause menu UI sprites immediately
+            for (uint8_t i = 0; i < 27; i++) {
+                shadow_OAM[i].y = 0;
+            }
+
             if (_cpu == CGB_TYPE) {
                 apply_pause_box_attributes(0);
                 fade_restore_pause_box_palettes();
@@ -1019,7 +1035,6 @@ void play_level(uint8_t idx) BANKED {
             }
 
             if (restart_level) {
-                while (joypad() & (J_A | J_START)) wait_vbl_done();
                 reload_level_state(idx);
                 prev_joy = joypad();
                 if (prev_joy & J_UP) prev_joy |= J_A;
@@ -1032,8 +1047,6 @@ void play_level(uint8_t idx) BANKED {
 
             wait_vbl_done();
 
-            while (joypad() & (J_A | J_START | J_B)) wait_vbl_done();
-
             // Synchronize music timer on VBLANK to prevent desync
             TIMA_REG = TMA_REG;
             IF_REG &= ~TIM_IFLAG;
@@ -1044,6 +1057,7 @@ void play_level(uint8_t idx) BANKED {
             prev_joy = joypad();
             if (prev_joy & J_UP) prev_joy |= J_A;
             player.last_joy = prev_joy;
+            pause_suppress_jump = 1;
             continue;
         }
 
