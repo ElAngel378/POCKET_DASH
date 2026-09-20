@@ -958,26 +958,9 @@ void play_level(uint8_t idx) BANKED {
                 OBP1_REG = 0x1C;
             }
 
-            OAM_item_t saved_pause_oam[40];
-            for (uint8_t i = 0; i < 40; i++) {
-                saved_pause_oam[i] = shadow_OAM[i];
-            }
-
-            // Hide player sprite during pause (slots 27..30)
-            for (uint8_t i = 0; i < 4; i++) {
-                shadow_OAM[27 + i].y = 0;
-            }
-
-            // Offset active level sprites (4..12) into slots 31..39 with grid-lock offset
-            for (uint8_t i = 4; i < 13; i++) {
-                if (saved_pause_oam[i].y > 0) {
-                    shadow_OAM[27 + i].y = (uint8_t)(saved_pause_oam[i].y + fine_scy);
-                    shadow_OAM[27 + i].x = (uint8_t)(saved_pause_oam[i].x + fine_scx);
-                    shadow_OAM[27 + i].tile = saved_pause_oam[i].tile;
-                    shadow_OAM[27 + i].prop = saved_pause_oam[i].prop;
-                } else {
-                    shadow_OAM[27 + i].y = 0;
-                }
+            // Hide all gameplay and level sprites during pause (slots 27..39)
+            for (uint8_t i = 27; i < 40; i++) {
+                shadow_OAM[i].y = 0;
             }
 
             uint8_t selected_btn = PAUSE_BTN_PLAY;
@@ -1016,10 +999,6 @@ void play_level(uint8_t idx) BANKED {
                         break;
                     }
                 }
-            }
-
-            for (uint8_t i = 0; i < 40; i++) {
-                shadow_OAM[i] = saved_pause_oam[i];
             }
 
             if (_cpu == CGB_TYPE) {

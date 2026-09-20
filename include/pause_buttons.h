@@ -20,8 +20,8 @@
 #define PAUSE_BTN_PLAY 1
 #define PAUSE_BTN_RESTART 2
 
-#define PAUSE_SPRITE_TILE_BASE 144
-#define PAUSE_CURSOR_TILE_BASE 156
+#define PAUSE_SPRITE_TILE_BASE 76
+#define PAUSE_CURSOR_TILE_BASE 88
 
 extern const uint8_t pause_button_tiles[PAUSE_BTN_TILE_COUNT * 16];
 

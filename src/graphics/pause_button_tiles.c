@@ -189,4 +189,9 @@ void draw_pause_menu_sprites(uint8_t selected_btn) BANKED {
     shadow_OAM[26].y = cur_y;
     shadow_OAM[26].tile = PAUSE_CURSOR_TILE_BASE;
     shadow_OAM[26].prop = prop_txt;
+
+    // Hide remaining sprites (27..39)
+    for (uint8_t s = 27; s < 40; s++) {
+        shadow_OAM[s].y = 0;
+    }
 }
