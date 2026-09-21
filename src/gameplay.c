@@ -26,6 +26,7 @@
 #include "save_manager.h"
 #include "pause_buttons.h"
 #include "bg_parallax.h"
+#include "collision.h"
 
 extern const uint8_t chr_gb_cgb_tiles[];
 extern const uint8_t chr_gb_cgb_tiles_rev[];
@@ -106,6 +107,7 @@ static int16_t end_start_y;
 static int16_t end_target_x;
 static int16_t end_target_y;
 static uint8_t last_bg_phase = 0xFF;
+static uint8_t bg_drift_px = 0;
 
 // Scroll speed in 8.8 fixed point (pixels per frame)
 // Example: 3.0 = 768, 3.5 = 896, 4.0 = 1024
@@ -199,11 +201,19 @@ static void famidash_update_parallax_palette(palette_color_t sky_color) {
     fade_set_bkg_palette(3, 1, pal);
 }
 
-static void famidash_reset_bg_palettes(void) {
-    uint8_t i;
-    for (i = 0; i != 16; i++) famidash_bg_palettes[i] = vibrant_palette_default[i];
-    fade_set_bkg_palette(0, 3, famidash_bg_palettes);
-    famidash_update_parallax_palette(vibrant_palette_default[0]);
+static palette_color_t ground_palette[4];
+
+static void update_ground_palette(palette_color_t bg_color, palette_color_t g_color) {
+    if (_cpu != CGB_TYPE) return;
+    ground_palette[0] = bg_color;
+    ground_palette[1] = g_color;
+    ground_palette[2] = RGB((((g_color & 0x1Fu) * 18u) >> 5),
+                            ((((g_color >> 5) & 0x1Fu) * 18u) >> 5),
+                            ((((g_color >> 10) & 0x1Fu) * 18u) >> 5));
+    ground_palette[3] = RGB((((g_color & 0x1Fu) * 9u) >> 5),
+                            ((((g_color >> 5) & 0x1Fu) * 9u) >> 5),
+                            ((((g_color >> 10) & 0x1Fu) * 9u) >> 5));
+    fade_set_bkg_palette(4, 1, ground_palette);
 }
 
 static void famidash_apply_bg_trigger(uint8_t color_id) {
@@ -215,6 +225,7 @@ static void famidash_apply_bg_trigger(uint8_t color_id) {
         famidash_bg_palettes[6] = color;
         famidash_bg_palettes[5] = famidash_darker(color);
         fade_set_bkg_palette(1, 1, &famidash_bg_palettes[4]);
+        update_ground_palette(famidash_bg_palettes[0], color);
         return;
     } else {
         // Fast local lookup
@@ -232,17 +243,57 @@ static void famidash_apply_bg_trigger(uint8_t color_id) {
     famidash_bg_palettes[13] = color;
     fade_set_bkg_palette(0, 3, famidash_bg_palettes);
     famidash_update_parallax_palette(famidash_bg_palettes[0]);
+    update_ground_palette(famidash_bg_palettes[0], famidash_bg_palettes[6]);
 }
 
 static void famidash_apply_g_trigger(uint8_t color_id) {
     palette_color_t color;
 
     if (color_id == 31u) color = RGB(0, 29, 27); /* FamiDash $9F: Aqua */
+    else if (color_id == 46u) color = RGB(0, 28, 0); /* FamiDash $AE: Neon Green */
     else color = nes_master_palette[color_id & 0x3Fu];
 
     famidash_bg_palettes[6] = color;
     famidash_bg_palettes[5] = famidash_darker(color);
     fade_set_bkg_palette(1, 1, &famidash_bg_palettes[4]);
+    update_ground_palette(famidash_bg_palettes[0], color);
+}
+
+static const uint8_t level_initial_bg_color[11] = {
+    17, // Stereo Madness: Blue
+    20, // Back On Track: Magenta
+    42, // Polargeist: Green
+    22, // Dry Out: Red
+    17, // Base After Base: Blue
+    20, // Cant Let Go: Magenta
+    19, // Jumper: Purple
+    42, // Time Machine: Green
+    4,  // Cycles: Dark Violet
+    28, // xStep: Cyan
+    17  // Ultimate Destruction: Blue
+};
+
+static const uint8_t level_initial_g_color[11] = {
+    46, // Stereo Madness: Neon Green
+    20, // Back On Track: Magenta
+    26, // Polargeist: Medium Green
+    22, // Dry Out: Red
+    17, // Base After Base: Blue
+    4,  // Cant Let Go: Dark Violet
+    19, // Jumper: Purple
+    26, // Time Machine: Medium Green
+    20, // Cycles: Magenta
+    12, // xStep: Dark Cyan
+    17  // Ultimate Destruction: Blue
+};
+
+static void famidash_reset_bg_palettes(uint8_t idx) {
+    uint8_t i;
+    if (idx >= 11) idx = 0;
+    for (i = 0; i != 16; i++) famidash_bg_palettes[i] = vibrant_palette_default[i];
+    fade_set_bkg_palette(0, 3, famidash_bg_palettes);
+    famidash_apply_bg_trigger(level_initial_bg_color[idx]);
+    famidash_apply_g_trigger(level_initial_g_color[idx]);
 }
 
 static inline uint8_t is_dmg_portal(uint8_t o) {
@@ -827,13 +878,18 @@ static void reload_level_state(uint8_t idx) {
     init_death_effect_tiles();
     init_pause_tiles();
     load_famidash_sprite_tiles();
+    bg_drift_px = 0;
     if (_cpu == CGB_TYPE) {
         init_bg_parallax();
         last_bg_phase = 0;
+        load_menu_ground_tiles();
+        vram_row0_is_ground = 1;
+        cam_py = 128;
+    } else {
+        cam_py = 112;
     }
 
     cam_px = 0;
-    cam_py = 112;
     scroll_acc = 0;
     loaded_r = BKG_MT_W - 1;
     target_bg_idx = 0;
@@ -850,7 +906,7 @@ static void reload_level_state(uint8_t idx) {
     move_bkg(0, (uint8_t)cam_py);
     BGP_REG = bg_pals[0];
     if (_cpu == CGB_TYPE) {
-        famidash_reset_bg_palettes();
+        famidash_reset_bg_palettes(idx);
     }
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
     DISPLAY_ON;
@@ -875,10 +931,15 @@ void play_level(uint8_t idx) BANKED {
     if (_cpu == CGB_TYPE) level_tiles = chr_gb_cgb_tiles;
 
     cam_px = 0;
-    cam_py = 112;
-    cam_py_max = (level_map_h << 4);
-    if (cam_py_max > 144u) cam_py_max -= 144u;
-    else cam_py_max = 0;
+    if (_cpu == CGB_TYPE) {
+        cam_py = 128;
+        cam_py_max = (level_map_h << 4) - 128u;
+    } else {
+        cam_py = 112;
+        cam_py_max = (level_map_h << 4);
+        if (cam_py_max > 144u) cam_py_max -= 144u;
+        else cam_py_max = 0;
+    }
     loaded_r = BKG_MT_W - 1;
     max_scroll_px = ((level_map_w - VIEW_MT_W) << 4);
 
@@ -893,10 +954,13 @@ void play_level(uint8_t idx) BANKED {
     init_death_effect_tiles();
     init_pause_tiles();
     load_famidash_sprite_tiles();
+    bg_drift_px = 0;
     if (_cpu == CGB_TYPE) {
         init_bg_parallax();
         last_bg_phase = 0;
-        famidash_reset_bg_palettes();
+        load_menu_ground_tiles();
+        vram_row0_is_ground = 1;
+        famidash_reset_bg_palettes(idx);
         fade_set_sprite_palette(0, 8, gbc_sprite_palettes);
     }
     move_bkg(0, (uint8_t)cam_py);
@@ -1126,6 +1190,7 @@ void play_level(uint8_t idx) BANKED {
         uint16_t px_curr = px_prev;
 
         if (end_anim_state == END_ANIM_INACTIVE && cam_px < max_scroll_px) {
+            bg_drift_px++;
             scroll_acc += SCROLL_SPEED_FP;
             cam_px += scroll_acc >> 8;
             scroll_acc &= 0xFF;
@@ -1369,7 +1434,13 @@ void play_level(uint8_t idx) BANKED {
 
         wait_vbl_done();
         if (_cpu == CGB_TYPE) {
-            uint8_t bg_phase = ((scroll_px * 3u) >> 2) & 63u;
+            uint8_t target_row0_ground = (cam_py >= 40);
+            if (target_row0_ground != vram_row0_is_ground) {
+                update_vram_row0(target_row0_ground, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
+            }
+            uint8_t bg_phase = player.reversed
+                ? (uint8_t)(scroll_px + bg_drift_px) & 63u
+                : (uint8_t)(scroll_px - bg_drift_px) & 63u;
             if (bg_phase != last_bg_phase) {
                 last_bg_phase = bg_phase;
                 update_bg_parallax(bg_phase);

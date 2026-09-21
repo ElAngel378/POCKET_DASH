@@ -73,14 +73,20 @@ void col_at_end(void);
 // Safe music initialization from Bank 0
 void init_music_banked(const struct hUGESong_t * song, uint8_t bank, uint8_t divider);
 
-void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed);
-void flush_mt_column(uint8_t ring_col);
+void get_map_column(uint16_t map_col, const uint8_t *map, uint8_t map_bank, uint8_t *dest);
 
-void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed);
+void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED;
+void flush_mt_column(uint8_t ring_col) BANKED;
+
+void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
 
 void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank);
 void load_collision_columns(uint16_t map_col, const uint8_t* map,
                             uint16_t map_w, uint8_t map_bank,
                             uint8_t* columns);
+
+extern uint8_t vram_row0_is_ground;
+void load_menu_ground_tiles(void) BANKED;
+void update_vram_row0(uint8_t to_ground, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
 
 #endif // COLLISION_H
