@@ -107,6 +107,15 @@ void load_collision_columns(uint16_t map_col, const uint8_t* map,
 }
 
 void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) {
+  uint8_t tl_x = 0;
+  uint8_t tr_x = 1;
+  if (_cpu == CGB_TYPE) {
+      uint8_t vram_slot = (uint8_t)(map_col & 15u);
+      if (reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15u);
+      tl_x = (uint8_t)((vram_slot & 3u) << 1);
+      tr_x = tl_x + 1u;
+  }
+
   uint8_t _prev = _current_bank;
   SWITCH_ROM(map_bank);
 
@@ -114,25 +123,46 @@ void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, u
   const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
   uint8_t *dst = metatile_column_tiles;
 
-  for (uint8_t r = 0; r < BKG_MT_H; r++) {
-      uint8_t metatile_id = *map_ptr++;
-      const uint8_t *tiles = mt_table[metatile_id];
-
-      *dst++ = tiles[0];
-      *dst++ = tiles[1];
-      *dst++ = tiles[2];
-      *dst++ = tiles[3];
-  }
-
   if (_cpu == CGB_TYPE) {
-      map_ptr -= BKG_MT_H;
+      static const uint8_t row_to_ty0[16] = { 0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0 };
+      static const uint8_t row_to_ty1[16] = { 8, 24, 40, 8, 24, 40, 8, 24, 40, 8, 24, 40, 8, 24, 40, 8 };
       uint8_t *dst_attr = metatile_column_attributes;
       for (uint8_t r = 0; r < BKG_MT_H; r++) {
-          uint8_t palette = famidash_metatile_palettes[*map_ptr++];
-          *dst_attr++ = palette;
-          *dst_attr++ = palette;
-          *dst_attr++ = palette;
-          *dst_attr++ = palette;
+          uint8_t metatile_id = *map_ptr++;
+          if (metatile_id == 0) {
+              uint8_t r0 = row_to_ty0[r];
+              uint8_t r1 = row_to_ty1[r];
+              *dst++ = r0 + tl_x;
+              *dst++ = r0 + tr_x;
+              *dst++ = r1 + tl_x;
+              *dst++ = r1 + tr_x;
+              *dst_attr++ = 0x0B; // Bit 3 (0x08 = VRAM Bank 1) + Palette 3 (0x03)
+              *dst_attr++ = 0x0B;
+              *dst_attr++ = 0x0B;
+              *dst_attr++ = 0x0B;
+          } else {
+              const uint8_t *tiles = mt_table[metatile_id];
+              *dst++ = tiles[0];
+              *dst++ = tiles[1];
+              *dst++ = tiles[2];
+              *dst++ = tiles[3];
+
+              uint8_t palette = famidash_metatile_palettes[metatile_id];
+              *dst_attr++ = palette;
+              *dst_attr++ = palette;
+              *dst_attr++ = palette;
+              *dst_attr++ = palette;
+          }
+      }
+  } else {
+      for (uint8_t r = 0; r < BKG_MT_H; r++) {
+          uint8_t metatile_id = *map_ptr++;
+          const uint8_t *tiles = mt_table[metatile_id];
+
+          *dst++ = tiles[0];
+          *dst++ = tiles[1];
+          *dst++ = tiles[2];
+          *dst++ = tiles[3];
       }
   }
   SWITCH_ROM(_prev);

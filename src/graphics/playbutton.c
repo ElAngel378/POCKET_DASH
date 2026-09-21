@@ -1,3 +1,9 @@
+#pragma bank 21
+#include <gb/gb.h>
+#include "playbutton.h"
+
+BANKREF(playbutton)
+
 /* Generated play button tiles */
 const unsigned char playbutton[] = {
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,

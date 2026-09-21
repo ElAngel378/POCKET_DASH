@@ -25,9 +25,12 @@
 #ifndef __playbutton_h_INCLUDE
 #define __playbutton_h_INCLUDE
 
+#include <gb/gb.h>
+
 /* Bank of tiles. */
-#define playbuttonBank 0
+#define playbuttonBank 21
 /* Start of tile array. */
+BANKREF_EXTERN(playbutton)
 extern const unsigned char playbutton[];
 
 #endif

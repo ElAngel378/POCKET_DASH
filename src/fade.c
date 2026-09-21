@@ -152,7 +152,9 @@ void fade_apply_pause_box_palettes(void) BANKED {
 }
 
 void fade_restore_pause_box_palettes(void) BANKED {
-    // Background palettes 4..7 are no longer referenced once tile attributes are cleared
+    if (_cpu == CGB_TYPE) {
+        set_bkg_palette(4, 1, &shadow_bkg_palettes[16]);
+    }
 }
 
 void fade_to_black(uint8_t delay_frames) BANKED {

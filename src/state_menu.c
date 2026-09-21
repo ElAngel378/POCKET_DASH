@@ -81,7 +81,10 @@ GameState update_menu_state(void) {
 
     // Play button
     extern const unsigned char playbutton[];
+    BANKREF_EXTERN(playbutton)
+    SWITCH_ROM(BANK(playbutton));
     set_sprite_data(0, 16, &playbutton[16]);
+    SWITCH_ROM(prev_bank);
 
     if (_cpu == CGB_TYPE) {
         static const uint8_t yellow_fill_tile[32] = {

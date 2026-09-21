@@ -25,6 +25,7 @@
 #include "death_effect.h"
 #include "save_manager.h"
 #include "pause_buttons.h"
+#include "bg_parallax.h"
 
 extern const uint8_t chr_gb_cgb_tiles[];
 extern const uint8_t chr_gb_cgb_tiles_rev[];
@@ -104,6 +105,7 @@ static int16_t end_start_x;
 static int16_t end_start_y;
 static int16_t end_target_x;
 static int16_t end_target_y;
+static uint8_t last_bg_phase = 0xFF;
 
 // Scroll speed in 8.8 fixed point (pixels per frame)
 // Example: 3.0 = 768, 3.5 = 896, 4.0 = 1024
@@ -165,15 +167,43 @@ static const uint16_t vibrant_palette_default[16] = {
 static palette_color_t famidash_bg_palettes[16];
 
 static palette_color_t famidash_darker(palette_color_t color) {
-    return RGB((color & 0x1Fu) * 3u / 4u,
-               ((color >> 5) & 0x1Fu) * 3u / 4u,
-               ((color >> 10) & 0x1Fu) * 3u / 4u);
+    return RGB(((color & 0x1Fu) * 4u / 5u),
+               (((color >> 5) & 0x1Fu) * 4u / 5u),
+               (((color >> 10) & 0x1Fu) * 4u / 5u));
+}
+
+static palette_color_t famidash_bg_border(palette_color_t color) {
+    return RGB((((color & 0x1Fu) * 22u) >> 5),
+               ((((color >> 5) & 0x1Fu) * 22u) >> 5),
+               ((((color >> 10) & 0x1Fu) * 22u) >> 5));
+}
+
+static palette_color_t famidash_bg_body(palette_color_t color) {
+    return RGB((((color & 0x1Fu) * 27u) >> 5),
+               ((((color >> 5) & 0x1Fu) * 27u) >> 5),
+               ((((color >> 10) & 0x1Fu) * 27u) >> 5));
+}
+
+static palette_color_t famidash_bg_shadow(palette_color_t color) {
+    return RGB((((color & 0x1Fu) * 19u) >> 5),
+               ((((color >> 5) & 0x1Fu) * 19u) >> 5),
+               ((((color >> 10) & 0x1Fu) * 19u) >> 5));
+}
+
+static void famidash_update_parallax_palette(palette_color_t sky_color) {
+    palette_color_t pal[4];
+    pal[0] = sky_color;
+    pal[1] = famidash_bg_border(sky_color);
+    pal[2] = famidash_bg_body(sky_color);
+    pal[3] = famidash_bg_shadow(sky_color);
+    fade_set_bkg_palette(3, 1, pal);
 }
 
 static void famidash_reset_bg_palettes(void) {
     uint8_t i;
     for (i = 0; i != 16; i++) famidash_bg_palettes[i] = vibrant_palette_default[i];
-    fade_set_bkg_palette(0, 4, famidash_bg_palettes);
+    fade_set_bkg_palette(0, 3, famidash_bg_palettes);
+    famidash_update_parallax_palette(vibrant_palette_default[0]);
 }
 
 static void famidash_apply_bg_trigger(uint8_t color_id) {
@@ -200,7 +230,8 @@ static void famidash_apply_bg_trigger(uint8_t color_id) {
     // famidash_bg_palettes[5] is preserved for ground darker color
     famidash_bg_palettes[9] = color;
     famidash_bg_palettes[13] = color;
-    fade_set_bkg_palette(0, 4, famidash_bg_palettes);
+    fade_set_bkg_palette(0, 3, famidash_bg_palettes);
+    famidash_update_parallax_palette(famidash_bg_palettes[0]);
 }
 
 static void famidash_apply_g_trigger(uint8_t color_id) {
@@ -796,6 +827,10 @@ static void reload_level_state(uint8_t idx) {
     init_death_effect_tiles();
     init_pause_tiles();
     load_famidash_sprite_tiles();
+    if (_cpu == CGB_TYPE) {
+        init_bg_parallax();
+        last_bg_phase = 0;
+    }
 
     cam_px = 0;
     cam_py = 112;
@@ -858,13 +893,14 @@ void play_level(uint8_t idx) BANKED {
     init_death_effect_tiles();
     init_pause_tiles();
     load_famidash_sprite_tiles();
-    move_bkg(0, (uint8_t)cam_py);
-    fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
-
     if (_cpu == CGB_TYPE) {
+        init_bg_parallax();
+        last_bg_phase = 0;
         famidash_reset_bg_palettes();
         fade_set_sprite_palette(0, 8, gbc_sprite_palettes);
     }
+    move_bkg(0, (uint8_t)cam_py);
+    fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
 
     fade_set_dmg_palettes(bg_pals[0], bg_pals[0], bg_pals[0]);
     fade_set_black();
@@ -1332,6 +1368,13 @@ void play_level(uint8_t idx) BANKED {
         }
 
         wait_vbl_done();
+        if (_cpu == CGB_TYPE) {
+            uint8_t bg_phase = ((scroll_px * 3u) >> 2) & 63u;
+            if (bg_phase != last_bg_phase) {
+                last_bg_phase = bg_phase;
+                update_bg_parallax(bg_phase);
+            }
+        }
         uint8_t apply_idx = target_bg_idx;
         if (reduce_flash && (apply_idx == 1 || apply_idx == 2)) {
             apply_idx = 0;
