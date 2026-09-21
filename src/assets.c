@@ -222,7 +222,7 @@ const Level level_cy = {
   cycles_map,
   chr_gb_TILE_COUNT, 823, 16, 0, 0,
   BANK(cycles_map),
-  183,
+  37,
   cycles_sp,
   BANK(cycles_sp),
   cycles_sp_dmg
