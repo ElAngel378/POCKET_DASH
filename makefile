@@ -19,7 +19,7 @@ vpath %.c $(SRCDIR) $(SRCDIR)/graphics $(SRCDIR)/music $(SRCDIR)/sprites $(SRCDI
 # via -Wf. Without these the game cannot hold 60fps: all OAM/metatile work
 # runs at naive -O0 speed.
 # -Wl-yp0x143=0x80 enables GBC support in the ROM header
-LCCFLAGS = -I$(INCDIR) -Isrc/graphics -Wf--opt-code-speed -Wf--max-allocs-per-node1000000 -Wa-I. -Wl-j -Wl-yt0x1B -Wl-yo256 -Wl-ya1 -Wl-yp0x143=0x80
+LCCFLAGS = -I$(INCDIR) -Isrc/graphics -Wf--opt-code-speed -Wf--max-allocs-per-node50000 -Wa-I. -Wl-j -Wl-yt0x1B -Wl-yo256 -Wl-ya1 -Wl-yp0x143=0x80
 LIBS = $(LIBDIR)/hUGEDriver.lib
 
 all: prepare $(BINDIR)/$(PROJECT_NAME).gb

@@ -4,12 +4,24 @@
 #include <gb/gb.h>
 #include "assets.h"
 #include "player.h"
+#include "famidash_bg.h"
+#include "sp_draw.h"
 
 extern uint8_t music_ready;
 extern uint8_t redraw;
 extern uint8_t selected;
 extern volatile uint8_t current_song_bank;
 extern volatile uint8_t cgb_music_tick;
+
+// End-animation state shared between gameplay.c and sp_draw.c
+#define END_ANIM_INACTIVE 0
+#define END_ANIM_PULL     1
+#define END_ANIM_SHAKE    2
+
+extern uint8_t  end_anim_state;
+extern uint8_t  end_trigger_requested;
+extern uint16_t end_trigger_obj_x;
+extern uint16_t end_trigger_obj_y;
 
 #define FONT_PUSAB_START 0xD0
 
