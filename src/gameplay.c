@@ -706,25 +706,32 @@ void play_level(uint8_t idx) BANKED {
             prepare_mt_column(need_col, level_map, level_map_bank, player.reversed);
         }
 
-        wait_vbl_done();
-
-        uint8_t final_scx = (uint8_t)((int16_t)scroll_px + cur_shake_x);
-        uint8_t final_scy = (uint8_t)((int16_t)cam_py + cur_shake_y);
-        move_bkg(final_scx, final_scy);
-
         uint8_t apply_idx = target_bg_idx;
         if (reduce_flash && (apply_idx == 1 || apply_idx == 2)) {
             apply_idx = 0;
         }
-        BGP_REG = bg_pals[apply_idx];
+
+        uint8_t final_bgp = bg_pals[apply_idx];
+        uint8_t final_obp0, final_obp1;
+
         // Keep sprites visible on DMG during full-black flash
         if (_cpu != CGB_TYPE && apply_idx == 3) {
-            OBP0_REG = bg_pals[0];
-            OBP1_REG = bg_pals[0];
+            final_obp0 = bg_pals[0];
+            final_obp1 = bg_pals[0];
         } else {
-            OBP0_REG = bg_pals[apply_idx];
-            OBP1_REG = bg_pals[apply_idx];
+            final_obp0 = final_bgp;
+            final_obp1 = final_bgp;
         }
+
+        uint8_t final_scx = (uint8_t)((int16_t)scroll_px + cur_shake_x);
+        uint8_t final_scy = (uint8_t)((int16_t)cam_py + cur_shake_y);
+
+        wait_vbl_done();
+        move_bkg(final_scx, final_scy);
+
+        BGP_REG = final_bgp;
+        OBP0_REG = final_obp0;
+        OBP1_REG = final_obp1;
 
         if (fade_palettes_dirty) {
             fade_apply_dirty_palettes();
