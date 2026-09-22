@@ -78,7 +78,7 @@ static void famidash_update_parallax_palette(palette_color_t sky_color) {
     pal[1] = famidash_bg_border(sky_color);
     pal[2] = famidash_bg_body(sky_color);
     pal[3] = famidash_bg_shadow(sky_color);
-    fade_set_bkg_palette(3, 1, pal);
+    fade_buffer_bkg_palette(3, 1, pal);
 }
 
 static palette_color_t ground_palette[4];
@@ -93,7 +93,7 @@ static void update_ground_palette(palette_color_t bg_color, palette_color_t g_co
     ground_palette[3] = RGB((((g_color & 0x1Fu) * 9u) >> 5),
                             ((((g_color >> 5) & 0x1Fu) * 9u) >> 5),
                             ((((g_color >> 10) & 0x1Fu) * 9u) >> 5));
-    fade_set_bkg_palette(4, 1, ground_palette);
+    fade_buffer_bkg_palette(4, 1, ground_palette);
 }
 
 void famidash_apply_bg_trigger(uint8_t color_id) BANKED {
@@ -104,7 +104,7 @@ void famidash_apply_bg_trigger(uint8_t color_id) BANKED {
         color = RGB(0, 28, 0); /* Neon Green */
         famidash_bg_palettes[6] = color;
         famidash_bg_palettes[5] = famidash_darker(color);
-        fade_set_bkg_palette(1, 1, &famidash_bg_palettes[4]);
+        fade_buffer_bkg_palette(1, 1, &famidash_bg_palettes[4]);
         update_ground_palette(famidash_bg_palettes[0], color);
         return;
     } else {
@@ -121,7 +121,7 @@ void famidash_apply_bg_trigger(uint8_t color_id) BANKED {
     // famidash_bg_palettes[5] is preserved for ground darker color
     famidash_bg_palettes[9] = color;
     famidash_bg_palettes[13] = color;
-    fade_set_bkg_palette(0, 3, famidash_bg_palettes);
+    fade_buffer_bkg_palette(0, 3, famidash_bg_palettes);
     famidash_update_parallax_palette(famidash_bg_palettes[0]);
     update_ground_palette(famidash_bg_palettes[0], famidash_bg_palettes[6]);
 }
@@ -135,7 +135,7 @@ void famidash_apply_g_trigger(uint8_t color_id) BANKED {
 
     famidash_bg_palettes[6] = color;
     famidash_bg_palettes[5] = famidash_darker(color);
-    fade_set_bkg_palette(1, 1, &famidash_bg_palettes[4]);
+    fade_buffer_bkg_palette(1, 1, &famidash_bg_palettes[4]);
     update_ground_palette(famidash_bg_palettes[0], color);
 }
 
@@ -174,4 +174,5 @@ void famidash_reset_bg_palettes(uint8_t idx) BANKED {
     fade_set_bkg_palette(0, 3, famidash_bg_palettes);
     famidash_apply_bg_trigger(level_initial_bg_color[idx]);
     famidash_apply_g_trigger(level_initial_g_color[idx]);
+    fade_apply_dirty_palettes();
 }

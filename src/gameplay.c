@@ -707,19 +707,11 @@ void play_level(uint8_t idx) BANKED {
         }
 
         wait_vbl_done();
-        if (_cpu == CGB_TYPE) {
-            uint8_t target_row0_ground = (cam_py >= 40);
-            if (target_row0_ground != vram_row0_is_ground) {
-                update_vram_row0(target_row0_ground, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
-            }
-            uint8_t bg_phase = player.reversed
-                ? (uint8_t)(scroll_px + bg_drift_px) & 63u
-                : (uint8_t)(scroll_px - bg_drift_px) & 63u;
-            if (bg_phase != last_bg_phase) {
-                last_bg_phase = bg_phase;
-                update_bg_parallax(bg_phase);
-            }
-        }
+
+        uint8_t final_scx = (uint8_t)((int16_t)scroll_px + cur_shake_x);
+        uint8_t final_scy = (uint8_t)((int16_t)cam_py + cur_shake_y);
+        move_bkg(final_scx, final_scy);
+
         uint8_t apply_idx = target_bg_idx;
         if (reduce_flash && (apply_idx == 1 || apply_idx == 2)) {
             apply_idx = 0;
@@ -733,9 +725,24 @@ void play_level(uint8_t idx) BANKED {
             OBP0_REG = bg_pals[apply_idx];
             OBP1_REG = bg_pals[apply_idx];
         }
-        uint8_t final_scx = (uint8_t)((int16_t)scroll_px + cur_shake_x);
-        uint8_t final_scy = (uint8_t)((int16_t)cam_py + cur_shake_y);
-        move_bkg(final_scx, final_scy);
+
+        if (fade_palettes_dirty) {
+            fade_apply_dirty_palettes();
+        }
+
+        if (_cpu == CGB_TYPE) {
+            uint8_t target_row0_ground = (cam_py >= 40);
+            if (target_row0_ground != vram_row0_is_ground) {
+                update_vram_row0(target_row0_ground, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
+            }
+            uint8_t bg_phase = player.reversed
+                ? (uint8_t)(scroll_px + bg_drift_px) & 63u
+                : (uint8_t)(scroll_px - bg_drift_px) & 63u;
+            if (bg_phase != last_bg_phase) {
+                last_bg_phase = bg_phase;
+                update_bg_parallax(bg_phase);
+            }
+        }
 
         if (needs_render) {
             flush_mt_column(vram_slot);

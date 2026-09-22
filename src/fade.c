@@ -7,6 +7,8 @@ static palette_color_t shadow_spr_palettes[32];
 static uint8_t active_bkg_count = 0;
 static uint8_t active_spr_count = 0;
 
+uint8_t fade_palettes_dirty = 0;
+
 static uint8_t shadow_bgp = 0xE4;
 static uint8_t shadow_obp0 = 0xE4;
 static uint8_t shadow_obp1 = 0xE4;
@@ -41,6 +43,23 @@ void fade_set_bkg_palette(uint8_t first, uint8_t count, const palette_color_t *d
     }
 }
 
+void fade_buffer_bkg_palette(uint8_t first, uint8_t count, const palette_color_t *data) BANKED {
+    if (_cpu == CGB_TYPE) {
+        uint8_t start_idx = first << 2;
+        uint8_t total_colors = count << 2;
+        uint8_t i;
+        for (i = 0; i < total_colors; i++) {
+            if (start_idx + i < 32) {
+                shadow_bkg_palettes[start_idx + i] = data[i];
+            }
+        }
+        if (first + count > active_bkg_count) {
+            active_bkg_count = first + count;
+        }
+        fade_palettes_dirty = 1;
+    }
+}
+
 void fade_set_sprite_palette(uint8_t first, uint8_t count, const palette_color_t *data) BANKED {
     if (_cpu == CGB_TYPE) {
         uint8_t start_idx = first << 2;
@@ -54,7 +73,7 @@ void fade_set_sprite_palette(uint8_t first, uint8_t count, const palette_color_t
         if (first + count > active_spr_count) {
             active_spr_count = first + count;
         }
-        set_sprite_palette(first, count, data);
+        fade_palettes_dirty = 1;
     }
 }
 
@@ -65,6 +84,20 @@ void fade_set_dmg_palettes(uint8_t bgp, uint8_t obp0, uint8_t obp1) BANKED {
     BGP_REG = bgp;
     OBP0_REG = obp0;
     OBP1_REG = obp1;
+}
+
+void fade_apply_dirty_palettes(void) BANKED {
+    if (fade_palettes_dirty) {
+        if (_cpu == CGB_TYPE) {
+            if (active_bkg_count > 0) set_bkg_palette(0, active_bkg_count, shadow_bkg_palettes);
+            if (active_spr_count > 0) set_sprite_palette(0, active_spr_count, shadow_spr_palettes);
+        } else {
+            BGP_REG = shadow_bgp;
+            OBP0_REG = shadow_obp0;
+            OBP1_REG = shadow_obp1;
+        }
+        fade_palettes_dirty = 0;
+    }
 }
 
 void fade_set_black(void) BANKED {
