@@ -17,6 +17,7 @@ void fade_restore_pause_tint(void) BANKED;
 void fade_apply_pause_box_palettes(void) BANKED;
 void fade_restore_pause_box_palettes(void) BANKED;
 
+extern palette_color_t shadow_bkg_palettes[32];
 extern uint8_t fade_palettes_dirty;
 void fade_apply_dirty_palettes(void) BANKED;
 

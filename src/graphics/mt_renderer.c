@@ -76,6 +76,9 @@ void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, u
     }
 }
 
+static uint8_t row0_tiles_cache[64];
+static uint8_t row0_attrs_cache[64];
+
 void flush_mt_column(uint8_t ring_col) BANKED {
     uint8_t bx = ring_col << 1;
     VBK_REG = VBK_TILES;
@@ -95,24 +98,7 @@ void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_
     }
 }
 
-void update_vram_row0(uint8_t to_ground, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED {
-    if (_cpu != CGB_TYPE) return;
-    vram_row0_is_ground = to_ground;
-
-    if (to_ground) {
-        VBK_REG = 0;
-        for (uint8_t k = 0; k < 4; k++) {
-            set_bkg_tiles((uint8_t)(k << 3), 0, 8, 1, ground_top);
-            set_bkg_tiles((uint8_t)(k << 3), 1, 8, 1, ground_bot);
-        }
-        VBK_REG = 1;
-        fill_bkg_rect(0, 0, 32, 2, 0x0C);
-        VBK_REG = 0;
-        return;
-    }
-
-    uint8_t row0_tiles[64];
-    uint8_t row0_attrs[64];
+void prepare_row0_level_tiles(uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED {
     const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
 
     for (uint8_t s = 0; s < 16; s++) {
@@ -131,19 +117,35 @@ void update_vram_row0(uint8_t to_ground, uint16_t loaded_r, const uint8_t* map, 
                 uint8_t t = tiles[i];
                 uint8_t dst_idx = (i < 2 ? 0 : 32) + (s << 1) + (i & 1);
                 if (t == 12) {
-                    row0_tiles[dst_idx] = (i < 2 ? 0 : 8) + ((i & 1) ? tr_x : tl_x);
-                    row0_attrs[dst_idx] = 0x0B;
+                    row0_tiles_cache[dst_idx] = (i < 2 ? 0 : 8) + ((i & 1) ? tr_x : tl_x);
+                    row0_attrs_cache[dst_idx] = 0x0B;
                 } else {
-                    row0_tiles[dst_idx] = t;
-                    row0_attrs[dst_idx] = pal;
+                    row0_tiles_cache[dst_idx] = t;
+                    row0_attrs_cache[dst_idx] = pal;
                 }
             }
         }
     }
-
-    VBK_REG = 0;
-    set_bkg_tiles(0, 0, 32, 2, row0_tiles);
-    VBK_REG = 1;
-    set_bkg_tiles(0, 0, 32, 2, row0_attrs);
-    VBK_REG = 0;
 }
+
+void flush_vram_row0(uint8_t is_ground) BANKED {
+    if (_cpu != CGB_TYPE) return;
+
+    if (is_ground) {
+        VBK_REG = 0;
+        for (uint8_t k = 0; k < 4; k++) {
+            set_bkg_tiles((uint8_t)(k << 3), 0, 8, 1, ground_top);
+            set_bkg_tiles((uint8_t)(k << 3), 1, 8, 1, ground_bot);
+        }
+        VBK_REG = 1;
+        fill_bkg_rect(0, 0, 32, 2, 0x0C);
+        VBK_REG = 0;
+    } else {
+        VBK_REG = 0;
+        set_bkg_tiles(0, 0, 32, 2, row0_tiles_cache);
+        VBK_REG = 1;
+        set_bkg_tiles(0, 0, 32, 2, row0_attrs_cache);
+        VBK_REG = 0;
+    }
+}
+

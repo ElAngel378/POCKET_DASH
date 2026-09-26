@@ -706,6 +706,34 @@ void play_level(uint8_t idx) BANKED {
             prepare_mt_column(need_col, level_map, level_map_bank, player.reversed);
         }
 
+        uint8_t row0_switch_needed = 0;
+        uint8_t parallax_needed = 0;
+        uint8_t bg_phase = 0;
+
+        if (_cpu == CGB_TYPE) {
+            uint8_t target_row0_ground = vram_row0_is_ground;
+            if (vram_row0_is_ground) {
+                if (cam_py < 36) target_row0_ground = 0;
+            } else {
+                if (cam_py >= 44) target_row0_ground = 1;
+            }
+            if (target_row0_ground != vram_row0_is_ground) {
+                vram_row0_is_ground = target_row0_ground;
+                row0_switch_needed = 1;
+                if (!target_row0_ground) {
+                    prepare_row0_level_tiles(loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
+                }
+            }
+
+            bg_phase = player.reversed
+                ? (uint8_t)(scroll_px + bg_drift_px) & 63u
+                : (uint8_t)(scroll_px - bg_drift_px) & 63u;
+            if (bg_phase != last_bg_phase) {
+                last_bg_phase = bg_phase;
+                parallax_needed = 1;
+            }
+        }
+
         uint8_t apply_idx = target_bg_idx;
         if (reduce_flash && (apply_idx == 1 || apply_idx == 2)) {
             apply_idx = 0;
@@ -733,22 +761,16 @@ void play_level(uint8_t idx) BANKED {
         OBP0_REG = final_obp0;
         OBP1_REG = final_obp1;
 
-        if (fade_palettes_dirty) {
-            fade_apply_dirty_palettes();
+        if (famidash_bkg_palettes_dirty) {
+            famidash_apply_palettes();
         }
 
-        if (_cpu == CGB_TYPE) {
-            uint8_t target_row0_ground = (cam_py >= 40);
-            if (target_row0_ground != vram_row0_is_ground) {
-                update_vram_row0(target_row0_ground, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
-            }
-            uint8_t bg_phase = player.reversed
-                ? (uint8_t)(scroll_px + bg_drift_px) & 63u
-                : (uint8_t)(scroll_px - bg_drift_px) & 63u;
-            if (bg_phase != last_bg_phase) {
-                last_bg_phase = bg_phase;
-                update_bg_parallax(bg_phase);
-            }
+        if (row0_switch_needed) {
+            flush_vram_row0(vram_row0_is_ground);
+        }
+
+        if (parallax_needed) {
+            update_bg_parallax(bg_phase);
         }
 
         if (needs_render) {

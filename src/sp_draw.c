@@ -63,10 +63,10 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
     /* Retire old entries and compact in a single pass */
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
         if (cache->active[i]) {
-            // DMG: If already activated and not a portal, prune immediately so it frees cache space
-            if (_cpu != CGB_TYPE && cache->activated[i]) {
+            if (cache->activated[i]) {
                 uint8_t o = cache->obj[i];
-                if (o >= 128 || !is_dmg_portal(o)) continue;
+                if (o >= 128) continue; // Any activated trigger can be safely pruned
+                if (_cpu != CGB_TYPE && !is_dmg_portal(o)) continue;
             }
             if (cache->px[i] + 48u >= cam_px) {
                 if (count != i) {
@@ -317,7 +317,6 @@ void process_sprite_logic(
                 }
 
                 cache->activated[i] = 1;
-                cache->active[i] = 0;
             }
 
             continue;
@@ -330,7 +329,6 @@ void process_sprite_logic(
                     famidash_apply_g_trigger(pal_idx);
                 }
                 cache->activated[i] = 1;
-                cache->active[i] = 0;
             }
 
             continue;

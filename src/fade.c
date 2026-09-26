@@ -2,7 +2,7 @@
 
 #include "fade.h"
 
-static palette_color_t shadow_bkg_palettes[32];
+palette_color_t shadow_bkg_palettes[32];
 static palette_color_t shadow_spr_palettes[32];
 static uint8_t active_bkg_count = 0;
 static uint8_t active_spr_count = 0;
@@ -73,7 +73,7 @@ void fade_set_sprite_palette(uint8_t first, uint8_t count, const palette_color_t
         if (first + count > active_spr_count) {
             active_spr_count = first + count;
         }
-        fade_palettes_dirty = 1;
+        set_sprite_palette(first, count, data);
     }
 }
 

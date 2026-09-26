@@ -1,4 +1,4 @@
-#pragma bank 10
+#pragma bank 14
 
 #include <gb/gb.h>
 
@@ -39,6 +39,8 @@ static const uint16_t nes_master_palette[64] = {
 /**
  * Vibrant GBC Palettes moved local for maximum DMG performance
  */
+#include <string.h>
+
 static const uint16_t vibrant_palette_default[16] = {
     RGB(0, 7, 19), RGB(0, 0, 17), RGB(0, 0, 0), RGB(31, 31, 31), // palette 0
     RGB(0, 7, 19), RGB(0, 0, 17), RGB(0, 7, 19), RGB(31, 31, 31), // palette 1
@@ -46,54 +48,48 @@ static const uint16_t vibrant_palette_default[16] = {
     RGB(0, 7, 19), RGB(0, 0, 17), RGB(0, 0, 0), RGB(0, 0, 0)  // palette 3
 };
 
-static palette_color_t famidash_bg_palettes[16];
+palette_color_t famidash_bg_palettes[20];
+static palette_color_t current_sky_color = RGB(0, 7, 19);
+static palette_color_t current_g_color = RGB(0, 28, 0);
 
-static palette_color_t famidash_darker(palette_color_t color) {
-    return RGB(((color & 0x1Fu) * 4u / 5u),
-               (((color >> 5) & 0x1Fu) * 4u / 5u),
-               (((color >> 10) & 0x1Fu) * 4u / 5u));
+uint8_t famidash_bkg_palettes_dirty = 0;
+
+static inline palette_color_t famidash_darker(palette_color_t color) {
+    uint8_t r = (uint8_t)(color & 0x1Fu);
+    uint8_t g = (uint8_t)((color >> 5) & 0x1Fu);
+    uint8_t b = (uint8_t)((color >> 10) & 0x1Fu);
+    return RGB((r * 26u) >> 5, (g * 26u) >> 5, (b * 26u) >> 5);
 }
 
-static palette_color_t famidash_bg_border(palette_color_t color) {
-    return RGB((((color & 0x1Fu) * 22u) >> 5),
-               ((((color >> 5) & 0x1Fu) * 22u) >> 5),
-               ((((color >> 10) & 0x1Fu) * 22u) >> 5));
+static inline palette_color_t famidash_bg_border(palette_color_t color) {
+    uint8_t r = (uint8_t)(color & 0x1Fu);
+    uint8_t g = (uint8_t)((color >> 5) & 0x1Fu);
+    uint8_t b = (uint8_t)((color >> 10) & 0x1Fu);
+    return RGB((r * 22u) >> 5, (g * 22u) >> 5, (b * 22u) >> 5);
 }
 
-static palette_color_t famidash_bg_body(palette_color_t color) {
-    return RGB((((color & 0x1Fu) * 27u) >> 5),
-               ((((color >> 5) & 0x1Fu) * 27u) >> 5),
-               ((((color >> 10) & 0x1Fu) * 27u) >> 5));
+static inline palette_color_t famidash_bg_body(palette_color_t color) {
+    uint8_t r = (uint8_t)(color & 0x1Fu);
+    uint8_t g = (uint8_t)((color >> 5) & 0x1Fu);
+    uint8_t b = (uint8_t)((color >> 10) & 0x1Fu);
+    return RGB((r * 27u) >> 5, (g * 27u) >> 5, (b * 27u) >> 5);
 }
 
-static palette_color_t famidash_bg_shadow(palette_color_t color) {
-    return RGB((((color & 0x1Fu) * 19u) >> 5),
-               ((((color >> 5) & 0x1Fu) * 19u) >> 5),
-               ((((color >> 10) & 0x1Fu) * 19u) >> 5));
+static inline palette_color_t famidash_bg_shadow(palette_color_t color) {
+    uint8_t r = (uint8_t)(color & 0x1Fu);
+    uint8_t g = (uint8_t)((color >> 5) & 0x1Fu);
+    uint8_t b = (uint8_t)((color >> 10) & 0x1Fu);
+    return RGB((r * 19u) >> 5, (g * 19u) >> 5, (b * 19u) >> 5);
 }
 
-static void famidash_update_parallax_palette(palette_color_t sky_color) {
-    palette_color_t pal[4];
-    pal[0] = sky_color;
-    pal[1] = famidash_bg_border(sky_color);
-    pal[2] = famidash_bg_body(sky_color);
-    pal[3] = famidash_bg_shadow(sky_color);
-    fade_buffer_bkg_palette(3, 1, pal);
-}
-
-static palette_color_t ground_palette[4];
-
-static void update_ground_palette(palette_color_t bg_color, palette_color_t g_color) {
-    if (_cpu != CGB_TYPE) return;
-    ground_palette[0] = bg_color;
-    ground_palette[1] = g_color;
-    ground_palette[2] = RGB((((g_color & 0x1Fu) * 18u) >> 5),
-                            ((((g_color >> 5) & 0x1Fu) * 18u) >> 5),
-                            ((((g_color >> 10) & 0x1Fu) * 18u) >> 5));
-    ground_palette[3] = RGB((((g_color & 0x1Fu) * 9u) >> 5),
-                            ((((g_color >> 5) & 0x1Fu) * 9u) >> 5),
-                            ((((g_color >> 10) & 0x1Fu) * 9u) >> 5));
-    fade_buffer_bkg_palette(4, 1, ground_palette);
+static inline void update_ground_palette(palette_color_t bg_color, palette_color_t g_color) {
+    uint8_t r = (uint8_t)(g_color & 0x1Fu);
+    uint8_t g = (uint8_t)((g_color >> 5) & 0x1Fu);
+    uint8_t b = (uint8_t)((g_color >> 10) & 0x1Fu);
+    famidash_bg_palettes[16] = bg_color;
+    famidash_bg_palettes[17] = g_color;
+    famidash_bg_palettes[18] = RGB((r * 18u) >> 5, (g * 18u) >> 5, (b * 18u) >> 5);
+    famidash_bg_palettes[19] = RGB((r * 9u) >> 5, (g * 9u) >> 5, (b * 9u) >> 5);
 }
 
 void famidash_apply_bg_trigger(uint8_t color_id) BANKED {
@@ -101,29 +97,43 @@ void famidash_apply_bg_trigger(uint8_t color_id) BANKED {
 
     if (color_id == 31u) color = RGB(0, 29, 27); /* FamiDash $9F: Use Aqua as default player color */
     else if (color_id == 46u) {                   /* FamiDash $AE: Ground Color 2 Trigger */
-        color = RGB(0, 28, 0); /* Neon Green */
-        famidash_bg_palettes[6] = color;
-        famidash_bg_palettes[5] = famidash_darker(color);
-        fade_buffer_bkg_palette(1, 1, &famidash_bg_palettes[4]);
-        update_ground_palette(famidash_bg_palettes[0], color);
+        famidash_apply_g_trigger(46u);
         return;
     } else {
-        // Fast local lookup
         color = nes_master_palette[color_id & 0x3Fu];
     }
 
+    current_sky_color = color;
+    palette_color_t darker_sky = famidash_darker(color);
+
+    // Palette 0: Normal level tiles
     famidash_bg_palettes[0] = color;
+    famidash_bg_palettes[1] = darker_sky;
+    famidash_bg_palettes[2] = RGB(0, 0, 0);
+    famidash_bg_palettes[3] = RGB(31, 31, 31);
+
+    // Palette 1: Accent / Ground (preserve ground color)
     famidash_bg_palettes[4] = color;
+    // famidash_bg_palettes[5] and [6] are ground darker and ground color, preserved!
+    famidash_bg_palettes[7] = RGB(31, 31, 31);
+
+    // Palette 2: BG Spikes / Hazards
     famidash_bg_palettes[8] = color;
+    famidash_bg_palettes[9] = darker_sky;
+    famidash_bg_palettes[10] = RGB(0, 0, 0);
+    famidash_bg_palettes[11] = RGB(15, 31, 0);
+
+    // Palette 3: Parallax BG
     famidash_bg_palettes[12] = color;
-    color = famidash_darker(color);
-    famidash_bg_palettes[1] = color;
-    // famidash_bg_palettes[5] is preserved for ground darker color
-    famidash_bg_palettes[9] = color;
-    famidash_bg_palettes[13] = color;
-    fade_buffer_bkg_palette(0, 3, famidash_bg_palettes);
-    famidash_update_parallax_palette(famidash_bg_palettes[0]);
-    update_ground_palette(famidash_bg_palettes[0], famidash_bg_palettes[6]);
+    famidash_bg_palettes[13] = famidash_bg_border(color);
+    famidash_bg_palettes[14] = famidash_bg_body(color);
+    famidash_bg_palettes[15] = famidash_bg_shadow(color);
+
+    // Palette 4: Ground Grid
+    update_ground_palette(color, current_g_color);
+
+    memcpy(shadow_bkg_palettes, famidash_bg_palettes, 20 * sizeof(palette_color_t));
+    famidash_bkg_palettes_dirty = 1;
 }
 
 void famidash_apply_g_trigger(uint8_t color_id) BANKED {
@@ -133,10 +143,17 @@ void famidash_apply_g_trigger(uint8_t color_id) BANKED {
     else if (color_id == 46u) color = RGB(0, 28, 0); /* FamiDash $AE: Neon Green */
     else color = nes_master_palette[color_id & 0x3Fu];
 
-    famidash_bg_palettes[6] = color;
+    current_g_color = color;
+
+    // Palette 1: Ground color
     famidash_bg_palettes[5] = famidash_darker(color);
-    fade_buffer_bkg_palette(1, 1, &famidash_bg_palettes[4]);
-    update_ground_palette(famidash_bg_palettes[0], color);
+    famidash_bg_palettes[6] = color;
+
+    // Palette 4: Ground Grid
+    update_ground_palette(current_sky_color, color);
+
+    memcpy(shadow_bkg_palettes, famidash_bg_palettes, 20 * sizeof(palette_color_t));
+    famidash_bkg_palettes_dirty = 1;
 }
 
 static const uint8_t level_initial_bg_color[11] = {
@@ -170,9 +187,13 @@ static const uint8_t level_initial_g_color[11] = {
 void famidash_reset_bg_palettes(uint8_t idx) BANKED {
     uint8_t i;
     if (idx >= 11) idx = 0;
-    for (i = 0; i != 16; i++) famidash_bg_palettes[i] = vibrant_palette_default[i];
-    fade_set_bkg_palette(0, 3, famidash_bg_palettes);
+    for (i = 0; i < 16; i++) famidash_bg_palettes[i] = vibrant_palette_default[i];
+    current_sky_color = vibrant_palette_default[0];
+    current_g_color = vibrant_palette_default[6];
     famidash_apply_bg_trigger(level_initial_bg_color[idx]);
     famidash_apply_g_trigger(level_initial_g_color[idx]);
-    fade_apply_dirty_palettes();
+    if (_cpu == CGB_TYPE) {
+        set_bkg_palette(0, 5, famidash_bg_palettes);
+    }
+    famidash_bkg_palettes_dirty = 0;
 }
