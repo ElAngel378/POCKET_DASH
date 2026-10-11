@@ -22,9 +22,9 @@
 
 #define FUR_API BANKED  /* furplayer.c is banked here */
 
-#define FUR_MAX_CHUNKS 8    /* 16 KB each: CHUNKS in furplayer_tick.s, MAX_CHUNKS in fur2gb.py */
+#define FUR_MAX_CHUNKS 4    /* 16 KB each: CHUNKS in furplayer_tick.s, MAX_CHUNKS in fur2gb.py */
 #define FUR_STREAMS 5       /* A (row commands), B0-B3 (per-channel tick): NSTREAMS in fur2gb.py */
-#define FUR_STACK_DEPTH 2   /* FRAMES in furplayer_tick.s, MAX_DEPTH in fur2gb.py */
+#define FUR_STACK_DEPTH 1   /* FRAMES in furplayer_tick.s, MAX_DEPTH in fur2gb.py */
 #define FUR_CTX_SIZE (5 + FUR_STACK_DEPTH * 5)
 
 typedef struct {

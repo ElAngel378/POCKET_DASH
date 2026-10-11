@@ -19,6 +19,6 @@ const fur_song_t fs_stereomadness = {
     1, /* anti-click */
     34952, /* anti-click step at 60 Hz */
     1118481UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 186 }, { 0, 852 }, { 0, 2661 }, { 0, 3052 } }, /* stream entry points */
+    { { 0, 0 }, { 0, 222 }, { 0, 1183 }, { 0, 3601 }, { 0, 4295 } }, /* stream entry points */
     fs_stereomadness_chunks
 };

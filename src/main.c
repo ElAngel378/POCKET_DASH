@@ -20,17 +20,14 @@ volatile uint8_t current_music_divider = 176;
 volatile uint8_t cgb_music_tick = 0;
 static uint16_t music_time_acc = 0;
 
-volatile uint8_t music_driver = MUSIC_HUGE;
-uint8_t fur_tbase;
-uint16_t fur_tfrac, fur_tunit, fur_tacc;
-int16_t fur_left;
+// music_driver and the fur_t* pacing state are in HRAM (src/furnace/music_hram.s)
 
 // timer counts until the next Furnace tick: fur_tbase, one more when the fraction carries over
 static uint8_t fur_period_counts(void) {
   uint8_t n = fur_tbase;
   fur_tacc += fur_tfrac;
-  if (fur_tacc >= fur_tunit) {
-    fur_tacc -= fur_tunit;
+  if (fur_tacc >= 16384u) {
+    fur_tacc -= 16384u;
     n++;
   }
   return n;
@@ -180,6 +177,9 @@ void play_music_safe(void) {
 void main(void) {
   music_ready = 0;
   sample_playing = 0;
+  music_driver = MUSIC_HUGE;   // HRAM: not initialized at boot
+  fur_playing = 0;
+  fur_beats_start(FUR_NONE);
 
   if (_cpu == CGB_TYPE) cpu_fast();
 

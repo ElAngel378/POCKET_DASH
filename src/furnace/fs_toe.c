@@ -8,20 +8,23 @@ BANKREF_EXTERN(fs_toe_chunk1)
 extern const uint8_t fs_toe_chunk1[];
 BANKREF_EXTERN(fs_toe_chunk2)
 extern const uint8_t fs_toe_chunk2[];
+BANKREF_EXTERN(fs_toe_chunk3)
+extern const uint8_t fs_toe_chunk3[];
 
-static const fur_chunk_t fs_toe_chunks[3] = {
+static const fur_chunk_t fs_toe_chunks[4] = {
     { BANK(fs_toe_chunk0), fs_toe_chunk0 },
     { BANK(fs_toe_chunk1), fs_toe_chunk1 },
     { BANK(fs_toe_chunk2), fs_toe_chunk2 },
+    { BANK(fs_toe_chunk3), fs_toe_chunk3 },
 };
 
 BANKREF(fs_toe)
 const fur_song_t fs_toe = {
-    3, /* chunks */
-    2, /* wave pool chunk */
+    4, /* chunks */
+    3, /* wave pool chunk */
     1, /* anti-click */
     34952, /* anti-click step at 60 Hz */
     1118481UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 328 }, { 0, 5948 }, { 0, 8963 }, { 1, 7256 } }, /* stream entry points */
+    { { 0, 0 }, { 0, 367 }, { 0, 7284 }, { 0, 11883 }, { 1, 13470 } }, /* stream entry points */
     fs_toe_chunks
 };

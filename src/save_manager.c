@@ -63,7 +63,7 @@ uint8_t setting_effects_enabled = 1;
 uint8_t setting_show_percent    = 1;
 uint8_t setting_old_ship_cam    = 0;
 uint8_t setting_auto_checkpoints = 1;
-uint8_t setting_furnace_music   = 0;
+// setting_furnace_music is in HRAM (src/furnace/music_hram.s)
 
 static uint8_t calc_checksum(const uint8_t *data, uint8_t len) {
     uint8_t sum = 0x5A;
@@ -74,6 +74,7 @@ static uint8_t calc_checksum(const uint8_t *data, uint8_t len) {
 }
 
 void init_save_system(void) BANKED {
+    setting_furnace_music = 0;   // HRAM: not initialized at boot; older saves don't have it
     ENABLE_RAM;
     volatile uint8_t *sram = SRAM_BASE_ADDR;
 

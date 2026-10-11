@@ -22,6 +22,6 @@ const fur_song_t fs_polargeist = {
     1, /* anti-click */
     34952, /* anti-click step at 60 Hz */
     1118481UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 232 }, { 0, 7877 }, { 1, 757 }, { 1, 6231 } }, /* stream entry points */
+    { { 0, 0 }, { 0, 232 }, { 0, 9465 }, { 1, 2899 }, { 1, 9350 } }, /* stream entry points */
     fs_polargeist_chunks
 };

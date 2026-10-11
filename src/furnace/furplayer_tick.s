@@ -14,24 +14,48 @@
 
 	.module furplayer_tick
 
-	.globl	_fur_playing, _fur_wave_bank, _fur_wave_ptr
-	.globl	_fur_ac_on, _fur_ac_step, _fur_ac_cnt, _fur_ac_pos, _fur_ac_freq, _fur_nr33
-	.globl	_fur_period, _fur_ac_q, _fur_ac_r, _fur_mute
 	.globl	__current_bank
 
 	rROMB0 = 0x2000
 	STREAMS = 5
-	FRAMES = 2		; call depth: FUR_STACK_DEPTH in furplayer.h, MAX_DEPTH in fur2gb.py
+	FRAMES = 1		; call depth: FUR_STACK_DEPTH in furplayer.h, MAX_DEPTH in fur2gb.py
 	CTX_SIZE = 5 + 5 * FRAMES	; idle, bank, ptr lo, ptr hi, depth, frames of 5 bytes
 	CTX_DEPTH = 4
-	CHUNKS = 8		; FUR_MAX_CHUNKS
+	CHUNKS = 4		; FUR_MAX_CHUNKS
 
-	; the player's state (106 bytes); a game short of WRAM can put this area in _HRAM
+	; all of the player's state (STREAMS * CTX_SIZE + CHUNKS * 3 + 28 bytes); a game short of
+	; WRAM can put this area in _HRAM
 	.area	_HRAM
-_fur_ctx::
+_fur_ctx::			; per stream: idle, bank, ptr lo, ptr hi, depth, frames
 	.ds	STREAMS * CTX_SIZE
 _fur_chunks::			; bank, ptr lo, ptr hi
 	.ds	CHUNKS * 3
+_fur_playing::			; 0 once the song stopped
+	.ds	1
+_fur_mute::			; muted channels
+	.ds	1
+_fur_wave_bank::		; the base waves
+	.ds	1
+_fur_wave_ptr::
+	.ds	2
+_fur_ac_on::			; anti-click: on, step per tick, period count, position (0-31),
+	.ds	1
+_fur_ac_step::			; ch3 period (Furnace's chan[2].freq, 0 until set), NR33,
+	.ds	2
+_fur_ac_cnt::			; step / freq (low byte) and step % freq
+	.ds	2
+_fur_ac_pos::
+	.ds	1
+_fur_ac_freq::
+	.ds	2
+_fur_nr33::
+	.ds	1
+_fur_ac_q::
+	.ds	1
+_fur_ac_r::
+	.ds	2
+_fur_period::			; tick period in 1/16 cycles
+	.ds	4
 fur_cur:			; context of the stream being run
 	.ds	2
 fur_bank:			; bank of the stream being run

@@ -8,12 +8,12 @@
 
 #define MUSIC_HUGE 0
 #define MUSIC_FUR  1
-extern volatile uint8_t music_driver;
+extern volatile uint8_t music_driver;   // in HRAM (src/furnace/music_hram.s), like the below
 
 // Timer pacing of the Furnace songs (main.c): the timer counts at 4096 Hz (8192 in CGB double
-// speed); a tick lasts fur_tbase counts plus fur_tfrac / fur_tunit.
+// speed); a tick lasts fur_tbase counts plus fur_tfrac / 16384.
 extern uint8_t fur_tbase;
-extern uint16_t fur_tfrac, fur_tunit, fur_tacc;
+extern uint16_t fur_tfrac, fur_tacc;
 extern int16_t fur_left;
 
 // Menu theme: the Furnace one with the FURNACE setting. Doesn't set music_ready.

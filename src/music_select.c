@@ -37,13 +37,12 @@ void music_play_fur(uint8_t id) BANKED {
     // 1/16 cycles per timer count: 16384, or 8192 in double speed (shifts: SDCC's 32-bit
     // division would land in the full bank 0)
     if (_cpu == CGB_TYPE) {
-        fur_tunit = 8192;
         fur_tbase = (uint8_t)(fur_period >> 13);
+        fur_tfrac = ((uint16_t)fur_period & 8191u) << 1;   // in 1/16384 counts
     } else {
-        fur_tunit = 16384;
         fur_tbase = (uint8_t)(fur_period >> 14);
+        fur_tfrac = (uint16_t)fur_period & 16383u;
     }
-    fur_tfrac = (uint16_t)fur_period & (fur_tunit - 1);
     fur_tacc = 0;
     fur_left = fur_tbase;
     current_music_divider = (uint8_t)(0 - fur_tbase);   // for code that restarts the timer

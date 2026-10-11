@@ -29,6 +29,10 @@ HDR = ROOT / "include"
 FUR_CODE_BANK = 25            # fur_play etc., the song table, the beat timelines
 FIRST_SONG_BANK = 130         # free banks 130..199 (romusage)
 LAST_SONG_BANK = 199
+# The player's state goes to HRAM (WRAM is full: the stack needs every byte left), so it is cut
+# down: call depth 1 (songs grow ~25%) and at most 4 chunks of 16 KB per song.
+FRAMES = 1
+CHUNKS = 4
 
 # (file, id, music test name, level index that uses it or None, always used (else only with the
 # FURNACE setting), approximate loop)
@@ -131,19 +135,28 @@ def copy_player():
     shutil.copy(drv / "furplayer_core.c", OUT / "furplayer_core.c")
     # the player's state goes to HRAM: WRAM is full (the stack needs every byte left)
     tick = (drv / "furplayer_tick.s").read_text()
-    state = "\t.area\t_DATA\n_fur_ctx::"
-    assert tick.count(state) == 1
-    (OUT / "furplayer_tick.s").write_text(tick.replace(state, "\t.area\t_HRAM\n_fur_ctx::"))
+    for a, b in (("\t.area\t_DATA\n_fur_ctx::", "\t.area\t_HRAM\n_fur_ctx::"),
+                 ("\tFRAMES = 2\t", f"\tFRAMES = {FRAMES}\t"),
+                 ("\tCHUNKS = 8\t", f"\tCHUNKS = {CHUNKS}\t")):
+        assert tick.count(a) == 1, a
+        tick = tick.replace(a, b)
+    (OUT / "furplayer_tick.s").write_text(tick)
     (OUT / "furplayer.c").write_text(f"#pragma bank {FUR_CODE_BANK}\n// Copied from fur2gb by tools/convert_furnace.py\n"
+                                     "#define FUR_NO_FRAME  // the timer interrupt ticks the player (main.c)\n"
                                      + (drv / "furplayer.c").read_text())
     h = (drv / "furplayer.h").read_text()
-    h = h.replace("#ifndef FUR_API\n#define FUR_API\n#endif\n",
-                  "#define FUR_API BANKED  /* furplayer.c is banked here */\n", 1)
+    for a, b in (("#ifndef FUR_API\n#define FUR_API\n#endif\n", "#define FUR_API BANKED  /* furplayer.c is banked here */\n"),
+                 ("#define FUR_MAX_CHUNKS 8 ", f"#define FUR_MAX_CHUNKS {CHUNKS} "),
+                 ("#define FUR_STACK_DEPTH 2 ", f"#define FUR_STACK_DEPTH {FRAMES} ")):
+        assert h.count(a) == 1, a
+        h = h.replace(a, b)
     (HDR / "furplayer.h").write_text("/* Copied from fur2gb by tools/convert_furnace.py */\n" + h)
 
 
 def main():
     fur2gb.CHUNK_SIZE = 16300  # leave room for GBDK's BANKREF stubs in each bank
+    fur2gb.MAX_DEPTH = FRAMES
+    fur2gb.MAX_CHUNKS = CHUNKS
     copy_player()
     for f in OUT.glob("fs_*.c"):
         f.unlink()
@@ -185,8 +198,12 @@ def main():
         c.append(f"    {{ fbeats_{ident}, {lp} }},")
     c += ["};", "",
           "extern volatile uint16_t music_ticks;",
-          "static const uint8_t *bp, *loop_p;",
-          "static uint16_t next_t;",
+          "// in HRAM (src/furnace/music_hram.s): WRAM is full",
+          "extern const uint8_t *fur_bp, *fur_loop_p;",
+          "extern uint16_t fur_next_t;",
+          "#define bp fur_bp",
+          "#define loop_p fur_loop_p",
+          "#define next_t fur_next_t",
           "",
           "void fur_beats_start(uint8_t id) BANKED {",
           "    if (id >= FUR_NUM_SONGS) { bp = 0; return; }",

@@ -19,6 +19,6 @@ const fur_song_t fs_menuloop = {
     1, /* anti-click */
     34952, /* anti-click step at 60 Hz */
     1118481UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 157 }, { 0, 1072 }, { 0, 2183 }, { 0, 8166 } }, /* stream entry points */
+    { { 0, 0 }, { 0, 182 }, { 0, 2754 }, { 0, 4464 }, { 0, 11333 } }, /* stream entry points */
     fs_menuloop_chunks
 };

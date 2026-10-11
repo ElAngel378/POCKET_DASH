@@ -19,6 +19,6 @@ const fur_song_t fs_baseafterbase = {
     1, /* anti-click */
     34952, /* anti-click step at 60 Hz */
     1118481UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 700 }, { 0, 2060 }, { 0, 3331 }, { 0, 6210 } }, /* stream entry points */
+    { { 0, 0 }, { 0, 750 }, { 0, 4500 }, { 0, 6719 }, { 0, 9964 } }, /* stream entry points */
     fs_baseafterbase_chunks
 };

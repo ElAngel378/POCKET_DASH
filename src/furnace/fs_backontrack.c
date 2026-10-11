@@ -22,6 +22,6 @@ const fur_song_t fs_backontrack = {
     1, /* anti-click */
     34952, /* anti-click step at 60 Hz */
     1118481UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 201 }, { 0, 1520 }, { 0, 4835 }, { 0, 15584 } }, /* stream entry points */
+    { { 0, 0 }, { 0, 217 }, { 0, 2569 }, { 0, 7236 }, { 1, 2225 } }, /* stream entry points */
     fs_backontrack_chunks
 };

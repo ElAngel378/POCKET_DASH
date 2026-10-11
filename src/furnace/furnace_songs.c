@@ -401,8 +401,12 @@ static const uint8_t * const fbeats[FUR_NUM_SONGS][2] = {
 };
 
 extern volatile uint16_t music_ticks;
-static const uint8_t *bp, *loop_p;
-static uint16_t next_t;
+// in HRAM (src/furnace/music_hram.s): WRAM is full
+extern const uint8_t *fur_bp, *fur_loop_p;
+extern uint16_t fur_next_t;
+#define bp fur_bp
+#define loop_p fur_loop_p
+#define next_t fur_next_t
 
 void fur_beats_start(uint8_t id) BANKED {
     if (id >= FUR_NUM_SONGS) { bp = 0; return; }
