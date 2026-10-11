@@ -10,6 +10,7 @@
 // slots (BG tiles 0..127) that no visible cell shows, so the rest of the level stays as it was.
 
 #include <gb/gb.h>
+#include "scratch.h"
 #include "music.h"
 #include <gb/cgb.h>
 #include "states.h"
@@ -54,9 +55,10 @@ static uint8_t skip;        // A pressed during the animation: the rest runs wit
 static uint8_t prev_joy;
 
 static uint8_t map_x0, map_y0;                          // BG map cell at the top left of the screen
-static uint8_t text_slot[PRACTICE_COMPLETE_TEXT_UNIQUE]; // VRAM slots of the text's tiles
-static uint8_t border_slot[10];                         // ... of the box border tiles
-static uint8_t font_slot[44];                           // ... of the font glyphs (0xFF: not loaded)
+// in the shared scratch buffer while this screen is up (scratch.h)
+#define text_slot   (scratch_buf)                                   // VRAM slots of the text's tiles
+#define border_slot (scratch_buf + PRACTICE_COMPLETE_TEXT_UNIQUE)     // ... of the box border tiles
+#define font_slot   (scratch_buf + PRACTICE_COMPLETE_TEXT_UNIQUE + 10) // ... of the font glyphs (0xFF: not loaded)
 
 // settings_bg tiles of the box border, in border_slot order
 static const uint8_t border_src[10] = { 2, 3, 4, 5, 6, 7, 8, 9, 0x18, 0x19 };

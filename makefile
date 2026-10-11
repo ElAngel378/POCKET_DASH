@@ -63,6 +63,7 @@ $(TEMPDIR)/state_menu.o $(TEMPDIR)/title_buttons.o: include/title_buttons.h
 # Furnace songs: song ids and the setting
 $(TEMPDIR)/death_effect.o $(TEMPDIR)/sample_player.o $(TEMPDIR)/gameplay.o $(TEMPDIR)/state_play_level.o $(TEMPDIR)/state_level_complete.o $(TEMPDIR)/state_settings.o $(TEMPDIR)/furplayer.o $(TEMPDIR)/furplayer_core.o $(TEMPDIR)/music_select.o $(TEMPDIR)/state_music_test.o $(TEMPDIR)/furnace_songs.o $(TEMPDIR)/collision.o $(TEMPDIR)/sp_draw.o $(TEMPDIR)/main.o: include/furnace_songs.h include/music.h include/furplayer.h
 $(TEMPDIR)/save_manager.o $(TEMPDIR)/state_settings.o: include/settings.h
+$(TEMPDIR)/state_menu.o $(TEMPDIR)/state_level_complete.o $(TEMPDIR)/icon_pages.o $(TEMPDIR)/scratch.o: include/scratch.h
 # level maps (INCBIN): any changed map rebuilds the small level wrappers
 $(TEMPDIR)/level_%.o: $(wildcard levels/level_data/*.bin)
 

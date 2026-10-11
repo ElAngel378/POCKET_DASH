@@ -1,6 +1,7 @@
 #pragma bank 29
 
 #include "states.h"
+#include "scratch.h"
 #include "fade.h"
 #include "gameplay.h"
 #include "assets.h"
@@ -102,7 +103,8 @@ BANKREF_EXTERN(playbutton)
 #define GROUND_TILES_PER_ROW  16
 #define GROUND_TILE_COUNT     9
 
-static uint8_t ground_src[GROUND_TILE_COUNT * 16];   // menu_ground_tiles, copied out of its bank
+// menu_ground_tiles, copied out of its bank: only while the ground tiles are built (scratch.h)
+#define ground_src scratch_buf
 
 static void menu_load_bg_gfx(void) __nonbanked {
     uint8_t prev_bank = _current_bank;
