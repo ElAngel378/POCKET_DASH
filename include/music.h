@@ -24,8 +24,9 @@ uint8_t music_play_level_fur(uint8_t level_idx) BANKED;
 // Start a Furnace song (FUR_* id). Doesn't set music_ready.
 void music_play_fur(uint8_t id) BANKED;
 // Lend channels (4: wave, 8: noise) to a sound effect: the song stops writing them.
-void music_borrow(uint8_t channels) BANKED;
-void music_give_back(uint8_t channels) BANKED;
+// Bank 0 (main.c): the timer interrupt calls them, and a banked call there costs stack.
+void music_borrow(uint8_t channels);
+void music_give_back(uint8_t channels);
 // After something else used wave RAM (pause): the song reloads its wave
 void music_reload_wave(void) BANKED;
 

@@ -70,24 +70,6 @@ uint8_t music_play_level_fur(uint8_t level_idx) BANKED {
     return 1;
 }
 
-void music_borrow(uint8_t channels) BANKED {
-    if (music_driver == MUSIC_FUR) {
-        fur_set_mute(fur_mute | channels);
-    } else {
-        if (channels & 4) hUGE_mute_channel(HT_CH3, HT_CH_MUTE);
-        if (channels & 8) hUGE_mute_channel(HT_CH4, HT_CH_MUTE);
-    }
-}
-
-void music_give_back(uint8_t channels) BANKED {
-    if (music_driver == MUSIC_FUR) {
-        if (setting_music_enabled) fur_set_mute(fur_mute & (uint8_t)~channels);
-    } else {
-        if (channels & 4) hUGE_mute_channel(HT_CH3, HT_CH_PLAY);
-        if (channels & 8) hUGE_mute_channel(HT_CH4, HT_CH_PLAY);
-    }
-}
-
 void music_reload_wave(void) BANKED {
     if (music_driver == MUSIC_FUR) fur_reload_wave();
     else hUGE_reset_wave();

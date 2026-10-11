@@ -61,7 +61,7 @@ $(TEMPDIR)/menu_bg.o: levels/chr_data/menu_ground_tiles.bin levels/chr_data/menu
 # title menu big buttons (tools/gen_title_buttons.py): tile / palette counts in the header
 $(TEMPDIR)/state_menu.o $(TEMPDIR)/title_buttons.o: include/title_buttons.h
 # Furnace songs: song ids and the setting
-$(TEMPDIR)/furplayer.o $(TEMPDIR)/furplayer_core.o $(TEMPDIR)/music_select.o $(TEMPDIR)/state_music_test.o $(TEMPDIR)/furnace_songs.o $(TEMPDIR)/collision.o $(TEMPDIR)/sp_draw.o $(TEMPDIR)/main.o: include/furnace_songs.h include/music.h include/furplayer.h
+$(TEMPDIR)/death_effect.o $(TEMPDIR)/sample_player.o $(TEMPDIR)/gameplay.o $(TEMPDIR)/state_play_level.o $(TEMPDIR)/state_level_complete.o $(TEMPDIR)/state_settings.o $(TEMPDIR)/furplayer.o $(TEMPDIR)/furplayer_core.o $(TEMPDIR)/music_select.o $(TEMPDIR)/state_music_test.o $(TEMPDIR)/furnace_songs.o $(TEMPDIR)/collision.o $(TEMPDIR)/sp_draw.o $(TEMPDIR)/main.o: include/furnace_songs.h include/music.h include/furplayer.h
 $(TEMPDIR)/save_manager.o $(TEMPDIR)/state_settings.o: include/settings.h
 # level maps (INCBIN): any changed map rebuilds the small level wrappers
 $(TEMPDIR)/level_%.o: $(wildcard levels/level_data/*.bin)

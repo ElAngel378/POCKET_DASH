@@ -116,6 +116,28 @@ static void step_music(void) {
 #include "save_manager.h"
 #include "settings.h"
 
+void music_borrow(uint8_t channels) {
+  if (music_driver == MUSIC_FUR) {
+    fur_mute |= channels;
+  } else {
+    if (channels & 4) hUGE_mute_channel(HT_CH3, HT_CH_MUTE);
+    if (channels & 8) hUGE_mute_channel(HT_CH4, HT_CH_MUTE);
+  }
+}
+
+// interrupts off (the timer interrupt or stop_sample) when it gives the wave channel back
+void music_give_back(uint8_t channels) {
+  if (music_driver == MUSIC_FUR) {
+    uint8_t wave = fur_mute & channels & 4;
+    if (!setting_music_enabled) return;
+    fur_mute &= (uint8_t)~channels;
+    if (wave) fur_reload_wave();
+  } else {
+    if (channels & 4) hUGE_mute_channel(HT_CH3, HT_CH_PLAY);
+    if (channels & 8) hUGE_mute_channel(HT_CH4, HT_CH_PLAY);
+  }
+}
+
 // Called by the timer interrupt to update music or stream samples
 #ifdef DEBUG_PROFILE
 extern volatile uint8_t gpmark;
