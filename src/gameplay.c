@@ -1,6 +1,7 @@
 #pragma bank 10
 
 #include <gb/gb.h>
+#include "music.h"
 #include <gbdk/font.h>
 #include <gbdk/console.h>
 #include <stdio.h>
@@ -504,8 +505,10 @@ static void reload_level_state(uint8_t idx) {
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
     DISPLAY_ON;
     if (level_songs[idx] && setting_music_enabled) {
-        init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
-        current_song_bank = song_bank[idx];
+        if (!music_play_level_fur(idx)) {
+            init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
+            current_song_bank = song_bank[idx];
+        }
         TAC_REG = 0x04;
         music_ready = 1;
     }
@@ -841,7 +844,7 @@ static uint8_t pause_menu(uint8_t idx) {
     }
 
     NR30_REG = 0x80;
-    hUGE_reset_wave();
+    music_reload_wave();
 
     wait_vbl_done();
 
@@ -1372,8 +1375,10 @@ void play_level(uint8_t idx) BANKED {
     fade_from_black(2);
 
     if (level_songs[idx] && setting_music_enabled) {
-        init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
-        current_song_bank = song_bank[idx];
+        if (!music_play_level_fur(idx)) {
+            init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
+            current_song_bank = song_bank[idx];
+        }
         TAC_REG = 0x04;
         music_ready = 1;
     }

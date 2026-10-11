@@ -1,4 +1,5 @@
 #include "states.h"
+#include "music.h"
 #include "gameplay.h"
 #include "hUGEDriver.h"
 #include <gb/gb.h>
@@ -26,8 +27,7 @@ GameState update_play_level_state(void) {
     NR51_REG = 0xFF;
     NR50_REG = 0x77;
     if (setting_music_enabled) {
-        init_music_banked(&menuloop, 1, 176);
-        current_song_bank = 1;
+        music_play_menu();
         TAC_REG = 0x04;
         music_ready = 1;
     } else {

@@ -1,4 +1,5 @@
 #include <gb/gb.h>
+#include "music.h"
 #include <gb/hardware.h>
 #include "sample_player.h"
 #include "hUGEDriver.h"
@@ -167,7 +168,7 @@ void play_sample_with_music(uint8_t bank, const uint8_t *sample, uint16_t length
     NR51_REG = 0xFF;
 
     // Mute Channel 3 in hUGEDriver so it doesn't overwrite wave RAM
-    hUGE_mute_channel(HT_CH3, HT_CH_MUTE);
+    music_borrow(4);
 
     play_bank = bank;
     play_sample_ptr = sample;
@@ -202,7 +203,7 @@ void stop_sample(void) {
     NR51_REG = 0xFF;
     hUGE_reset_wave();
     if (music_ready) {
-        hUGE_mute_channel(HT_CH3, HT_CH_PLAY);
+        music_give_back(4);
         TMA_REG = current_music_divider;
         TIMA_REG = current_music_divider;
         IF_REG &= ~TIM_IFLAG;

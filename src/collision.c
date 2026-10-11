@@ -1,4 +1,5 @@
 #include <gb/gb.h>
+#include "music.h"
 #include "collision.h"
 #include "famidash_metatiles.h"
 #include <string.h>
@@ -357,6 +358,7 @@ void init_music_banked(const hUGESong_t * song, uint8_t bank, uint8_t divider) {
     sample_keeps_music = 0;
     current_song_bank = bank;
     current_music_divider = divider;
+    music_driver = MUSIC_HUGE;
     SWITCH_ROM(bank);
     NR52_REG = 0x80;
     NR51_REG = 0xFF;
@@ -364,6 +366,7 @@ void init_music_banked(const hUGESong_t * song, uint8_t bank, uint8_t divider) {
     hUGE_init(song);
     music_ticks = 0;
     music_beats_start(song);
+    fur_beats_start(FUR_NONE);
     if (setting_music_enabled) {
         hUGE_mute_channel(HT_CH1, HT_CH_PLAY);
         hUGE_mute_channel(HT_CH2, HT_CH_PLAY);

@@ -18,9 +18,11 @@ BINDIR = bin
 LIBDIR = lib
 
 SRCS = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*/*.c)
-OBJS = $(foreach src, $(SRCS), $(TEMPDIR)/$(notdir $(src:.c=.o)))
+ASMS = $(wildcard $(SRCDIR)/*/*.s)
+OBJS = $(foreach src, $(SRCS), $(TEMPDIR)/$(notdir $(src:.c=.o))) $(foreach src, $(ASMS), $(TEMPDIR)/$(notdir $(src:.s=.o)))
 
-vpath %.c $(SRCDIR) $(SRCDIR)/graphics $(SRCDIR)/music $(SRCDIR)/sprites $(SRCDIR)/levels $(SRCDIR)/sfx
+vpath %.c $(SRCDIR) $(SRCDIR)/graphics $(SRCDIR)/music $(SRCDIR)/sprites $(SRCDIR)/levels $(SRCDIR)/sfx $(SRCDIR)/furnace
+vpath %.s $(SRCDIR)/furnace
 
 # SDCC optimizes almost nothing by default, and lcc has no -O option
 # (unrecognized options go to the linker!). Compiler flags must be forwarded
@@ -39,6 +41,10 @@ prepare:
 $(TEMPDIR)/%.o: %.c
 	$(GBCC) $(LCCFLAGS) -c -o $@ $<
 
+# the Furnace player's per-tick routine (tools/convert_furnace.py copies it from fur2gb)
+$(TEMPDIR)/%.o: %.s
+	$(GBCC) $(LCCFLAGS) -c -o $@ $<
+
 # No automatic header tracking: list generated headers / INCBIN data explicitly
 $(TEMPDIR)/mt_renderer.o: src/graphics/bg_level_tables.h levels/chr_data/bg_extra_tiles.bin
 $(TEMPDIR)/tileset.o: levels/chr_data/bg_base_tiles.bin levels/chr_data/bg_base_tiles_flipped.bin
@@ -54,6 +60,9 @@ $(TEMPDIR)/famidash_metatiles.o: include/famidash_metatiles_dmg.c include/famida
 $(TEMPDIR)/menu_bg.o: levels/chr_data/menu_ground_tiles.bin levels/chr_data/menu_ground_map.bin
 # title menu big buttons (tools/gen_title_buttons.py): tile / palette counts in the header
 $(TEMPDIR)/state_menu.o $(TEMPDIR)/title_buttons.o: include/title_buttons.h
+# Furnace songs: song ids and the setting
+$(TEMPDIR)/furplayer.o $(TEMPDIR)/furplayer_core.o $(TEMPDIR)/music_select.o $(TEMPDIR)/state_music_test.o $(TEMPDIR)/furnace_songs.o $(TEMPDIR)/collision.o $(TEMPDIR)/sp_draw.o $(TEMPDIR)/main.o: include/furnace_songs.h include/music.h include/furplayer.h
+$(TEMPDIR)/save_manager.o $(TEMPDIR)/state_settings.o: include/settings.h
 # level maps (INCBIN): any changed map rebuilds the small level wrappers
 $(TEMPDIR)/level_%.o: $(wildcard levels/level_data/*.bin)
 

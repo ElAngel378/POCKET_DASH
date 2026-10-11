@@ -1,6 +1,7 @@
 #pragma bank 13
 
 #include <gb/gb.h>
+#include "music.h"
 #include <string.h>
 #include <gbdk/font.h>
 
@@ -482,6 +483,8 @@ static uint8_t rod_tile = (uint8_t)ROD_TILE_3PX;   // + D_C9 / D_CB / D_CD: the 
 
 static void rod_pulse_update(void) {
     uint8_t hit = music_beats_poll();
+    uint8_t fur_hit = fur_beats_poll();   // the Furnace song's timeline (furnace_songs.c)
+    if (fur_hit > hit) hit = fur_hit;
     if (hit == MUSIC_HIT_STRONG) rod_pulse = ROD_PULSE_STRONG;
     else if (hit && rod_pulse < ROD_PULSE_WEAK) rod_pulse = ROD_PULSE_WEAK;
     else if (rod_pulse) rod_pulse--;

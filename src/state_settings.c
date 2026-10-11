@@ -1,6 +1,7 @@
 #pragma bank 28
 
 #include <gb/gb.h>
+#include "music.h"
 #include <gb/cgb.h>
 #include "states.h"
 #include "settings_bg.h"
@@ -72,8 +73,7 @@ static void on_music_toggle(uint8_t new_val) {
     if (!new_val) {
         stop_music_safe();
     } else {
-        init_music_banked(&menuloop, 1, 176);
-        current_song_bank = 1;
+        music_play_menu();
         music_ready = 1;
     }
     save_game_data();
@@ -124,6 +124,8 @@ static void on_wipe_save_action(void) {
 static const SettingItem settings_list[] = {
     { "MUSIC",        SETTING_TYPE_TOGGLE, &setting_music_enabled,    0, 1, toggle_labels, on_music_toggle,   NULL },
     { "SFX",          SETTING_TYPE_TOGGLE, &setting_sfx_enabled,      0, 1, toggle_labels, on_sfx_toggle,     NULL },
+    // test toggle: every song with a Furnace version uses it (off: only SM, BoT, PG, see furnace_songs.h)
+    { "FURNACE",      SETTING_TYPE_TOGGLE, &setting_furnace_music,    0, 1, toggle_labels, on_setting_change, NULL },
     { "GRADIENT",     SETTING_TYPE_TOGGLE, &setting_dmg_gradient,     0, 1, toggle_labels, on_setting_change, NULL },
     { "SHOW BG",      SETTING_TYPE_TOGGLE, &setting_show_bg_enabled,  0, 1, toggle_labels, on_show_bg_change, NULL },
     { "PARALLAX",     SETTING_TYPE_TOGGLE, &setting_parallax_enabled, 0, 1, toggle_labels, on_parallax_change, NULL },
@@ -378,8 +380,7 @@ GameState update_settings_state(void) BANKED {
             fade_capture_current();
             fade_to_black(2);
             if (setting_music_enabled && !music_ready) {
-                init_music_banked(&menuloop, 1, 176);
-                current_song_bank = 1;
+                music_play_menu();
                 music_ready = 1;
             } else if (!setting_music_enabled) {
                 stop_music_safe();

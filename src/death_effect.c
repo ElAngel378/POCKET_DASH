@@ -1,6 +1,7 @@
 #pragma bank 12
 
 #include "death_effect.h"
+#include "music.h"
 #include <gb/gb.h>
 #include <gb/cgb.h>
 #include "settings.h"
@@ -150,7 +151,7 @@ uint8_t play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_
 
     // hUGE stops writing the noise channel so it can't cut the crash off
     uint8_t noise_borrowed = keep_music && setting_sfx_enabled && setting_music_enabled;
-    if (noise_borrowed) hUGE_mute_channel(HT_CH4, HT_CH_MUTE);
+    if (noise_borrowed) music_borrow(8);
 
     if (setting_sfx_enabled) {
         NR41_REG = 0x00;
@@ -183,7 +184,7 @@ uint8_t play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_
         if (noise_borrowed && frame == DEATH_SFX_FRAMES) {
             NR42_REG = 0x00;   // DAC off: silences the crash
             NR44_REG = 0x80;
-            hUGE_mute_channel(HT_CH4, HT_CH_PLAY);
+            music_give_back(8);
             noise_borrowed = 0;
         }
 

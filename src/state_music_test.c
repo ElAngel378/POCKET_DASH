@@ -1,6 +1,7 @@
 #pragma bank 26
 
 #include <gb/gb.h>
+#include "music.h"
 #include <gb/cgb.h>
 #include <stdint.h>
 #include "states.h"
@@ -26,6 +27,7 @@ typedef struct {
     const hUGESong_t *song;
     uint8_t bank;
     uint8_t divider;
+    uint8_t fur;        // Furnace song id (FUR_NONE: the hUGETracker song above)
 } MusicEntry;
 
 typedef enum {
@@ -49,10 +51,13 @@ static const SfxItem sfx_items[4] = {
 };
 
 #define NUM_SFX_ITEMS 4
-// menu theme + the 12 level songs (level_test is silent, so not listed) + practice mode
+// hUGETracker: menu theme + the 12 level songs (level_test is silent, so not listed) + practice
+// mode; then every Furnace song (music/Furnace, tools/convert_furnace.py)
 #define NUM_LEVEL_SONGS 12
-#define NUM_MUSIC_TRACKS (NUM_LEVEL_SONGS + 2)
+#define NUM_HUGE_TRACKS (NUM_LEVEL_SONGS + 2)
+#define NUM_MUSIC_TRACKS (NUM_HUGE_TRACKS + FUR_NUM_SONGS)
 #define PRACTICE_TRACK (NUM_LEVEL_SONGS + 1)
+static const char * const fur_names[FUR_NUM_SONGS] = FUR_SONG_NAMES;
 
 // Custom font tiles: < (39), > (40), - (41), : (42)
 static const uint8_t extra_font_tiles[4 * 16] = {
@@ -142,7 +147,13 @@ static void draw_fixed_text(uint8_t x, uint8_t y, const char *str, uint8_t width
 }
 
 static void get_music_entry(uint8_t idx, MusicEntry *entry) {
-    if (idx == 0) {
+    entry->fur = FUR_NONE;
+    if (idx >= NUM_HUGE_TRACKS) {
+        entry->fur = idx - NUM_HUGE_TRACKS;
+        entry->name = fur_names[entry->fur];
+        entry->song = 0;
+        entry->bank = 0;
+    } else if (idx == 0) {
         entry->name = "MENU THEME";
         entry->song = &menuloop;
         entry->bank = 1;
@@ -189,8 +200,9 @@ static void render_music_section(uint8_t track_idx, uint8_t playing) {
     }
     draw_fixed_text(2, 5, num_buf, 17);
 
-    // Track name (row 6, width 16 columns: cols 2..17)
-    draw_fixed_text(2, 6, me.name, 16);
+    // Track name (row 6, cols 2..19) and which tracker it is from (row 7)
+    draw_fixed_text(2, 6, me.name, 18);
+    draw_fixed_text(2, 7, me.fur == FUR_NONE ? "HUGETRACKER" : "FURNACE", 11);
 }
 
 static void render_sfx_section(uint8_t sfx_idx) {
@@ -232,7 +244,7 @@ static void update_section_highlights(uint8_t active_section) {
     uint8_t pal_music = (active_section == 0) ? 1 : 2;
     uint8_t pal_sfx   = (active_section == 1) ? 1 : 2;
 
-    fill_bkg_rect(0, 4, 20, 3, pal_music); // rows 4, 5, 6: Level Music
+    fill_bkg_rect(0, 4, 20, 4, pal_music); // rows 4-7: Level Music
     fill_bkg_rect(0, 9, 20, 3, pal_sfx);   // rows 9, 10, 11: Sound Effects
     VBK_REG = 0;
 }
@@ -240,7 +252,10 @@ static void update_section_highlights(uint8_t active_section) {
 static void play_current_music(uint8_t track_idx) {
     MusicEntry me;
     get_music_entry(track_idx, &me);
-    if (me.song && me.bank) {
+    if (me.fur != FUR_NONE) {
+        music_play_fur(me.fur);
+        music_ready = 1;
+    } else if (me.song && me.bank) {
         init_music_banked(me.song, me.bank, me.divider);
         current_song_bank = me.bank;
         music_ready = 1;
@@ -437,7 +452,7 @@ GameState update_music_test_state(void) BANKED {
 
             // Restore menu loop song if enabled
             if (setting_music_enabled) {
-                init_music_banked(&menuloop, 1, 176);
+                music_play_menu();
             }
 
             HIDE_SPRITES;

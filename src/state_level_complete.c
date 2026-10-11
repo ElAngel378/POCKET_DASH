@@ -10,6 +10,7 @@
 // slots (BG tiles 0..127) that no visible cell shows, so the rest of the level stays as it was.
 
 #include <gb/gb.h>
+#include "music.h"
 #include <gb/cgb.h>
 #include "states.h"
 #include "settings_bg.h"
@@ -275,8 +276,7 @@ static void restore_menu_music(void) {
     NR51_REG = 0xFF;
     NR50_REG = 0x77;
     if (setting_music_enabled) {
-        init_music_banked(&menuloop, 1, 176);
-        current_song_bank = 1;
+        music_play_menu();
         TAC_REG = 0x04;
         music_ready = 1;
     } else {

@@ -10,7 +10,7 @@ BANKREF(save_manager)
 #define SAVE_MAGIC_1 'D'
 #define SAVE_MAGIC_2 'S'
 #define SAVE_MAGIC_3 'H'
-#define SAVE_VERSION 9
+#define SAVE_VERSION 10
 // Level count of the version 3 layout (progress arrays were 11 entries long)
 #define V3_NUM_SAVE_LEVELS 11
 #define NUM_SETTINGS_BYTES 6
@@ -50,6 +50,9 @@ uint8_t selected_dmg_secondary = 1;
 #define V9_DMG1_OFS  (5 + V8_DATA_LEN)
 #define V9_DMG2_OFS  (V9_DMG1_OFS + 1)
 #define V9_DATA_LEN  (V8_DATA_LEN + 2)
+// Version 10: version 9 + FURNACE (play every song that has a Furnace version with it)
+#define V10_FURNACE_OFS (5 + V9_DATA_LEN)
+#define V10_DATA_LEN (V9_DATA_LEN + 1)
 
 uint8_t setting_music_enabled   = 1;
 uint8_t setting_sfx_enabled     = 1;
@@ -60,6 +63,7 @@ uint8_t setting_effects_enabled = 1;
 uint8_t setting_show_percent    = 1;
 uint8_t setting_old_ship_cam    = 0;
 uint8_t setting_auto_checkpoints = 1;
+uint8_t setting_furnace_music   = 0;
 
 static uint8_t calc_checksum(const uint8_t *data, uint8_t len) {
     uint8_t sum = 0x5A;
@@ -77,13 +81,14 @@ void init_save_system(void) BANKED {
     if (sram[0] == SAVE_MAGIC_0 && sram[1] == SAVE_MAGIC_1 &&
         sram[2] == SAVE_MAGIC_2 && sram[3] == SAVE_MAGIC_3) {
 
-        if (sram[4] == 9 || sram[4] == 8 || sram[4] == 7 || sram[4] == 6 || sram[4] == 5 || sram[4] == 4) {
+        if (sram[4] == 10 || sram[4] == 9 || sram[4] == 8 || sram[4] == 7 || sram[4] == 6 || sram[4] == 5 || sram[4] == 4) {
             uint8_t v5 = (sram[4] >= 5);
             uint8_t v6 = (sram[4] >= 6);
             uint8_t v7 = (sram[4] >= 7);
             uint8_t v8 = (sram[4] >= 8);
-            uint8_t v9 = (sram[4] == 9);
-            uint8_t len = v9 ? V9_DATA_LEN : v8 ? V8_DATA_LEN : (v7 ? V7_DATA_LEN : (v6 ? V6_DATA_LEN : (v5 ? V5_DATA_LEN : V4_DATA_LEN)));
+            uint8_t v9 = (sram[4] >= 9);
+            uint8_t v10 = (sram[4] == 10);
+            uint8_t len = v10 ? V10_DATA_LEN : v9 ? V9_DATA_LEN : v8 ? V8_DATA_LEN : (v7 ? V7_DATA_LEN : (v6 ? V6_DATA_LEN : (v5 ? V5_DATA_LEN : V4_DATA_LEN)));
             uint8_t chk = calc_checksum((const uint8_t *)&sram[5], len);
             if (sram[5 + len] == chk) {
                 for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
@@ -107,6 +112,7 @@ void init_save_system(void) BANKED {
                 selected_color_secondary = v8 ? sram[V8_COL2_OFS] : 1;
                 selected_dmg_primary     = v9 ? sram[V9_DMG1_OFS] : 2;
                 selected_dmg_secondary   = v9 ? sram[V9_DMG2_OFS] : 1;
+                setting_furnace_music    = v10 ? (sram[V10_FURNACE_OFS] ? 1 : 0) : 0;
                 if (selected_icon >= NUM_CUBE_ICONS) selected_icon = 0;
                 if (selected_dmg_primary > 3) selected_dmg_primary = 2;
                 if (selected_dmg_secondary > 3) selected_dmg_secondary = 1;
@@ -114,7 +120,7 @@ void init_save_system(void) BANKED {
                 if (selected_color_secondary >= 12) selected_color_secondary = 1;
                 if (!setting_show_bg_enabled) setting_parallax_enabled = 0;
                 DISABLE_RAM;
-                if (!v9) save_game_data();   // upgrade to version 9
+                if (!v10) save_game_data();   // upgrade to version 10
                 return;
             }
         } else if (sram[4] == 3) {
@@ -190,6 +196,7 @@ void init_save_system(void) BANKED {
     setting_show_percent    = 1;
     setting_old_ship_cam    = 0;
     setting_auto_checkpoints = 1;
+    setting_furnace_music   = 0;
     selected_icon           = 0;
     selected_color_primary  = 0;
     selected_color_secondary = 1;
@@ -233,7 +240,8 @@ void save_game_data(void) BANKED {
     sram[V8_COL2_OFS] = selected_color_secondary;
     sram[V9_DMG1_OFS] = selected_dmg_primary;
     sram[V9_DMG2_OFS] = selected_dmg_secondary;
-    sram[5 + V9_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V9_DATA_LEN);
+    sram[V10_FURNACE_OFS] = setting_furnace_music;
+    sram[5 + V10_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V10_DATA_LEN);
     DISABLE_RAM;
 }
 

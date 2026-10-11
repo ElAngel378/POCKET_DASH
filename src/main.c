@@ -6,6 +6,8 @@
 #include "states.h"
 #include "sample_player.h"
 #include "bg_parallax.h"
+#include "music.h"
+#include "furplayer.h"
 
 extern const hUGESong_t menuloop;
 
@@ -17,6 +19,22 @@ volatile uint8_t current_song_bank = 0;
 volatile uint8_t current_music_divider = 176;
 volatile uint8_t cgb_music_tick = 0;
 static uint16_t music_time_acc = 0;
+
+volatile uint8_t music_driver = MUSIC_HUGE;
+uint8_t fur_tbase;
+uint16_t fur_tfrac, fur_tunit, fur_tacc;
+int16_t fur_left;
+
+// timer counts until the next Furnace tick: fur_tbase, one more when the fraction carries over
+static uint8_t fur_period_counts(void) {
+  uint8_t n = fur_tbase;
+  fur_tacc += fur_tfrac;
+  if (fur_tacc >= fur_tunit) {
+    fur_tacc -= fur_tunit;
+    n++;
+  }
+  return n;
+}
 
 #ifdef DEBUG_PROFILE
 GameState current_state = STATE_PLAY_LEVEL;
@@ -50,7 +68,8 @@ void level_select_vbl_isr(void) {
 #define HUGE_ORDER_CNT     (*((volatile uint8_t *)(&hUGE_mute_mask - 0x1D)))
 #define HUGE_CURRENT_ORDER (*((volatile uint8_t *)(&hUGE_mute_mask + 6)))
 
-static inline void step_music(void) {
+// not inline: it is called from three places and bank 0 is full
+static void step_music(void) {
   uint8_t order_before = HUGE_CURRENT_ORDER;
   uint8_t prev_bank = _current_bank;
   uint8_t prev_ie = IE_REG;
@@ -65,16 +84,28 @@ static inline void step_music(void) {
     IE_REG = nest;
     enable_interrupts();
   }
-  SWITCH_ROM(current_song_bank);
-  hUGE_dosound();
+  if (music_driver == MUSIC_FUR) {
+    fur_tick();   // bank 0, restores the bank
+  } else {
+    SWITCH_ROM(current_song_bank);
+    hUGE_dosound();
+    SWITCH_ROM(prev_bank);
+  }
   music_ticks++;
-  SWITCH_ROM(prev_bank);
   if (nest) {
     disable_interrupts();
     IE_REG = prev_ie;
   }
 
-  if (current_song_bank != 1 && current_song_bank != 212) {
+  if (music_driver == MUSIC_FUR) {
+    if (!fur_playing) {   // FFxx: the song ended, silence it like the hUGE level songs below
+      music_ready = 0;
+      NR12_REG = 0; NR14_REG = 0x80;
+      NR22_REG = 0; NR24_REG = 0x80;
+      NR30_REG = 0;
+      NR42_REG = 0; NR44_REG = 0x80;
+    }
+  } else if (current_song_bank != 1 && current_song_bank != 212) {
     if (order_before == (uint8_t)(HUGE_ORDER_CNT - 2) && HUGE_CURRENT_ORDER == 0) {
       music_ready = 0;
       NR12_REG = 0; NR14_REG = 0x80;
@@ -106,7 +137,7 @@ void play_music_safe(void) {
     sample_play_isr();
     if (!sample_playing) {
       if (music_ready && setting_music_enabled) {
-        hUGE_mute_channel(HT_CH3, HT_CH_PLAY);
+        music_give_back(4);
         hUGE_reset_wave();
         TMA_REG = current_music_divider;
         TIMA_REG = current_music_divider;
@@ -118,7 +149,14 @@ void play_music_safe(void) {
       sample_keeps_music = 0;
       return;
     }
-    if (music_ready && sample_keeps_music && setting_music_enabled) {
+    if (music_ready && sample_keeps_music && setting_music_enabled && music_driver == MUSIC_FUR) {
+      // the timer runs at 256 Hz for the sample: 16 counts of 4096 Hz (32 of 8192 Hz)
+      fur_left -= (_cpu == CGB_TYPE) ? 32 : 16;
+      while (music_ready && fur_left <= 0) {
+        step_music();
+        fur_left += fur_period_counts();
+      }
+    } else if (music_ready && sample_keeps_music && setting_music_enabled) {
       music_time_acc += 16;
       uint16_t period = 256 - current_music_divider;
       while (music_ready && music_time_acc >= period) {
@@ -129,6 +167,11 @@ void play_music_safe(void) {
     return;
   }
   if (music_ready && setting_music_enabled) {
+    if (music_driver == MUSIC_FUR) {
+      TMA_REG = (uint8_t)(0 - fur_period_counts());   // the period after this one
+      step_music();
+      return;
+    }
     if ((_cpu == CGB_TYPE) && (cgb_music_tick++ & 1u)) return;
     step_music();
   }
@@ -158,8 +201,7 @@ void main(void) {
   set_interrupts(VBL_IFLAG | TIM_IFLAG);
 
   if (setting_music_enabled) {
-    init_music_banked(&menuloop, 1, 176);
-    current_song_bank = 1;
+    music_play_menu();
     music_ready = 1;
   }
   enable_interrupts();
