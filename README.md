@@ -69,6 +69,15 @@ make -j8
 
 The output is `bin/POCKETDASH.gb`. Music playback uses [hUGEDriver](https://github.com/SuperDisk/hUGEDriver); its prebuilt `lib/hUGEDriver.lib` is included in this repository.
 
+## Adding music
+
+Run `convert_levels.bat` (or `python tools/build_levels.py`, then `make`) after adding songs:
+
+- **hUGETracker:** put the `.uge` in `music/`, named like the level (`DryOut.uge` for `dryout.tmx`).
+- **Furnace:** put the `.fur` in `music/Furnace/`. A song named like a level (`Base After Base.fur`, `DryOut32.fur`; case, spaces and trailing digits don't matter) is that level's song with the FURNACE setting on (Stereo Madness, Back On Track and Polargeist always use theirs); `MenuLoop.fur` is the menu theme with the setting on; any other song is only in the music test. Songs must use a single Game Boy chip (DMG or CGB model); others are skipped with a warning.
+
+The Furnace songs are converted with [fur2gb](https://github.com/Soteris24/fur2gb), which plays each song in Furnace and checks the result write for write. It needs the fur2gb repo next to this one (or `FUR2GB_DIR`) and its Furnace build (see its README). Converted songs are cached in `.cache/furnace/`, so only new or changed songs take time. Without fur2gb the songs already in `src/furnace/` are kept.
+
 # Development Info
 
 | Contributor | Contribution |

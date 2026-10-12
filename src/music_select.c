@@ -54,7 +54,7 @@ void music_play_fur(uint8_t id) BANKED {
 }
 
 void music_play_menu(void) BANKED {
-    if (setting_furnace_music) {
+    if (setting_furnace_music && FUR_MENULOOP != FUR_NONE) {
         music_play_fur(FUR_MENULOOP);
     } else {
         music_driver = MUSIC_HUGE;

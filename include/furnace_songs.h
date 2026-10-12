@@ -15,20 +15,20 @@
 #define FUR_DRYOUT 4
 #define FUR_BASEAFTERBASE 5
 #define FUR_CYCLES 6
-#define FUR_TOE 7
+#define FUR_DEADLOCKED 7
 #define FUR_ELECTRODYNAMIX 8
-#define FUR_DEADLOCKED 9
-#define FUR_SCHEMINGWEASEL 10
+#define FUR_SCHEMINGWEASEL 9
+#define FUR_TOE 10
 
 // music test names
-#define FUR_SONG_NAMES { "MENU THEME", "STEREO MADNESS", "BACK ON TRACK", "POLARGEIST", "DRY OUT", "BASE AFTER BASE", "CYCLES", "THEORY OF EVRYTHNG", "ELECTRODYNAMIX", "DEADLOCKED", "SCHEMING WEASEL" }
+#define FUR_SONG_NAMES { "MENU THEME", "STEREO MADNESS", "BACK ON TRACK", "POLARGEIST", "DRY OUT", "BASE AFTER BASE", "CYCLES", "DEADLOCKED", "ELECTRODYNAMIX", "SCHEMING WEASEL", "THEORY OF EVRYTHNG" }
 // Furnace song of each level (FUR_NONE: hUGE only), and whether it is used without the
 // FURNACE setting (these replaced hUGE ports of the same Furnace songs)
-#define FUR_LEVEL_SONGS { FUR_STEREOMADNESS, FUR_BACKONTRACK, FUR_POLARGEIST, FUR_DRYOUT, FUR_BASEAFTERBASE, FUR_NONE, FUR_NONE, FUR_NONE, FUR_CYCLES, FUR_NONE, FUR_NONE, FUR_NONE }
-#define FUR_LEVEL_ALWAYS { 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+#define FUR_LEVEL_SONGS { FUR_STEREOMADNESS, FUR_BACKONTRACK, FUR_POLARGEIST, FUR_DRYOUT, FUR_BASEAFTERBASE, FUR_NONE, FUR_NONE, FUR_NONE, FUR_CYCLES, FUR_NONE, FUR_NONE, FUR_NONE, FUR_NONE }
+#define FUR_LEVEL_ALWAYS { 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 
 typedef struct { const fur_song_t *song; uint8_t bank; } FurSong;
-extern const FurSong fur_songs[FUR_NUM_SONGS];
+extern const FurSong fur_songs[];
 void fur_beats_start(uint8_t id) BANKED;   // FUR_NONE: no timeline
 uint8_t fur_beats_poll(void) BANKED;
 

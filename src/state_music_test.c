@@ -57,7 +57,7 @@ static const SfxItem sfx_items[4] = {
 #define NUM_HUGE_TRACKS (NUM_LEVEL_SONGS + 2)
 #define NUM_MUSIC_TRACKS (NUM_HUGE_TRACKS + FUR_NUM_SONGS)
 #define PRACTICE_TRACK (NUM_LEVEL_SONGS + 1)
-static const char * const fur_names[FUR_NUM_SONGS] = FUR_SONG_NAMES;
+static const char * const fur_names[] = FUR_SONG_NAMES;
 
 // Custom font tiles: < (39), > (40), - (41), : (42)
 static const uint8_t extra_font_tiles[4 * 16] = {

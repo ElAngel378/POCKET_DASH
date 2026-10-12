@@ -32,3 +32,5 @@ Thumbs.db
 # Profiling build (make PROFILE=1, tools/profile.py)
 temp_prof/
 bin/POCKETDASH_prof.*
+# Converted Furnace songs (tools/convert_furnace.py)
+.cache/

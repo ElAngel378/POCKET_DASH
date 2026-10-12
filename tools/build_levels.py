@@ -322,14 +322,8 @@ def generate_assets_c(levels):
         f.write('};\n')
         f.write('const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);\n')
 
-def build_all():
-    print("=== Pocket Dash Automated Level Pipeline ===")
-
-    os.makedirs(LEVEL_DATA_DIR, exist_ok=True)
-    os.makedirs(MUSIC_DIR, exist_ok=True)
-    os.makedirs(SPRITES_DIR, exist_ok=True)
-    os.makedirs(LEVELS_DIR, exist_ok=True)
-
+def level_files():
+    """The levels' TMX files in game order (a level's index is its position here)."""
     tmx_files = [p for p in TMX_DIR.glob("*.tmx") if p.stem.lower() != "template"]
 
     def sort_key(p):
@@ -338,7 +332,20 @@ def build_all():
             return (0, KNOWN_LEVELS[stem]["order"], stem)
         return (1, 999, stem)
 
-    tmx_files.sort(key=sort_key)
+    return sorted(tmx_files, key=sort_key)
+
+def level_title(stem):
+    return KNOWN_LEVELS[stem]["title"] if stem in KNOWN_LEVELS else format_title(stem)
+
+def build_all():
+    print("=== Pocket Dash Automated Level Pipeline ===")
+
+    os.makedirs(LEVEL_DATA_DIR, exist_ok=True)
+    os.makedirs(MUSIC_DIR, exist_ok=True)
+    os.makedirs(SPRITES_DIR, exist_ok=True)
+    os.makedirs(LEVELS_DIR, exist_ok=True)
+
+    tmx_files = level_files()
     print(f"Found {len(tmx_files)} level(s): {[p.stem for p in tmx_files]}")
 
     # Auto-export menuLoop if present
@@ -457,6 +464,11 @@ def build_all():
         if re.sub(r"_\d+$", "", p.stem) not in wanted:
             print(f"Removing stale {p.name}")
             p.unlink()
+
+    # Furnace songs: music/Furnace/*.fur, matched to the levels by name like the .uge files
+    print("\nConverting Furnace songs (music/Furnace)...")
+    import convert_furnace
+    convert_furnace.convert([p.stem.lower() for p in tmx_files])
 
     print("\nGenerating src/assets.c...")
     generate_assets_c(levels_info)
