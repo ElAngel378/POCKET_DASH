@@ -16,10 +16,10 @@ extern uint8_t fur_tbase;
 extern uint16_t fur_tfrac, fur_tacc;
 extern int16_t fur_left;
 
-// Menu theme: the Furnace one with the FURNACE setting. Doesn't set music_ready.
+// Menu theme: the Furnace one, the hUGETracker one with the LEGACY setting. Doesn't set music_ready.
 void music_play_menu(void) BANKED;
-// Level song: its Furnace version when it has one and (FURNACE is on or it is SM, BoT, PG).
-// Returns 0 if the level has no such song (play the hUGE one).
+// Level song: its Furnace version, unless the LEGACY setting is on or the level has none.
+// Returns 0 when it didn't start one (play the hUGE song).
 uint8_t music_play_level_fur(uint8_t level_idx) BANKED;
 // Start a Furnace song (FUR_* id). Doesn't set music_ready.
 void music_play_fur(uint8_t id) BANKED;

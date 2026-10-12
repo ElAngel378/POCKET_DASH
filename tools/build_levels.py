@@ -13,7 +13,7 @@ TMX_DIR = REPO_ROOT / "levels" / "chr_data" / "tmx"
 LEVEL_DATA_DIR = REPO_ROOT / "levels" / "level_data"
 SRC_DIR = REPO_ROOT / "src"
 MUSIC_DIR = SRC_DIR / "music"
-ROOT_MUSIC_DIR = REPO_ROOT / "music"
+ROOT_MUSIC_DIR = REPO_ROOT / "music" / "Legacy"   # hUGETracker songs (the legacy driver)
 UGE2SOURCE_BIN = REPO_ROOT / "tools" / ("uge2source.exe" if os.name == "nt" else "uge2source")
 SPRITES_DIR = SRC_DIR / "sprites"
 LEVELS_DIR = SRC_DIR / "levels"

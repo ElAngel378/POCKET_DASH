@@ -79,6 +79,15 @@ static void on_music_toggle(uint8_t new_val) {
     save_game_data();
 }
 
+static void on_legacy_toggle(uint8_t new_val) {
+    (void)new_val;
+    if (setting_music_enabled) {   // the menu theme of the other driver
+        music_play_menu();
+        music_ready = 1;
+    }
+    save_game_data();
+}
+
 static void on_sfx_toggle(uint8_t new_val) {
     if (new_val) {
         play_sample_with_music(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
@@ -124,8 +133,8 @@ static void on_wipe_save_action(void) {
 static const SettingItem settings_list[] = {
     { "MUSIC",        SETTING_TYPE_TOGGLE, &setting_music_enabled,    0, 1, toggle_labels, on_music_toggle,   NULL },
     { "SFX",          SETTING_TYPE_TOGGLE, &setting_sfx_enabled,      0, 1, toggle_labels, on_sfx_toggle,     NULL },
-    // test toggle: every song with a Furnace version uses it (off: only SM, BoT, PG, see furnace_songs.h)
-    { "FURNACE",      SETTING_TYPE_TOGGLE, &setting_furnace_music,    0, 1, toggle_labels, on_setting_change, NULL },
+    // the hUGETracker songs (hUGEDriver) instead of the Furnace ones
+    { "LEGACY",       SETTING_TYPE_TOGGLE, &setting_legacy_music,     0, 1, toggle_labels, on_legacy_toggle,  NULL },
     { "GRADIENT",     SETTING_TYPE_TOGGLE, &setting_dmg_gradient,     0, 1, toggle_labels, on_setting_change, NULL },
     { "SHOW BG",      SETTING_TYPE_TOGGLE, &setting_show_bg_enabled,  0, 1, toggle_labels, on_show_bg_change, NULL },
     { "PARALLAX",     SETTING_TYPE_TOGGLE, &setting_parallax_enabled, 0, 1, toggle_labels, on_parallax_change, NULL },

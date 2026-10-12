@@ -16,9 +16,9 @@ BANKREF(fs_menuloop)
 const fur_song_t fs_menuloop = {
     2, /* chunks */
     1, /* wave pool chunk */
-    1, /* anti-click */
-    34952, /* anti-click step at 60 Hz */
-    1118481UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 182 }, { 0, 2754 }, { 0, 4464 }, { 0, 11333 } }, /* stream entry points */
+    0, /* anti-click */
+    0, /* anti-click step at 51.2 Hz */
+    1310720UL, /* tick period in 1/16 cycles */
+    { { 0, 0 }, { 0, 370 }, { 0, 859 }, { 0, 3663 }, { 0, 5733 } }, /* stream entry points */
     fs_menuloop_chunks
 };

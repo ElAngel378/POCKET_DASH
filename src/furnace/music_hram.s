@@ -21,5 +21,3 @@ _fur_loop_p::
 	.ds	2
 _fur_next_t::
 	.ds	2
-_setting_furnace_music::	; the FURNACE setting (save_manager.c)
-	.ds	1

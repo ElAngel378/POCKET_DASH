@@ -18,6 +18,8 @@ uint8_t selected = 0;
 volatile uint8_t current_song_bank = 0;
 volatile uint8_t current_music_divider = 176;
 volatile uint8_t cgb_music_tick = 0;
+// CGB, Furnace songs slower than 32 Hz: the timer runs at DMG rates and every other interrupt ticks
+volatile uint8_t fur_half = 0;
 static uint16_t music_time_acc = 0;
 
 // music_driver and the fur_t* pacing state are in HRAM (src/furnace/music_hram.s)
@@ -170,7 +172,7 @@ void play_music_safe(void) {
     }
     if (music_ready && sample_keeps_music && setting_music_enabled && music_driver == MUSIC_FUR) {
       // the timer runs at 256 Hz for the sample: 16 counts of 4096 Hz (32 of 8192 Hz)
-      fur_left -= (_cpu == CGB_TYPE) ? 32 : 16;
+      fur_left -= (_cpu == CGB_TYPE && !fur_half) ? 32 : 16;
       while (music_ready && fur_left <= 0) {
         step_music();
         fur_left += fur_period_counts();
@@ -187,6 +189,7 @@ void play_music_safe(void) {
   }
   if (music_ready && setting_music_enabled) {
     if (music_driver == MUSIC_FUR) {
+      if (fur_half && (cgb_music_tick++ & 1u)) return;
       TMA_REG = (uint8_t)(0 - fur_period_counts());   // the period after this one
       step_music();
       return;

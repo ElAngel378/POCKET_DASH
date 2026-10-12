@@ -50,7 +50,7 @@ uint8_t selected_dmg_secondary = 1;
 #define V9_DMG1_OFS  (5 + V8_DATA_LEN)
 #define V9_DMG2_OFS  (V9_DMG1_OFS + 1)
 #define V9_DATA_LEN  (V8_DATA_LEN + 2)
-// Version 10: version 9 + 1 byte, once FURNACE; unused (FURNACE isn't saved: off at every boot)
+// Version 10: version 9 + 1 byte, once the FURNACE test setting; unused (LEGACY isn't saved)
 #define V10_FURNACE_OFS (5 + V9_DATA_LEN)
 #define V10_DATA_LEN (V9_DATA_LEN + 1)
 
@@ -63,7 +63,7 @@ uint8_t setting_effects_enabled = 1;
 uint8_t setting_show_percent    = 1;
 uint8_t setting_old_ship_cam    = 0;
 uint8_t setting_auto_checkpoints = 1;
-// setting_furnace_music is in HRAM (src/furnace/music_hram.s)
+uint8_t setting_legacy_music;   // not in HRAM: GBDK's runtime uses the top HRAM bytes
 
 static uint8_t calc_checksum(const uint8_t *data, uint8_t len) {
     uint8_t sum = 0x5A;
@@ -74,7 +74,7 @@ static uint8_t calc_checksum(const uint8_t *data, uint8_t len) {
 }
 
 void init_save_system(void) BANKED {
-    setting_furnace_music = 0;   // not saved: off at every boot (HRAM: not initialized at boot)
+    setting_legacy_music = 0;   // not saved: off at every boot (HRAM: not initialized at boot)
     ENABLE_RAM;
     volatile uint8_t *sram = SRAM_BASE_ADDR;
 
@@ -196,7 +196,7 @@ void init_save_system(void) BANKED {
     setting_show_percent    = 1;
     setting_old_ship_cam    = 0;
     setting_auto_checkpoints = 1;
-    setting_furnace_music   = 0;
+    setting_legacy_music   = 0;
     selected_icon           = 0;
     selected_color_primary  = 0;
     selected_color_secondary = 1;

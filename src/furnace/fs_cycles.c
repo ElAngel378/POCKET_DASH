@@ -16,9 +16,9 @@ BANKREF(fs_cycles)
 const fur_song_t fs_cycles = {
     2, /* chunks */
     1, /* wave pool chunk */
-    1, /* anti-click */
-    34952, /* anti-click step at 60 Hz */
-    1118481UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 307 }, { 0, 2099 }, { 0, 2416 }, { 0, 6637 } }, /* stream entry points */
+    0, /* anti-click */
+    0, /* anti-click step at 18.7032 Hz */
+    3588096UL, /* tick period in 1/16 cycles */
+    { { 0, 0 }, { 0, 687 }, { 0, 1909 }, { 0, 4337 }, { 0, 6374 } }, /* stream entry points */
     fs_cycles_chunks
 };
