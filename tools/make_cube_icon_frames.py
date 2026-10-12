@@ -27,7 +27,7 @@ levels/chr_data/ball_frames.png: the ball, 24 frames like a cube icon. Its old h
 0 and 30 degrees, RotSprite in between; made when missing or with --regen.
 
 src/graphics/cube_icon_frames.c (bank 61: icon 0, ship, ball) and cube_fd_frames_0.c /
-cube_fd_frames_1.c / cube_fd_frames_2.c (banks 62 / 63 / 66: 10 + 10 + 6 Famidash icons), nothing
+cube_fd_frames_1.c .. cube_fd_frames_4.c (banks 62 / 63 / 66 / 67 / 68: 10 icons each, the last 5), nothing
 else in their banks, not even
 code (GDMA needs 16 byte aligned data): per frame 4 sprite tiles, left 8x16 pair then right pair
 (64 bytes). The gameplay VBlank handler copies the frame shown into sprite tiles 0..3 / 4..7.
@@ -51,7 +51,16 @@ CUSTOM_ICONS = [
     (ROOT / "levels" / "chr_data" / "pbaxx.chr", [0, 1, 16, 17]),
     (ROOT / "levels" / "chr_data" / "tiny_coins_cube_3.chr", [32, 33, 48, 49]),
 ]
-FD_COUNT, FD_FRAMES, FD_PER_BANK, FD_BANKS = len(FD_CHR) + len(CUSTOM_ICONS), 24, 10, (62, 63, 66)
+# tiny_coins_more_cubes.chr: 18 cubes in 2x2 tile blocks, 5 / 5 / 4 / 4 per row at tile rows 2, 4, 6, 8;
+# the first one is tiny_coins_cube_3.chr above
+MORE_CHR = ROOT / "levels" / "chr_data" / "tiny_coins_more_cubes.chr"
+for _r, _n in ((2, 5), (4, 5), (6, 4), (8, 4)):
+    for _c in range(_n):
+        if (_r, _c) != (2, 0):
+            _t = 16 * _r + 2 * _c
+            CUSTOM_ICONS.append((MORE_CHR, [_t, _t + 1, _t + 16, _t + 17]))
+
+FD_COUNT, FD_FRAMES, FD_PER_BANK, FD_BANKS = len(FD_CHR) + len(CUSTOM_ICONS), 24, 10, (62, 63, 66, 67, 68)
 # drawn spinning in 3D, not in the picture's plane: no turned frames in between
 FD_3D = {"contest1.chr", "contest5.chr", "contest8.chr"}
 OUT_C = ROOT / "src" / "graphics" / "cube_icon_frames.c"

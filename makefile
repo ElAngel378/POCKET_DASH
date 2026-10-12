@@ -54,7 +54,7 @@ $(TEMPDIR)/famidash_sprite_tiles.o: src/sprites/sprite_tile_tables.h src/sprites
 $(TEMPDIR)/pause_button_tiles.o: src/sprites/sprite_blob_offsets.h src/graphics/practice_button_cgb.inc src/graphics/pause_buttons_cgb.inc
 # icon counts and frame banks (tools/build_icon_select_gfx.py, tools/make_cube_icon_frames.py: a
 # stale object kept the icon select menu at the old icon count)
-$(TEMPDIR)/state_icon_select.o $(TEMPDIR)/save_manager.o $(TEMPDIR)/gameplay.o $(TEMPDIR)/icon_pages.o $(TEMPDIR)/icon_catalog.o: include/icon_catalog.h include/cube_icon_frames.h
+$(TEMPDIR)/state_icon_select.o $(TEMPDIR)/save_manager.o $(TEMPDIR)/gameplay.o $(TEMPDIR)/icon_pages.o $(TEMPDIR)/icon_previews.o $(TEMPDIR)/icon_catalog.o: include/icon_catalog.h include/cube_icon_frames.h
 # the metatile and collision tables (a stale object kept the old square saw hitboxes in the ROM)
 $(TEMPDIR)/famidash_metatiles.o: include/famidash_metatiles_dmg.c include/famidash_metatiles.h include/collision.h
 $(TEMPDIR)/menu_bg.o: levels/chr_data/menu_ground_tiles.bin levels/chr_data/menu_ground_map.bin

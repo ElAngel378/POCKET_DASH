@@ -312,7 +312,7 @@ static uint8_t player_frame_id(void) {
     return cube_turn(cube_step());
 }
 
-// Icons 1..25 (Famidash, tools/make_cube_icon_frames.py): 24 frames like icon 0, 10 icons a bank
+// Icons 1..45 (Famidash and custom, tools/make_cube_icon_frames.py): 24 frames like icon 0, 10 icons a bank
 static const uint8_t *player_frame_src(uint8_t id) {
     if (id >= PL_BALL) return BALL_FRAME(CUBE_IMG((uint8_t)(id - PL_BALL)));
     if (id >= PL_SHIP) return SHIP_FRAME(id - PL_SHIP);
@@ -321,13 +321,17 @@ static const uint8_t *player_frame_src(uint8_t id) {
     const uint8_t *base = cube_fd_frames_0;
     if (j >= CUBE_FD_PER_BANK) { j -= CUBE_FD_PER_BANK; base = cube_fd_frames_1; }
     if (j >= CUBE_FD_PER_BANK) { j -= CUBE_FD_PER_BANK; base = cube_fd_frames_2; }
+    if (j >= CUBE_FD_PER_BANK) { j -= CUBE_FD_PER_BANK; base = cube_fd_frames_3; }
+    if (j >= CUBE_FD_PER_BANK) { j -= CUBE_FD_PER_BANK; base = cube_fd_frames_4; }
     return base + ((uint16_t)j * CUBE_FD_FRAMES + CUBE_IMG(id)) * 64u;
 }
 
 static uint8_t player_frame_bank(uint8_t id) {
     if (id >= PL_SHIP || selected_icon == 0) return BANK(cube_icon_frames);
     if (selected_icon <= CUBE_FD_PER_BANK) return BANK(cube_fd_frames_0);
-    return (selected_icon <= 2 * CUBE_FD_PER_BANK) ? BANK(cube_fd_frames_1) : BANK(cube_fd_frames_2);
+    if (selected_icon <= 2 * CUBE_FD_PER_BANK) return BANK(cube_fd_frames_1);
+    if (selected_icon <= 3 * CUBE_FD_PER_BANK) return BANK(cube_fd_frames_2);
+    return (selected_icon <= 4 * CUBE_FD_PER_BANK) ? BANK(cube_fd_frames_3) : BANK(cube_fd_frames_4);
 }
 
 // Display off, after load_gameplay_sprite_tiles and player init

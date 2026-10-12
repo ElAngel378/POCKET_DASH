@@ -5,7 +5,7 @@
 
 // One WRAM buffer shared by work that never overlaps in time, so the stack keeps room (WRAM is
 // full: the title / level complete loads take the stack close to the variables).
-//   - icon_preview_load (icon_pages.c): the recolored preview tiles, during the call
+//   - icon_preview_load (icon_previews.c): the recolored preview tiles, during the call
 //   - the title menu (state_menu.c): ground_src, while it builds the ground tiles on entry
 //   - level complete (state_level_complete.c): its VRAM slot tables, while the screen is shown
 #define SCRATCH_SIZE 256

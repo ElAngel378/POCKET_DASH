@@ -13,8 +13,8 @@ extern const uint8_t cube_icon_frames[];   // per frame: left 8x16 pair, right p
 // Icon 0 (the original cube): frame 0..23 in cube_icon_frames
 #define CUBE_ICON0_FRAME(frame) (cube_icon_frames + (uint16_t)(frame) * 64u)
 
-// Icons 1..28 (Famidash): 24 frames like icon 0, 10 icons per bank
-#define CUBE_FD_COUNT 28
+// Icons 1..45 (Famidash): 24 frames like icon 0, 10 icons per bank
+#define CUBE_FD_COUNT 45
 #define CUBE_FD_FRAMES 24
 #define CUBE_FD_PER_BANK 10
 BANKREF_EXTERN(cube_fd_frames_0)
@@ -23,6 +23,10 @@ BANKREF_EXTERN(cube_fd_frames_1)
 extern const uint8_t cube_fd_frames_1[];
 BANKREF_EXTERN(cube_fd_frames_2)
 extern const uint8_t cube_fd_frames_2[];
+BANKREF_EXTERN(cube_fd_frames_3)
+extern const uint8_t cube_fd_frames_3[];
+BANKREF_EXTERN(cube_fd_frames_4)
+extern const uint8_t cube_fd_frames_4[];
 
 
 // Ship frames, after the cube ones: frame k tilted 45 - 3k degrees (0 nose steep down, level, 30 up)
