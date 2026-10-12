@@ -50,7 +50,7 @@ uint8_t selected_dmg_secondary = 1;
 #define V9_DMG1_OFS  (5 + V8_DATA_LEN)
 #define V9_DMG2_OFS  (V9_DMG1_OFS + 1)
 #define V9_DATA_LEN  (V8_DATA_LEN + 2)
-// Version 10: version 9 + FURNACE (play every song that has a Furnace version with it)
+// Version 10: version 9 + 1 byte, once FURNACE; unused (FURNACE isn't saved: off at every boot)
 #define V10_FURNACE_OFS (5 + V9_DATA_LEN)
 #define V10_DATA_LEN (V9_DATA_LEN + 1)
 
@@ -74,7 +74,7 @@ static uint8_t calc_checksum(const uint8_t *data, uint8_t len) {
 }
 
 void init_save_system(void) BANKED {
-    setting_furnace_music = 0;   // HRAM: not initialized at boot; older saves don't have it
+    setting_furnace_music = 0;   // not saved: off at every boot (HRAM: not initialized at boot)
     ENABLE_RAM;
     volatile uint8_t *sram = SRAM_BASE_ADDR;
 
@@ -113,7 +113,6 @@ void init_save_system(void) BANKED {
                 selected_color_secondary = v8 ? sram[V8_COL2_OFS] : 1;
                 selected_dmg_primary     = v9 ? sram[V9_DMG1_OFS] : 2;
                 selected_dmg_secondary   = v9 ? sram[V9_DMG2_OFS] : 1;
-                setting_furnace_music    = v10 ? (sram[V10_FURNACE_OFS] ? 1 : 0) : 0;
                 if (selected_icon >= NUM_CUBE_ICONS) selected_icon = 0;
                 if (selected_dmg_primary > 3) selected_dmg_primary = 2;
                 if (selected_dmg_secondary > 3) selected_dmg_secondary = 1;
@@ -241,7 +240,7 @@ void save_game_data(void) BANKED {
     sram[V8_COL2_OFS] = selected_color_secondary;
     sram[V9_DMG1_OFS] = selected_dmg_primary;
     sram[V9_DMG2_OFS] = selected_dmg_secondary;
-    sram[V10_FURNACE_OFS] = setting_furnace_music;
+    sram[V10_FURNACE_OFS] = 0;
     sram[5 + V10_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V10_DATA_LEN);
     DISABLE_RAM;
 }
