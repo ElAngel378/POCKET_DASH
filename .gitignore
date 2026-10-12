@@ -34,3 +34,5 @@ temp_prof/
 bin/POCKETDASH_prof.*
 # Converted Furnace songs (tools/convert_furnace.py)
 .cache/
+# Build objects (make)
+temp/

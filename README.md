@@ -73,8 +73,10 @@ The output is `bin/POCKETDASH.gb`. Music playback uses [hUGEDriver](https://gith
 
 Run `convert_levels.bat` (or `python tools/build_levels.py`, then `make`) after adding songs:
 
-- **hUGETracker:** put the `.uge` in `music/`, named like the level (`DryOut.uge` for `dryout.tmx`).
-- **Furnace:** put the `.fur` in `music/Furnace/`. A song named like a level (`Base After Base.fur`, `DryOut32.fur`; case, spaces and trailing digits don't matter) is that level's song with the FURNACE setting on (Stereo Madness, Back On Track and Polargeist always use theirs); `MenuLoop.fur` is the menu theme with the setting on; any other song is only in the music test. Songs must use a single Game Boy chip (DMG or CGB model); others are skipped with a warning.
+- **Furnace** (the game's music): put the `.fur` in `music/Furnace/`. A song named like a level (`BaseAfterBase.fur`, `DryOut32.fur`; case, spaces and trailing digits don't matter) is that level's song; `MenuLoop.fur` is the menu theme; any other song is only in the music test. Songs must use a single Game Boy chip (DMG or CGB model); others are skipped with a warning.
+- **hUGETracker** (the LEGACY setting): put the `.uge` in `music/Legacy/`, named like the level (`DryOut.uge` for `dryout.tmx`). A level without a Furnace song plays its hUGETracker one.
+
+To move a hUGETracker song to Furnace, convert it with fur2gb's `tools/uge2fur.py` (`python ../fur2gb/tools/uge2fur.py music/Legacy/Song.uge -o music/Furnace/Song.fur`) and edit it in Furnace. `music/Furnace/Old/` keeps earlier hand-made versions (not built).
 
 The Furnace songs are converted with [fur2gb](https://github.com/Soteris24/fur2gb), which plays each song in Furnace and checks the result write for write. It needs the fur2gb repo next to this one (or `FUR2GB_DIR`) and its Furnace build (see its README). Converted songs are cached in `.cache/furnace/`, so only new or changed songs take time. Without fur2gb the songs already in `src/furnace/` are kept.
 
