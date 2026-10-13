@@ -38,8 +38,8 @@ BANKREF_EXTERN(fs_electromanadventures)
 extern const fur_song_t fs_electromanadventures;
 BANKREF_EXTERN(fs_schemingweasel)
 extern const fur_song_t fs_schemingweasel;
-BANKREF_EXTERN(fs_stayinsidemewip)
-extern const fur_song_t fs_stayinsidemewip;
+BANKREF_EXTERN(fs_stayinsideme)
+extern const fur_song_t fs_stayinsideme;
 BANKREF_EXTERN(fs_toe)
 extern const fur_song_t fs_toe;
 BANKREF_EXTERN(fs_toe2)
@@ -63,7 +63,7 @@ const FurSong fur_songs[] = {
     { &fs_electrodynamix, BANK(fs_electrodynamix) },
     { &fs_electromanadventures, BANK(fs_electromanadventures) },
     { &fs_schemingweasel, BANK(fs_schemingweasel) },
-    { &fs_stayinsidemewip, BANK(fs_stayinsidemewip) },
+    { &fs_stayinsideme, BANK(fs_stayinsideme) },
     { &fs_toe, BANK(fs_toe) },
     { &fs_toe2, BANK(fs_toe2) },
 };

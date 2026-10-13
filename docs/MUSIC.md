@@ -6,7 +6,7 @@ Pocket Dash plays Furnace songs through its own Game Boy driver, [fur2gb](https:
 
 Run `convert_levels.bat` (or `python tools/build_levels.py`, then `make`) after adding songs:
 
-- **Furnace** (the game's music): put the `.fur` in `music/Furnace/`. A song named like a level (`BaseAfterBase.fur`, `DryOut32.fur`; case, spaces and trailing digits don't matter) is that level's song; `MenuLoop.fur` is the menu theme; any other song is only in the music test. Songs must use a single Game Boy chip (DMG or CGB model); others are skipped with a warning.
+- **Furnace** (the game's music): put the `.fur` in `music/Furnace/`. A song named like a level (`BaseAfterBase.fur`, `DryOut.fur`; case, spaces and trailing digits don't matter) is that level's song; `MenuLoop.fur` is the menu theme; any other song is only in the music test. Songs must use a single Game Boy chip (DMG or CGB model); others are skipped with a warning.
 - **hUGETracker** (the LEGACY setting): put the `.uge` in `music/Legacy/`, named like the level (`DryOut.uge` for `dryout.tmx`). A level without a Furnace song plays its hUGETracker one.
 
 To move a hUGETracker song to Furnace, convert it with fur2gb's `tools/uge2fur.py` (`python ../fur2gb/tools/uge2fur.py music/Legacy/Song.uge -o music/Furnace/Song.fur`) and edit it in Furnace. `music/Furnace/Old/` keeps earlier hand-made versions (not built).
@@ -24,3 +24,26 @@ The game's music is written in [Furnace](https://github.com/tildearrow/furnace) 
 - **hUGETracker songs:** `uge2fur.py` converts a hUGETracker module to a Furnace one that plays like hUGEDriver plays it. The original hUGEDriver songs are still in the game: turn on the **LEGACY** setting to hear them.
 
 Pocket Dash copies the driver into `src/furnace/` with `tools/convert_furnace.py` (see *Adding music* above). The driver, its tests and a full description are in the [fur2gb repository](https://github.com/Soteris24/fur2gb).
+
+## Music credits
+
+| Song | Made by |
+|---|---|
+| Stereo Madness | Ziqiangao |
+| Back on Track | Sotos_24 |
+| Polargeist | UserSniper |
+| Dry Out | Sotos_24 |
+| Base After Base | Sotos_24 |
+| Can't Let Go | Sotos_24 |
+| Jumper | Sotos_24 |
+| Time Machine | NerdBoy628 |
+| Cycles | NerdBoy628 |
+| Xstep | Sotos_24 |
+| Clutterfunk | Sotos_24 |
+| ToE (Theory of Everything) | Sotos_24 |
+| Electroman Adventures | ElAngel378 |
+| ToE 2 (Theory of Everything 2) | NerdBoy628 |
+| Stay Inside Me | Sotos_24 |
+| Deadlocked | Ranedom |
+| Scheming Weasel | Ranedom |
+| Electrodynamix (unfinished) | Sotos_24 |

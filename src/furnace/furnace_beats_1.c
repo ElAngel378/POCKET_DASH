@@ -397,7 +397,7 @@ static const uint8_t fbeats_schemingweasel[] = {
     179, 2, 22, 1, 66, 2, 22, 1, 241, 2, 22, 1, 66, 2, 22, 1, 255, 0, 255, 0, 255, 0, 179, 2,
     22, 1, 66, 2, 22, 1, 241, 2, 22, 1, 66, 2, 22, 1, 44, 255,
 };
-static const uint8_t fbeats_stayinsidemewip[] = {
+static const uint8_t fbeats_stayinsideme[] = {
     0, 1, 56, 1, 3, 1, 25, 1, 3, 1, 25, 1, 3, 1, 11, 1, 3, 1, 4, 2, 3, 2, 4, 1,
     3, 1, 11, 1, 3, 1, 4, 2, 3, 2, 4, 1, 3, 1, 11, 1, 3, 1, 4, 2, 3, 2, 4, 1,
     3, 1, 11, 1, 3, 1, 4, 2, 3, 2, 4, 1, 3, 1, 11, 1, 3, 1, 4, 2, 3, 2, 4, 1,
@@ -674,7 +674,7 @@ static const uint8_t * const fbeats[][2] = {
     { fbeats_electrodynamix, fbeats_electrodynamix + 372 },
     { fbeats_electromanadventures, fbeats_electromanadventures + 2002 },
     { fbeats_schemingweasel, fbeats_schemingweasel + 92 },
-    { fbeats_stayinsidemewip, fbeats_stayinsidemewip + 2380 },
+    { fbeats_stayinsideme, fbeats_stayinsideme + 2380 },
     { fbeats_toe, 0 },
     { fbeats_toe2, fbeats_toe2 + 568 },
 };

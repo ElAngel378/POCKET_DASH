@@ -3,7 +3,7 @@
     python tools/convert_furnace.py      (tools/build_levels.py also runs it)
 
 Drop a .fur in music/Furnace and it is in the game:
-  - named like a level (the TMX file: "BaseAfterBase.fur", "DryOut32.fur" for dryout.tmx; case,
+  - named like a level (the TMX file: "BaseAfterBase.fur", "DryOut.fur" for dryout.tmx; case,
     spaces, punctuation and trailing digits don't matter), it is that level's song; with the
     LEGACY setting (or without a .fur) the level plays its hUGETracker song (music/Legacy)
   - MenuLoop.fur is the menu theme (the hUGETracker one with LEGACY)
