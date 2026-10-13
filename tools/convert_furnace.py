@@ -464,9 +464,10 @@ def write_sources(songs, table, beat_arrays, levels, banks):
     h += [f"#define FUR_{s[0].upper()} {i}" for i, s in enumerate(songs)]
     if not any(s[0] == "menuloop" for s in songs):
         h.append("#define FUR_MENULOOP FUR_NONE   // no MenuLoop.fur: always the hUGE menu theme")
-    # ticks of one pass (the loop jumps back after it): a level song stops there, like the
-    # hUGETracker ones; 0 = loops (the menu theme) or ends by itself
-    ends = [0 if (s[0] == "menuloop" or s[5]["beats"][2] is None) else s[5]["beats"][1] for s in songs]
+    # The tick where the song first wraps (end of its last pattern; the stream goes on for one more
+    # pass after it, to the end of the loop): a level song stops there, like the hUGETracker ones.
+    # 0 = loops (the menu theme) or ends by itself
+    ends = [0 if (s[0] == "menuloop" or s[5]["beats"][2] is None) else s[5]["beats"][2] for s in songs]
     h += ["", "// ticks after which a song stops (0: it loops, or ends by itself)",
           "#define FUR_SONG_ENDS { " + (", ".join(str(e) for e in ends) or "0") + " }"]
     h += ["", "// music test names",
