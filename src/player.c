@@ -471,8 +471,8 @@ uint8_t player_update(
         }
     } else {
         p->anim_timer += 10;
-        if (p->anim_timer >= 21) {
-            p->anim_timer -= 21;
+        if (p->anim_timer >= 22) {
+            p->anim_timer -= 22;
             p->anim_frame++;
             if (p->anim_frame >= 24) p->anim_frame = 0;
         }
