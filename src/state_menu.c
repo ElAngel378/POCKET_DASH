@@ -734,7 +734,8 @@ GameState update_menu_state(void) BANKED {
         }
 
         // A on the wrench (custom levels, not made yet) does nothing
-        uint8_t go = (pressed & (J_A | J_START)) && menu_sel != SEL_WRENCH;
+        uint8_t credits = (pressed & J_SELECT) != 0;   // SELECT: the credits again
+        uint8_t go = credits || ((pressed & (J_A | J_START)) && menu_sel != SEL_WRENCH);
         if (go) {
             fade_capture_current();   // the rainbow palette changes: fade out from the current one
             fade_to_black(2);
@@ -743,6 +744,7 @@ GameState update_menu_state(void) BANKED {
             HIDE_SPRITES;
             HIDE_WIN;
             for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
+            if (credits) return STATE_CREDITS;
             switch (menu_sel) {
                 case SEL_PLAY:  return STATE_NEW_MENU_SELECT;
                 case SEL_MUSIC: return STATE_MUSIC_TEST;
