@@ -67,11 +67,13 @@ make clean
 make -j8
 ```
 
-The output is `bin/POCKETDASH.gb`. Music playback uses [hUGEDriver](https://github.com/SuperDisk/hUGEDriver); its prebuilt `lib/hUGEDriver.lib` is included in this repository.
+The output is `bin/POCKETDASH.gb`.
 
 ## Music
 
-The game's music is in [Furnace](https://github.com/tildearrow/furnace) and played by [fur2gb](https://github.com/Soteris24/fur2gb), a Game Boy driver made for this project. How to add songs and how the driver works: **[docs/MUSIC.md](docs/MUSIC.md)**.
+The game's music is made in [Furnace](https://github.com/tildearrow/furnace) and played by [fur2gb](https://github.com/Soteris24/fur2gb), a Game Boy music driver made for this project. The older songs made in hUGETracker are still in the game and play through [hUGEDriver](https://github.com/SuperDisk/hUGEDriver) when the **LEGACY** setting is on; its prebuilt `lib/hUGEDriver.lib` is included in this repository, so you don't need to install anything extra to build.
+
+How to add songs and how the driver works: **[docs/MUSIC.md](docs/MUSIC.md)**.
 
 ---
 
