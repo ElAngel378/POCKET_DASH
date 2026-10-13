@@ -74,7 +74,6 @@ static uint8_t calc_checksum(const uint8_t *data, uint8_t len) {
 }
 
 void init_save_system(void) BANKED {
-    setting_legacy_music = 0;   // not saved: off at every boot (HRAM: not initialized at boot)
     ENABLE_RAM;
     volatile uint8_t *sram = SRAM_BASE_ADDR;
 
@@ -196,7 +195,6 @@ void init_save_system(void) BANKED {
     setting_show_percent    = 1;
     setting_old_ship_cam    = 0;
     setting_auto_checkpoints = 1;
-    setting_legacy_music   = 0;
     selected_icon           = 0;
     selected_color_primary  = 0;
     selected_color_secondary = 1;

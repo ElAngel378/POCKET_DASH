@@ -29,6 +29,9 @@
 #define FUR_TOE 18
 #define FUR_TOE2 19
 
+// ticks after which a song stops (0: it loops, or ends by itself)
+#define FUR_SONG_ENDS { 0, 0, 0, 0, 0, 9600, 11340, 6272, 3910, 3200, 5896, 11088, 9588, 0, 4536, 16384, 10537, 9856, 0, 9792 }
+
 // music test names
 #define FUR_SONG_NAMES { "MENU THEME", "STEREO MADNESS", "BACK ON TRACK", "POLARGEIST", "DRY OUT", "BASE AFTER BASE", "CANT LET GO", "JUMPER", "TIME MACHINE", "CYCLES", "XSTEP", "CLUTTERFUNK", "UTLIMATE DESTCTN", "DEADLOCKED", "ELECTRODYNAMIX", "ELECTRMN ADVENTURS", "SCHEMING WEASEL", "STAYINSIDEMEWIP", "THEORY OF EVRYTHNG", "THRY OF EVRYTHNG 2" }
 // Furnace song of each level (FUR_NONE: the hUGETracker song)

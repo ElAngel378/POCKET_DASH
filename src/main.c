@@ -18,6 +18,7 @@ uint8_t selected = 0;
 volatile uint8_t current_song_bank = 0;
 volatile uint8_t current_music_divider = 176;
 volatile uint8_t cgb_music_tick = 0;
+extern uint16_t fur_end;   // music_select.c
 // CGB, Furnace songs slower than 32 Hz: the timer runs at DMG rates and every other interrupt ticks
 volatile uint8_t fur_half = 0;
 static uint16_t music_time_acc = 0;
@@ -97,6 +98,7 @@ static void step_music(void) {
   }
 
   if (music_driver == MUSIC_FUR) {
+    if (fur_end && music_ticks >= fur_end) fur_playing = 0;   // one pass done: no loop, like the hUGE songs
     if (!fur_playing) {   // FFxx: the song ended, silence it like the hUGE level songs below
       music_ready = 0;
       NR12_REG = 0; NR14_REG = 0x80;
@@ -214,6 +216,7 @@ void main(void) {
   selected = (uint8_t)(gplevel - 1u);
 #endif
 
+  setting_legacy_music = 0;   // not saved: off at every boot (init_save_system also runs at each menu entry)
   init_save_system();
 
   // Enable sound hardware

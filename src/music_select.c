@@ -18,6 +18,8 @@ extern volatile uint16_t music_ticks;
 extern volatile uint8_t fur_half, cgb_music_tick;
 
 static const uint8_t level_fur[] = FUR_LEVEL_SONGS;
+static const uint16_t fur_ends[] = FUR_SONG_ENDS;
+uint16_t fur_end;     // ticks after which the Furnace song stops, 0: it loops (main.c)
 uint8_t fur_bgroup;   // beat timeline group of the Furnace song playing (furnace_songs.c)
 
 void music_play_fur(uint8_t id) BANKED {
@@ -31,6 +33,7 @@ void music_play_fur(uint8_t id) BANKED {
     fur_mute = setting_music_enabled ? 0 : 0x0F;
     fur_play(fur_songs[id].song, fur_songs[id].bank);
     music_ticks = 0;
+    fur_end = fur_ends[id];
     music_beats_start(0);   // no hUGE timeline
     fur_beats_start(id);
 
