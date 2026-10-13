@@ -28,22 +28,22 @@ BANKREF_EXTERN(fs_xstep)
 extern const fur_song_t fs_xstep;
 BANKREF_EXTERN(fs_clutterfunk)
 extern const fur_song_t fs_clutterfunk;
-BANKREF_EXTERN(fs_ultiatedestruction)
-extern const fur_song_t fs_ultiatedestruction;
-BANKREF_EXTERN(fs_deadlocked)
-extern const fur_song_t fs_deadlocked;
-BANKREF_EXTERN(fs_electrodynamix)
-extern const fur_song_t fs_electrodynamix;
+BANKREF_EXTERN(fs_toe)
+extern const fur_song_t fs_toe;
 BANKREF_EXTERN(fs_electromanadventures)
 extern const fur_song_t fs_electromanadventures;
+BANKREF_EXTERN(fs_electrodynamix)
+extern const fur_song_t fs_electrodynamix;
+BANKREF_EXTERN(fs_toe2)
+extern const fur_song_t fs_toe2;
+BANKREF_EXTERN(fs_deadlocked)
+extern const fur_song_t fs_deadlocked;
+BANKREF_EXTERN(fs_ultiatedestruction)
+extern const fur_song_t fs_ultiatedestruction;
 BANKREF_EXTERN(fs_schemingweasel)
 extern const fur_song_t fs_schemingweasel;
 BANKREF_EXTERN(fs_stayinsideme)
 extern const fur_song_t fs_stayinsideme;
-BANKREF_EXTERN(fs_toe)
-extern const fur_song_t fs_toe;
-BANKREF_EXTERN(fs_toe2)
-extern const fur_song_t fs_toe2;
 
 const FurSong fur_songs[] = {
     { &fs_menuloop, BANK(fs_menuloop) },
@@ -58,14 +58,14 @@ const FurSong fur_songs[] = {
     { &fs_cycles, BANK(fs_cycles) },
     { &fs_xstep, BANK(fs_xstep) },
     { &fs_clutterfunk, BANK(fs_clutterfunk) },
-    { &fs_ultiatedestruction, BANK(fs_ultiatedestruction) },
-    { &fs_deadlocked, BANK(fs_deadlocked) },
-    { &fs_electrodynamix, BANK(fs_electrodynamix) },
+    { &fs_toe, BANK(fs_toe) },
     { &fs_electromanadventures, BANK(fs_electromanadventures) },
+    { &fs_electrodynamix, BANK(fs_electrodynamix) },
+    { &fs_toe2, BANK(fs_toe2) },
+    { &fs_deadlocked, BANK(fs_deadlocked) },
+    { &fs_ultiatedestruction, BANK(fs_ultiatedestruction) },
     { &fs_schemingweasel, BANK(fs_schemingweasel) },
     { &fs_stayinsideme, BANK(fs_stayinsideme) },
-    { &fs_toe, BANK(fs_toe) },
-    { &fs_toe2, BANK(fs_toe2) },
 };
 
 // beat timelines: group (bank file furnace_beats_<group>.c) and index of each song

@@ -51,11 +51,12 @@ static const SfxItem sfx_items[4] = {
 };
 
 #define NUM_SFX_ITEMS 4
-// hUGETracker: menu theme + the 12 level songs (level_test is silent, so not listed) + practice
-// mode; then every Furnace song (music/Furnace, tools/convert_furnace.py)
+// Every Furnace song first (music/Furnace, tools/convert_furnace.py); the hUGETracker ones after
+// them (menu theme + the 12 level songs (level_test is silent, so not listed) + practice mode)
+// only with the LEGACY setting, or once SELECT has been held for HUGE_UNLOCK_FRAMES
 #define NUM_LEVEL_SONGS 12
 #define NUM_HUGE_TRACKS (NUM_LEVEL_SONGS + 2)
-#define NUM_MUSIC_TRACKS (NUM_HUGE_TRACKS + FUR_NUM_SONGS)
+#define HUGE_UNLOCK_FRAMES 150
 #define PRACTICE_TRACK (NUM_LEVEL_SONGS + 1)
 static const char * const fur_names[] = FUR_SONG_NAMES;
 
@@ -148,12 +149,15 @@ static void draw_fixed_text(uint8_t x, uint8_t y, const char *str, uint8_t width
 
 static void get_music_entry(uint8_t idx, MusicEntry *entry) {
     entry->fur = FUR_NONE;
-    if (idx >= NUM_HUGE_TRACKS) {
-        entry->fur = idx - NUM_HUGE_TRACKS;
-        entry->name = fur_names[entry->fur];
+    if (idx < FUR_NUM_SONGS) {
+        entry->fur = idx;
+        entry->name = fur_names[idx];
         entry->song = 0;
         entry->bank = 0;
-    } else if (idx == 0) {
+        return;
+    }
+    idx -= FUR_NUM_SONGS;   // the hUGETracker songs
+    if (idx == 0) {
         entry->name = "MENU THEME";
         entry->song = &menuloop;
         entry->bank = 1;
@@ -172,7 +176,7 @@ static void get_music_entry(uint8_t idx, MusicEntry *entry) {
     }
 }
 
-static void render_music_section(uint8_t track_idx, uint8_t playing) {
+static void render_music_section(uint8_t track_idx, uint8_t playing, uint8_t total) {
     MusicEntry me;
     get_music_entry(track_idx, &me);
 
@@ -184,8 +188,8 @@ static void render_music_section(uint8_t track_idx, uint8_t playing) {
     num_buf[2] = (char)('0' + (num / 10));
     num_buf[3] = (char)('0' + (num % 10));
     num_buf[4] = '/';
-    num_buf[5] = (char)('0' + (NUM_MUSIC_TRACKS / 10));
-    num_buf[6] = (char)('0' + (NUM_MUSIC_TRACKS % 10));
+    num_buf[5] = (char)('0' + (total / 10));
+    num_buf[6] = (char)('0' + (total % 10));
     num_buf[7] = ' ';
     num_buf[8] = '>';
     num_buf[9] = ' ';
@@ -355,8 +359,11 @@ GameState update_music_test_state(void) BANKED {
     uint8_t current_music = 0;
     uint8_t current_sfx = 0;
     uint8_t music_playing = 0;
+    uint8_t show_huge = setting_legacy_music;    // the hUGETracker songs are listed
+    uint8_t num_tracks = FUR_NUM_SONGS + (show_huge ? NUM_HUGE_TRACKS : 0);
+    uint8_t select_held = 0;
 
-    render_music_section(current_music, music_playing);
+    render_music_section(current_music, music_playing, num_tracks);
     render_sfx_section(current_sfx);
     update_cursor_sprite(current_section);
     update_section_highlights(current_section);
@@ -387,6 +394,19 @@ GameState update_music_test_state(void) BANKED {
             hold_timer = 0;
         }
 
+        // Holding SELECT for a while lists the hUGETracker songs too
+        if (!show_huge) {
+            if (joy & J_SELECT) {
+                if (++select_held >= HUGE_UNLOCK_FRAMES) {
+                    show_huge = 1;
+                    num_tracks = FUR_NUM_SONGS + NUM_HUGE_TRACKS;
+                    render_music_section(current_music, music_playing, num_tracks);
+                }
+            } else {
+                select_held = 0;
+            }
+        }
+
         // Section switching
         if (pressed & (J_UP | J_DOWN)) {
             current_section ^= 1;
@@ -398,12 +418,12 @@ GameState update_music_test_state(void) BANKED {
         if ((pressed & J_LEFT) || (repeat && (joy & J_LEFT))) {
             if (current_section == 0) {
                 if (current_music > 0) current_music--;
-                else current_music = NUM_MUSIC_TRACKS - 1;
+                else current_music = num_tracks - 1;
                 if (music_playing) {
                     stop_music_safe();
                     music_playing = 0;
                 }
-                render_music_section(current_music, music_playing);
+                render_music_section(current_music, music_playing, num_tracks);
             } else {
                 if (current_sfx > 0) current_sfx--;
                 else current_sfx = NUM_SFX_ITEMS - 1;
@@ -411,13 +431,13 @@ GameState update_music_test_state(void) BANKED {
             }
         } else if ((pressed & J_RIGHT) || (repeat && (joy & J_RIGHT))) {
             if (current_section == 0) {
-                if (current_music < NUM_MUSIC_TRACKS - 1) current_music++;
+                if (current_music < num_tracks - 1) current_music++;
                 else current_music = 0;
                 if (music_playing) {
                     stop_music_safe();
                     music_playing = 0;
                 }
-                render_music_section(current_music, music_playing);
+                render_music_section(current_music, music_playing, num_tracks);
             } else {
                 if (current_sfx < NUM_SFX_ITEMS - 1) current_sfx++;
                 else current_sfx = 0;
@@ -438,7 +458,7 @@ GameState update_music_test_state(void) BANKED {
                     play_current_music(current_music);
                     music_playing = 1;
                 }
-                render_music_section(current_music, music_playing);
+                render_music_section(current_music, music_playing, num_tracks);
             } else {
                 play_current_sfx(current_sfx, music_playing);
             }

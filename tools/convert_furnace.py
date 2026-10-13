@@ -54,6 +54,12 @@ CHUNK_SIZE = 16300            # leave room for GBDK's BANKREF stubs in each bank
 
 LEVEL_ALIASES = {"ultimate": "ultiatedestruction", "ultimatedestruction": "ultiatedestruction"}
 MENU_NAMES = {"menuloop", "menu", "menutheme"}
+# Order of the songs (their ids, so the music test list): Geometry Dash's own order, then the Pocket
+# Dash ones; songs not listed come last in file order
+SONG_ORDER = ["menuloop", "stereomadness", "backontrack", "polargeist", "dryout", "baseafterbase",
+              "cantletgo", "jumper", "timemachine", "cycles", "xstep", "clutterfunk", "toe",
+              "electromanadventures", "electrodynamix", "toe2", "deadlocked",
+              "ultiatedestruction", "schemingweasel", "stayinsideme"]
 NAME_WIDTH = 18               # music test name field
 STRONG, WEAK, FILL, END, LOOP = 2, 1, 0, 0xFE, 0xFF
 
@@ -315,6 +321,8 @@ def convert(levels=None):
         initials = "".join(w[0] for w in re.findall(r"[a-z0-9]+", conv["name"].lower()))
         name = conv["name"] if initials and initials == norm(fur.stem) else fur.stem
         songs.append((ident_for(fur.stem), screen_name(name), None, "music test only", fur, conv))
+
+    songs.sort(key=lambda sg: SONG_ORDER.index(sg[0]) if sg[0] in SONG_ORDER else len(SONG_ORDER))   # stable
 
     copy_player()
     for f in OUT.glob("fs_*.c"):
