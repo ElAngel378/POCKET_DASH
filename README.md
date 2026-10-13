@@ -40,7 +40,7 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 - Gameplay (Cube, Ship, Ball)
 - Accurate Physics
 - Collision (Death and block collision)
-- Music Covers
+- Music Covers, played by a Furnace-accurate Game Boy driver ([fur2gb](https://github.com/Soteris24/fur2gb))
 - All 1.0 - 1.2 mechanics including inverted gravity, mirror mode
 - Level End screen
 - Game Boy Original and Color support!
@@ -79,6 +79,20 @@ Run `convert_levels.bat` (or `python tools/build_levels.py`, then `make`) after 
 To move a hUGETracker song to Furnace, convert it with fur2gb's `tools/uge2fur.py` (`python ../fur2gb/tools/uge2fur.py music/Legacy/Song.uge -o music/Furnace/Song.fur`) and edit it in Furnace. `music/Furnace/Old/` keeps earlier hand-made versions (not built).
 
 The Furnace songs are converted with [fur2gb](https://github.com/Soteris24/fur2gb), which plays each song in Furnace and checks the result write for write. It needs the fur2gb repo next to this one (or `FUR2GB_DIR`) and its Furnace build (see its README). Converted songs are cached in `.cache/furnace/`, so only new or changed songs take time. Without fur2gb the songs already in `src/furnace/` are kept.
+
+# Music driver: fur2gb
+
+The game's music is written in [Furnace](https://github.com/tildearrow/furnace) and played by **[fur2gb](https://github.com/Soteris24/fur2gb)**, a Game Boy driver made for this project (also by Soteris24). It plays a Furnace song on the console exactly as Furnace plays it: the ROM makes the same register writes as Furnace's Game Boy chip, in the same order, tick by tick.
+
+- **Converter:** `fur2gb.py` turns a `.fur` into C data. It runs the song in a patched Furnace, records every register write and checks that its own model of the player reproduces them, so a song that can't be played exactly is rejected or flagged instead of sounding slightly off.
+- **Player:** a small Game Boy player (`furplayer`). The per-tick routine is in bank 0 and takes about 1.5-6k cycles per tick on average (up to about 12k on the busiest ticks), using about 260 bytes of RAM. Songs take 3-34 KB of ROM each.
+- **Sound effects:** channels can be borrowed by sound effects and handed back, so the game's effects don't cut the song.
+- **Verification:** `verify_rom.py` runs a test ROM headless in Mesen and compares every write with Furnace's, through the loop jumps.
+- **hUGETracker songs:** `uge2fur.py` converts a hUGETracker module to a Furnace one that plays like hUGEDriver plays it. The original hUGEDriver songs are still in the game: turn on the **LEGACY** setting to hear them.
+
+Pocket Dash copies the driver into `src/furnace/` with `tools/convert_furnace.py` (see *Adding music* above). The driver, its tests and a full description are in the [fur2gb repository](https://github.com/Soteris24/fur2gb).
+
+---
 
 # Development Info
 
@@ -121,6 +135,8 @@ The Furnace songs are converted with [fur2gb](https://github.com/Soteris24/fur2g
 ### And, of course, the game we all love: Geometry Dash by RobTop Games.
 ### AI Disclosure
 
-AI tools (LLMs) are used in this project to help with things like boilerplate code, optimizing parts of the code, and brainstorming solutions. However, the project is not vibecoded.
+AI tools (LLMs) are used in this project. Up to release 0.3 they were only used for things like boilerplate code, optimizing parts of the code and brainstorming solutions.
 
-Developing for the original 1989 Game Boy with GBDK 2020 requires a solid understanding of things like memory management, bank switching, hardware registers, and low-level C/Assembly optimization. AI is used as a tool and pair-programmer to speed things up and explore ideas, but the development, decisions, testing, and debugging are still done by us.
+After release 0.3 there is some vibecoding. Development is much faster that way, and as I have school and other things going on, it lets me keep working on the game while focusing on my studies. It also generally makes the whole process easier, and in my experience it leads to fewer bugs and optimizes very well.
+
+Developing for the original 1989 Game Boy with GBDK 2020 still requires a solid understanding of things like memory management, bank switching, hardware registers and low-level C/Assembly optimization, so the direction, decisions, testing and debugging are still done by us.
