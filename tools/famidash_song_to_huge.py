@@ -97,11 +97,11 @@ def main():
         n_rows = min(ends) + 1
     ch = [c[:n_rows] + [{}] * (n_rows - len(c[:n_rows])) for c in song.channels]
 
-    # ---- tempo
+    # tempo
     tick_hz = 60.0988 * song.step_ntsc / 256.0
     tma = 256 - int(round(4096.0 / tick_hz))
 
-    # ---- per channel state walk -> GB rows
+    # per channel state walk -> GB rows
     out = [[None] * n_rows for _ in range(4)]   # (note, inst_key, effect) per row
     duty_insts, wave_insts, noise_insts = {}, {}, {}
 
@@ -169,7 +169,7 @@ def main():
     pulse_channel(ch[0], 0)
     pulse_channel(ch[1], 1)
 
-    # ---- wave: DPCM bass, triangle where the bass is silent
+    # wave: DPCM bass, triangle where the bass is silent
     dpcm_active = [False] * n_rows
     sounding = False
     drum_hits = {}
@@ -216,7 +216,7 @@ def main():
         gi = inst_key(wave_insts, 'tri', lambda: ('tri',))
         out[2][r] = (fit(note - 25), gi, 0)   # NES triangle: pulse period table, one octave lower
 
-    # ---- noise
+    # noise
     n_inst, n_vol = None, 15
     for r, row in enumerate(ch[3]):
         if 'inst' in row:
@@ -240,7 +240,7 @@ def main():
             gi = inst_key(noise_insts, (15, 2), lambda: (15, 2, 'kick (' + name + ')'))
             out[3][r] = (fit(12), gi, 0)
 
-    # ---- speed changes (Fxx) on a channel without an effect that row
+    # speed changes (Fxx) on a channel without an effect that row
     speed0 = 6
     for r, row in enumerate(ch[1]) if any('speed' in x for x in ch[1]) else enumerate(ch[0]):
         if 'speed' not in row:
@@ -262,7 +262,7 @@ def main():
         if len(table) > 15:
             print("WARNING: %d %s instruments (hUGE max 15), extra ones reuse instrument 15" % (len(table), name))
 
-    # ---- patterns (64 rows), deduplicated
+    # patterns (64 rows), deduplicated
     n_pat = (n_rows + 63) // 64
     patterns, orders = {}, [[] for _ in range(4)]
     for c in range(4):

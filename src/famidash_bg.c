@@ -10,9 +10,7 @@
 // Sky/ground colours per NES colour id live in famidash_bg_tables.h, generated
 // by tools/gen_famidash_bg_tables.py from Famidash's own NES palette.
 
-/**
- * Vibrant GBC Palettes moved local for maximum DMG performance
- */
+// the palettes are local to this file, which keeps DMG fast
 #include <string.h>
 
 static const uint16_t vibrant_palette_default[20] = {

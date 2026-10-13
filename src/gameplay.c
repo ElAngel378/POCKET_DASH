@@ -644,11 +644,9 @@ static uint8_t practice_draw_checkpoints(uint8_t oam_index, uint16_t cam_x, uint
     return oam_index;
 }
 
-// ---- play_level helpers: the rarely-run parts of the main loop (pause, level
-// complete, mirror portal, death, level end). Out of play_level because SDCC's
-// register allocator (--max-allocs-per-node50000) is very slow on one huge
-// function. Per-frame code stays inline in play_level: moving it into helpers
-// cost frames on DMG.
+// play_level helpers: the rare paths (pause, level complete, mirror portal, death, level end).
+// They are out of play_level because SDCC's register allocator is very slow on one huge
+// function. Per-frame code stays inline: moving it out cost frames on DMG.
 
 // Pause menu (Start). Returns 1 when the player chose to leave the level.
 static void practice_respawn(uint8_t idx);

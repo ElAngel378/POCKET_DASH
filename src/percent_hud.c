@@ -29,7 +29,7 @@ static uint8_t shown = 0xFF;     // value currently in OAM (0xFF: redraw)
 static uint16_t thr, q, step_q;
 static uint8_t rem, step_r;
 
-// ---- "ATTEMPT N" (like Geometry Dash): text in the level at the start position, scrolling
+// "ATTEMPT N" (like Geometry Dash): text in the level at the start position, scrolling
 // away with it. Glyph pairs (letter / digit on top, blank below) over the pause menu's Play /
 // Menu / Restart button tiles 36..65, which are only on screen in the pause menu: it reloads
 // them (init_pause_tiles) and attempt_text_load_tiles puts the glyphs back on resume.

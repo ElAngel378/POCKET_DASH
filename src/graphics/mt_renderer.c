@@ -28,7 +28,7 @@ static uint8_t mt_xlat[256];
 static uint8_t mt_ram_level = 0xFF;   // level mt_ram was built for (it depends on the level only)
 static uint8_t gnd_tab_key = 0xFF;    // strip column | reversed << 3 the ground looks in mt_ram are for
 
-// ---- Saw animation: the saw tiles are rewritten through 3 frames (rotated anticlockwise).
+// Saw animation: the saw tiles are rewritten through 3 frames (rotated anticlockwise).
 // CGB: the VBlank handler GDMAs SAW_CHUNK_TILES tiles of the next frame per VBlank (the saw
 // tiles are at VRAM bank 1 slots SAW_VRAM_BASE.. in every level). DMG: the VBlank handler copies
 // DMG_SAW_TILES_PER_FRAME tiles per VBlank from bg_extra_tiles into the slots this level loaded
@@ -798,7 +798,7 @@ void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_
     }
 }
 
-// ---- Row job: writes map row `row` into its VRAM metatile row (row & 15) for ring positions
+// Row job: writes map row `row` into its VRAM metatile row (row & 15) for ring positions
 // first .. first+n-1, reading the level map for the CURRENT loaded_r. Because it always uses the
 // current state it never overwrites a freshly streamed column with stale data.
 static uint8_t row_tiles[2][16];   // top / bottom tile row of ROW_JOB_SLOTS ring positions
@@ -974,7 +974,7 @@ void ground_below_fill(uint8_t scy) BANKED {
     VBK_REG = 0;
 }
 
-// ---- CGB seamless mirror portal (gameplay.c): the mirrored picture is built in the BG map that
+// CGB seamless mirror portal (gameplay.c): the mirrored picture is built in the BG map that
 // is not shown, a column / map row at a time while the game runs, then LCDC switches maps. That
 // map is not displayed, but VRAM is still locked while the PPU draws (mode 3), so the writes go
 // in short bursts at the start of HBlank (>= 167 dots until the next mode 3: the rest of

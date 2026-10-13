@@ -258,8 +258,7 @@ static void render_all_settings(uint8_t current_sel, uint8_t scroll_offset) {
 }
 
 GameState update_settings_state(void) BANKED {
-    // Load behind the black screen the last state faded to, display on (a display switched off
-    // shows white): the palettes are only stored until fade_from_black
+    // load with the display on (off shows white); fade_from_black shows the palettes
     fade_set_black();
     fade_hold = 1;
     HIDE_SPRITES;
@@ -277,7 +276,7 @@ GameState update_settings_state(void) BANKED {
     set_bkg_data(0, SETTINGS_BG_TILE_COUNT, settings_bg_tiles);
     set_bkg_tiles(0, 0, SETTINGS_BG_WIDTH, SETTINGS_BG_HEIGHT, settings_bg_map);
 
-    // Setup authentic white Pusab font
+    // white Pusab font
     setup_menu_font();
     set_bkg_data((uint8_t)(FONT_PUSAB_START + 39), 4, extra_font_tiles);
 

@@ -31,7 +31,7 @@ TB = os.path.join(ROOT, 'tools', 'title_buttons')
 OUT_C = os.path.join(ROOT, 'src', 'graphics', 'title_buttons.c')
 OUT_H = os.path.join(ROOT, 'include', 'title_buttons.h')
 
-# ---- layout (screen pixels of the art grids; side grids have a 1 px empty border) ----
+# layout (screen pixels of the art grids; side grids have a 1 px empty border)
 PLAY_X, PLAY_Y = 64, 52
 ICON_X, WRENCH_X = 24, 112             # side buttons: 24x24 crosses on the 8 px tile grid
 SIDE_Y = 56
@@ -53,7 +53,7 @@ def pal_fits(cols): return any(cols <= set(p) for p in OBJ_PALS)
 COLORS = {'1': (138, 245, 30), '2': (30, 140, 20), '3': (0, 0, 0), 'c': (0, 240, 255), 'y': (255, 240, 0),
           'o': (220, 160, 0)}
 
-# ---------------------------------------------------------------------------------------- art
+# art
 def fd_art(name):
     txt = open(os.path.join(TB, 'fd_side_buttons.txt')).read()
     block = txt.split('[%s]' % name)[1].strip().split('[')[0]
@@ -160,7 +160,7 @@ def rim_px(px):
            if px[(cx * 8 + i, cy * 8 + j)] in cols}
     return {p: c for p, c in px.items() if p not in cov}
 
-# ------------------------------------------------------------------------------------- solver
+# sprite solver
 def strip_sprites(pix, W, maxcol=3, H=SPR_H):
     """Non-overlapping H tall sprites down one 8 px strip, <= maxcol colours each:
     [(y0, last owned row)] minimizing the sprite count, then the busy lines covered."""
@@ -249,7 +249,7 @@ def solve(K=15):
            for k, v in best[2].items()}
     json.dump(lay, open(os.path.join(TB, 'layout.json'), 'w'), indent=0)
 
-# ------------------------------------------------------------------------------- CGB output
+# CGB output
 def tile_bytes(pixels):
     """pixels: 8x8 rows of 0..3 -> 16 bytes (2bpp, plane 0 then plane 1 per row)"""
     out = []
@@ -327,7 +327,7 @@ def cgb_data():
     print('  CGB: %d rim tiles, %d core tiles, core palettes %s' % (len(tiles), len(ctiles), cpals))
     return groups, tiles, obj_pals, cores, ctiles, cpals
 
-# ------------------------------------------------------------------------------- DMG output
+# DMG output
 def sky_tiles():
     s = open(os.path.join(ROOT, 'src', 'graphics', 'bg_parallax_data_0.c')).read()
     s = s.split('// Phase 0')[1].split('}')[0]
@@ -368,7 +368,7 @@ def dmg_tiles(name, scx, with_sky):
             out += tile_bytes(g)
     return out
 
-# ----------------------------------------------------------------------------------- emit C
+# emit C
 def carr(name, data, per=16, typ='uint8_t'):
     lines = [', '.join('0x%02X' % v for v in data[i:i + per]) for i in range(0, len(data), per)]
     return 'const %s %s[] = {\n    %s\n};\n' % (typ, name, ',\n    '.join(lines))

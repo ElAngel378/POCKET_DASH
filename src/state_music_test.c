@@ -51,9 +51,8 @@ static const SfxItem sfx_items[4] = {
 };
 
 #define NUM_SFX_ITEMS 4
-// Every Furnace song first (music/Furnace, tools/convert_furnace.py); the hUGETracker ones after
-// them (menu theme + the 12 level songs (level_test is silent, so not listed) + practice mode)
-// only with the LEGACY setting, or once SELECT has been held for HUGE_UNLOCK_FRAMES
+// Furnace songs first, then the hUGETracker ones (menu theme, 12 level songs, practice; level_test
+// is silent so it's not listed). Those only show with LEGACY, or after SELECT is held HUGE_UNLOCK_FRAMES.
 #define NUM_LEVEL_SONGS 12
 #define NUM_HUGE_TRACKS (NUM_LEVEL_SONGS + 2)
 #define HUGE_UNLOCK_FRAMES 150
@@ -284,8 +283,7 @@ static void play_current_sfx(uint8_t sfx_idx, uint8_t music_on) {
 }
 
 GameState update_music_test_state(void) BANKED {
-    // Load behind the black screen the last state faded to, display on (a display switched off
-    // shows white): the palettes are only stored until fade_from_black
+    // load with the display on (off shows white); fade_from_black shows the palettes
     fade_set_black();
     fade_hold = 1;
     HIDE_SPRITES;
@@ -309,16 +307,16 @@ GameState update_music_test_state(void) BANKED {
     SPRITES_8x16;
     set_sprite_data(0, 2, cursor_sprite_tiles);
 
-    // Vibrant themed CGB palettes with pure white font fill for maximum readability
+    // CGB palettes, white text
     if (_cpu == CGB_TYPE) {
         static const palette_color_t music_test_pals[16] = {
-            // Pal 0: General UI / Separators / Help (Dark BG, Deep Cyan, Bright Cyan, Pure White)
+            // Pal 0: general UI, separators, help (dark BG, cyan, light cyan, white)
             RGB8(15, 20, 35), RGB8(0, 130, 180), RGB8(60, 210, 255), RGB8(255, 255, 255),
-            // Pal 1: Active Section Highlight (Dark BG, Warm Amber, Bright Gold/Yellow, Pure White)
+            // Pal 1: active section (dark BG, amber, yellow, white)
             RGB8(15, 20, 35), RGB8(210, 140, 20), RGB8(255, 225, 40), RGB8(255, 255, 255),
-            // Pal 2: Inactive Section (Dark BG, Dim Slate, Light Slate, Soft White)
+            // Pal 2: inactive section (dark BG, slate, light slate, off-white)
             RGB8(15, 20, 35), RGB8(60, 75, 105), RGB8(110, 135, 175), RGB8(200, 215, 235),
-            // Pal 3: Title Header (Dark BG, Forest Green, Vibrant Mint Green, Pure White)
+            // Pal 3: title header (dark BG, green, mint, white)
             RGB8(15, 20, 35), RGB8(20, 150, 70), RGB8(60, 245, 120), RGB8(255, 255, 255)
         };
         palette_color_t pals[16];   // fade_set_* are banked: RAM copies

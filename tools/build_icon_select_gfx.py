@@ -88,7 +88,7 @@ def main():
                 S[row * 8 + y][col * 8 + x] = remap[px[y][x]]
         A[row][col] = pal
 
-    # --- back arrow and corner blocks (level select art; its colour 0 is the page here)
+    # back arrow and corner blocks (level select art; its colour 0 is the page here)
     deco = {0: 1, 1: 0, 2: 2, 3: 3}
     for (c, r, t) in ((1, 1, 0x0A), (2, 1, 0x0B), (1, 2, 0x0E), (2, 2, 0x0F)):
         put_tile(c, r, ms_tile(t), deco, 2)
@@ -97,7 +97,7 @@ def main():
     for c, r, t, pal in corners:
         put_tile(c, r, ms_tile(t), deco, pal)
 
-    # --- rounded boxes (level select box: fill -> dark grey, border -> white)
+    # rounded boxes (level select box: fill -> dark grey, border -> white)
     boxmap = {0: 1, 1: 2, 2: 0, 3: 0}
 
     def box(c0, r0, c1, r1):
@@ -111,7 +111,7 @@ def main():
     box(2, 8, 17, 13)       # icon grid
     box(3, 14, 16, 17)      # colour swatches
 
-    # --- line under the preview: solid in the middle, dotted towards the ends
+    # line under the preview: solid in the middle, dotted towards the ends
     for x in range(16, 144):
         d = min(x - 16, 143 - x)
         on = d >= 24 or (d >= 12 and x % 2 == 0) or (d < 12 and x % 4 == 0)
@@ -120,7 +120,7 @@ def main():
             if d >= 24:
                 S[42][x] = 0
 
-    # --- gamemode badges: dark grey disc with a black ring and the mini icon
+    # gamemode badges: dark grey disc with a black ring and the mini icon
     gm = GM_CHR.read_bytes()
 
     def gm_px(x, y):
@@ -148,7 +148,7 @@ def main():
                 if v:
                     S[by + 4 + y][bx + 4 + x] = mini[v]
 
-    # --- cube icons: frame 0 of the game's, roles 'o' outside (transparent), 'k' outline,
+    # cube icons: frame 0 of the game's, roles 'o' outside (transparent), 'k' outline,
     # 'p' primary, 's' secondary
     role = {255: 'o', 170: 's', 85: 'p', 0: 'k'}
     icon0, fd = Image.open(ICON0_PNG).convert("L"), Image.open(FD_PNG).convert("L")
@@ -181,12 +181,12 @@ def main():
                 for x in range(2):
                     P[DOTS_Y + y][dx0 + k * 6 + x] = 0 if k == page else 1
 
-    # --- preview area palette (tiles filled at runtime)
+    # preview area palette (tiles filled at runtime)
     for r in range(PREVIEW_ROW, PREVIEW_ROW + 4):
         for c in range(PREVIEW_COL, PREVIEW_COL + 4):
             A[r][c] = 1
 
-    # --- colour swatches (CGB): 1 px frame in colour 0 (box fill), colour 1..3 inside
+    # colour swatches (CGB): 1 px frame in colour 0 (box fill), colour 1..3 inside
     def swatch(k, frame):
         return [[frame if (x in (0, 7) or y in (0, 7) or (x in (1, 6) and y in (1, 6))) else k
                  for x in range(8)] for y in range(8)]
@@ -194,7 +194,7 @@ def main():
         for j in range(12):
             put_tile(SWATCH_COL + j, r, swatch(j % 3 + 1, 0), {0: 0, 1: 1, 2: 2, 3: 3}, 4 + j // 3)
 
-    # ---- tiles
+    # tiles
     def enc(px):
         out = []
         for row in px:
@@ -239,7 +239,7 @@ def main():
     tiles.append(enc([[2] * 8 for _ in range(8)]))   # DMG: the box where the other swatches are
     assert len(tiles) <= 256, len(tiles)   # 128+ live at 0x8800 (signed BG addressing), clear of sprite tiles 0..2
 
-    # ---- preview tiles per icon (2x, 32x32): secondary 0, page 1, primary 2, black 3
+    # preview tiles per icon (2x, 32x32): secondary 0, page 1, primary 2, black 3
     prev = {'o': 1, 'k': 3, 'p': 2, 's': 0}
     preview_blobs = []
     for ic in icons:
@@ -256,13 +256,13 @@ def main():
                 blob += enc([P[tr * 8 + y][tc * 8:tc * 8 + 8] for y in range(8)])
         preview_blobs.append(blob)
 
-    # ---- sprites: 0 bracket corner (icon and gamemode cursors, flipped for the other corners), 1 swatch frame
+    # sprites: 0 bracket corner (icon and gamemode cursors, flipped for the other corners), 1 swatch frame
     # colour 1 = cursor colour, 3 = black edge
     bracket =["31111100", "11111300", "11333000", "11300000", "11300000", "13000000", "00000000", "00000000"]
     frame = ["31111113", "13333331", "13000031", "13000031", "13000031", "13000031", "13333331", "31111113"]
     spr = [enc([[int(ch) for ch in r] for r in t]) for t in (bracket, frame)]
 
-    # ---- write
+    # write
     def carr(data, per=16):
         lines = []
         for i in range(0, len(data), per):

@@ -1,8 +1,7 @@
 #pragma bank 15
 
-// Credits, shown once at boot before the menu: three pages, each for 5 seconds, then the next one
-// scrolls up into view from below (the pages are stacked downwards in a strip, the camera moves down
-// through it, scrolling down). START skips everything. Scheming Weasel plays meanwhile; the menu theme comes back after.
+// Credits at boot, before the menu: 3 pages, 5 s each. The next page scrolls up from below.
+// START skips. Scheming Weasel plays, then the menu theme comes back.
 
 #include <gb/gb.h>
 #include <gb/cgb.h>
@@ -104,7 +103,7 @@ static void put_row(uint8_t t) {
 }
 
 GameState update_credits_state(void) BANKED {
-    // Load behind the black screen, display on: the palettes are only stored until fade_from_black
+    // load with the display on (off shows white); fade_from_black shows the palettes
     fade_set_black();
     fade_hold = 1;
     HIDE_SPRITES;

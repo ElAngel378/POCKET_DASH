@@ -210,7 +210,7 @@ def main():
         big_saw = bool(level_mts & BIG_SAW_PARTS)
         saw_mts = {m: t for m, t in SAW_METATILES.items() if m != SAW_CENTER_MT or big_saw}
 
-        # --- CGB
+        # CGB
         # bank bit 7: never load mirrored (CGB mirrors saws with the X flip attribute)
         loads = [(0x81, SAW_VRAM_BASE, SAW_TILES, first["SAWS_0"]),
                  (0, BLACK_FILL_SLOT, 1, first["BLACK_FILL"])]
@@ -222,7 +222,7 @@ def main():
             overrides += SPIKES_B_OVERRIDES
         cgb = stream(loads, [], overrides)
 
-        # --- DMG
+        # DMG
         loads = []
         if sets.get("blocks") == "B":
             loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B_SLOTS, first["BLOCKS_B_DMG"])]
@@ -260,7 +260,7 @@ def main():
             print("DMG %-20s %d tiles moved above slot %d, %d saw tiles, %d free slots left"
                   % (name, len(moves), DMG_BG_SLOTS, len(saw_slot), len(free) - len(high) - len(saw_k)))
 
-    # --- header
+    # header
     idx = [0] * 256
     saw_rows = []
     for i, (m, tl) in enumerate(sorted(SAW_METATILES.items())):

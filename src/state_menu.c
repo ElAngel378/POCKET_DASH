@@ -14,17 +14,15 @@
 #include <gb/cgb.h>
 #include <string.h>
 
-// CGB: the menu background is never scrolled. Like in gameplay, the sky is the parallax block
-// pattern, animated by the VBlank handler, and the ground strip scrolls by rewriting its map
-// rows. DMG: the sky scrolls with SCX between two scanline interrupts.
+// CGB: the menu BG never scrolls. The sky is the parallax pattern (VBlank handler) and the
+// ground strip scrolls by rewriting its map rows. DMG: the sky scrolls with SCX between two
+// scanline interrupts.
 //
-// Big buttons (Famidash's icon / play / wrench row), see tools/gen_title_buttons.py: three of
-// them side by side need more than 10 sprites on a line.
-// CGB: each is a BG "core" (cells fully inside the button, static tiles in VRAM bank 1) plus 8x8
-//      sprites for the rest, where the moving sky shows through. The top of the screen uses 8x8
-//      sprites, the ground buttons 8x16 (switched by a scanline interrupt at MENU_OBJ16_LINE).
-// DMG: PLAY is the old 8x16 sprites; the side buttons are BG tiles blended with the sky for each
-//      of the 64 SCX values (tables in ROM), copied in as the sky scrolls (double buffered).
+// Big buttons (icon / play / wrench), from tools/gen_title_buttons.py. Three side by side
+// would be more than 10 sprites on a line, so on CGB each is a BG core plus 8x8 sprites for
+// the rest (the sky shows through). Ground buttons use 8x16, switched at MENU_OBJ16_LINE.
+// DMG: PLAY is 8x16 sprites; the side buttons are BG tiles blended with the sky for each of
+// the 64 SCX values (tables in ROM), double buffered.
 
 // Set to 1 to easily re-enable the version label in the bottom-right corner
 #define SHOW_MENU_VERSION_LABEL 0
@@ -246,7 +244,7 @@ static void menu_load_playbutton_gfx(void) __nonbanked {
     SWITCH_ROM(prev_bank);
 }
 
-// ---------------------------------------------------------------- big buttons (generated data)
+// big buttons (generated data)
 // Sky tile row offset of map row ty (draw_sky's pattern: 3 tile pairs, 16 tiles apart). A table:
 // the __nonbanked functions below switch ROM banks and cannot call into this one.
 static uint8_t sky_ty0_ram[18];
@@ -495,8 +493,7 @@ static void menu_stop_irqs(uint8_t dmg_sky_irq) {
 }
 
 GameState update_menu_state(void) BANKED {
-    // Load behind the black screen the last state faded to, display on (a display switched off
-    // shows white): the palettes are only stored until fade_from_black
+    // load with the display on (off shows white); fade_from_black shows the palettes
     fade_set_black();
     fade_hold = 1;
 
@@ -579,7 +576,6 @@ GameState update_menu_state(void) BANKED {
 
     // Music button tiles (16x16 icon -> 4 8x8 tiles = 2 8x16 sprites)
     // Colors: 0 transparent, 1 yellow (note), 2 lime (bg), 3 black (outline)
-    // Eighth-note drawn from scratch: oval head, stem, slim flag.
     static const uint8_t music_button_tiles[64] = {
         // Tile 0 (left top)
         0x00, 0x00, 0x0F, 0x0F, 0x18, 0x1F, 0x21, 0x3F, 0x63, 0x7E, 0x43, 0x7E, 0x43, 0x7E, 0x43, 0x7E,
@@ -594,7 +590,6 @@ GameState update_menu_state(void) BANKED {
 
     // Settings button tiles (16x16 icon -> 4 8x8 tiles = 2 8x16 sprites)
     // Colors: 0 transparent, 1 yellow (gear), 2 lime (bg), 3 black (outline)
-    // 8-tooth gear drawn from scratch: yellow ring + teeth, lime hub hole.
     static const uint8_t settings_button_tiles[64] = {
         0x00, 0x00, 0x0F, 0x0F, 0x1B, 0x1E, 0x2F, 0x3E, 0x7F, 0x70, 0x5F, 0x71, 0x7E, 0x73, 0x7C, 0x47,
         0x7C, 0x47, 0x7E, 0x73, 0x5F, 0x71, 0x7F, 0x70, 0x2F, 0x3E, 0x1B, 0x1E, 0x0F, 0x0F, 0x00, 0x00,

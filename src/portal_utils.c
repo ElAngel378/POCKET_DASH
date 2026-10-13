@@ -39,20 +39,19 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
     for (sp = &sp_list[idx]; sp->x != 0xFFFF; sp++, idx++) {
         uint16_t object_x = sp->x;
 
-        // If too far ahead, stop evaluating
+        // sorted by x: the rest is further ahead
         if (object_x > ahead) break;
 
-        // If behind camera, skip to prevent stalling
         if (object_x + 48u < cam_px) continue;
 
         uint8_t obj_id = sp->obj;
 
-        // DMG optimization: skip decorations and ground color triggers on DMG to save CPU time
+        // DMG never draws decorations or ground colour triggers: skip them here
         if (_cpu != CGB_TYPE) {
             if ((obj_id >= 38 && obj_id < 64) || obj_id == 74 || (obj_id >= 192 && obj_id <= 239)) continue;
         }
 
-        // Prioritize gameplay elements on CGB if cache is nearing full
+        // cache nearly full: keep room for the gameplay objects
         if (count >= MAX_ACTIVE_SP_OBJECTS - 8 && ((obj_id >= 38 && obj_id < 64) || obj_id == 74)) continue;
 
         if (count >= MAX_ACTIVE_SP_OBJECTS) break;

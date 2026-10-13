@@ -43,15 +43,13 @@ void draw_levels(void) {
 GameState update_level_select_state(void) BANKED {
     fade_set_black();
     DISPLAY_OFF;
-    // Clear VRAM tiles and map to ensure no logo leftovers
+    // clear the title logo
     fill_bkg_rect(0, 0, 32, 32, 0);
-    // Overwrite tile 0 with blank
     uint8_t blank_tile[16] = {0};
     set_bkg_data(0, 1, blank_tile);
 
     setup_menu_font();
 
-    // Ensure scroll is reset for static background
     SCX_REG = 0;
     SCY_REG = 0;
 

@@ -15,7 +15,6 @@ def load_metadata_for_level(level_name, metadata_dir=None):
 
     target = level_name.lower().replace("_", "").replace("-", "")
 
-    # Look across all json metadata files
     for mf in metadata_dir.glob("*.json"):
         try:
             with open(mf, 'r', encoding='utf-8') as fp:
@@ -36,10 +35,8 @@ def build_offset_dict(global_settings, level_settings):
     out = {}
     for setting_list in [global_settings, level_settings]:
         for s in setting_list:
-            # On Game Boy 8x16 sprite mode, pad tiles in VRAM are already pre-drawn
-            # at rows 13..15 (the bottom 8px of the 16px tile). On NES, sprites are 8x8,
-            # so FamiDash added +8px to move them to the bottom of the cell.
-            # In Pocket Dash, adding +8px pushes the pad 8px down into the floor, so we skip it.
+            # FamiDash adds +8px to pads (NES 8x8 sprites). Our pads are already drawn
+            # low in their 8x16 tile, so the +8px would sink them into the floor.
             if s.get('objectID'):
                 oids = s['objectID'] if isinstance(s['objectID'], list) else [s['objectID']]
                 if any(o in [10, 13, 37, 82, 86, 253] for o in oids) and s.get('offsetY', 0) == 8:
@@ -73,7 +70,6 @@ def build_offset_dict(global_settings, level_settings):
 
 def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, skip=None):
     """skip(x_px, y_px, obj_id) -> True drops that object"""
-    # Parse the XML tree
     try:
         tree = ET.parse(tmx_filepath)
         root = tree.getroot()
@@ -84,14 +80,12 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
         print(f"Error parsing XML in {tmx_filepath}: {e}")
         sys.exit(1)
 
-    # Get the map dimensions
     if 'width' not in root.attrib or 'height' not in root.attrib:
         print(f"Error: TMX file {tmx_filepath} is missing width or height attributes.")
         sys.exit(1)
     map_width = int(root.attrib['width'])
     map_height = int(root.attrib['height'])
 
-    # Find the 'sprites' tileset to dynamically get its starting ID (firstgid)
     sprites_firstgid = None
     for tileset in root.findall('tileset'):
         if tileset.get('name') == 'sprites':
@@ -100,12 +94,11 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
                 sprites_firstgid = int(firstgid_attr)
             break
 
-    # If the tileset isn't found, exit with an error instead of using a hardcoded fallback
     if sprites_firstgid is None:
         print(f"Error: Could not find a tileset named 'sprites' in {tmx_filepath}.")
         sys.exit(1)
 
-    # Map the TMX Global IDs to your desired engine IDs.
+    # TMX global id -> engine object id
     portals_map = {
         sprites_firstgid + 0:  0,   # Cube portal
         sprites_firstgid + 1:  1,   # Ship portal
@@ -137,28 +130,21 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
         sprites_firstgid + 254: 14,  # Blue Pad (invisible)
     }
 
-    # Deco objects
     for i in range(42, 64):
         portals_map[sprites_firstgid + i] = i
 
-    # BG Color mappings (Rows 8, 9, 10):
-    # Mapping 1:1 with Tiled indices 128-175 (Black is 143)
+    # bg colour triggers (128..175) and ground colour triggers (192..239) keep their ids
     for i in range(128, 176):
         portals_map[sprites_firstgid + i] = i
-
-    # Ground Color mappings (Rows 12, 13, 14):
-    # Mapping unique indices 192-239 to obj_ids 192-239
     for i in range(192, 240):
         portals_map[sprites_firstgid + i] = i
 
-    # Load FamiDash metadata offsets
     offset_dict = load_metadata_for_level(file_base_name)
     if offset_dict:
         print(f"  - Loaded {len(offset_dict)} FamiDash offset rules for {file_base_name}")
 
     portal_data = []
 
-    # Find the layer named 'SP'
     sp_layer_found = False
     for layer in root.findall('layer'):
         if layer.get('name') == 'SP':
@@ -186,7 +172,6 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
                         row = index // map_width
                         obj_id = portals_map[tile_id]
 
-                        # Look up FamiDash offsets
                         offsetA = offset_dict.get(obj_id, [0, 0])
                         offsetB, override = offset_dict.get((col, row), [[0, 0], False])
                         if override:
@@ -213,12 +198,10 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
     if skip is not None:
         portal_data = [p for p in portal_data if not skip(*p)]
 
-    # Sort portals by pixel X coordinate
     portal_data.sort(key=lambda p: p[0])
 
     c_var_name = file_base_name.lower().replace(" ", "_").replace("-", "_")
 
-    # Write out the GBDK formatted C file
     try:
         with open(output_c_filepath, 'w') as f:
             if bank is not None:
@@ -234,12 +217,10 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
             for x, y, obj in portal_data:
                 f.write(f"    {{{x}, {y}, {obj}}},\n")
 
-            # Sentinel terminator
             f.write("    {0xFFFF, 0, 0}\n")
             f.write("};\n\n")
 
-            # Filtered DMG objects (pads, orbs, portals, level end, bg color triggers)
-            # Excludes visual decorations (38-99) and ground color triggers (192-239); bg color triggers 128-175 (the light ones, 160-175, switch back to the normal theme)
+            # DMG: no decorations (38..99) or ground colour triggers (192..239)
             dmg_data = [p for p in portal_data if p[2] < 38 or (100 <= p[2] < 176)]
             f.write(f"// Extracted {len(dmg_data)} gameplay-critical objects for DMG mode\n")
             f.write(f"const SpDef {c_var_name}_sp_dmg[] = {{\n")

@@ -1,13 +1,8 @@
 #pragma bank 28
 
-// STATE_LEVEL_COMPLETE: the end of a completed level. play_level() returns right after the end
-// animation's shake with the level still on screen (gameplay.c fills in the lc_* result):
-//   1. "LEVEL COMPLETE!" is drawn over the level, a column at a time
-//   2. about 2 seconds later a box like the settings menu's is drawn below it, with the run's
-//      stats and the RETRY / MENU choice.
-//
-// Everything is background tiles drawn into the level's own map. The tiles go into the VRAM
-// slots (BG tiles 0..127) that no visible cell shows, so the rest of the level stays as it was.
+// STATE_LEVEL_COMPLETE: play_level() returns after the end shake with the level still on
+// screen. "LEVEL COMPLETE!" wipes in over it, then about 2 s later the stats box with RETRY / MENU.
+// All of it is background tiles in the level's own map, in BG slots no visible cell uses.
 
 #include <gb/gb.h>
 #include "scratch.h"
@@ -33,7 +28,7 @@ extern const hUGESong_t menuloop;
 extern volatile uint8_t current_song_bank;
 extern uint8_t music_ready;
 
-// ---- layout (screen cells, 20 x 18)
+// layout, in screen cells (20 x 18)
 #define TEXT_X             2     // the 16 x 4 text block
 #define TEXT_Y             2
 #define LEVEL_COLS         10    // LEVEL is 10 columns wide, centred over COMPLETE!
@@ -110,7 +105,7 @@ static void load_tile(uint8_t slot, const uint8_t *src, uint8_t dmg_text) {
     set_bkg_data(slot, 1, buf);
 }
 
-// ---------------------------------------------------------------- text
+// text
 
 static uint8_t font_tile(char c) {
     if (c == ' ') return 0;
@@ -216,7 +211,7 @@ static void text_column(uint8_t row0, uint8_t c) {
     }
 }
 
-// ---------------------------------------------------------------- box
+// box
 
 static void box_text(uint8_t x, uint8_t y, const char *s) {
     for (; *s; s++, x++) {
@@ -271,7 +266,7 @@ static void draw_stats(void) {
     if (lc_practice) box_text(4, BOX_ROW_MODE, "PRACTICE RUN");
 }
 
-// ---------------------------------------------------------------- leaving
+// leaving
 
 static void restore_menu_music(void) {
     NR52_REG = 0x80;

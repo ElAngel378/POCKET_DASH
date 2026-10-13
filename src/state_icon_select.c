@@ -12,12 +12,11 @@
 BANKREF(state_icon_select)
 
 // Icon select (garage), laid out like the Geometry Dash one (tools/build_icon_select_gfx.py):
-// big preview of the cube, gamemode badges, a box with the icons and a box with the colour
-// swatches (primary row, secondary row). Select switches the cursor between the icon box and the
-// colour box; Up/Down moves between the rows of the box, Left/Right changes the selection (icons:
-// past the end of a row, the next / previous page of 12). B / Start saves and goes back. The
-// gamemode badges are not selectable yet (only the cube has icons). DMG: the colour rows are the 4 shades (selected_dmg_*), the
-// preview shows the cube in them.
+// cube preview, gamemode badges, the icon box and the colour swatch box (primary, secondary).
+// Select switches the cursor between the two boxes. Up/Down moves between rows, Left/Right
+// along a row (past the end: the next / previous page of 12). B / Start saves and leaves.
+// Badges can't be selected yet (only the cube has icons). DMG: the colour rows are the 4
+// shades (selected_dmg_*), and the preview shows the cube in them.
 
 #define SECTION_GAMEMODE        0
 #define SECTION_ICON            1
@@ -150,8 +149,7 @@ static void update_cursor_sprites(void) {
 }
 
 GameState update_icon_select_state(void) BANKED {
-    // Load behind the black screen the last state faded to, display on (a display switched off
-    // shows white): the palettes are only stored until fade_from_black
+    // load with the display on (off shows white); fade_from_black shows the palettes
     fade_set_black();
     fade_hold = 1;
     SCX_REG = 0;

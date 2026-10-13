@@ -140,7 +140,7 @@ static const int8_t particle_trajectories[12][36][2] = {
 };
 
 uint8_t play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px, uint8_t cam_py, uint8_t keep_music) BANKED {
-    // 1. Cut music (not in practice mode) and trigger crash noise
+    // cut the music (not in practice mode), crash noise on
     if (!keep_music) {
         TAC_REG = 0x00;
         NR52_REG = 0x00;
@@ -188,7 +188,6 @@ uint8_t play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_
             noise_borrowed = 0;
         }
 
-        // Screen shake
         if (setting_effects_enabled && frame < 6) {
             int16_t sy = (int16_t)cam_py + shake_y[frame];
             if (sy < 0) sy = 0;
@@ -199,7 +198,7 @@ uint8_t play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_
 
         uint8_t oam_idx = 0;
 
-        // --- Render Expanding Circle (Frames 0 to 23) ---
+        // expanding circle, frames 0..23
         if (frame < 24) {
             uint8_t circle_tile = DEATH_TILE_CIRCLE_P1;
             if (frame >= 16) {
@@ -222,7 +221,7 @@ uint8_t play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_
             }
         }
 
-        // --- Render 12 Particles (Frames 0 to 35) ---
+        // particles, frames 0..35
         if (frame < 36) {
             for (uint8_t i = 0; i < 12; i++) {
                 int16_t px = center_x + particle_trajectories[i][frame][0];
@@ -247,7 +246,7 @@ uint8_t play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_
             }
         }
 
-        // Clear remaining OAM entries
+        // y = 0 hides a sprite
         while (oam_idx < 40) {
             shadow_OAM[oam_idx].y = 0;
             oam_idx++;
@@ -256,7 +255,6 @@ uint8_t play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_
         wait_vbl_done();
     }
 
-    // Clear all sprites at the end of death animation
     for (uint8_t i = 0; i < 40; i++) {
         shadow_OAM[i].y = 0;
     }

@@ -117,7 +117,6 @@ void play_sample(uint8_t bank, const uint8_t *sample, uint16_t length) {
     if (!setting_sfx_enabled) return;
     disable_interrupts();
     sample_keeps_music = 0;
-    // Stop any current timer
     TAC_REG = 0x00;
 
     // Cut off all music channels immediately so no held notes continue droning
@@ -126,9 +125,7 @@ void play_sample(uint8_t bank, const uint8_t *sample, uint16_t length) {
     NR30_REG = 0x00;
     NR42_REG = 0x00; NR44_REG = 0x80;
 
-    // Power on sound hardware
     NR52_REG = 0x80;
-    // Max master volume
     NR50_REG = 0x77;
     // Route ONLY Channel 3 in stereo pan (left & right), isolating sample playback
     NR51_REG = 0x44;
@@ -138,7 +135,6 @@ void play_sample(uint8_t bank, const uint8_t *sample, uint16_t length) {
     play_length = length >> 4; // 16 bytes per interrupt block
     sample_playing = 1;
 
-    // Set timer to 256 Hz
     if (_cpu == CGB_TYPE) {
         TMA_REG = 0x80; // In CGB double-speed mode: 32768 / 128 = 256 Hz
     } else {
@@ -154,15 +150,12 @@ void play_sample_with_music(uint8_t bank, const uint8_t *sample, uint16_t length
     if (!setting_sfx_enabled) return;
     disable_interrupts();
     sample_keeps_music = 1;
-    // Stop any current timer
     TAC_REG = 0x00;
 
     // Reset ONLY Channel 3 (wave channel) for sample playback (Pulse 1, 2 and Noise keep playing!)
     NR30_REG = 0x00;
 
-    // Power on sound hardware
     NR52_REG = 0x80;
-    // Max master volume
     NR50_REG = 0x77;
     // Keep all channels routed in stereo
     NR51_REG = 0xFF;
@@ -175,7 +168,6 @@ void play_sample_with_music(uint8_t bank, const uint8_t *sample, uint16_t length
     play_length = length >> 4; // 16 bytes per interrupt block
     sample_playing = 1;
 
-    // Set timer to 256 Hz
     if (_cpu == CGB_TYPE) {
         TMA_REG = 0x80; // In CGB double-speed mode: 32768 / 128 = 256 Hz
     } else {

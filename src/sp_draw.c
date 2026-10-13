@@ -894,7 +894,7 @@ static uint8_t draw_coin_anims(uint16_t cam_px, uint16_t cam_py, uint8_t reverse
     return oam_start;
 }
 
-// ---- DMG objects (tools/make_dmg_object_icons.py). Pads are ONE 8x16 sprite each, an icon of
+// DMG objects (tools/make_dmg_object_icons.py). Pads are ONE 8x16 sprite each, an icon of
 // their type (the CGB art is 2 sprites and only differs by colour). Orbs are GD-style 16x16
 // rings with a disc (2 sprites, one tile pair mirrored). Portals keep their
 // art plus a badge with the mode symbol on their side (they also only differ by colour).
@@ -1347,7 +1347,7 @@ static uint8_t portal_front_cols(uint8_t obj) {
     return (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL) ? 4 : 2;
 }
 
-// ---- CGB objects: the loop, in asm like the DMG one (in C the decorations and pads were 2 to 4
+// CGB objects: the loop, in asm like the DMG one (in C the decorations and pads were 2 to 4
 // scanlines each, and the dense parts of Clutterfunk dropped frames). Decorations (from
 // famidash_deco_table) and the animated pads / orbs are drawn here; portals, coins and the rest go
 // to dmgd_slow for draw_sprites. Uses the dmgd_* inputs (draw_sprites_dmg's) and:

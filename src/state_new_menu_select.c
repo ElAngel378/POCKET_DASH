@@ -9,6 +9,7 @@
 #include "hUGEDriver.h"
 #include "menu_select_bg.h"
 #include "save_manager.h"
+#include "scratch.h"
 #include <gb/gb.h>
 #include <gb/cgb.h>
 
@@ -323,7 +324,9 @@ static const uint8_t empty_mask_table[9] = {
 static void render_progress_bar(uint8_t pct, uint8_t vram_start_tile) {
     if (pct > 100) pct = 100;
 
-    uint8_t tiles_buffer[12 * 16];
+    // in the shared scratch buffer, not on the stack: 192 bytes of it left the music interrupt
+    // (and a nested VBlank) too little room, and the stack ran into the variables below it
+    uint8_t *tiles_buffer = scratch_buf;
 
     char text[6];
     uint8_t text_len = 0;
@@ -506,8 +509,7 @@ static const uint8_t scx_table_left[SPRING_ANIM_FRAMES] = {
 
 GameState update_new_menu_select_state(void) BANKED {
     init_save_system();
-    // Load behind the black screen the last state faded to, display on (a display switched off
-    // shows white): the palettes are only stored until fade_from_black
+    // load with the display on (off shows white); fade_from_black shows the palettes
     fade_set_black();
     fade_hold = 1;
 
