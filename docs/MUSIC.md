@@ -29,6 +29,7 @@ Pocket Dash copies the driver into `src/furnace/` with `tools/convert_furnace.py
 
 | Song | Made by |
 |---|---|
+| Menu theme (MenuLoop) | Sotos_24 |
 | Stereo Madness | Ziqiangao |
 | Back on Track | Sotos_24 |
 | Polargeist | UserSniper |
@@ -40,6 +41,7 @@ Pocket Dash copies the driver into `src/furnace/` with `tools/convert_furnace.py
 | Cycles | NerdBoy628 |
 | Xstep | Sotos_24 |
 | Clutterfunk | Sotos_24 |
+| Ultimate Destruction | Sotos_24 |
 | ToE (Theory of Everything) | Sotos_24 |
 | Electroman Adventures | ElAngel378 |
 | ToE 2 (Theory of Everything 2) | NerdBoy628 |
