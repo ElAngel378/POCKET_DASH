@@ -334,9 +334,15 @@ GameState update_level_complete_state(void) BANKED {
     if (_cpu == CGB_TYPE) {
         palette_color_t pal[4];
         pal[0] = level_colour();                       // around the letters
-        pal[1] = RGB8(20, 48, 6);                      // outline
-        pal[2] = RGB8(176, 226, 64);                   // light fill
-        pal[3] = RGB8(104, 178, 28);                   // shaded fill
+        if (lc_practice) {                             // PRACTICE COMPLETE! is blue
+            pal[1] = RGB8(10, 40, 72);
+            pal[2] = RGB8(120, 236, 244);
+            pal[3] = RGB8(44, 170, 220);
+        } else {
+            pal[1] = RGB8(20, 48, 6);                  // outline
+            pal[2] = RGB8(176, 226, 64);               // light fill
+            pal[3] = RGB8(104, 178, 28);               // shaded fill
+        }
         // All through the fade module (RAM copies: it is banked), so that leaving fades the
         // whole screen: set directly, the fade only dimmed the sprites. The level's palettes
         // too, as they are now (a colour trigger fade may have been running).
