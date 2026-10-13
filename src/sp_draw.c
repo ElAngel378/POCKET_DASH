@@ -525,39 +525,35 @@ inline static uint8_t draw_oam_deco(const FamidashDeco *deco, uint8_t tile_base,
     return count;
 }
 
-// 4 columns x 2 rows (8 8x16 hardware sprites = 32x32 pixels). Art column k's bottom pair is
-// the top pair upside down for one column (k = 0 in the entrance art, k = 3 in the CGB exit art),
-// so it is drawn with S_FLIPY and its tiles are not loaded (tools/build_sprite_tiles.py). The DMG
-// exit is the entrance mirrored (the CGB exit art only differs in colour): drawn from the
-// entrance tiles with the flip toggled, so those tiles are not loaded on DMG.
+// 4 columns x 3 rows (12 8x16 hardware sprites = 32x48 pixels, tools/make_mirror_portal_gfx.py).
+// The art is mirrored top to bottom: row 0 is stored, row 1 is the middle, row 2 is row 0 drawn
+// with S_FLIPY. The CGB exit art is the entrance mirrored left to right (and in colour 3), so it
+// is drawn with the flip toggled; the DMG exit is the entrance drawn with the flip toggled by the
+// mirrored view (reversed), so it has no tiles of its own.
 static uint8_t draw_oam_mirror_portal(uint8_t obj, uint8_t tile_base, uint8_t oam_idx,
                                       uint8_t sx, uint8_t sy, uint8_t reversed) {
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
     uint8_t t_base = tile_base + MIRROR_PORTAL_ENTER_TILE;
-    uint8_t dk = 0;                       // art column with the shared bottom pair
     uint8_t flip = reversed;
     if (obj != OBJ_MIRROR_PORTAL && _cpu == CGB_TYPE) {
         t_base = tile_base + MIRROR_PORTAL_EXIT_TILE;
-        dk = 3;
         flip = !reversed;
     }
     uint8_t pal = S_PAL(6);   // entrance and exit share palette 6 (see gbc_palettes.c)
     uint8_t props = flip ? (pal | S_FLIPX) : pal;
-    uint8_t x = flip ? (uint8_t)(sx + 24) : sx;
     int8_t dx = flip ? -8 : 8;
 
-    for (uint8_t k = 0; k < 4; k++) {     // row 0 (top 16px)
-        *oam++ = sy; *oam++ = x; *oam++ = t_base + (uint8_t)(k << 1); *oam++ = props;
-        x += dx;
+    for (uint8_t row = 0; row < 3; row++) {
+        uint8_t x = flip ? (uint8_t)(sx + 24) : sx;
+        uint8_t y = (uint8_t)(sy + (row << 4));
+        uint8_t first = (row == 1) ? (uint8_t)(t_base + 8) : t_base;
+        uint8_t pr = (row == 2) ? (props ^ S_FLIPY) : props;
+        for (uint8_t k = 0; k < 4; k++) {
+            *oam++ = y; *oam++ = x; *oam++ = first + (uint8_t)(k << 1); *oam++ = pr;
+            x += dx;
+        }
     }
-    x = flip ? (uint8_t)(sx + 24) : sx;
-    for (uint8_t k = 0; k < 4; k++) {     // row 1 (bottom 16px)
-        *oam++ = sy + 16; *oam++ = x;
-        if (k == dk) { *oam++ = t_base + (uint8_t)(k << 1); *oam++ = props ^ S_FLIPY; }
-        else         { *oam++ = t_base + 8 + (uint8_t)(k << 1); *oam++ = props; }
-        x += dx;
-    }
-    return 8;
+    return 12;
 }
 
 // Player box of the current process_sprite_logic() call, for touch_object(): Famidash's
@@ -1032,6 +1028,7 @@ static uint8_t dmg_draw_portal_slow(uint8_t obj, uint8_t oam_idx, uint8_t sx, ui
 static void dmg_portal_art_init(void) {
     for (uint8_t r = 0; r < 2; r++) {
         for (uint8_t k = 0; k < DMG_PT_KINDS; k++) {
+            if (dmg_pt_obj[k] == OBJ_MIRROR_PORTAL || dmg_pt_obj[k] == OBJ_MIRROR_EXIT) continue;   // drawn directly
             uint8_t n = dmg_draw_portal_slow(dmg_pt_obj[k], 0, 64, DMG_PT_REC_Y, r);
             uint8_t *t = dmg_portal_art[r][k];
             const uint8_t *o = (const uint8_t *)&shadow_OAM[0];
@@ -1319,6 +1316,11 @@ static uint8_t draw_sprites_dmg(uint16_t cam_px, uint16_t cam_py, uint8_t revers
             if (cache->activated[e[3]]) continue;
             if (oam_start > MAX_HARDWARE_SPRITES - 2) break;
             oam_start += draw_oam_coin(oam_start, screen_x, screen_y, coins_saved & coin_bit(obj));
+            continue;
+        }
+        if (obj == OBJ_MIRROR_PORTAL || obj == OBJ_MIRROR_EXIT) {   // 12 sprites: not in the art cache
+            if (oam_start > MAX_HARDWARE_SPRITES - 12) break;
+            oam_start += draw_oam_mirror_portal(obj, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
             continue;
         }
         uint8_t kind = dmg_portal_kind(obj);
@@ -1801,7 +1803,7 @@ uint8_t draw_sprites(
         }
 
         if (obj == OBJ_MIRROR_PORTAL || obj == OBJ_MIRROR_EXIT) {
-            if (oam_start > MAX_HARDWARE_SPRITES - 8) break;
+            if (oam_start > MAX_HARDWARE_SPRITES - 12) break;
             oam_start += draw_oam_mirror_portal(obj, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
             continue;
         }

@@ -14,7 +14,8 @@ Game Boy colour index (white = 0, light grey = 1, dark grey = 2, black = 3).
                      cloud decorations (Xstep, Clutterfunk)
     pair row  18     CGB_MIRROR_EXIT: CGB version of bank 0 tiles 224..239 (mirror exit
                      portal drawn with colour 3 instead of 2: both mirror portals share
-                     sprite palette 6, palette 7 is the HUD text palette)
+                     sprite palette 6, palette 7 is the HUD text palette; drawn by
+                     tools/make_mirror_portal_gfx.py)
 
 Decorations (CGB_DECO, CGB_DECO_CLOUD, ROD_PULSE) are drawn in the player's sprite palette 0, so
 in the cube's colour 1: their colour 1 (black) is loaded as colour 3 (black in that palette).
@@ -49,11 +50,10 @@ LOADS = [  # condition, VRAM bank, first tile, count, source section, first tile
     (ALWAYS, 0, 88, 2, "BANK0", 88),       # pause menu cursor
     (ALWAYS, 0, 116, 10, "BANK0", 116),    # mini player (cube 0/22/45 deg, ship, ball)
     (ALWAYS, 0, 126, 2, "BANK0", 126),     # mini / growth portal pair 0
-    (ALWAYS, 0, 160, 56, "BANK0", 160),    # Famidash objects: portals, pads, orbs, entrance mirror portal 208..215
-    (ALWAYS, 0, 218, 6, "BANK0", 218),     # (216..217: bottom left pair of the entrance portal = 208 flipped)
+    (ALWAYS, 0, 160, 64, "BANK0", 160),    # Famidash objects: portals, pads, orbs, entrance mirror portal 208..223
     (ALWAYS, 0, 240, 8, "BANK0", 240),     # chain
     (ALWAYS, 0, 248, 8, "BANK0", 248),     # mini / growth portal pairs 1..4
-    (CGB, 0, 224, 14, "CGB_MIRROR_EXIT", 0),   # exit portal (238..239: flipped copy of 230); DMG draws the entrance mirrored
+    (CGB, 0, 224, 16, "CGB_MIRROR_EXIT", 0),   # exit portal 224..239; DMG draws the entrance mirrored
     (CGB_DECO, 1, 160, 40, "BANK1", 160),  # level decorations
     (CGB_DECO_CLOUD, 1, 160, 40, "DECO_CLOUD", 0),
     (CGB, 1, 222, 12, "ROD_PULSE", 0),     # rod balls between beats (both deco sets draw the same rods)
