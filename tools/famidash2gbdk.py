@@ -190,7 +190,7 @@ def collision_value(mt_name, col_name, tiles):
     if col_name == "COL_NONE":
         return values["COL_NONE"]
 
-    if col_name in ("COL_DEATH_TOP", "COL_DEATH_BOTTOM") and ("SPIKE" in mt_upper or "SAW" in mt_upper):
+    if col_name in ("COL_DEATH_TOP", "COL_DEATH_BOTTOM") and ("SPIKE" in mt_upper or "SAW" in mt_upper or "WAVYPIT" in mt_upper):   # a wavy pit is 8px tall
         if is_bottom_half:
             return values["COL_DEATH_TOP_HALF"]
         if is_top_half:
