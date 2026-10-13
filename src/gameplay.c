@@ -1598,8 +1598,8 @@ void play_level(uint8_t idx) BANKED {
             sprite_x_final = (uint8_t)cur_x;
             final_py = cur_y;
             player.anim_timer += 10;
-            if (player.anim_timer >= 22) {
-                player.anim_timer -= 22;
+            if (player.anim_timer >= 21) {
+                player.anim_timer -= 21;
                 if (view_rev) {
                     if (player.anim_frame == 0) player.anim_frame = 23;
                     else player.anim_frame--;
