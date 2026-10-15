@@ -293,6 +293,25 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     } while (++n);
 }
 
+// DMG: a level's saw tiles in sprite tiles 208..237 (tools/build_bg_tiles.py: sprites DMG never
+// draws there) again, from ROM: loading the sprite tiles overwrote them. Call after
+// load_gameplay_sprite_tiles, with apply_level_bg_tiles' arguments.
+void reapply_bg_shared_slots(uint8_t level, uint8_t reversed) BANKED {
+    if (_cpu == CGB_TYPE || level >= BG_LEVEL_COUNT) return;
+    const uint8_t *r = bg_level_dmg[level];
+    for (uint8_t n = *r++; n; n--) {
+        uint8_t bank = *r++, dst = *r++, count = *r++;
+        uint8_t first_tile = *r++;
+        if (dst < 160u) continue;
+        const uint8_t *src = bg_extra_tiles + (uint16_t)first_tile * 32u;
+        if (reversed && !(bank & 0x80) && !mt_cgb_flip) src += 16;
+        while (count--) {
+            set_bkg_data(dst++, 1, src);
+            src += 32;
+        }
+    }
+}
+
 // Saw metatile: writes its 4 tiles/attributes (bank 1, mirrored when reversed).
 // Positions whose Famidash tile is empty keep the normal transparent tile.
 static uint8_t *saw_dst;

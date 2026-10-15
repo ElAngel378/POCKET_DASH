@@ -7,8 +7,10 @@ The image is laid out like sprite VRAM in 8x16 mode: every cell is one tile pair
 Game Boy colour index (white = 0, light grey = 1, dark grey = 2, black = 3).
 
     pair rows  0-7   VRAM bank 0 sprite tiles 0..255 (DMG and CGB). Tiles 8..11 (old ship art, a
-                     copy of the neutral ship frame at 48..51) and 12..19 (ball, loaded to 8..11
-                     by LOADS) are not loaded: VRAM tiles 12..19 are free
+                     copy of the neutral ship frame at 48..51) are not loaded; 12, 13 and 16, 17
+                     (ball) are loaded to 8..11; 14, 15 (UFO) and 18, 19 (mini UFO, both
+                     tools/make_ufo_gfx.py) to 16..19. VRAM tiles 12..15 are free (the pause
+                     menu borrows them on CGB)
     pair rows  8-15  CGB VRAM bank 1 sprite tiles 0..255
     pair rows 16-17  DECO_CLOUD: bank 1 tiles 160..199 in levels with Famidash's
                      cloud decorations (Xstep, Clutterfunk)
@@ -45,6 +47,8 @@ LOADS = [  # condition, VRAM bank, first tile, count, source section, first tile
     (ALWAYS, 0, 0, 8, "BANK0", 0),         # player: cube 0..7
     (ALWAYS, 0, 8, 2, "BANK0", 12),        # ball frame 0 (the right half is the left half rotated 180 deg)
     (ALWAYS, 0, 10, 2, "BANK0", 16),       # ball frame 1
+    (ALWAYS, 0, 16, 2, "BANK0", 14),       # UFO (the right half is the left one mirrored)
+    (ALWAYS, 0, 18, 2, "BANK0", 18),       # mini UFO
     (ALWAYS, 0, 20, 16, "BANK0", 20),      # death effect
     (ALWAYS, 0, 36, 28, "BANK0", 36),      # ship rotation frames 0..6 (pause menu buttons are embedded in pause_button_tiles.c)
     (ALWAYS, 0, 88, 2, "BANK0", 88),       # pause menu cursor

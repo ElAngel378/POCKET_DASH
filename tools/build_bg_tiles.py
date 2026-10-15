@@ -20,6 +20,8 @@ Sections (first tile row, tile count). Tile rows are 8 px:
     row 19  BLOCKS_B_DMG   20  Famidash block set B (DMG), replaces BLOCKS_B_SLOTS
     row 21  SPIKES_B_CGB    8  Famidash spike set B background spikes (CGB and DMG: the
                                gameplay BGP keeps the CGB colour order), replaces SPIKES_B_SLOTS
+    row 30  SPIKES_C        4  Famidash spike set C pit spikes (CGB and DMG, tools/make_spikes_c.py),
+                               replaces SPIKES_C_SLOTS
 
 Which Famidash tile sets a level uses: LEVEL_SETS below.
 
@@ -55,18 +57,21 @@ SECTIONS = [  # name, first row, tile count
     ("SPIKES_B_CGB", 21, 8),
     ("SAWS_1", 22, SAW_TILES),
     ("SAWS_2", 26, SAW_TILES),
+    ("SPIKES_C", 30, 4),
 ]
 BLOCKS_B_SLOTS = [82, 83, 84, 85, 86, 87, 98, 99, 100, 101, 102, 103, 110, 111, 112, 113, 122, 123, 124, 125]
 SPIKES_B_SLOTS = [0, 1, 23, 24, 25, 37, 38, 39]
 # Metatiles 12 / 13 (background spikes) have the transparent tile 12 where spike set B has
 # art: on CGB those quarters use tiles 0 / 1 of SPIKES_B_SLOTS.
 SPIKES_B_OVERRIDES = [(12, 0, 0), (13, 2, 1)]
+SPIKES_C_SLOTS = [19, 20, 33, 34]   # pit spikes left / right (NES $08, $09, $18, $19)
 BLACK_FILL_SLOT = 26
 
 # Famidash tile sets per level (by level map name), defaults: spikes A, blocks A
 LEVEL_SETS = {
     "xstep": {"spikes": "B"},
     "clutterfunk": {"blocks": "B"},
+    "theoryofeverything": {"spikes": "C", "blocks": "B"},
 }
 
 SAW_CENTER_MT = 120
@@ -74,6 +79,13 @@ BIG_SAW_PARTS = {116, 117, 118, 119, 121, 122, 123, 124}
 SAW_VRAM_BASE = 64           # CGB VRAM bank 1
 DMG_BG_SLOTS = 144           # DMG BG tiles 0..143 (144..159 = coin sprite tiles)
 DMG_RESERVED_TILES = [12, 26] + list(range(48, 54))   # blank, black fill, ground (used by code)
+# DMG BG tiles 128..255 are sprite tiles 128..255. Some of those sprites are never drawn on DMG, so
+# a level short of slots (Theory of Everything: block set B, spike set C and every saw) puts saw
+# tiles there: 224..237 (CGB-only mirror exit art; 238, 239 are the UFO badge) and, in levels
+# without mirror portals, 208..223 (the mirror portal art). Only saw tiles (reloaded from ROM after
+# the sprite tiles by reapply_bg_shared_slots), never moved sheet tiles (copied from VRAM).
+DMG_SHARED_SLOTS = list(range(224, 238))
+DMG_MIRROR_SLOTS = list(range(208, 224))
 
 # Sawblade metatiles: metatile id -> its 4 saw tiles (0..47, None = keep the sheet tile)
 SAW_METATILES = {
@@ -220,6 +232,8 @@ def main():
         if sets.get("spikes") == "B":
             loads += [(0, d, n, s) for d, n, s in runs(SPIKES_B_SLOTS, first["SPIKES_B_CGB"])]
             overrides += SPIKES_B_OVERRIDES
+        if sets.get("spikes") == "C":
+            loads += [(0, d, n, s) for d, n, s in runs(SPIKES_C_SLOTS, first["SPIKES_C"])]
         cgb = stream(loads, [], overrides)
 
         # DMG
@@ -230,12 +244,16 @@ def main():
         if sets.get("spikes") == "B":
             loads += [(0, d, n, s) for d, n, s in runs(SPIKES_B_SLOTS, first["SPIKES_B_CGB"])]
             overrides += SPIKES_B_OVERRIDES
+        if sets.get("spikes") == "C":
+            loads += [(0, d, n, s) for d, n, s in runs(SPIKES_C_SLOTS, first["SPIKES_C"])]
         used_t = set(DMG_RESERVED_TILES)
         # slots that hold a loaded tile set B must not be handed out as free slots
         if sets.get("blocks") == "B":
             used_t.update(BLOCKS_B_SLOTS)
         if sets.get("spikes") == "B":
             used_t.update(SPIKES_B_SLOTS)
+        if sets.get("spikes") == "C":
+            used_t.update(SPIKES_C_SLOTS)
         saw_k = set()
         for m in level_mts:
             for q in range(4):
@@ -246,10 +264,17 @@ def main():
                     used_t.add(sheet_mt[m][q])
         high = sorted(t for t in used_t if t >= DMG_BG_SLOTS)
         free = [s for s in range(DMG_BG_SLOTS) if s not in used_t]
-        if len(high) + len(saw_k) > len(free):
-            raise SystemExit("%s: needs %d free DMG BG slots, has %d" % (name, len(high) + len(saw_k), len(free)))
+        if len(high) > len(free):
+            raise SystemExit("%s: needs %d free DMG BG slots, has %d" % (name, len(high), len(free)))
         moves = list(zip(free, high))
-        saw_slot = dict(zip(sorted(saw_k), free[len(high):]))
+        saw_free = free[len(high):]
+        if len(saw_k) > len(saw_free):
+            sp = (ROOT / "src" / "sprites" / ("%s_sprites.c" % name)).read_text()
+            mirror = re.search(r"\{\s*\d+,\s*\d+,\s*(121|126)\s*\}", sp) is not None
+            saw_free += DMG_SHARED_SLOTS + ([] if mirror else DMG_MIRROR_SLOTS)
+        if len(saw_k) > len(saw_free):
+            raise SystemExit("%s: needs %d free DMG BG slots, has %d" % (name, len(high) + len(saw_k), len(free) + len(saw_free) - len(free[len(high):])))
+        saw_slot = dict(zip(sorted(saw_k), saw_free))
         for k_ in sorted(saw_slot):
             loads.append((0, saw_slot[k_], 1, first["SAWS_0"] + k_))
         overrides += [(m, q, saw_slot[saw_mts[m][q]]) for m in sorted(level_mts) if m in saw_mts
@@ -257,8 +282,9 @@ def main():
         dmg = stream(loads, moves, overrides)
         streams.append((lv, name, cgb, dmg, big_saw, any(m in saw_mts for m in level_mts)))
         if moves or saw_slot:
-            print("DMG %-20s %d tiles moved above slot %d, %d saw tiles, %d free slots left"
-                  % (name, len(moves), DMG_BG_SLOTS, len(saw_slot), len(free) - len(high) - len(saw_k)))
+            shared = sum(1 for s in saw_slot.values() if s >= DMG_BG_SLOTS)
+            print("DMG %-20s %d tiles moved above slot %d, %d saw tiles (%d in sprite tiles), %d free slots left"
+                  % (name, len(moves), DMG_BG_SLOTS, len(saw_slot), shared, len(saw_free) - len(saw_k)))
 
     # header
     idx = [0] * 256

@@ -12,6 +12,7 @@
 #define P3 S_PAL(3)
 #define P4 S_PAL(4)
 #define P5 S_PAL(5)
+#define P6 S_PAL(6)
 #define PT_41 0
 #define PT_43 2
 #define PT_45 4
@@ -49,6 +50,14 @@
                 METASPR_ITEM(0, 0, PT_41, P4),   METASPR_ITEM(0, 8, PT_43, P4),   METASPR_ITEM(0, 8, PT_45, P4),
                 METASPR_ITEM(16, -16, PT_47, P4), METASPR_ITEM(0, 8, PT_49, P4),   METASPR_ITEM(0, 8, PT_4B, P4),
                 METASPR_ITEM(16, -16, PT_41, P4 | S_FLIPY), METASPR_ITEM(0, 8, PT_43, P4 | S_FLIPY), METASPR_ITEM(0, 8, PT_45, P4 | S_FLIPY),
+                METASPR_TERM
+        };
+
+        // UFO portal (1.5): the mode portal art in orange (sprite palette 6, colour 2)
+        const metasprite_t famidash_ufo_portal[] = {
+                METASPR_ITEM(0, 0, PT_41, P6),   METASPR_ITEM(0, 8, PT_43, P6),   METASPR_ITEM(0, 8, PT_45, P6),
+                METASPR_ITEM(16, -16, PT_47, P6), METASPR_ITEM(0, 8, PT_49, P6),   METASPR_ITEM(0, 8, PT_4B, P6),
+                METASPR_ITEM(16, -16, PT_41, P6 | S_FLIPY), METASPR_ITEM(0, 8, PT_43, P6 | S_FLIPY), METASPR_ITEM(0, 8, PT_45, P6 | S_FLIPY),
                 METASPR_TERM
         };
 
@@ -99,6 +108,7 @@ const metasprite_t name[] = { \
         TWO_TILE(famidash_blue_pad,      PT_79, PT_7B, P2,           P2 | S_FLIPX);
         TWO_TILE(famidash_blue_pad_up,   PT_79, PT_7B, P2 | S_FLIPY, P2 | S_FLIPX | S_FLIPY);
         TWO_TILE(famidash_pink_pad,      PT_59, PT_5B, P4,           P4 | S_FLIPX);
+        TWO_TILE(famidash_pink_pad_up,   PT_59, PT_5B, P4 | S_FLIPY, P4 | S_FLIPX | S_FLIPY);
 
 // Orbs (Restored the S_FLIPX on the right tile so the circle completes)
         TWO_TILE(famidash_yellow_orb,    MT_99, MT_9B, P3,           P3 | S_FLIPX);
@@ -114,7 +124,7 @@ const metasprite_t famidash_deco_45[] = {
 };
 
 const metasprite_t * const famidash_sprite_table[38] = {
-    famidash_cube_portal, famidash_ship_portal, famidash_ball_portal, 0, 0,
+    famidash_cube_portal, famidash_ship_portal, famidash_ball_portal, famidash_ufo_portal, famidash_pink_pad_up,
     famidash_blue_orb, famidash_pink_orb, 0,
     famidash_gravity_down, famidash_gravity_up,
     famidash_yellow_pad, famidash_yellow_orb,

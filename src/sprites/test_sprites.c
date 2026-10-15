@@ -1,4 +1,4 @@
-#pragma bank 112
+#pragma bank 113
 #include "assets.h"
 
 BANKREF(test_sp)

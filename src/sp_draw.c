@@ -27,6 +27,7 @@ extern SpCache active_sp;
 #define OBJ_CUBE_PORTAL   0
 #define OBJ_SHIP_PORTAL   1
 #define OBJ_BALL_PORTAL   2
+#define OBJ_UFO_PORTAL    3
 #define OBJ_ORB_BLUE      5
 #define OBJ_ORB_PINK      6
 #define OBJ_GRAVITY_DOWN  8
@@ -37,6 +38,7 @@ extern SpCache active_sp;
 #define OBJ_PAD_BLUE      13
 #define OBJ_PAD_BLUE_UP   14
 #define OBJ_PAD_PINK      37
+#define OBJ_PAD_PINK_UP   4    // Famidash 38 (tools/tmx2sprites.py)
 #define OBJ_LEVEL_END     15
 #define OBJ_MIRROR_PORTAL 126
 #define OBJ_MIRROR_EXIT   121
@@ -72,16 +74,16 @@ void coins_reset(void) BANKED {
 // Orb / pad launch velocities per game mode, normal and mini size
 // (Famidash sprite_gamemode_adjust_heights, 60fps value x 714/708).
 // [mini][kind][mode]: kind 0 yellow orb, 1 yellow pad, 2 pink orb, 3 pink pad;
-// mode 0 cube, 1 ship, 2 ball.
-static const int16_t launch_force[2][4][3] = {
-    { { JUMP_FORCE,         -1113, BALL_YELLOW_ORB },
-      { PAD_JUMP_FORCE,      -968, BALL_YELLOW_PAD },
-      { MAGENTA_JUMP_FORCE,  -516, BALL_PINK_ORB },
-      { PINK_PAD_FORCE,      -629, BALL_PINK_PAD } },
-    { { -1242, -1194, -1113 },
-      { -1678, -1081, -1242 },
-      {  -855,  -484,  -855 },
-      { -1017,  -484,  -920 } },
+// mode 0 cube, 1 ship, 2 ball, 3 UFO.
+static const int16_t launch_force[2][4][4] = {
+    { { JUMP_FORCE,         -1113, BALL_YELLOW_ORB, -952 },
+      { PAD_JUMP_FORCE,      -968, BALL_YELLOW_PAD, -823 },
+      { MAGENTA_JUMP_FORCE,  -516, BALL_PINK_ORB,   -549 },
+      { PINK_PAD_FORCE,      -629, BALL_PINK_PAD,   -597 } },
+    { { -1242, -1194, -1113, -984 },
+      { -1678, -1081, -1242, -936 },
+      {  -855,  -484,  -855, -436 },
+      { -1017,  -484,  -920, -339 } },
 };
 #define LAUNCH(p, kind) launch_force[(p)->mini][(kind)][(p)->mode]
 
@@ -393,7 +395,7 @@ static uint8_t obj_anim_tiles(uint8_t obj) {
             return 238;   // $9D $9F
         case OBJ_ORB_PINK:
             return 242;   // $BD $BF
-        case OBJ_PAD_PINK:
+        case OBJ_PAD_PINK: case OBJ_PAD_PINK_UP:
             return 246;   // $5D $5F
     }
     return 0;
@@ -583,13 +585,14 @@ static void touch_object(Player* p, uint8_t obj, uint16_t obj_x, uint16_t obj_y,
         case OBJ_CUBE_PORTAL:
         case OBJ_SHIP_PORTAL:
         case OBJ_BALL_PORTAL:
+        case OBJ_UFO_PORTAL:
             // Famidash mode portal: 16 x 52 (obj_y - 2 to obj_y + 50)
             if (touch_box(obj_x, obj_y, 0, 16, -2, 52)) {
                 if (!*act) {
-                    uint8_t mode = (obj == OBJ_CUBE_PORTAL) ? MODE_CUBE :
-                                   (obj == OBJ_SHIP_PORTAL) ? MODE_SHIP : MODE_BALL;
-                    // Famidash: the ship and ball portals halve the speed when the mode changes,
-                    // the cube portal keeps it
+                    // object ids 0..3 are the modes' ids (cube, ship, ball, UFO)
+                    uint8_t mode = obj;
+                    // Famidash: the ship, ball and UFO portals halve the speed when the mode
+                    // changes, the cube portal keeps it
                     if (mode != MODE_CUBE && mode != p->mode) p->vel_y.w /= 2;
                     p->mode = mode;
                     cam_portal_y = obj_y;
@@ -618,10 +621,11 @@ static void touch_object(Player* p, uint8_t obj, uint16_t obj_x, uint16_t obj_y,
         case OBJ_PAD_BLUE:
         case OBJ_PAD_YELLOW_UP:
         case OBJ_PAD_BLUE_UP:
+        case OBJ_PAD_PINK_UP:
         {
             // Famidash: 15 x 3, at +5 on the floor (+ the 8 of its floor pad offset, which the
             // level export leaves out, see tools/tmx2sprites.py), at +0 on the ceiling
-            uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
+            uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP || obj == OBJ_PAD_PINK_UP);
             if (touch_box(obj_x, obj_y, 0, 15, is_ceiling ? 0 : 13, 3)) {
                 if (!*act) {
                     *act = 1;
@@ -637,7 +641,7 @@ static void touch_object(Player* p, uint8_t obj, uint16_t obj_x, uint16_t obj_y,
                             p->vel_y.w = BLUE_PAD_FORCE;
                             p->on_ground = 0;
                         }
-                    } else if (obj == OBJ_PAD_PINK) {
+                    } else if (obj == OBJ_PAD_PINK || obj == OBJ_PAD_PINK_UP) {
                         int16_t force = LAUNCH(p, 3);
                         p->vel_y.w = (p->gravity_flipped) ? -force : force;
                         p->on_ground = 0;
@@ -661,6 +665,7 @@ static void touch_object(Player* p, uint8_t obj, uint16_t obj_x, uint16_t obj_y,
                     if (!*act) {
                         *act = 1;
                         p->orb_buffered = 0; // Clear buffer after hit
+                        p->ufo_orbed = 1;    // the UFO does not also jump on this press
                         if (obj == OBJ_ORB_BLUE) {
                             p->gravity_flipped = !p->gravity_flipped;
                             int16_t force = (p->mode == MODE_BALL) ? BLUE_ORB_FORCE : BLUE_PAD_FORCE;
@@ -908,8 +913,10 @@ static uint8_t draw_coin_anims(uint16_t cam_px, uint16_t cam_py, uint8_t reverse
 #define DMG_BADGE_GRAVITY   3     // arrow down, S_FLIPY = up
 #define DMG_BADGE_MINI      4
 #define DMG_BADGE_GROW      5
-// Badge tile pairs: sprite tiles 202..207 and 240..245 are unused on DMG
-static const uint8_t dmg_badge_tile[6] = { 202, 204, 206, 240, 242, 244 };
+#define DMG_BADGE_UFO       6
+// Badge tile pairs: sprite tiles 202..207 and 240..245 are unused on DMG, 238..239 too (the CGB
+// mirror exit art; 224..237 are background tiles in some levels, tools/build_bg_tiles.py)
+static const uint8_t dmg_badge_tile[7] = { 202, 204, 206, 240, 242, 244, 238 };
 
 // Per object id below 38. Orbs / pads: icon, its sprite y offset from the object's sprite
 // position (orbs: 16x16 at it, drawn by dmg_object_loop as 2 sprites; pads at the bottom of
@@ -918,21 +925,21 @@ static const uint8_t dmg_badge_tile[6] = { 202, 204, 206, 240, 242, 244 };
 // blue pad its own hourglass, the blue orb its own arrow. Portals: badge and its attributes.
 #define NI 0xFF
 const uint8_t dmg_icon[38] = {
-    NI, NI, NI, NI, NI,   DMG_ICON_ORB_BLUE, DMG_ICON_ORB_PINK, NI,   NI, NI,
+    NI, NI, NI, NI, DMG_ICON_PAD_PINK,   DMG_ICON_ORB_BLUE, DMG_ICON_ORB_PINK, NI,   NI, NI,
     DMG_ICON_PAD_YELLOW, DMG_ICON_ORB_YELLOW, DMG_ICON_PAD_YELLOW, DMG_ICON_PAD_BLUE, DMG_ICON_PAD_BLUE, NI,
     NI, NI, NI, NI,   NI, NI, NI, NI, NI, NI, NI, NI,   NI, NI, NI, NI, NI, NI, NI, NI, NI,
     DMG_ICON_PAD_PINK
 };
 const int8_t dmg_icon_y[38] = {
-    0, 0, 0, 0, 0,   0, 0, 0,   0, 0,   8, 0, -8, 8, -8, 0,   0, 0, 0, 0,
+    0, 0, 0, 0, -8,   0, 0, 0,   0, 0,   8, 0, -8, 8, -8, 0,   0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 8
 };
 const uint8_t dmg_icon_prop[38] = {
-    0, 0, 0, 0, 0,   0, 0, 0,   0, 0,   0, 0, S_FLIPY, 0, S_FLIPY, 0,
+    0, 0, 0, 0, S_FLIPY,   0, 0, 0,   0, 0,   0, 0, S_FLIPY, 0, S_FLIPY, 0,
     0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 static const uint8_t dmg_badge[38] = {
-    DMG_BADGE_CUBE, DMG_BADGE_SHIP, DMG_BADGE_BALL, NI, NI,   NI, NI, NI,
+    DMG_BADGE_CUBE, DMG_BADGE_SHIP, DMG_BADGE_BALL, DMG_BADGE_UFO, NI,   NI, NI, NI,
     DMG_BADGE_GRAVITY, DMG_BADGE_GRAVITY,   NI, NI, NI, NI, NI, NI,
     DMG_BADGE_GRAVITY, DMG_BADGE_GRAVITY, DMG_BADGE_GRAVITY, DMG_BADGE_GRAVITY,
     NI, NI, NI, NI, DMG_BADGE_MINI, DMG_BADGE_GROW, NI, NI,   NI, NI, NI, NI, NI, NI, NI, NI, NI, NI
@@ -949,7 +956,7 @@ static const uint8_t dmg_badge_prop[38] = {
 // gravity 0/8, mini -8/0/8, growth 0/8/16. Horizontal gravity portals (48x16 ring, columns
 // 0..40, mirror mode -40..0): the badge goes just past the ring's end.
 static const int8_t dmg_badge_x[38] = {
-    16, 16, 16, 0, 0, 0, 0, 0,   16, 16,   0, 0, 0, 0, 0, 0,   48, 48, 48, 48,
+    16, 16, 16, 16, 0, 0, 0, 0,   16, 16,   0, 0, 0, 0, 0, 0,   48, 48, 48, 48,
     0, 0, 0, 0, 16, 24, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 static const int8_t dmg_badge_x_rev[38] = {
@@ -1320,6 +1327,11 @@ static uint8_t draw_sprites_dmg(uint16_t cam_px, uint16_t cam_py, uint8_t revers
             oam_start += draw_oam_mirror_portal(obj, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
             continue;
         }
+        if (obj == OBJ_UFO_PORTAL) {   // rare (Theory of Everything): drawn directly, not cached (WRAM is full)
+            if (oam_start > MAX_HARDWARE_SPRITES - 10) break;
+            oam_start += dmg_draw_portal_slow(obj, oam_start, screen_x, screen_y, reversed);
+            continue;
+        }
         uint8_t kind = dmg_portal_kind(obj);
         if (kind == 0xFF) continue;
         const uint8_t *art = dmg_portal_art[reversed ? 1 : 0][kind];
@@ -1355,7 +1367,7 @@ static uint8_t cgbf_w;                   // decoration width - 8 (its mirrored x
 // Pads / orbs: animation kind (1 pad, 2 orb, 3 pink orb, 4 pink pad; 0: not animated) and, per
 // kind, this frame's left tile, its bank bit, right tile, its bank bit (draw_sprites)
 static const uint8_t cgb_anim_kind[38] = {
-    0, 0, 0, 0, 0, 2, 3, 0, 0, 0, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 4, 2, 3, 0, 0, 0, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4
 };
 static uint8_t cgb_anim_fr[4 * 4];
@@ -1771,7 +1783,7 @@ uint8_t draw_sprites(
         // the portal the player is in (t_px: process_sprite_logic): front column in the slots
         // reserved before the player
         uint8_t cols = COLS_ALL;
-        if (front_free && (obj <= OBJ_BALL_PORTAL || obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP ||
+        if (front_free && (obj <= OBJ_UFO_PORTAL || obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP ||
                            obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL)
             && obj_x <= t_px + 16u && obj_x + 32u >= t_px) {
             cols = portal_front_cols(obj);
@@ -1779,7 +1791,7 @@ uint8_t draw_sprites(
             uint8_t fs = sp_front_slot;
             if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL)
                 front_n = draw_oam_mini_portal(obj, fs, screen_x, screen_y, reversed, cols);
-            else if (obj <= OBJ_BALL_PORTAL)
+            else if (obj <= OBJ_UFO_PORTAL)
                 front_n = draw_oam_3x3(famidash_sprite_table[obj], FAMIDASH_SPRITE_TILE_BASE, fs, screen_x, screen_y, reversed, cols);
             else
                 front_n = draw_oam_2x3(famidash_sprite_table[obj], FAMIDASH_SPRITE_TILE_BASE, fs, screen_x, screen_y, reversed, cols);
@@ -1813,7 +1825,7 @@ uint8_t draw_sprites(
 
         if (obj >= 16 && obj <= 19) {
             oam_start += draw_oam_horizontal_portal(obj, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
-        } else if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL || obj == OBJ_BALL_PORTAL) {
+        } else if (obj <= OBJ_UFO_PORTAL) {
             oam_start += draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed, cols);
         } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
             oam_start += draw_oam_2x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed, cols);

@@ -33,6 +33,8 @@ BANKREF_EXTERN(clutterfunk_map)
 extern const uint8_t clutterfunk_map[];
 BANKREF_EXTERN(ultiatedestruction_map)
 extern const uint8_t ultiatedestruction_map[];
+BANKREF_EXTERN(theoryofeverything_map)
+extern const uint8_t theoryofeverything_map[];
 BANKREF_EXTERN(test_map)
 extern const uint8_t test_map[];
 
@@ -73,6 +75,9 @@ BANKREF_EXTERN(clutterfunk_sp)
 extern const SpDef ultiatedestruction_sp[];
 extern const SpDef ultiatedestruction_sp_dmg[];
 BANKREF_EXTERN(ultiatedestruction_sp)
+extern const SpDef theoryofeverything_sp[];
+extern const SpDef theoryofeverything_sp_dmg[];
+BANKREF_EXTERN(theoryofeverything_sp)
 extern const SpDef test_sp[];
 extern const SpDef test_sp_dmg[];
 BANKREF_EXTERN(test_sp)
@@ -105,6 +110,7 @@ const hUGESong_t * const level_songs[] = {
   &xstep, // level_xs
   &clutterfunk, // level_cf
   &ultiatedestruction, // level_ultiatedestruction
+  NULL, // level_toe (silent)
   NULL, // level_test (silent)
 };
 
@@ -122,6 +128,7 @@ const uint8_t song_bank[] = {
   209u, // level_xs
   210u, // level_cf
   211u, // level_ultiatedestruction
+  0u, // level_toe
   0u, // level_test
 };
 
@@ -318,6 +325,22 @@ const Level level_ultiatedestruction = {
   17
 };
 
+const Level level_toe = {
+  "THEORY OF EVERYTHING",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  theoryofeverything_map,
+  BG_BASE_TILE_COUNT, 866, 64, 0, 0,
+  BANK(theoryofeverything_map),
+  183,
+  theoryofeverything_sp,
+  BANK(theoryofeverything_sp),
+  theoryofeverything_sp_dmg,
+  7,
+  5,
+  21
+};
+
 const Level level_test = {
   "TEST",
   chr_gb_tiles,
@@ -348,6 +371,7 @@ const Level* const game_levels[] = {
   &level_xs,
   &level_cf,
   &level_ultiatedestruction,
+  &level_toe,
   &level_test,
 };
 const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);

@@ -33,6 +33,7 @@
 #define MODE_CUBE         0
 #define MODE_SHIP         1
 #define MODE_BALL         2
+#define MODE_UFO          3
 
 #define SHIP_THRUST       -42   // Famidash SHIP_GRAVITY_BASE 0x002A - holding, rising
 #define SHIP_GRAVITY       34   // Famidash SHIP_GRAVITY 0x0022 - release, falling
@@ -42,6 +43,14 @@
 #define SHIP_MAX_VEL_DOWN  1100 // Famidash 0x0443 (1091) x 714/708
 
 #define BALL_GRAVITY      72    // Famidash 0x0047 (71)
+
+// UFO (Famidash gamemode_ufo.h, 60fps tables): gravity, max fall speed; a press (on the ground or
+// in the air) sets the jump speed, unless an orb took the press that frame
+#define UFO_GRAVITY        50   // Famidash UFO_GRAVITY 0x0032 (50)
+#define UFO_MAX_FALL      807   // Famidash UFO_MAX_FALLSPEED 0x0320 (800)
+#define UFO_JUMP_VEL     -823   // Famidash UFO_JUMP_VEL 0xFCD0 (-816)
+#define MINI_UFO_MAX_FALL 855   // 0x0350 (848); mini gravity is the same
+#define MINI_UFO_JUMP_VEL -726  // 0xFD30 (-720)
 #define BALL_SWITCH_VEL   516   // Famidash 0x0200 (512)
 
 // Mini size (Famidash mini portal). Same 714/708 rate correction as above;
@@ -105,6 +114,7 @@ typedef struct Player {
     uint16_t level_end_x;
     uint16_t sp_idx;
     uint16_t y_base;       // world y of the collision window (world_y is relative to it)
+    uint8_t  ufo_orbed;    // an orb took this frame's press (the UFO does not also jump)
 } Player;
 
 // Reset player state to starting position

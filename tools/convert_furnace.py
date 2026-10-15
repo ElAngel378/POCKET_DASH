@@ -52,12 +52,13 @@ FRAMES = 1
 CHUNKS = 4
 CHUNK_SIZE = 16300            # leave room for GBDK's BANKREF stubs in each bank
 
-LEVEL_ALIASES = {"ultimate": "ultiatedestruction", "ultimatedestruction": "ultiatedestruction"}
+LEVEL_ALIASES = {"ultimate": "ultiatedestruction", "ultimatedestruction": "ultiatedestruction",
+                 "toe": "theoryofeverything"}
 MENU_NAMES = {"menuloop", "menu", "menutheme"}
 # Order of the songs (their ids, so the music test list): Geometry Dash's own order, then the Pocket
 # Dash ones; songs not listed come last in file order
 SONG_ORDER = ["menuloop", "stereomadness", "backontrack", "polargeist", "dryout", "baseafterbase",
-              "cantletgo", "jumper", "timemachine", "cycles", "xstep", "clutterfunk", "toe",
+              "cantletgo", "jumper", "timemachine", "cycles", "xstep", "clutterfunk", "theoryofeverything",
               "electromanadventures", "electrodynamix", "toe2", "deadlocked",
               "ultiatedestruction", "schemingweasel", "stayinsideme"]
 NAME_WIDTH = 18               # music test name field

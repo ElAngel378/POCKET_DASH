@@ -57,7 +57,8 @@ static void apply_custom_player_palette(void) {
 // (ground "spikes" drawn as round bushes); every other level uses DECO1.
 #define LEVEL_XSTEP 9
 #define LEVEL_CLUTTERFUNK 10
-#define LEVEL_DECO_CLOUD(idx) ((idx) == LEVEL_XSTEP || (idx) == LEVEL_CLUTTERFUNK)
+#define LEVEL_TOE 12
+#define LEVEL_DECO_CLOUD(idx) ((idx) == LEVEL_XSTEP || (idx) == LEVEL_CLUTTERFUNK || (idx) == LEVEL_TOE)
 // ... and spike set B (background spikes drawn as round bushes, see mt_renderer.c)
 #define LEVEL_SPIKES_B(idx) ((idx) == LEVEL_XSTEP)
 #define BKG_MT_H 16
@@ -461,6 +462,7 @@ static void reload_level_state(uint8_t idx) {
     }
 
     load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));   // sprite_tiles.png
+    reapply_bg_shared_slots(idx, 0);   // DMG: saw tiles in sprite tiles it overwrote
     if (practice_mode) load_checkpoint_tiles();
     debug_load_hud_tiles();
     percent_hud_load_tiles();
@@ -1148,6 +1150,7 @@ static void practice_respawn(uint8_t idx) {
     }
 
     load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));
+    reapply_bg_shared_slots(idx, 0);   // DMG: saw tiles in sprite tiles it overwrote
     cube_icon_reset();
     load_checkpoint_tiles();
     debug_load_hud_tiles();
@@ -1337,6 +1340,7 @@ void play_level(uint8_t idx) BANKED {
         set_bkg_data(12, 1, blank_bg_tile);
     }
     load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));   // sprite_tiles.png
+    reapply_bg_shared_slots(idx, 0);   // DMG: saw tiles in sprite tiles it overwrote
     cube_icon_reset();
     debug_load_hud_tiles();
     percent_hud_load_tiles();
@@ -1662,6 +1666,7 @@ void play_level(uint8_t idx) BANKED {
             uint8_t tile, prop = S_PALETTE;   // DMG: OBP1, the player's palette
             if (player.mode == MODE_SHIP) tile = MINI_PLAYER_TILE_BASE + 6;
             else if (player.mode == MODE_BALL) tile = MINI_PLAYER_TILE_BASE + 8;
+            else if (player.mode == MODE_UFO) tile = MINI_UFO_TILE;
             else {
                 uint8_t q = (uint8_t)(player.anim_frame % 6u);
                 tile = MINI_PLAYER_TILE_BASE + (uint8_t)(mini_cube_img[q] << 1);
@@ -1687,6 +1692,15 @@ void play_level(uint8_t idx) BANKED {
                     if (view_rev) oam_index += move_metasprite_vflip(ship_ms, 0, oam_index, sprite_x_final + 24, final_py + 16);
                     else oam_index += move_metasprite(ship_ms, 0, oam_index, sprite_x_final + 8, final_py + 16);
                 }
+            } else if (player.mode == MODE_UFO) {
+                // Famidash UFO_0: one tile pair and its mirror image, 1 px above the cube's place;
+                // upside down when the gravity is flipped (symmetric: the same in mirror mode)
+                uint8_t prop = S_PALETTE, y = (uint8_t)(final_py + 15);
+                if (player.gravity_flipped) { prop |= S_FLIPY; y += 2; }
+                OAM_item_t *o = &shadow_OAM[oam_index];
+                o[0].y = y; o[0].x = (uint8_t)(sprite_x_final + 8);  o[0].tile = UFO_TILE; o[0].prop = prop;
+                o[1].y = y; o[1].x = (uint8_t)(sprite_x_final + 16); o[1].tile = UFO_TILE; o[1].prop = prop | S_FLIPX;
+                oam_index += 2;
             } else if (player.mode == MODE_BALL) {
                 // like the cube: never mirrored, it rolls the other way on the ceiling
                 const metasprite_t *ball = player_frame_metasprite(player_frame_id());

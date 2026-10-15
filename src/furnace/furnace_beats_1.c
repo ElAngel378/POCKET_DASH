@@ -88,7 +88,7 @@ static const uint8_t fbeats_clutterfunk[] = {
     12, 1, 6, 1, 12, 2, 12, 1, 6, 1, 6, 2, 6, 2, 12, 2, 12, 2, 12, 2, 12, 2, 12, 2,
     12, 2, 12, 2, 12, 1, 192, 255,
 };
-static const uint8_t fbeats_toe[] = {
+static const uint8_t fbeats_theoryofeverything[] = {
     0, 1, 255, 0, 193, 1, 255, 0, 255, 0, 255, 0, 18, 1, 112, 1, 10, 1, 9, 1, 9, 2, 10, 1,
     9, 1, 9, 1, 10, 1, 9, 1, 9, 2, 10, 1, 9, 1, 9, 1, 10, 1, 9, 1, 9, 2, 10, 1,
     9, 1, 9, 1, 9, 1, 10, 1, 9, 2, 9, 1, 10, 1, 9, 1, 9, 1, 10, 1, 9, 2, 9, 1,
@@ -669,7 +669,7 @@ static const uint8_t fbeats_stayinsideme[] = {
 
 static const uint8_t * const fbeats[][2] = {
     { fbeats_clutterfunk, fbeats_clutterfunk + 964 },
-    { fbeats_toe, 0 },
+    { fbeats_theoryofeverything, 0 },
     { fbeats_electromanadventures, fbeats_electromanadventures + 2002 },
     { fbeats_electrodynamix, fbeats_electrodynamix + 372 },
     { fbeats_toe2, fbeats_toe2 + 568 },

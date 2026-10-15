@@ -103,14 +103,15 @@ BADGE_BALL = badge(["      ", " #### ", "##  ##", "# ## #", "# ## #", "##  ##", 
 BADGE_GRAVITY = badge(["      ", "  ##  ", "  ##  ", "  ##  ", "######", " #### ", "  ##  ", "      "])  # down; up = flipped
 BADGE_MINI = badge(["      ", "      ", "      ", "######", "######", "      ", "      ", "      "])   # minus
 BADGE_GROW = badge(["      ", "  ##  ", "  ##  ", "######", "######", "  ##  ", "  ##  ", "      "])   # plus
+BADGE_UFO = badge(["      ", "  ##  ", " #### ", "######", "######", " #  # ", "      ", "      "])    # saucer
 
 # Tile pair order: must match DMG_ICON_* / DMG_BADGE_* in src/sp_draw.c. The orb and pad
-# icons go to sprite tiles 180..191 (the CGB orb/pad art), the badges to 202..207 and
-# 240..245 (unused on DMG); the portals keep their own art.
+# icons go to sprite tiles 180..191 (the CGB orb/pad art), the badges to 202..207, 240..245
+# and 238..239 (UFO; all unused on DMG); the portals keep their own art.
 PAIRS = [
     ORB_YELLOW, ORB_BLUE, ORB_PINK,
     PAD_YELLOW + E8, PAD_BLUE + E8, PAD_PINK + E8,
-    BADGE_CUBE, BADGE_SHIP, BADGE_BALL, BADGE_GRAVITY, BADGE_MINI, BADGE_GROW,
+    BADGE_CUBE, BADGE_SHIP, BADGE_BALL, BADGE_GRAVITY, BADGE_MINI, BADGE_GROW, BADGE_UFO,
 ]
 
 

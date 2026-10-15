@@ -2,7 +2,7 @@
 #ifndef SPRITE_BLOB_OFFSETS_H
 #define SPRITE_BLOB_OFFSETS_H
 
-#define SPRITE_BLOB_DEATH 12   // sprite_tiles.bin tile of VRAM tile 20
-#define SPRITE_BLOB_SHIP 28   // sprite_tiles.bin tile of VRAM tile 36
+#define SPRITE_BLOB_DEATH 16   // sprite_tiles.bin tile of VRAM tile 20
+#define SPRITE_BLOB_SHIP 32   // sprite_tiles.bin tile of VRAM tile 36
 
 #endif

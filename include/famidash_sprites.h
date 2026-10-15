@@ -15,6 +15,8 @@
 #define FAMIDASH_DECO_TILE_COUNT 40
 
 // 1.4 objects. VRAM bank 0 (DMG + CGB):
+#define UFO_TILE              16   // UFO (1.5): one 8x16 pair, the right half mirrored
+#define MINI_UFO_TILE         18   // mini UFO: image in the top half, like MINI_PLAYER_TILE_BASE
 #define MINI_PLAYER_TILE_BASE 116  // 5 8x16 pairs: cube 0/22/45 deg, ship, ball
 #define MINI_PORTAL_TILE_A    126  // mini/growth portal pair 0 ...
 #define MINI_PORTAL_TILE_B    248  // ... pairs 1..4 (sprite tiles 248..255 are unused otherwise)
@@ -36,6 +38,7 @@ void reload_bg_shared_sprite_tiles(void) BANKED;
 extern const metasprite_t famidash_cube_portal[];
 extern const metasprite_t famidash_ship_portal[];
 extern const metasprite_t famidash_ball_portal[];
+extern const metasprite_t famidash_ufo_portal[];
 extern const metasprite_t famidash_gravity_down[];
 extern const metasprite_t famidash_gravity_up[];
 extern const metasprite_t famidash_yellow_pad[];
@@ -46,6 +49,7 @@ extern const metasprite_t famidash_yellow_orb[];
 extern const metasprite_t famidash_blue_orb[];
 extern const metasprite_t famidash_pink_orb[];
 extern const metasprite_t famidash_pink_pad[];
+extern const metasprite_t famidash_pink_pad_up[];
 extern const metasprite_t * const famidash_sprite_table[38];
 
 // Decorations: the player's palette 0 (colour 2 = the cube's colour 1, like Famidash draws them

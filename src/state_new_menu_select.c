@@ -20,7 +20,7 @@ extern volatile uint8_t current_song_bank;
 extern const hUGESong_t menuloop;
 
 // Level background colors
-#define NUM_LEVEL_STYLES 13
+#define NUM_LEVEL_STYLES 14
 static const palette_color_t cgb_level_bg_colors[NUM_LEVEL_STYLES] = {
     RGB8(  0,   0, 255), // Stereo Madness
     RGB8(248,   0, 248), // Back On Track
@@ -34,6 +34,7 @@ static const palette_color_t cgb_level_bg_colors[NUM_LEVEL_STYLES] = {
     RGB8(  0,   0, 255), // xStep
     RGB8(230,  50,  80), // Clutterfunk
     RGB8(248,   0, 248), // Ultimate Destruction
+    RGB8(176,   0,  64), // Theory of Everything (Famidash start colour $05)
     RGB8(  0,   0, 255), // Test
 };
 
@@ -50,6 +51,7 @@ static const uint8_t level_difficulties[NUM_LEVEL_STYLES] = {
     5, // xStep
     5, // Clutterfunk
     6, // Ultimate Destruction
+    5, // Theory of Everything
     1  // Test
 };
 

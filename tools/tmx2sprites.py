@@ -103,6 +103,7 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
         sprites_firstgid + 0:  0,   # Cube portal
         sprites_firstgid + 1:  1,   # Ship portal
         sprites_firstgid + 2:  2,   # Ball portal
+        sprites_firstgid + 3:  3,   # UFO portal (1.5)
         sprites_firstgid + 5:  5,   # Blue Orb (Gravity)
         sprites_firstgid + 6:  6,   # Pink Orb
         sprites_firstgid + 8:  8,   # Normal gravity trigger
@@ -122,6 +123,8 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
         sprites_firstgid + 25: 25,  # Growth portal (1.4)
         sprites_firstgid + 26: 26,  # Coin 2
         sprites_firstgid + 27: 27,  # Coin 3
+        sprites_firstgid + 37: 37,  # Pink pad
+        sprites_firstgid + 38: 4,   # Pink pad upside down (engine id 4: Famidash's robot portal, unused)
         sprites_firstgid + 74: 74,  # Music note decoration
         # 242 = PLAYER_TRAILS_ON: Famidash's cosmetic player trail, not supported
         sprites_firstgid + 126: 126,  # test

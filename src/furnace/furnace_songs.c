@@ -28,8 +28,8 @@ BANKREF_EXTERN(fs_xstep)
 extern const fur_song_t fs_xstep;
 BANKREF_EXTERN(fs_clutterfunk)
 extern const fur_song_t fs_clutterfunk;
-BANKREF_EXTERN(fs_toe)
-extern const fur_song_t fs_toe;
+BANKREF_EXTERN(fs_theoryofeverything)
+extern const fur_song_t fs_theoryofeverything;
 BANKREF_EXTERN(fs_electromanadventures)
 extern const fur_song_t fs_electromanadventures;
 BANKREF_EXTERN(fs_electrodynamix)
@@ -58,7 +58,7 @@ const FurSong fur_songs[] = {
     { &fs_cycles, BANK(fs_cycles) },
     { &fs_xstep, BANK(fs_xstep) },
     { &fs_clutterfunk, BANK(fs_clutterfunk) },
-    { &fs_toe, BANK(fs_toe) },
+    { &fs_theoryofeverything, BANK(fs_theoryofeverything) },
     { &fs_electromanadventures, BANK(fs_electromanadventures) },
     { &fs_electrodynamix, BANK(fs_electrodynamix) },
     { &fs_toe2, BANK(fs_toe2) },

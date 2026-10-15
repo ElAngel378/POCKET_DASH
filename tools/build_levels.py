@@ -32,6 +32,8 @@ KNOWN_LEVELS = {
     "xstep":         {"title": "XSTEP",           "divider": 138, "order": 10, "short": "xs"},
     "clutterfunk":   {"title": "CLUTTERFUNK",     "divider": 195, "order": 11, "short": "cf"},
     "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 12, "short": "ultiatedestruction"},
+    # 1.5; after Ultimate Destruction so the saved progress of the levels before it stays put
+    "theoryofeverything": {"title": "THEORY OF EVERYTHING", "divider": 183, "order": 13, "short": "toe"},
 }
 
 def load_level_colors(level_name, metadata_dir=None):

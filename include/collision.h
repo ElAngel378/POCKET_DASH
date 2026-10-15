@@ -110,6 +110,7 @@ void refetch_mt_column(const uint8_t* map, uint8_t map_bank) BANKED;
 extern uint8_t mt_spike_b;
 // Level background tiles on top of the base sheet (tools/build_bg_tiles.py)
 void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED;
+void reapply_bg_shared_slots(uint8_t level, uint8_t reversed) BANKED;
 // CGB: mirror mode by the X flip attribute (normal tiles), see mt_renderer.c. Set per level
 // before its tiles are loaded.
 extern uint8_t mt_cgb_flip;

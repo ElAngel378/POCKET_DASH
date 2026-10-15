@@ -27,6 +27,7 @@ void player_init(Player* p, uint16_t start_x, int16_t start_y) BANKED {
     p->level_complete = 0;
     p->mini = 0;
     p->sp_idx = 0;
+    p->ufo_orbed = 0;
 }
 
 static uint8_t hazard_kills(const Player* p, uint8_t col, uint8_t x_off) {
@@ -226,6 +227,9 @@ uint8_t player_update(
         if (p->mode == MODE_BALL) {
             gravity_val = mini ? MINI_BALL_GRAVITY : BALL_GRAVITY;
             if (mini) max_fall = MINI_BALL_MAX_FALL;
+        } else if (p->mode == MODE_UFO) {
+            gravity_val = UFO_GRAVITY;
+            max_fall = mini ? MINI_UFO_MAX_FALL : UFO_MAX_FALL;
         } else {
             gravity_val = mini ? MINI_GRAVITY : GRAVITY;
         }
@@ -238,8 +242,8 @@ uint8_t player_update(
         }
     }
 
-    // Buffer jump input while airborne
-    if ((joy & J_A) && !(p->last_joy & J_A) && !p->on_ground) {
+    // Buffer jump input while airborne (not the UFO: its presses are its jumps)
+    if ((joy & J_A) && !(p->last_joy & J_A) && !p->on_ground && p->mode != MODE_UFO) {
         p->orb_buffered = 1;
     }
 
@@ -319,7 +323,7 @@ uint8_t player_update(
             }
             if (hit_front_only && ((!mini && (uint8_t)(py + box_top + ((box_bot - box_top) >> 1)) >= block_top_y) || (uint8_t)(foot_y - block_top_y) > pen_max)) {
                 // Front edge struck wall side
-            } else if (!p->gravity_flipped || p->mode == MODE_SHIP) {
+            } else if (!p->gravity_flipped || p->mode == MODE_SHIP || p->mode == MODE_UFO) {
                 p->world_y.b.h = block_top_y - box_bot;
                 p->world_y.b.l = 0;
                 p->vel_y.w = 0;
@@ -355,7 +359,7 @@ uint8_t player_update(
             }
             if (hit_front_only && ((!mini && (uint8_t)(py + box_top + ((box_bot - box_top) >> 1)) <= block_bottom_y) || (uint8_t)(block_bottom_y - head_y) > pen_max)) {
                 // Front edge struck ceiling side
-            } else if (p->gravity_flipped || p->mode == MODE_SHIP) {
+            } else if (p->gravity_flipped || p->mode == MODE_SHIP || p->mode == MODE_UFO) {
                 p->world_y.b.h = block_bottom_y - box_top;
                 p->world_y.b.l = 0;
                 p->vel_y.w = 0;
@@ -450,6 +454,15 @@ uint8_t player_update(
         }
     }
     if (!(joy & J_A)) p->ball_switched = 0;
+
+    // UFO (Famidash ufo_movement): every new press jumps, on the ground or in the air, unless an
+    // orb took it (sp_draw.c sets ufo_orbed before this runs)
+    if (p->mode == MODE_UFO && (joy & J_A) && !(p->last_joy & J_A) && !p->ufo_orbed) {
+        int16_t jv = mini ? MINI_UFO_JUMP_VEL : UFO_JUMP_VEL;
+        p->vel_y.w = (p->gravity_flipped) ? -jv : jv;
+        p->on_ground = 0;
+    }
+    p->ufo_orbed = 0;
 
     // Animation Update
     if (p->on_ground && p->mode != MODE_BALL) {

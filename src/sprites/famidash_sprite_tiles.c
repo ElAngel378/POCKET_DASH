@@ -48,6 +48,7 @@ void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED {
         set_sprite_data(180, 12, dmg_object_icon_tiles);
         set_sprite_data(202, 6, dmg_object_icon_tiles + 12 * 16);
         set_sprite_data(240, 6, dmg_object_icon_tiles + 18 * 16);
+        set_sprite_data(238, 2, dmg_object_icon_tiles + 24 * 16);   // UFO badge
     }
 }
 
