@@ -35,9 +35,15 @@ extern const uint8_t cube_fd_frames_4[];
 #define SHIP_FRAME(k) (cube_icon_frames + ((uint16_t)24 + (k)) * 64u)
 // Ball frames, after the ship: 0..172.5 degrees like a cube icon (drawn at x + 0, not x - 1)
 #define BALL_FRAME(k) (cube_icon_frames + ((uint16_t)55 + (k)) * 64u)
+// UFO frames, after the ball: frame k tilted 10 - 5k degrees (0 nose down, level, 4 up)
+#define UFO_FRAME_COUNT 5
+#define UFO_FRAME_LEVEL 2
+#define UFO_FRAME(k) (cube_icon_frames + ((uint16_t)79 + (k)) * 64u)
 
 // |vel_y| (8.8) from which the ship tilts one more step: the frame for its flight direction. An
 // initializer, not an array: anything defined here would also land in bank 61 ahead of the frames
 #define SHIP_TILT_VY { 19, 56, 94, 132, 171, 211, 253, 296, 341, 388, 438, 491, 548, 610, 678 }
+// ... and the UFO
+#define UFO_TILT_VY { 31, 94 }
 
 #endif

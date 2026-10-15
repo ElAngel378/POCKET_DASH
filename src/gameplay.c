@@ -271,24 +271,30 @@ static uint8_t practice_mode = 0;
 // direction (ship_tilt_vy), eased.
 // Ball: like the cube, 48 steps from 24 images, rolling all the time (anim_frame turns on the
 // ground too).
-// Frame ids: cube step 0..47, ship PL_SHIP + image, ball PL_BALL + step.
+// UFO: Famidash's, 5 images from 10 degrees nose down to 10 up in 5 degree steps, following its
+// flight direction like the ship (ufo_tilt_vy): it tilts up on a jump and down as it falls.
+// Frame ids: cube step 0..47, ship PL_SHIP + image, ball PL_BALL + step, UFO PL_UFO + image.
 #define PL_SHIP 64
 #define PL_BALL 128
+#define PL_UFO 192
+// ship / UFO: tilted images, drawn mirrored (no half turn), 1 px higher than the cube
+#define PL_TILTED(id) ((id) >= PL_UFO || ((id) >= PL_SHIP && (id) < PL_BALL))
 static metasprite_t cube_ms[3];
 static uint8_t cube_front;   // buffer shown: tiles 0..3 / 4..7
 static uint8_t cube_shown;   // frame id of the image in it
 static uint8_t cube_req;     // frame id being copied to the other buffer, 0xFF: none
-static uint8_t cube_mirror;  // bit 0 gravity_flipped, bit 1 view_rev: the ship is drawn flipped Y / X,
+static uint8_t cube_mirror;  // bit 0 gravity_flipped, bit 1 view_rev: the ship / UFO is drawn flipped Y / X,
                              // the cube and the ball spin the other way with one of them (cube_turn)
 static uint8_t cube_img_mir; // cube_mirror the frame shown was chosen in
 static uint8_t cube_req_mir; // ... and the one being copied
 static uint8_t ship_tilt;    // ship image shown (eased towards the flight direction)
+static uint8_t ufo_tilt;     // ... and the UFO's
 
 // image (0..23) of a step: no division on the SM83
 #define CUBE_IMG(st) ((uint8_t)((st) >= CUBE_ICON_FRAMES ? (st) - CUBE_ICON_FRAMES : (st)))
 #define CUBE_MIRROR() ((uint8_t)(player.gravity_flipped | (view_rev << 1)))
 // the image of a frame id (cube / ball steps 24 apart share one)
-#define PL_KEY(id) ((id) >= PL_BALL ? (uint8_t)(PL_BALL + CUBE_IMG((uint8_t)((id) - PL_BALL)))                     : (id) >= PL_SHIP ? (id) : CUBE_IMG(id))
+#define PL_KEY(id) ((id) >= PL_UFO ? (id) : (id) >= PL_BALL ? (uint8_t)(PL_BALL + CUBE_IMG((uint8_t)((id) - PL_BALL)))                     : (id) >= PL_SHIP ? (id) : CUBE_IMG(id))
 
 static uint8_t cube_step(void) {
     uint8_t s = (uint8_t)(player.anim_frame << 1);
@@ -309,12 +315,14 @@ static uint8_t cube_turn(uint8_t s) {
 
 static uint8_t player_frame_id(void) {
     if (player.mode == MODE_SHIP) return (uint8_t)(PL_SHIP + ship_tilt);
+    if (player.mode == MODE_UFO) return (uint8_t)(PL_UFO + ufo_tilt);
     if (player.mode == MODE_BALL) return (uint8_t)(PL_BALL + cube_turn(ball_step()));
     return cube_turn(cube_step());
 }
 
 // Icons 1..45 (Famidash and custom, tools/make_cube_icon_frames.py): 24 frames like icon 0, 10 icons a bank
 static const uint8_t *player_frame_src(uint8_t id) {
+    if (id >= PL_UFO) return UFO_FRAME(id - PL_UFO);
     if (id >= PL_BALL) return BALL_FRAME(CUBE_IMG((uint8_t)(id - PL_BALL)));
     if (id >= PL_SHIP) return SHIP_FRAME(id - PL_SHIP);
     if (selected_icon == 0) return CUBE_ICON0_FRAME(CUBE_IMG(id));
@@ -342,6 +350,7 @@ static void cube_icon_reset(void) {
     cube_mirror = cube_img_mir = CUBE_MIRROR();
     cube_front = 0;
     ship_tilt = SHIP_FRAME_LEVEL;
+    ufo_tilt = UFO_FRAME_LEVEL;
     cube_shown = player_frame_id();
     cube_tiles_load_now(player_frame_src(cube_shown), player_frame_bank(cube_shown), 0);
 }
@@ -358,6 +367,19 @@ static void ship_tilt_update(void) {
     else if (ship_tilt < target) ship_tilt++;
     else if (ship_tilt >= target + 2u) ship_tilt -= 2;
     else if (ship_tilt > target) ship_tilt--;
+}
+
+// UFO: the same in 5 degree steps up to 10, one image a frame: nose up on a jump, level at its top
+// and on the ground, down as it falls
+static const uint16_t ufo_tilt_vy[] = UFO_TILT_VY;
+static void ufo_tilt_update(void) {
+    int16_t vy = player.gravity_flipped ? -player.vel_y.w : player.vel_y.w;   // + toward the rest surface
+    uint16_t a = (vy < 0) ? (uint16_t)-vy : (uint16_t)vy;
+    uint8_t k = 0;
+    while (k < (uint8_t)sizeof(ufo_tilt_vy) / 2u && a >= ufo_tilt_vy[k]) k++;
+    uint8_t target = (vy > 0) ? (uint8_t)(UFO_FRAME_LEVEL - k) : (uint8_t)(UFO_FRAME_LEVEL + k);
+    if (ufo_tilt < target) ufo_tilt++;
+    else if (ufo_tilt > target) ufo_tilt--;
 }
 
 static const metasprite_t *player_frame_metasprite(uint8_t want) {
@@ -380,16 +402,17 @@ static const metasprite_t *player_frame_metasprite(uint8_t want) {
     uint8_t show = same ? want : cube_shown;
     uint8_t t = (uint8_t)(cube_front << 2);
     // cube / ball, second half turn: the image of the step - 24, flipped both ways (halves swapped)
-    uint8_t turn = (show >= PL_BALL) ? (uint8_t)(show - PL_BALL) : (show >= PL_SHIP) ? 0 : show;
+    uint8_t tilted = PL_TILTED(show);
+    uint8_t turn = tilted ? 0 : (show >= PL_BALL) ? (uint8_t)(show - PL_BALL) : show;
     uint8_t flip = (turn >= CUBE_ICON_FRAMES) ? (S_FLIPX | S_FLIPY) : 0;
     uint8_t l = flip ? (uint8_t)(t + 2) : t, r = flip ? t : (uint8_t)(t + 2);
     // still the image from before a flip of the drawing (its copy is a frame late): undo that
     // flip, so for this frame the player looks exactly as on the last one
-    uint8_t undo = (show >= PL_SHIP && show < PL_BALL) ? (uint8_t)(cube_img_mir ^ cube_mirror) : 0;
+    uint8_t undo = tilted ? (uint8_t)(cube_img_mir ^ cube_mirror) : 0;
     if (undo & 1u) flip ^= S_FLIPY;
     if (undo & 2u) { uint8_t x = l; l = r; r = x; flip ^= S_FLIPX; }
-    int8_t dy = (show >= PL_SHIP && show < PL_BALL) ? -1 : 0;   // the ship is drawn a pixel higher,
-    int8_t dx = (show >= PL_BALL) ? 0 : -1;                     // the ball a pixel further right
+    int8_t dy = tilted ? -1 : 0;                         // the ship and the UFO a pixel higher,
+    int8_t dx = (show >= PL_BALL && !tilted) ? 0 : -1;   // the ball a pixel further right
     flip |= S_PALETTE;   // DMG: OBP1, the player's palette (CGB: ignored)
     cube_ms[0].dy = dy; cube_ms[0].dx = dx; cube_ms[0].dtile = l; cube_ms[0].props = flip;
     cube_ms[1].dy = 0;  cube_ms[1].dx = 8;  cube_ms[1].dtile = r; cube_ms[1].props = flip;
@@ -1694,9 +1717,13 @@ void play_level(uint8_t idx) BANKED {
             shadow_OAM[oam_index].prop = prop;
             oam_index++;
         } else if (end_anim_state != END_ANIM_SHAKE) {
-            if (player.mode == MODE_SHIP) {
-                ship_tilt_update();
-                const metasprite_t *ship_ms = player_frame_metasprite((uint8_t)(PL_SHIP + ship_tilt));
+            if (player.mode == MODE_SHIP || player.mode == MODE_UFO) {
+                // the ship, or Famidash's UFO (1 px above the cube's place, like Famidash's UFO_0):
+                // tilted images, upside down when the gravity is flipped, mirrored in mirror mode
+                uint8_t id;
+                if (player.mode == MODE_SHIP) { ship_tilt_update(); id = (uint8_t)(PL_SHIP + ship_tilt); }
+                else { ufo_tilt_update(); id = (uint8_t)(PL_UFO + ufo_tilt); }
+                const metasprite_t *ship_ms = player_frame_metasprite(id);
                 if (player.gravity_flipped) {
                     if (view_rev) oam_index += move_metasprite_hvflip(ship_ms, 0, oam_index, sprite_x_final + 24, final_py + 24);
                     else oam_index += move_metasprite_hflip(ship_ms, 0, oam_index, sprite_x_final + 8, final_py + 32);
@@ -1704,15 +1731,6 @@ void play_level(uint8_t idx) BANKED {
                     if (view_rev) oam_index += move_metasprite_vflip(ship_ms, 0, oam_index, sprite_x_final + 24, final_py + 16);
                     else oam_index += move_metasprite(ship_ms, 0, oam_index, sprite_x_final + 8, final_py + 16);
                 }
-            } else if (player.mode == MODE_UFO) {
-                // Famidash UFO_0: one tile pair and its mirror image, 1 px above the cube's place;
-                // upside down when the gravity is flipped (symmetric: the same in mirror mode)
-                uint8_t prop = S_PALETTE, y = (uint8_t)(final_py + 15);
-                if (player.gravity_flipped) { prop |= S_FLIPY; y += 2; }
-                OAM_item_t *o = &shadow_OAM[oam_index];
-                o[0].y = y; o[0].x = (uint8_t)(sprite_x_final + 8);  o[0].tile = UFO_TILE; o[0].prop = prop;
-                o[1].y = y; o[1].x = (uint8_t)(sprite_x_final + 16); o[1].tile = UFO_TILE; o[1].prop = prop | S_FLIPX;
-                oam_index += 2;
             } else if (player.mode == MODE_BALL) {
                 // like the cube: never mirrored, it rolls the other way on the ceiling
                 const metasprite_t *ball = player_frame_metasprite(player_frame_id());

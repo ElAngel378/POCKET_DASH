@@ -15,7 +15,7 @@
 #define FAMIDASH_DECO_TILE_COUNT 40
 
 // 1.4 objects. VRAM bank 0 (DMG + CGB):
-#define UFO_TILE              16   // UFO (1.5): one 8x16 pair, the right half mirrored
+#define UFO_TILE              16   // old UFO (1.5), unused: the UFO is streamed like the ship (gameplay.c PL_UFO)
 #define MINI_UFO_TILE         18   // mini UFO: image in the top half, like MINI_PLAYER_TILE_BASE
 #define MINI_PLAYER_TILE_BASE 116  // 5 8x16 pairs: cube 0/22/45 deg, ship, ball
 #define MINI_PORTAL_TILE_A    126  // mini/growth portal pair 0 ...
