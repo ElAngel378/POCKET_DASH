@@ -155,8 +155,8 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
                 csv_data = data_element.text.replace('\n', '').replace('\r', '') if data_element.text else ""
                 tiles = csv_data.split(',')
 
-                # Maps are MAP_ROWS (32) rows tall and bottom-aligned (tools/build_levels.py)
-                start_y = map_height - 32
+                # Maps are MAP_ROWS (64) rows tall and bottom-aligned (tools/build_levels.py)
+                start_y = map_height - 64
 
                 for index, tile_str in enumerate(tiles):
                     if not tile_str.strip():

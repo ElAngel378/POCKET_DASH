@@ -363,8 +363,12 @@ static void gnd_mt_setup(uint8_t tl_x) {
     m[2] = ground_bot[tl_x]; m[3] = ground_bot[tr_x];
     m[4] = m[5] = m[6] = m[7] = 0x0C;
 }
-// CGB parallax tile row of map row m: (m % 3) * 16 (rows of the parallax pattern repeat every 3)
-static const uint8_t row_ty0[48] = {
+// CGB parallax tile row of map row m (rows of the parallax pattern repeat every 3), counted from
+// the ground so that the pattern stays put when MAP_ROWS changes: ((m - GROUND_ROW + 32) % 3) * 16,
+// for map rows 0 .. GROUND_ROW + 15 (the band reaches the ground row)
+static const uint8_t row_ty0[GROUND_ROW + 16] = {
+    16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16,
+    32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32,
     0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0,
     16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16,
     32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32

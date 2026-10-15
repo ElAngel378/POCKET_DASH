@@ -1306,7 +1306,10 @@ void play_level(uint8_t idx) BANKED {
         cam_py = MAP_Y0 + 112u;
         cam_py_max = (level_map_h << 4) - 144u;
     }
-    level_top_px = (uint16_t)l->map_top << 4;
+    // two steps: SDCC compiled (uint16_t)l->map_top << 4 with the high byte cleared (fine while
+    // map_top < 16; a 27-row level in a 64-row map has map_top 37)
+    level_top_px = l->map_top;
+    level_top_px <<= 4;
     mt_band = band_for_cam(cam_py, BAND_MAX);
     band_cam_row = 0xFF;
     loaded_r = BKG_MT_W - 1;

@@ -10,8 +10,8 @@
 // A level map is MAP_ROWS metatiles tall, stored column by column (MAP_ROWS bytes each), and
 // split into MAP_BANK_COLS-column chunks (16 KB), one per ROM bank, in consecutive banks
 // starting at map_bank. Every chunk is the only thing in its bank, so each one starts at the
-// same address as the first: column c is in bank map_bank + (c >> 9), at
-// map + ((c & 511) << 5).
+// same address as the first: column c is in bank map_bank + (c >> 8), at
+// map + ((c & 255) << 6).
 #define MAP_BANK(map_bank, c) ((uint8_t)((map_bank) + (uint8_t)((c) >> MAP_BANK_COLS_SHIFT)))
 #define MAP_COL(map, c) ((map) + (((uint16_t)(c) & (MAP_BANK_COLS - 1u)) << MAP_ROWS_SHIFT))
 

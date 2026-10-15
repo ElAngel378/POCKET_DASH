@@ -85,9 +85,9 @@ uint8_t col_at_raw_cached(const uint8_t *col_ptr, uint16_t world_py);
 // Batch collision context: switches to the map bank once.
 // Level maps: MAP_ROWS metatile rows per column, MAP_BANK_COLS columns (16 KB) per ROM bank, in
 // consecutive banks (see collision.c and tools/build_levels.py, which must use the same values)
-#define MAP_ROWS_SHIFT 5
+#define MAP_ROWS_SHIFT 6
 #define MAP_ROWS (1u << MAP_ROWS_SHIFT)
-#define MAP_BANK_COLS_SHIFT 9
+#define MAP_BANK_COLS_SHIFT 8
 #define MAP_BANK_COLS (1u << MAP_BANK_COLS_SHIFT)
 // CGB: the row below the map shows the ground strip
 #define GROUND_ROW MAP_ROWS

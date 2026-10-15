@@ -148,7 +148,7 @@ def export_binary_map(tmx_path, out_bin_path):
 # A map is MAP_ROWS rows tall, stored column by column (MAP_ROWS bytes per column), in chunks of
 # MAP_BANK_COLS columns (16 KB, a whole ROM bank), one chunk per bank, in consecutive banks.
 # Must match MAP_ROWS / MAP_BANK_COLS in include/collision.h.
-MAP_ROWS = 32
+MAP_ROWS = 64
 MAP_BANK_COLS = 16384 // MAP_ROWS
 MAP_MAX_COLS = 4095          # the camera is a 16-bit pixel position
 FIRST_MAP_BANK = 30
