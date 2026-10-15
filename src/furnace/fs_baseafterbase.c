@@ -19,9 +19,9 @@ BANKREF(fs_baseafterbase)
 const fur_song_t fs_baseafterbase = {
     3, /* chunks */
     2, /* wave pool chunk */
-    0, /* anti-click */
-    0, /* anti-click step at 56.1096 Hz */
+    1, /* anti-click */
+    37376, /* anti-click step at 56.1096 Hz */
     1196032UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 1756 }, { 0, 6711 }, { 1, 771 }, { 1, 5732 } }, /* stream entry points */
+    { { 0, 0 }, { 0, 1756 }, { 0, 6711 }, { 1, 771 }, { 1, 11687 } }, /* stream entry points */
     fs_baseafterbase_chunks
 };
