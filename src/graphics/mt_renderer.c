@@ -880,11 +880,145 @@ static void row_tiles_dmg(void) __naked {
     __endasm;
 }
 
+// CGB: the common case of a row job's metatiles, row_tiles / row_attrs from rt_ids[0 .. rt_n-1]
+// through the table rt_mt: each quarter's tile, or the parallax tile of its row / slot for the
+// transparent tile 12 (attribute 0x0B), else the metatile's palette | rt_pf. Ring slot rt_slot,
+// then rt_slot + rt_dir (-1 mirrored). Saw parts and the ground look metatiles are fixed up in C
+// afterwards (build_row_slots). In C this loop took ~5k cycles a slot: a quarter of a CGB frame
+// for every half row while climbing, the game's worst frames (Theory of Everything).
+static uint8_t rt_k, rt_slot, rt_dir, rt_r0, rt_pf, rt_pal, rt_tlx;
+static void row_tiles_cgb(void) __naked {
+    __asm
+        xor     a, a
+        ld      (_rt_k), a              ; k = 2 * slot index: column in row_tiles / row_attrs
+    1$:
+        ; c = id = rt_ids[k / 2]
+        ld      a, (_rt_k)
+        srl     a
+        add     a, #<_rt_ids
+        ld      e, a
+        ld      a, #>_rt_ids
+        adc     a, #0
+        ld      d, a
+        ld      a, (de)
+        ld      c, a
+        ; rt_pal = famidash_metatile_palettes[id] | rt_pf
+        add     a, #<_famidash_metatile_palettes
+        ld      l, a
+        ld      a, #>_famidash_metatile_palettes
+        adc     a, #0
+        ld      h, a
+        ld      a, (_rt_pf)
+        or      a, (hl)
+        ld      (_rt_pal), a
+        ; rt_tlx = (rt_slot & 3) * 2; rt_slot += rt_dir
+        ld      a, (_rt_slot)
+        ld      b, a
+        and     a, #3
+        add     a, a
+        ld      (_rt_tlx), a
+        ld      a, (_rt_dir)
+        add     a, b
+        ld      (_rt_slot), a
+        ; hl = rt_mt + id * 4
+        ld      l, c
+        ld      h, #0
+        add     hl, hl
+        add     hl, hl
+        ld      a, (_rt_mt)
+        add     a, l
+        ld      l, a
+        ld      a, (_rt_mt + 1)
+        adc     a, h
+        ld      h, a
+        ; b = r0 + tlx (parallax tile of the top left quarter), c = k
+        ld      a, (_rt_r0)
+        ld      b, a
+        ld      a, (_rt_tlx)
+        add     a, b
+        ld      b, a
+        ld      a, (_rt_k)
+        ld      c, a
+        ; top left
+        ld      d, b
+        ld      e, c
+        ld      a, (hl+)
+        call    6$
+        ; top right
+        ld      d, b
+        inc     d
+        ld      e, c
+        inc     e
+        ld      a, (hl+)
+        call    6$
+        ; bottom left (the bottom tile row is 16 bytes on; parallax row + 8)
+        ld      a, b
+        add     a, #8
+        ld      d, a
+        ld      a, c
+        add     a, #16
+        ld      e, a
+        ld      a, (hl+)
+        call    6$
+        ; bottom right
+        ld      a, b
+        add     a, #9
+        ld      d, a
+        ld      a, c
+        add     a, #17
+        ld      e, a
+        ld      a, (hl)
+        call    6$
+        ; next slot
+        ld      a, (_rt_n)
+        add     a, a
+        ld      b, a
+        ld      a, (_rt_k)
+        add     a, #2
+        ld      (_rt_k), a
+        cp      a, b
+        jp      C, 1$
+        ret
+    6$:
+        ; a = the quarter's tile, d = its parallax tile, e = column: row_tiles[e], row_attrs[e]
+        push    hl
+        cp      a, #12
+        jr      NZ, 7$
+        ld      a, d
+        ld      d, #0x0B
+        jr      8$
+    7$:
+        ld      d, a
+        ld      a, (_rt_pal)
+        ld      h, a
+        ld      a, d
+        ld      d, h
+    8$:
+        ld      hl, #_row_tiles
+        push    af
+        ld      a, l
+        add     a, e
+        ld      l, a
+        ld      a, h
+        adc     a, #0
+        ld      h, a
+        pop     af
+        ld      (hl), a
+        ld      hl, #_row_attrs
+        ld      a, l
+        add     a, e
+        ld      l, a
+        ld      a, h
+        adc     a, #0
+        ld      h, a
+        ld      (hl), d
+        pop     hl
+        ret
+    __endasm;
+}
+
 static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
     const uint8_t (*mt_table)[4] = reversed ? mt_tab_rev : mt_tab;
-    uint8_t ids[BG_RJ_SLOTS];
-    uint8_t *t0 = row_tiles[0];
-    uint8_t *t1 = row_tiles[1];
     if (_cpu != CGB_TYPE) {
         // DMG: tiles straight from the metatile table (no attributes, parallax or saw tiles)
         get_map_row_slots(first, n, row, loaded_r, reversed, map, map_w, map_bank, rt_ids);
@@ -893,9 +1027,11 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
         row_tiles_dmg();
         return;
     }
-    uint8_t *a0 = row_attrs[0];
-    uint8_t *a1 = row_attrs[1];
     if (row == GROUND_ROW) {
+        uint8_t *t0 = row_tiles[0];
+        uint8_t *t1 = row_tiles[1];
+        uint8_t *a0 = row_attrs[0];
+        uint8_t *a1 = row_attrs[1];
         for (uint8_t i = 0; i < n; i++) {
             uint8_t s = first + i;
             *t0++ = ground_top[(s << 1) & 7u]; *t0++ = ground_top[((s << 1) + 1u) & 7u];
@@ -904,45 +1040,42 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
         }
         return;
     }
-    get_map_row_slots(first, n, row, loaded_r, reversed, map, map_w, map_bank, ids);
+    get_map_row_slots(first, n, row, loaded_r, reversed, map, map_w, map_bank, rt_ids);
     uint8_t r0 = row_ty0[row];
-    uint8_t flip = (reversed && mt_cgb_flip) ? 0x20 : 0;
+    rt_n = n;
+    rt_mt = mt_table[0];
+    rt_slot = reversed ? (uint8_t)(-(int8_t)first & 15u) : first;
+    rt_dir = reversed ? 0xFFu : 1u;
+    rt_r0 = r0;
+    rt_pf = (reversed && mt_cgb_flip) ? 0x20 : 0;
+    row_tiles_cgb();
+    // saw parts and the ground look metatiles: from the plain tiles just built
+    uint8_t ram_tab = (&mt_tab[0][0] == &mt_ram[0][0][0]);
     for (uint8_t i = 0; i < n; i++) {
-        uint8_t tiles[4];
-        uint8_t attrs[4];
+        uint8_t mt_id = rt_ids[i];
+        uint8_t si = saw_mt_index[mt_id];
+        uint8_t look = ram_tab ? gnd_look_tab[mt_id] : 0;
+        if (!look && !(si && mt_saws && (mt_id != SAW_CENTER_MT || mt_big_saws))) continue;
         uint8_t slot = first + i;
         if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
         uint8_t tl_x = (uint8_t)((slot & 3u) << 1);
-        uint8_t tr_x = tl_x + 1u;
-        uint8_t mt_id = ids[i];
-        const uint8_t *mt = mt_table[mt_id];
-        uint8_t pal = famidash_metatile_palettes[mt_id];
-        for (uint8_t q = 0; q < 4; q++) {
-            uint8_t t = mt[q];
-            if (t == 12) {
-                tiles[q] = (q < 2 ? r0 : (uint8_t)(r0 + 8u)) + ((q & 1) ? tr_x : tl_x);
-                attrs[q] = 0x0B;
-            } else {
-                tiles[q] = t;
-                attrs[q] = (uint8_t)(pal | flip);
-            }
-        }
-        uint8_t si = saw_mt_index[mt_id];
-        uint8_t look = (&mt_tab[0][0] == &mt_ram[0][0][0]) ? gnd_look_tab[mt_id] : 0;
+        uint8_t k = (uint8_t)(i << 1);
+        uint8_t tiles[4], attrs[4];
+        tiles[0] = row_tiles[0][k]; tiles[1] = row_tiles[0][k + 1u]; tiles[2] = row_tiles[1][k]; tiles[3] = row_tiles[1][k + 1u];
+        attrs[0] = row_attrs[0][k]; attrs[1] = row_attrs[0][k + 1u]; attrs[2] = row_attrs[1][k]; attrs[3] = row_attrs[1][k + 1u];
         if (look) {
             gnd_mt_setup(tl_x);
             const uint8_t *m = gnd_mt[look - 1u];
             memcpy(tiles, m, 4); memcpy(attrs, m + 4, 4);
-        } else if (si && mt_saws && (mt_id != SAW_CENTER_MT || mt_big_saws)) {
+        } else {
             saw_dst = tiles; saw_dst_attr = attrs;
-            put_saw(si, reversed, r0, (uint8_t)(r0 + 8u), tl_x, tr_x);
+            put_saw(si, reversed, r0, (uint8_t)(r0 + 8u), tl_x, (uint8_t)(tl_x + 1u));
         }
-        *t0++ = tiles[0]; *t0++ = tiles[1]; *t1++ = tiles[2]; *t1++ = tiles[3];
-        *a0++ = attrs[0]; *a0++ = attrs[1]; *a1++ = attrs[2]; *a1++ = attrs[3];
+        row_tiles[0][k] = tiles[0]; row_tiles[0][k + 1u] = tiles[1]; row_tiles[1][k] = tiles[2]; row_tiles[1][k + 1u] = tiles[3];
+        row_attrs[0][k] = attrs[0]; row_attrs[0][k + 1u] = attrs[1]; row_attrs[1][k] = attrs[2]; row_attrs[1][k + 1u] = attrs[3];
     }
 }
 
-// CGB: builds the slots into the VBlank handler's request buffer and requests the upload
 void request_row_slots(uint8_t first, uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED {
     build_row_slots(first, BG_RJ_SLOTS, row, loaded_r, map, map_w, map_bank, reversed);
     memcpy(bg_rj_tiles, row_tiles, sizeof(row_tiles));

@@ -337,10 +337,10 @@ void bg_parallax_vbl_isr(void) {
                 copy_rows2();
             }
             bg_cj_pending = 0;
-            // A column and a row in one VBlank leave no time for the parallax after them (the sky
-            // froze for a frame whenever a row was streamed while climbing): the parallax first,
-            // the row usually still fits after it
-            parallax_try();
+            // A column and a row in one VBlank leave no time for the parallax after them: the
+            // parallax first, unless a row is waiting (climbing: rows that fall behind show stale
+            // tiles for seconds, a parallax step put off by a frame is barely visible)
+            if (!bg_rj_pending) parallax_try();
         }
         ly = LY_REG;
         // never before a column slice still pending: built for the band before it moved, it

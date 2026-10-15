@@ -33,6 +33,31 @@ def symbol(name):
     return int(m.group(1), 16)
 
 
+def trace_lua(path):
+    """Lua: writes the recorded player state for the current camera x every frame."""
+    import json
+    t = json.load(open(path))
+    rows = "\n".join("[%d]={%s}," % (int(k), ",".join(map(str, v))) for k, v in sorted(t.items(), key=lambda kv: int(kv[0])))
+    pp, cx = symbol("gpplayer"), symbol("gpcamx")
+    return """
+local TRACE = {
+%s
+}
+emu.addEventCallback(function()
+  local M = emu.memType.gameboyMemory
+  local x = emu.read(%d, M) + 256 * emu.read(%d, M)
+  local p = emu.read(%d, M) + 256 * emu.read(%d, M)
+  local r = TRACE[x]
+  if r and p >= 0xC000 then
+    emu.write(p + 24, r[1] %% 256, M); emu.write(p + 25, math.floor(r[1] / 256), M)
+    emu.write(p + 3, r[2], M); emu.write(p + 2, 0, M)
+    emu.write(p + 9, r[3], M); emu.write(p + 19, r[4], M); emu.write(p + 8, r[5], M)
+    emu.write(p + 4, r[6], M); emu.write(p + 5, r[7], M)
+  end
+end, emu.eventType.endFrame)
+""" % (rows, cx, cx + 1, pp, pp + 1)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--level", type=int, default=0)
@@ -43,6 +68,8 @@ def main():
     ap.add_argument("--no-music", action="store_true", help="switch the music setting off (music cost)")
     ap.add_argument("--mirror", type=int, default=0, help="flip player.reversed every N frames (profiles mirror_reload; 0: off)")
     ap.add_argument("--jump", type=int, default=0, help="press A for 6 frames every N frames (0: no input)")
+    ap.add_argument("--trace", help="JSON {camera x: [y_base, y, mode, mini, gravity, vel lo, vel hi]}: "
+                    "the player follows a recorded playthrough (god mode), so the camera moves like a real one")
     a = ap.parse_args()
 
     if not a.no_build:
@@ -55,6 +82,8 @@ def main():
               .replace("@MUSIC_ADDR@", hex(symbol("setting_music_enabled")) if a.no_music else "nil")
               .replace("@JUMP@", str(a.jump)).replace("@MIRROR@", str(a.mirror))
               .replace("@PLAYER_PTR_ADDR@", hex(symbol("gpplayer"))))
+    if a.trace:
+        lua += trace_lua(a.trace)
     script = ROOT / "temp_prof" / ("profile_run_%d_%s.lua" % (a.level, "dmg" if a.dmg else "cgb"))
     script.write_text(lua)
     # The model is a command line setting override (the user's own Mesen settings are not changed)

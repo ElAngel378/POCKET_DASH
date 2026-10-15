@@ -510,13 +510,18 @@ static void reload_level_state(uint8_t idx) {
     }
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
     DISPLAY_ON;
-    if (level_songs[idx] && setting_music_enabled) {
-        if (!music_play_level_fur(idx)) {
+    if (setting_music_enabled) {
+        // the Furnace song, else the hUGETracker one (Theory of Everything only has a Furnace song)
+        uint8_t playing = music_play_level_fur(idx);
+        if (!playing && level_songs[idx]) {
             init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
             current_song_bank = song_bank[idx];
+            playing = 1;
         }
-        TAC_REG = 0x04;
-        music_ready = 1;
+        if (playing) {
+            TAC_REG = 0x04;
+            music_ready = 1;
+        }
     }
     enable_interrupts();
 }
@@ -1383,13 +1388,18 @@ void play_level(uint8_t idx) BANKED {
 
     fade_from_black(2);
 
-    if (level_songs[idx] && setting_music_enabled) {
-        if (!music_play_level_fur(idx)) {
+    if (setting_music_enabled) {
+        // the Furnace song, else the hUGETracker one (Theory of Everything only has a Furnace song)
+        uint8_t playing = music_play_level_fur(idx);
+        if (!playing && level_songs[idx]) {
             init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
             current_song_bank = song_bank[idx];
+            playing = 1;
         }
-        TAC_REG = 0x04;
-        music_ready = 1;
+        if (playing) {
+            TAC_REG = 0x04;
+            music_ready = 1;
+        }
     }
 
     scroll_acc = 0;
@@ -1785,6 +1795,10 @@ void play_level(uint8_t idx) BANKED {
         // Vertical streaming: move the VRAM band one row towards the camera when the row job is
         // idle. The new row is BAND_MARGIN rows away from the screen, and a row takes 2 frames
         // (16px) while the camera moves at most ~8px per frame.
+        // A row half the VBlank handler has uploaded counts as done: checked before the band so a
+        // finished row lets the next one start this frame (2 frames a row, 8px a frame: the camera's
+        // top speed; checked after it, a row took 3 frames and a long climb outran the band)
+        if (row0_job_issued && !bg_rj_pending) { row0_job_issued = 0; row0_job_pos += ROW_JOB_PER_FRAME; }
         uint8_t cam_row = (uint8_t)(cam_py >> 4);
         if (row0_job_pos >= 16 && cam_row != band_cam_row) {
             uint8_t target_band = band_for_cam(cam_py, mt_band);
@@ -1845,7 +1859,6 @@ void play_level(uint8_t idx) BANKED {
         // The parallax GDMA (768 bytes, ~1.9k dots) is executed by the VBlank
         // interrupt itself the instant VBlank starts (see bg_parallax_phases.c),
         // so it never depends on how late this thread wakes up.
-        if (row0_job_issued && !bg_rj_pending) { row0_job_issued = 0; row0_job_pos += ROW_JOB_PER_FRAME; }
         if (row0_job_pos < 16 && !row0_job_issued && !mj_switched) {
             request_row_slots(row0_job_pos, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, view_rev);
             row0_job_issued = 1;
