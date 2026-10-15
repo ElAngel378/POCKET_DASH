@@ -56,7 +56,8 @@ extern uint16_t bg_saw_dst;
 extern volatile uint8_t bg_saw_dmg_n;
 extern uint8_t * const *bg_saw_dmg_dsts;
 // Custom cube icon frame: 64 bytes (4 sprite tiles) from bg_cube_src (ROM bank bg_cube_bank, 16 byte
-// aligned) to bg_cube_dst (VRAM bank 0 sprite tiles), done when bg_cube_pending is back to 0
+// aligned) to bg_cube_dst (VRAM bank 0 sprite tiles): set bg_cube_pending to 4 (tiles), done when
+// it is back to 0 (DMG: the VBlank handler advances src / dst / pending as tiles are copied)
 extern volatile uint8_t bg_cube_pending;
 extern uint8_t bg_cube_bank;
 extern const uint8_t *bg_cube_src;

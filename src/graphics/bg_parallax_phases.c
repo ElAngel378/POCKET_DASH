@@ -217,22 +217,47 @@ static void saw_dmg_copy(void) __naked {
     __endasm;
 }
 
-// Custom cube icon frame: 64 bytes from bg_cube_src to bg_cube_dst (~3.4 lines on DMG)
+// DMG custom cube icon frame: copies tiles from bg_cube_src to bg_cube_dst while LY is 144..151
+// (a tile takes ~0.85 line), and leaves bg_cube_src / bg_cube_dst / bg_cube_pending (tiles left) at
+// the first tile not copied. All 64 bytes at once (~3.4 lines) rarely fit after the map uploads:
+// a new image only every 5 or 6 frames, and the cube's spin stalled. Copying it before the map
+// uploads instead made the columns fall behind (stale and missing blocks).
 static void cube_dmg_copy(void) __naked {
     __asm
         ld      hl, #_bg_cube_src
         ld      a, (hl+)
         ld      e, a
-        ld      d, (hl)
+        ld      d, (hl)                 ; de = source tile
         ld      hl, #_bg_cube_dst
         ld      a, (hl+)
         ld      h, (hl)
-        ld      l, a
-        .rept 64
+        ld      l, a                    ; hl = VRAM tile
+        ld      a, (_bg_cube_pending)
+        ld      b, a                    ; b = tiles left
+    1$:
+        ldh     a, (_LY_REG + 0)
+        cp      a, #144
+        jr      C, 2$                   ; past VBlank: the rest next time
+        cp      a, #152
+        jr      NC, 2$
+        .rept 16
         ld      a, (de)
         inc     de
         ld      (hl+), a
         .endm
+        dec     b
+        jr      NZ, 1$
+    2$:
+        ld      a, b
+        ld      (_bg_cube_pending), a
+        ld      a, e
+        ld      (_bg_cube_src), a
+        ld      a, d
+        ld      (_bg_cube_src + 1), a
+        ld      a, l
+        ld      (_bg_cube_dst), a
+        ld      a, h
+        ld      (_bg_cube_dst + 1), a
         ret
     __endasm;
 }
@@ -360,14 +385,13 @@ void bg_parallax_vbl_isr(void) {
         else if (bg_rj_pending && !bg_cj_pending) gp_rj_late++;
 #endif
     }
-    // DMG player frame (4 sprite tiles, double buffered by gameplay; ~3.4 lines): if it still fits
-    ly = LY_REG;
-    if (bg_cube_pending && ly >= 144u && ly <= 149u) {
+    // DMG player frame (4 sprite tiles, double buffered by gameplay): as many tiles as still fit,
+    // the rest on the next VBlank
+    if (bg_cube_pending && !bg_gdma_isr_on) {
         uint8_t prev_b = _current_bank;
         SWITCH_ROM(bg_cube_bank);
         cube_dmg_copy();
         SWITCH_ROM(prev_b);
-        bg_cube_pending = 0;
     }
     // Parallax GDMA after the map uploads (unless a column took the time, see above): first, it
     // often left the row job too little of VBlank, and in a fast climb the rows fell behind

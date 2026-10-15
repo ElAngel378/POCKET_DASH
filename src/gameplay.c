@@ -375,7 +375,7 @@ static const metasprite_t *player_frame_metasprite(uint8_t want) {
         bg_cube_dst = (uint8_t *)(0x8000u + ((uint16_t)(cube_front ^ 1u) << 6));
         cube_req = want;
         cube_req_mir = cube_mirror;
-        bg_cube_pending = 1;
+        bg_cube_pending = 4;   // tiles (DMG: copied a few per VBlank)
     }
     uint8_t show = same ? want : cube_shown;
     uint8_t t = (uint8_t)(cube_front << 2);
