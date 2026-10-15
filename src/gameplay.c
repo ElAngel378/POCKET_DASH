@@ -1250,8 +1250,10 @@ static void update_camera_y(void) {
         return;
     }
 
-    if (player.mode == MODE_SHIP && setting_old_ship_cam) {
-        // Ship with SHIP CAM: OLD: the original dead zone camera that snaps directly
+    // the UFO flies in the same corridors as the ship: the ship's camera
+    uint8_t ship_cam = (player.mode == MODE_SHIP || player.mode == MODE_UFO);
+    if (ship_cam && setting_old_ship_cam) {
+        // Ship / UFO with SHIP CAM: OLD: the original dead zone camera that snaps directly
         int16_t py = (int16_t)wy - (int16_t)cam_py;
         int16_t c;
         if (py < CAM_Y_TOP_ZONE) c = (int16_t)wy - CAM_Y_TOP_ZONE;
@@ -1263,7 +1265,7 @@ static void update_camera_y(void) {
         return;
     }
 
-    if (player.mode == MODE_SHIP) {
+    if (ship_cam) {
         // the corridor: its centre on the portal's (48px tall), rounded down to the block grid
         uint16_t top = (cam_portal_y > 40u) ? ((cam_portal_y - 40u) & 0xFFF0u) : 0;
         uint16_t ground = level_map_h << 4;
