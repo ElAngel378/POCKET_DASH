@@ -527,24 +527,21 @@ inline static uint8_t draw_oam_deco(const FamidashDeco *deco, uint8_t tile_base,
 
 // 4 columns x 3 rows (12 8x16 hardware sprites = 32x48 pixels, tools/make_mirror_portal_gfx.py).
 // The art is mirrored top to bottom: row 0 is stored, row 1 is the middle, row 2 is row 0 drawn
-// with S_FLIPY. The CGB exit art is the entrance mirrored left to right (and in colour 3), so it
-// is drawn with the flip toggled; the DMG exit is the entrance drawn with the flip toggled by the
-// mirrored view (reversed), so it has no tiles of its own.
+// with S_FLIPY. The exit art faces the same way as the entrance (CGB: its own tiles, ring in
+// colour 3; the DMG exit is the entrance tiles). Both are drawn flipped in the mirrored view
+// (reversed), where the world box [x, x + 32) is on screen at [sx - 16, sx + 16).
 static uint8_t draw_oam_mirror_portal(uint8_t obj, uint8_t tile_base, uint8_t oam_idx,
                                       uint8_t sx, uint8_t sy, uint8_t reversed) {
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
     uint8_t t_base = tile_base + MIRROR_PORTAL_ENTER_TILE;
-    uint8_t flip = reversed;
-    if (obj != OBJ_MIRROR_PORTAL && _cpu == CGB_TYPE) {
+    if (obj != OBJ_MIRROR_PORTAL && _cpu == CGB_TYPE)
         t_base = tile_base + MIRROR_PORTAL_EXIT_TILE;
-        flip = !reversed;
-    }
     uint8_t pal = S_PAL(6);   // entrance and exit share palette 6 (see gbc_palettes.c)
-    uint8_t props = flip ? (pal | S_FLIPX) : pal;
-    int8_t dx = flip ? -8 : 8;
+    uint8_t props = reversed ? (pal | S_FLIPX) : pal;
+    int8_t dx = reversed ? -8 : 8;
 
     for (uint8_t row = 0; row < 3; row++) {
-        uint8_t x = flip ? (uint8_t)(sx + 24) : sx;
+        uint8_t x = reversed ? (uint8_t)(sx + 8) : sx;
         uint8_t y = (uint8_t)(sy + (row << 4));
         uint8_t first = (row == 1) ? (uint8_t)(t_base + 8) : t_base;
         uint8_t pr = (row == 2) ? (props ^ S_FLIPY) : props;
