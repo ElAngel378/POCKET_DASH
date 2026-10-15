@@ -312,18 +312,15 @@ uint8_t player_update(
         }
         if (IS_SOLID(hit_col)) {
             uint8_t block_top_y = (uint8_t)(foot_y & ~15);
-            // A quadrant solid hit in its lower half has its top 8px lower
-            if ((foot_y & 15) >= 8 && hit_col == COL_ALL && !IS_SOLID(COL_AT(hit_off, foot_y - 8))) {
+            // A bottom half block / quadrant solid hit in its lower half has its top 8px lower
+            if (hit_col == COL_BOTTOM ||
+                ((foot_y & 15) >= 8 && hit_col == COL_ALL && !IS_SOLID(COL_AT(hit_off, foot_y - 8)))) {
                 block_top_y += 8;
             }
             if (hit_front_only && ((!mini && (uint8_t)(py + box_top + ((box_bot - box_top) >> 1)) >= block_top_y) || (uint8_t)(foot_y - block_top_y) > pen_max)) {
                 // Front edge struck wall side
             } else if (!p->gravity_flipped || p->mode == MODE_SHIP) {
-                if (hit_col == COL_BOTTOM) {
-                    p->world_y.b.h = block_top_y + 8 - box_bot;
-                } else {
-                    p->world_y.b.h = block_top_y - box_bot;
-                }
+                p->world_y.b.h = block_top_y - box_bot;
                 p->world_y.b.l = 0;
                 p->vel_y.w = 0;
                 if (!p->gravity_flipped) {
@@ -351,18 +348,15 @@ uint8_t player_update(
         }
         if (IS_SOLID(hit_col)) {
             uint8_t block_bottom_y = (uint8_t)((head_y & ~15) + 16);
-            // A quadrant solid hit in its upper half has its bottom 8px higher
-            if ((head_y & 15) < 8 && hit_col == COL_ALL && !IS_SOLID(COL_AT(hit_off, head_y + 8))) {
+            // A top half block / quadrant solid hit in its upper half has its bottom 8px higher
+            if (hit_col == COL_TOP ||
+                ((head_y & 15) < 8 && hit_col == COL_ALL && !IS_SOLID(COL_AT(hit_off, head_y + 8)))) {
                 block_bottom_y -= 8;
             }
             if (hit_front_only && ((!mini && (uint8_t)(py + box_top + ((box_bot - box_top) >> 1)) <= block_bottom_y) || (uint8_t)(block_bottom_y - head_y) > pen_max)) {
                 // Front edge struck ceiling side
             } else if (p->gravity_flipped || p->mode == MODE_SHIP) {
-                if (hit_col == COL_TOP) {
-                    p->world_y.b.h = (head_y & ~15) + 8 - box_top;
-                } else {
-                    p->world_y.b.h = block_bottom_y - box_top;
-                }
+                p->world_y.b.h = block_bottom_y - box_top;
                 p->world_y.b.l = 0;
                 p->vel_y.w = 0;
                 if (p->gravity_flipped) {
