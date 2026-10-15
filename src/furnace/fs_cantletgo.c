@@ -19,9 +19,9 @@ BANKREF(fs_cantletgo)
 const fur_song_t fs_cantletgo = {
     3, /* chunks */
     2, /* wave pool chunk */
-    0, /* anti-click */
-    0, /* anti-click step at 68.2667 Hz */
-    983040UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 829 }, { 0, 2739 }, { 1, 1863 }, { 1, 3184 } }, /* stream entry points */
+    1, /* anti-click */
+    31022, /* anti-click step at 67.6 Hz */
+    992735UL, /* tick period in 1/16 cycles */
+    { { 0, 0 }, { 0, 238 }, { 0, 3986 }, { 0, 11036 }, { 1, 8382 } }, /* stream entry points */
     fs_cantletgo_chunks
 };

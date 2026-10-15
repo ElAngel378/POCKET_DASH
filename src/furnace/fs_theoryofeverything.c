@@ -25,6 +25,6 @@ const fur_song_t fs_theoryofeverything = {
     1, /* anti-click */
     34952, /* anti-click step at 60 Hz */
     1118481UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 367 }, { 0, 7284 }, { 0, 11883 }, { 1, 13470 } }, /* stream entry points */
+    { { 0, 0 }, { 0, 403 }, { 0, 7278 }, { 0, 11883 }, { 1, 13205 } }, /* stream entry points */
     fs_theoryofeverything_chunks
 };
