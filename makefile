@@ -70,6 +70,7 @@ $(TEMPDIR)/level_%.o: $(wildcard levels/level_data/*.bin)
 $(BINDIR)/$(PROJECT_NAME).gb: $(OBJS)
 	-rm -f $@
 	$(GBCC) $(LCCFLAGS) -o $@ $(OBJS) $(LIBS)
+	@python tools/check_banks.py $(BINDIR)/$(PROJECT_NAME).map || (rm -f $@ && exit 1)
 
 clean:
 	-rm -rf $(TEMPDIR) $(BINDIR)
