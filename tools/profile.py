@@ -33,6 +33,20 @@ def symbol(name):
     return int(m.group(1), 16)
 
 
+def calls_lua(path, offset):
+    """Lua: input A from a per-joypad()-call file, counted from the first gameplay iteration."""
+    it = open(path).read().strip()
+    return """
+local CALLS, CALL_OFS, ncalls, cstarted = "%s", %d, 0, false
+emu.addMemoryCallback(function() if cstarted then ncalls = ncalls + 1 end end, emu.callbackType.exec, %d)
+emu.addMemoryCallback(function(addr, value) if value == 9 then cstarted = true end end, emu.callbackType.write, %d)
+emu.addEventCallback(function()
+  local c = ncalls + CALL_OFS
+  emu.setInput({a = cstarted and c >= 1 and c <= #CALLS and CALLS:sub(c, c) == "1"}, 0)
+end, emu.eventType.inputPolled)
+""" % (it, offset, symbol("joypad"), symbol("gpmark"))
+
+
 def trace_lua(path):
     """Lua: writes the recorded player state for the current camera x every frame."""
     import json
@@ -68,6 +82,9 @@ def main():
     ap.add_argument("--no-music", action="store_true", help="switch the music setting off (music cost)")
     ap.add_argument("--mirror", type=int, default=0, help="flip player.reversed every N frames (profiles mirror_reload; 0: off)")
     ap.add_argument("--jump", type=int, default=0, help="press A for 6 frames every N frames (0: no input)")
+    ap.add_argument("--calls", help="A held (1) or not (0) at each joypad() call from the level start: replays a "
+                    "recorded playthrough exactly (inputs follow the game's own reads, whatever the frame timing)")
+    ap.add_argument("--calls-offset", type=int, default=0, help="--calls: input index of the first counted call")
     ap.add_argument("--trace", help="JSON {camera x: [y_base, y, mode, mini, gravity, vel lo, vel hi]}: "
                     "the player follows a recorded playthrough (god mode), so the camera moves like a real one")
     a = ap.parse_args()
@@ -84,6 +101,8 @@ def main():
               .replace("@PLAYER_PTR_ADDR@", hex(symbol("gpplayer"))))
     if a.trace:
         lua += trace_lua(a.trace)
+    if a.calls:
+        lua += calls_lua(a.calls, a.calls_offset)
     script = ROOT / "temp_prof" / ("profile_run_%d_%s.lua" % (a.level, "dmg" if a.dmg else "cgb"))
     script.write_text(lua)
     # The model is a command line setting override (the user's own Mesen settings are not changed)
