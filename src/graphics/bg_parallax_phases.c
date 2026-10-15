@@ -217,47 +217,61 @@ static void saw_dmg_copy(void) __naked {
     __endasm;
 }
 
-// DMG custom cube icon frame: copies tiles from bg_cube_src to bg_cube_dst while LY is 144..151
-// (a tile takes ~0.85 line), and leaves bg_cube_src / bg_cube_dst / bg_cube_pending (tiles left) at
-// the first tile not copied. All 64 bytes at once (~3.4 lines) rarely fit after the map uploads:
-// a new image only every 5 or 6 frames, and the cube's spin stalled. Copying it before the map
-// uploads instead made the columns fall behind (stale and missing blocks).
+// DMG custom cube icon frame: copies tiles from bg_cube_src to bg_cube_dst while LY is 144..152,
+// and leaves bg_cube_src / bg_cube_dst / bg_cube_pending (tiles left) at the first tile not copied.
+// DMG VBlank (4560 dots): ~1080 go to GBDK's dispatch and OAM DMA before the handler, ~750 to its
+// checks, a column upload ~1040; what is left (~1700) has to hold the whole image, or the spin
+// skips images (a new one only every few frames). Copied with pop (SP on the source, 18 dots a
+// byte instead of 24): a tile takes ~330 dots (0.72 line), so one started on line 152 still ends
+// inside VBlank (line 153), and the image fits after a column (Mesen, release ROM).
+// Interrupts off while SP points into ROM: a push there would write the MBC (the handler's reti
+// turns them back on). Only called from the VBlank handler.
+static uint16_t cube_sp_save;
 static void cube_dmg_copy(void) __naked {
     __asm
-        ld      hl, #_bg_cube_src
-        ld      a, (hl+)
-        ld      e, a
-        ld      d, (hl)                 ; de = source tile
+        di
+        ld      (_cube_sp_save), sp
         ld      hl, #_bg_cube_dst
         ld      a, (hl+)
-        ld      h, (hl)
-        ld      l, a                    ; hl = VRAM tile
+        ld      e, a
+        ld      d, (hl)                 ; de = VRAM tile
         ld      a, (_bg_cube_pending)
         ld      b, a                    ; b = tiles left
+        ld      hl, #_bg_cube_src
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+        ld      sp, hl                  ; sp = source tile
+        ld      h, d
+        ld      l, e                    ; hl = VRAM tile
     1$:
         ldh     a, (_LY_REG + 0)
         cp      a, #144
         jr      C, 2$                   ; past VBlank: the rest next time
-        cp      a, #152
+        cp      a, #153
         jr      NC, 2$
-        .rept 16
-        ld      a, (de)
-        inc     de
+        .rept 8
+        pop     de
+        ld      a, e
+        ld      (hl+), a
+        ld      a, d
         ld      (hl+), a
         .endm
         dec     b
         jr      NZ, 1$
     2$:
-        ld      a, b
-        ld      (_bg_cube_pending), a
-        ld      a, e
-        ld      (_bg_cube_src), a
-        ld      a, d
-        ld      (_bg_cube_src + 1), a
+        ld      (_bg_cube_src), sp
         ld      a, l
         ld      (_bg_cube_dst), a
         ld      a, h
         ld      (_bg_cube_dst + 1), a
+        ld      a, b
+        ld      (_bg_cube_pending), a
+        ld      hl, #_cube_sp_save
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+        ld      sp, hl
         ret
     __endasm;
 }
