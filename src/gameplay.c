@@ -254,7 +254,7 @@ static uint8_t debug_max_ly;  // worst one since debug mode was switched on
 static uint8_t target_bg_idx;
 static uint8_t died;
 static int16_t py;
-static Player player;
+Player player;   // the only player: player_update and the object logic use it directly (player.h)
 #ifdef DEBUG_PROFILE
 Player * volatile gpplayer = &player;   // tools: the bot reads the whole player state
 #endif

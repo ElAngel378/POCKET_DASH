@@ -569,7 +569,9 @@ static uint8_t touch_box(uint16_t ox, uint16_t oy, uint8_t xo, uint8_t w, int8_t
 
 // Player overlaps the object horizontally: portals, pads, orbs. act = its activated flag.
 // (Separate from process_sprite_logic: SDCC compiles one huge function very slowly.)
-static void touch_object(Player* p, uint8_t obj, uint16_t obj_x, uint16_t obj_y, uint8_t joy, uint8_t *act) {
+static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t obj_y, uint8_t joy, uint8_t *act) {
+    (void)p_arg;
+#define p (&player)   // always &player: fixed addresses (player.h)
     switch (obj) {
         case OBJ_MINI_PORTAL:
         case OBJ_GROW_PORTAL:
@@ -695,12 +697,15 @@ static void touch_object(Player* p, uint8_t obj, uint16_t obj_x, uint16_t obj_y,
             }
             break;
     }
+#undef p
 }
 
 void process_sprite_logic(
         SpCache *cache_arg, uint16_t cam_px,
-        Player* p, uint8_t joy, uint8_t* target_bg_idx
+        Player* p_arg, uint8_t joy, uint8_t* target_bg_idx
 ) BANKED {
+    (void)p_arg;
+#define p (&player)   // always &player: fixed addresses (player.h)
     uint8_t i;
     uint16_t px = p->world_x;
     uint16_t py = p->y_base + p->world_y.b.h;
@@ -818,6 +823,7 @@ void process_sprite_logic(
             break;
         }
     }
+#undef p
 }
 
 // Mini / growth portal (Famidash Mini_Portal / Growth_Portal: 7 8x16 sprites)

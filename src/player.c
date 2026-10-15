@@ -189,11 +189,14 @@ static uint8_t mini_spike_at(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
 #define MINI_SPIKE(off, y) mini_spike_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
 
 uint8_t player_update(
-        Player* p,
+        Player* p_arg,
         uint8_t joy,
         const uint8_t* collision_columns,
         uint16_t map_h
 ) BANKED {
+    // always &player: fixed addresses instead of pointer + offset for every field
+    (void)p_arg;
+#define p (&player)
     if (p->dead) return 1;
     if (p->level_complete) return 0;
 
@@ -497,6 +500,7 @@ uint8_t player_update(
 
     p->last_joy = joy;
     return 0;
+#undef p
 }
 
 #undef GET_COL_FAST

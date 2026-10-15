@@ -117,6 +117,10 @@ typedef struct Player {
     uint8_t  ufo_orbed;    // an orb took this frame's press (the UFO does not also jump)
 } Player;
 
+// The player (gameplay.c). player_update and the object logic work on it directly: through a
+// pointer every field access cost SDCC ~10-15 instructions (stack-held pointer + offset)
+extern Player player;
+
 // Reset player state to starting position
 void player_init(Player* p, uint16_t start_x, int16_t start_y) BANKED;
 
