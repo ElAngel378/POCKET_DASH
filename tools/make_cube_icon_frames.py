@@ -27,8 +27,8 @@ levels/chr_data/ball_frames.png: the ball, 24 frames like a cube icon. Its old h
 0 and 30 degrees, RotSprite in between; made when missing or with --regen.
 
 levels/chr_data/ufo_frames.png: the UFO, Famidash's (GRAPHICS/Icons/bankicon00.chr tiles $3E/$3F,
-the left half of an 8x16 pair it draws mirrored for the right), 5 frames from 10 degrees nose down
-to 10 up in 5 degree steps (same colours): RotSprite of the level one; made when missing or with
+the left half of an 8x16 pair it draws mirrored for the right), 5 frames: 15 and 8 degrees nose
+down, level, 8 and 15 up (same colours): RotSprite of the level one; made when missing or with
 --regen (needs famidash-main then).
 
 src/graphics/cube_icon_frames.c (bank 61: icon 0, ship, ball, UFO) and cube_fd_frames_0.c /
@@ -78,8 +78,8 @@ SHIP_IDX = lambda deg: (45 - deg) // 3
 HAND_SHIP = {0: 45, 1: 24, 3: 0, 5: -24, 6: -45}   # old hand-drawn frame: its angle (2, 4 were generated)
 BALL_PNG = ROOT / "levels" / "chr_data" / "ball_frames.png"
 UFO_PNG = ROOT / "levels" / "chr_data" / "ufo_frames.png"
-UFO_FRAMES = 5                       # 10 .. -10 degrees in 5 degree steps
-UFO_STEP = 5
+UFO_ANGLES = [15, 8, 0, -8, -15]   # frame k: degrees clockwise (nose down .. level .. up)
+UFO_FRAMES = len(UFO_ANGLES)
 HAND_BALL = {6: 0, 8: 4}             # sprite_tiles.png pair of an old ball frame: its frame (x 7.5 degrees)
 SCROLL_SPEED_FP = 714                # gameplay.c: x speed, 8.8 px per frame
 STEP = 7.5   # degrees per frame
@@ -171,15 +171,14 @@ def ship_frames():
 
 
 def ufo_frames():
-    """The UFO: frame k is tilted 10 - 5k degrees clockwise (0: nose down, 2: level, 4: up).
+    """The UFO: frame k is tilted UFO_ANGLES[k] degrees clockwise (0: nose down, 2: level, 4: up).
     Famidash's UFO (bankicon00.chr $3E/$3F, mirrored), RotSprite of it in the others."""
     d = (FD_ROOT / "GRAPHICS" / "Icons" / "bankicon00.chr").read_bytes()
     col = {0: 0, 1: 3, 2: 2, 3: 1}   # Famidash 1 outline, 2 primary, 3 secondary (like fd_frames)
     half = decode_tile_nes(d[0x3E * 16:0x3F * 16], col) + decode_tile_nes(d[0x3F * 16:0x40 * 16], col)
     level = [row + row[::-1] for row in half]
-    mid = UFO_FRAMES // 2
-    frames = rotate(level, [UFO_STEP * (mid - k) for k in range(UFO_FRAMES)], 8.0, 8.0)
-    frames[mid] = level
+    frames = rotate(level, UFO_ANGLES, 8.0, 8.0)
+    frames[UFO_ANGLES.index(0)] = level
     return frames
 
 
@@ -427,9 +426,9 @@ def main():
     # |vertical speed| (8.8) from which the ship tilts k steps (3k degrees, rounded): its flight
     # direction, atan(vy / x speed)
     steps = [round(SCROLL_SPEED_FP * math.tan(math.radians(3 * k - 1.5))) for k in range(1, 16)]
-    # the UFO the same in 5 degree steps, up to 10
-    ufo_steps = [round(SCROLL_SPEED_FP * math.tan(math.radians(UFO_STEP * k - UFO_STEP / 2)))
-                 for k in range(1, UFO_FRAMES // 2 + 1)]
+    # the UFO: not its flight direction (it would sit tilted all the time), calmer: its speed runs from
+    # -823 (a jump) to 807 (falling), 10 degrees only right after a jump or near its top fall speed
+    ufo_steps = [300, 750]
 
     def carr(b):
         return ",\n".join("    " + ", ".join(f"0x{v:02X}" for v in b[i:i + 16]) for i in range(0, len(b), 16))
@@ -498,7 +497,7 @@ extern const uint8_t cube_icon_frames[];   // per frame: left 8x16 pair, right p
 #define SHIP_FRAME(k) (cube_icon_frames + ((uint16_t){ship_first} + (k)) * 64u)
 // Ball frames, after the ship: 0..172.5 degrees like a cube icon (drawn at x + 0, not x - 1)
 #define BALL_FRAME(k) (cube_icon_frames + ((uint16_t){ball_first} + (k)) * 64u)
-// UFO frames, after the ball: frame k tilted {UFO_STEP * (UFO_FRAMES // 2)} - {UFO_STEP}k degrees (0 nose down, level, {UFO_FRAMES - 1} up)
+// UFO frames, after the ball: frame k tilted {", ".join(str(a) for a in UFO_ANGLES)} degrees clockwise (nose down, level, up)
 #define UFO_FRAME_COUNT {UFO_FRAMES}
 #define UFO_FRAME_LEVEL {UFO_FRAMES // 2}
 #define UFO_FRAME(k) (cube_icon_frames + ((uint16_t){ufo_first} + (k)) * 64u)

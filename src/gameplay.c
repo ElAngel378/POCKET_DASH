@@ -271,8 +271,8 @@ static uint8_t practice_mode = 0;
 // direction (ship_tilt_vy), eased.
 // Ball: like the cube, 48 steps from 24 images, rolling all the time (anim_frame turns on the
 // ground too).
-// UFO: Famidash's, 5 images from 10 degrees nose down to 10 up in 5 degree steps, following its
-// flight direction like the ship (ufo_tilt_vy): it tilts up on a jump and down as it falls.
+// UFO: Famidash's, 5 images: 15 and 8 degrees nose down, level, 8 and 15 up, following its
+// vertical speed (ufo_tilt_vy): it tilts nose down on a jump and up as it falls.
 // Frame ids: cube step 0..47, ship PL_SHIP + image, ball PL_BALL + step, UFO PL_UFO + image.
 #define PL_SHIP 64
 #define PL_BALL 128
@@ -369,15 +369,15 @@ static void ship_tilt_update(void) {
     else if (ship_tilt > target) ship_tilt--;
 }
 
-// UFO: the same in 5 degree steps up to 10, one image a frame: nose up on a jump, level at its top
-// and on the ground, down as it falls
+// UFO: 2 steps (8, 15 degrees) from its speed, one image a frame: the other way from the ship, nose
+// down on a jump, level around its top and on the ground, up as it falls
 static const uint16_t ufo_tilt_vy[] = UFO_TILT_VY;
 static void ufo_tilt_update(void) {
     int16_t vy = player.gravity_flipped ? -player.vel_y.w : player.vel_y.w;   // + toward the rest surface
     uint16_t a = (vy < 0) ? (uint16_t)-vy : (uint16_t)vy;
     uint8_t k = 0;
     while (k < (uint8_t)sizeof(ufo_tilt_vy) / 2u && a >= ufo_tilt_vy[k]) k++;
-    uint8_t target = (vy > 0) ? (uint8_t)(UFO_FRAME_LEVEL - k) : (uint8_t)(UFO_FRAME_LEVEL + k);
+    uint8_t target = (vy > 0) ? (uint8_t)(UFO_FRAME_LEVEL + k) : (uint8_t)(UFO_FRAME_LEVEL - k);
     if (ufo_tilt < target) ufo_tilt++;
     else if (ufo_tilt > target) ufo_tilt--;
 }
