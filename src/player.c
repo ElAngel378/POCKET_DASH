@@ -370,13 +370,17 @@ uint8_t player_update(
     // Front wall collision
     py = p->world_y.b.h;
     // Famidash: mini cube probes the wall 2px above / 3px below its centre
-    uint8_t front_y = mini ? ((p->mode == MODE_CUBE) ? (p->gravity_flipped ? 10 : 5) : 7) : (PLAYER_SIZE >> 1);
+    // Normal size: Famidash's box is 15 px tall. On a floor its feet row is the floor's first row
+    // (ours, 16 tall, rests 1 px higher); on a ceiling (flipped) its top row is the ceiling's last
+    // (ours rests 1 px lower). Its centre probe (y + 7) is our py + 8, flipped py + 6, so a half
+    // block in front at the cube's height is hit (py + 7 missed a bottom half block on the floor).
+    uint8_t front_y = mini ? ((p->mode == MODE_CUBE) ? (p->gravity_flipped ? 10 : 5) : 7)
+                           : (p->gravity_flipped ? 6 : 8);
     uint8_t front_center = COL_AT(box_r - 1, py + front_y);
     if (IS_SOLID(front_center)) {
         p->dead = 1;
         return 1;
     }
-
     if (mini) {
         // Famidash's mini spike points: bg_coll_floor_spikes (x+3 / x+5 at the box top + 0 and
         // bottom - 2), bg_coll_death (centre x+3, y+7) and the front side point (x+8)
