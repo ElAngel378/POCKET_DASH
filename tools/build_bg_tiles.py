@@ -22,6 +22,9 @@ Sections (first tile row, tile count). Tile rows are 8 px:
                                gameplay BGP keeps the CGB colour order), replaces SPIKES_B_SLOTS
     row 30  SPIKES_C        4  Famidash spike set C pit spikes (CGB and DMG, tools/make_spikes_c.py),
                                replaces SPIKES_C_SLOTS
+    row 31  BLOCKS_B2_CGB  20  the rest of block set B: plain blocks as bricks (CGB,
+                               tools/make_blocks_b2.py), replaces BLOCKS_B2_SLOTS
+    row 33  BLOCKS_B2_DMG  20  the same for DMG
 
 Which Famidash tile sets a level uses: LEVEL_SETS below.
 
@@ -58,8 +61,12 @@ SECTIONS = [  # name, first row, tile count
     ("SAWS_1", 22, SAW_TILES),
     ("SAWS_2", 26, SAW_TILES),
     ("SPIKES_C", 30, 4),
+    ("BLOCKS_B2_CGB", 31, 20),
+    ("BLOCKS_B2_DMG", 33, 20),
 ]
 BLOCKS_B_SLOTS = [82, 83, 84, 85, 86, 87, 98, 99, 100, 101, 102, 103, 110, 111, 112, 113, 122, 123, 124, 125]
+# plain blocks (NES $40..$49, $50..$59): Theory of Everything's bricks
+BLOCKS_B2_SLOTS = list(range(72, 82)) + list(range(88, 98))
 SPIKES_B_SLOTS = [0, 1, 23, 24, 25, 37, 38, 39]
 # Metatiles 12 / 13 (background spikes) have the transparent tile 12 where spike set B has
 # art: on CGB those quarters use tiles 0 / 1 of SPIKES_B_SLOTS.
@@ -155,10 +162,12 @@ def mirrored(rows):
     return [row[::-1] for row in rows]
 
 
-def runs(slots, first_src):
-    """[(dst, count, src)] for runs of consecutive slots"""
+def runs(slots, first_src, only=None):
+    """[(dst, count, src)] for runs of consecutive slots (only: the slots to load, default all)"""
     out = []
     for i, s in enumerate(slots):
+        if only is not None and s not in only:
+            continue
         if out and out[-1][0] + out[-1][1] == s and out[-1][2] + out[-1][1] == first_src + i:
             out[-1] = (out[-1][0], out[-1][1] + 1, out[-1][2])
         else:
@@ -221,6 +230,8 @@ def main():
         # metatile 120 is also Xstep's diamond: it is the big saw's centre only where big saws are
         big_saw = bool(level_mts & BIG_SAW_PARTS)
         saw_mts = {m: t for m, t in SAW_METATILES.items() if m != SAW_CENTER_MT or big_saw}
+        # BLOCKS_B2: only the slots the level's metatiles show (DMG slots are scarce)
+        b2 = {t for m in level_mts for t in sheet_mt[m]} & set(BLOCKS_B2_SLOTS)
 
         # CGB
         # bank bit 7: never load mirrored (CGB mirrors saws with the X flip attribute)
@@ -229,6 +240,7 @@ def main():
         overrides = []
         if sets.get("blocks") == "B":
             loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B_SLOTS, first["BLOCKS_B_CGB"])]
+            loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B2_SLOTS, first["BLOCKS_B2_CGB"], b2)]
         if sets.get("spikes") == "B":
             loads += [(0, d, n, s) for d, n, s in runs(SPIKES_B_SLOTS, first["SPIKES_B_CGB"])]
             overrides += SPIKES_B_OVERRIDES
@@ -240,6 +252,7 @@ def main():
         loads = []
         if sets.get("blocks") == "B":
             loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B_SLOTS, first["BLOCKS_B_DMG"])]
+            loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B2_SLOTS, first["BLOCKS_B2_DMG"], b2)]
         overrides = []
         if sets.get("spikes") == "B":
             loads += [(0, d, n, s) for d, n, s in runs(SPIKES_B_SLOTS, first["SPIKES_B_CGB"])]
@@ -250,6 +263,7 @@ def main():
         # slots that hold a loaded tile set B must not be handed out as free slots
         if sets.get("blocks") == "B":
             used_t.update(BLOCKS_B_SLOTS)
+            used_t.update(b2)
         if sets.get("spikes") == "B":
             used_t.update(SPIKES_B_SLOTS)
         if sets.get("spikes") == "C":
