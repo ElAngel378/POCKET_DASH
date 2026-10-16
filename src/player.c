@@ -137,6 +137,71 @@ static uint8_t spike_at(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
     return 0;
 }
 
+// Saw cores. Saw parts use Famidash's spike types (spike_at), but those only kill in small zones
+// that leave holes: the big saw's centre metatile has no collision at all, and a medium saw only
+// kills in two 3px strips, so a player 1-5px off a saw's centre line went straight through.
+// So each saw also kills where the drawn player box (normal 16x16, mini 8x8) overlaps a core
+// circle around its centre (teeth: small ~6.5, medium ~15.5, big ~21; the core lets the box 5-6px
+// into the drawn saw at most, the old circles 2-3px):
+// it closes the holes and leaves Famidash's zones deciding near the saw's edge.
+// { x, y, r }: the centre relative to the part's 16x16 metatile, r = 0 for not a saw part.
+// Metatiles 0x00..0x0B and 0x74..0x7F (famidash_metatiles_dmg.c).
+#define SAW_R_SMALL 4
+#define SAW_R_MED   10
+#define SAW_R_BIG   15
+#define SAW_MT_HI   0x74
+static const int8_t saw_core_lo[12][3] = {
+    { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 },
+    {  8,  0, SAW_R_SMALL },   // 0x04 SMALL_SAW_BOTTOM_HALF (saw in the top half)
+    { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 },
+    { 16, 16, SAW_R_MED },     // 0x08 MED_SAW_TOP_LEFT
+    {  0, 16, SAW_R_MED },     // 0x09 MED_SAW_TOP_RIGHT
+    { 16,  0, SAW_R_MED },     // 0x0A MED_SAW_BOTTOM_LEFT
+    {  0,  0, SAW_R_MED },     // 0x0B MED_SAW_BOTTOM_RIGHT
+};
+static const int8_t saw_core_hi[12][3] = {
+    { 24, 24, SAW_R_BIG },     // 0x74 BIG_SAW_TOP_LEFT
+    {  8, 24, SAW_R_BIG },     // 0x75 BIG_SAW_TOP_MIDDLE
+    { -8, 24, SAW_R_BIG },     // 0x76 BIG_SAW_TOP_RIGHT
+    { 24,  8, SAW_R_BIG },     // 0x77 BIG_SAW_MIDDLE_LEFT
+    {  8,  8, SAW_R_BIG },     // 0x78 BIG_SAW_MIDDLE
+    { -8,  8, SAW_R_BIG },     // 0x79 BIG_SAW_MIDDLE_RIGHT
+    { 24, -8, SAW_R_BIG },     // 0x7A BIG_SAW_BOTTOM_LEFT
+    {  8, -8, SAW_R_BIG },     // 0x7B BIG_SAW_BOTTOM_MIDDLE
+    { -8, -8, SAW_R_BIG },     // 0x7C BIG_SAW_BOTTOM_RIGHT
+    {  8,  8, SAW_R_SMALL },   // 0x7D SMALL_SAW
+    { 0, 0, 0 },
+    {  8, 16, SAW_R_SMALL },   // 0x7F SMALL_SAW_TOP_HALF (saw in the bottom half)
+};
+#define IS_SAW_MT(mt) ((uint8_t)((mt) - 8u) < 4u || (mt) == 4u || (uint8_t)((mt) - SAW_MT_HI) < 12u)
+static uint8_t saw_bw, saw_bh;   // player box width - 1, height - 1 (set by player_update)
+
+// Corner (right?, bottom?) of the player box is at (xin, y) of the metatile column col_ptr:
+// 1 when that metatile is a saw part whose core the box overlaps. A box that overlaps a core
+// always has a corner in one of the saw's metatiles (the box is never bigger than a metatile).
+static uint8_t saw_corner(const uint8_t *col_ptr, int16_t y, uint8_t xin, uint8_t right, uint8_t bottom) {
+    if ((uint16_t)y & 0xFF00) return 0;
+    uint8_t py8 = (uint8_t)y;
+    uint8_t mt = col_ptr[py8 >> 4];
+    const int8_t *c;
+    if (mt < 12u) c = saw_core_lo[mt];
+    else if ((uint8_t)(mt - SAW_MT_HI) < 12u) c = saw_core_hi[(uint8_t)(mt - SAW_MT_HI)];
+    else return 0;
+    uint8_t rad = (uint8_t)c[2];
+    if (!rad) return 0;
+    // the box in the metatile's coordinates
+    int8_t l = (int8_t)xin, t = (int8_t)(py8 & 15u);
+    if (right) l -= (int8_t)saw_bw;
+    if (bottom) t -= (int8_t)saw_bh;
+    int8_t r = (int8_t)(l + saw_bw), b = (int8_t)(t + saw_bh);
+    // distance from the core's centre to the nearest point of the box
+    int8_t cx = c[0], cy = c[1];
+    uint8_t dx = (cx < l) ? (uint8_t)(l - cx) : (cx > r) ? (uint8_t)(cx - r) : 0;
+    uint8_t dy = (cy < t) ? (uint8_t)(t - cy) : (cy > b) ? (uint8_t)(cy - b) : 0;
+    if (dx >= rad || dy >= rad) return 0;
+    return (uint16_t)(dx * dx) + (uint16_t)(dy * dy) < (uint16_t)(rad * rad);
+}
+
 // off: x offset of the probe point inside the player box
 #define COL_AT(off, y) inline_col_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
 #define SPIKE(off, y) spike_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
@@ -355,6 +420,25 @@ uint8_t player_update(
             SPIKE(6, fy + 7) || SPIKE(15, fy + 7)) {
             p->dead = 1; return 1;
         }
+    }
+
+    // Saw cores: the 4 corners of the drawn player box (see saw_corner)
+    if (saw_on) {
+        saw_bw = mini ? 7 : 15;
+        saw_bh = saw_bw;
+        int16_t ty = (int16_t)py + (mini ? 3 : 0);
+        int16_t by = ty + saw_bh;
+        uint8_t xr = (uint8_t)(wx + saw_bw) & 15u;
+        const uint8_t *cr = GET_COL_FAST(saw_bw);
+        // inline check first: saw_corner (5 arguments on the stack) only runs on a saw part
+#define ON_SAW(cp, y) (!((uint16_t)(y) & 0xFF00) && IS_SAW_MT((cp)[(uint8_t)(y) >> 4]))
+        if ((ON_SAW(c0, ty) && saw_corner(c0, ty, x_mod_16, 0, 0)) ||
+            (ON_SAW(cr, ty) && saw_corner(cr, ty, xr, 1, 0)) ||
+            (ON_SAW(c0, by) && saw_corner(c0, by, x_mod_16, 0, 1)) ||
+            (ON_SAW(cr, by) && saw_corner(cr, by, xr, 1, 1))) {
+            p->dead = 1; return 1;
+        }
+#undef ON_SAW
     }
 
 

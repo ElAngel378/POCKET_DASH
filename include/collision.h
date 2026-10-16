@@ -36,7 +36,8 @@
 #define COL_QUAD_BASE  0x20
 #define COL_QUAD_COUNT 26
 // Saws: Famidash's spike types (COL_DEATH, COL_DEATH_TOP / BOTTOM / LEFT / RIGHT, the diagonal
-// spike quadrants), so they kill exactly where Famidash's do
+// spike quadrants), so they kill where Famidash's do, plus a core circle in the middle of each
+// saw that closes the holes in those zones (saw_core_* in player.c)
 
 #define IS_SOLID(col)  ((col) == COL_ALL || (col) == COL_FLOOR_CEIL || \
                         (col) == COL_TOP || (col) == COL_BOTTOM)
