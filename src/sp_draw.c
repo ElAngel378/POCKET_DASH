@@ -787,6 +787,15 @@ void process_sprite_logic(
             continue;
         }
 
+        if (obj >= 176 && obj <= 191) {
+            // block outline colour (CGB: the level lists of DMG leave these out)
+            if (lim_lead >= obj_x) {
+                if (_cpu == CGB_TYPE) famidash_apply_outline_trigger((uint8_t)(obj - 176));
+                cache->activated[i] = 1;
+            }
+            continue;
+        }
+
         if (obj >= 192 && obj <= 239) {
             if (lim_lead >= obj_x) {
                 if (_cpu == CGB_TYPE) {

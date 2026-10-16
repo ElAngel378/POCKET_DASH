@@ -6,6 +6,8 @@
 #include "collision.h"
 #include "famidash_metatiles.h"
 #include "bg_parallax.h"
+#include "scratch.h"
+#include "furplayer.h"
 #include <gbdk/incbin.h>
 
 // Level background tiles: every level loads the base sheet (load_bkg_tileset), then its
@@ -172,6 +174,34 @@ static void copy_tiles_strided(void) __naked {
     __endasm;
 }
 
+// Reads a level's load list (bg_level_lists.c, another bank) through scratch_buf, 256 bytes
+// at a time: ll_open, then ll_get for each byte in order.
+static const uint8_t *ll_src;
+static uint16_t ll_left;
+static uint8_t ll_pos;
+static void ll_fill(void) {
+    uint16_t n = (ll_left < SCRATCH_SIZE) ? ll_left : SCRATCH_SIZE;
+    fur_copy_banked(scratch_buf, ll_src, n, BANK(bg_level_lists));
+    ll_src += n;
+    ll_left -= n;
+    ll_pos = 0;
+}
+static void ll_open(uint8_t level, uint8_t dmg) {
+    const uint8_t *ref[1];
+    uint16_t len[1];
+    uint8_t k = (uint8_t)((level << 1) | dmg);
+    fur_copy_banked(ref, &bg_level_lists[k], sizeof(ref), BANK(bg_level_lists));
+    fur_copy_banked(len, &bg_level_list_len[k], sizeof(len), BANK(bg_level_lists));
+    ll_src = ref[0];
+    ll_left = len[0];
+    ll_fill();
+}
+static uint8_t ll_get(void) {
+    uint8_t v = scratch_buf[ll_pos];
+    if (++ll_pos == 0) ll_fill();   // SCRATCH_SIZE is 256
+    return v;
+}
+
 // CGB mirror mode by attribute: the tiles stay the normal sheet and the metatile tiles get the
 // X flip attribute (tools/build_bg_tiles.py: the mirrored sheet / extra tiles are exactly the
 // normal ones flipped). Off on DMG, and for a level with bank 0 tiles that are never mirrored
@@ -181,9 +211,11 @@ void bg_level_set_flip_mode(uint8_t level) BANKED {
     mt_cgb_flip = 0;
     if (_cpu != CGB_TYPE) return;
     if (level < BG_LEVEL_COUNT) {
-        const uint8_t *r = bg_level_cgb[level];
-        for (uint8_t n = *r++; n; n--, r += 4) {
-            if ((r[0] & 0x80) && !(r[0] & 1)) return;
+        ll_open(level, 0);
+        for (uint8_t n = ll_get(); n; n--) {
+            uint8_t bank = ll_get();
+            ll_get(); ll_get(); ll_get();
+            if ((bank & 0x80) && !(bank & 1)) return;
         }
     }
     mt_cgb_flip = 1;
@@ -194,8 +226,6 @@ void bg_level_set_flip_mode(uint8_t level) BANKED {
 
 // Called after the base sheet was uploaded (display off). level: game_levels index.
 void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
-    const uint8_t *r;
-    const uint8_t *ov;
     uint8_t n, n_moves, n_over, buf[16];
     uint8_t cgb = (_cpu == CGB_TYPE);
     uint8_t display_off = !(LCDC_REG & LCDCF_ON);
@@ -206,16 +236,16 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     mt_tab = metatiles;
     mt_tab_rev = metatiles_rev;
     if (level >= BG_LEVEL_COUNT) return;
-    r = cgb ? bg_level_cgb[level] : bg_level_dmg[level];
+    ll_open(level, !cgb);
     mt_big_saws = bg_level_big_saws[level];
     saw_on = bg_level_saws[level];
     saw_reversed = reversed;
     for (n = 0; n < SAW_ANIM_TILES; n++) saw_dmg_dst[n] = 0;
 
     // Extra tiles: (VRAM bank, slot, count, first extra tile); bank bit 7 = never mirrored
-    for (n = *r++; n; n--) {
-        uint8_t bank = *r++, dst = *r++, count = *r++;
-        uint8_t first_tile = *r++;
+    for (n = ll_get(); n; n--) {
+        uint8_t bank = ll_get(), dst = ll_get(), count = ll_get();
+        uint8_t first_tile = ll_get();
         const uint8_t *src = bg_extra_tiles + (uint16_t)first_tile * 32u;
         if (!cgb && count == 1 && first_tile >= saw_frame_first[0] && first_tile < saw_frame_first[0] + SAW_ANIM_TILES) {
             // BG tiles 0..127 are at 0x9000, 128..255 at 0x8800
@@ -248,9 +278,9 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     // CGB: the saws just loaded from bg_extra_tiles are the DMG version (outlined); stream
     // frame 0 of the CGB art (saw_anim_tiles) right away
     if (cgb && saw_on) saw_pos = 0;
-    n_moves = *r;
-    ov = r + 1 + (n_moves << 1);
-    n_over = *ov++;
+    // (the overrides follow the moves: n_over is known up front only without moves)
+    n_moves = ll_get();
+    n_over = n_moves ? 0xFF : ll_get();
     // (CGB always uses the RAM table: build_mt_rows writes the ground look tiles into it)
     if (!n_moves && !n_over && !cgb) return;
     gnd_tab_key = 0xFF;
@@ -262,8 +292,8 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
         n = 0;
         do { mt_xlat[n] = n; } while (++n);
     }
-    for (n = n_moves, r++; n; n--) {
-        uint8_t dst = *r++, src = *r++;
+    for (n = n_moves; n; n--) {
+        uint8_t dst = ll_get(), src = ll_get();
         if (display_off) {
             memcpy(BG_TILE_ADDR(dst), BG_TILE_ADDR(src), 16);
         } else {
@@ -272,6 +302,7 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
         }
         mt_xlat[src] = dst;
     }
+    if (n_moves) n_over = ll_get();
     mt_tab = mt_ram[0];
     mt_tab_rev = mt_ram[1];
     if (!rebuild) return;
@@ -282,8 +313,8 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
         for (uint16_t j = 0; j < FAMIDASH_NUM_METATILES * 4u; j++) d[j] = mt_xlat[s[j]];
     }
     for (n = n_over; n; n--) {
-        uint8_t m = *ov++, q = *ov++;
-        mt_ram[0][m][q] = *ov++;
+        uint8_t m = ll_get(), q = ll_get();
+        mt_ram[0][m][q] = ll_get();
     }
     n = 0;
     do {
@@ -298,10 +329,10 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
 // load_gameplay_sprite_tiles, with apply_level_bg_tiles' arguments.
 void reapply_bg_shared_slots(uint8_t level, uint8_t reversed) BANKED {
     if (_cpu == CGB_TYPE || level >= BG_LEVEL_COUNT) return;
-    const uint8_t *r = bg_level_dmg[level];
-    for (uint8_t n = *r++; n; n--) {
-        uint8_t bank = *r++, dst = *r++, count = *r++;
-        uint8_t first_tile = *r++;
+    ll_open(level, 1);
+    for (uint8_t n = ll_get(); n; n--) {
+        uint8_t bank = ll_get(), dst = ll_get(), count = ll_get();
+        uint8_t first_tile = ll_get();
         if (dst < 160u) continue;
         const uint8_t *src = bg_extra_tiles + (uint16_t)first_tile * 32u;
         if (reversed && !(bank & 0x80) && !mt_cgb_flip) src += 16;

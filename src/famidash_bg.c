@@ -168,11 +168,9 @@ void famidash_apply_bg_trigger(uint8_t color_id) BANKED {
     famidash_bg_target[0] = shades->color;
     famidash_bg_target[1] = shades->darker;
     famidash_bg_target[2] = RGB(0, 0, 0);
-    famidash_bg_target[3] = RGB(31, 31, 31);
 
     // Palette 1: Accent / Ground (preserve ground color in 5 and 6)
     famidash_bg_target[4] = shades->color;
-    famidash_bg_target[7] = RGB(31, 31, 31);
 
     // Palette 2: BG Spikes / Hazards
     famidash_bg_target[8] = shades->color;
@@ -189,6 +187,21 @@ void famidash_apply_bg_trigger(uint8_t color_id) BANKED {
     // Palette 4: Ground Grid (Color 0 is the top white line, always pure white)
     famidash_bg_target[16] = RGB(31, 31, 31);
 
+    fade_restart = 1;
+}
+
+// Famidash's OUTLINES: the NES colour of each outline trigger ($B0..$BF)
+static const uint8_t outline_nes_color[16] = {
+    0x30, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x21, 0x17, 0x0F
+};
+
+// Block outlines: colour 3 of palettes 0 and 1 (Famidash pal_col 3 and 7). The sky trigger
+// leaves them alone, so a checkpoint's palette copy keeps the outline it had.
+void famidash_apply_outline_trigger(uint8_t n) BANKED {
+    palette_color_t c = famidash_sky_table[outline_nes_color[n & 15u]].color;
+    if (famidash_bg_target[3] == c && famidash_bg_target[7] == c) return;
+    famidash_bg_target[3] = c;
+    famidash_bg_target[7] = c;
     fade_restart = 1;
 }
 

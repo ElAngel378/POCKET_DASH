@@ -35,6 +35,8 @@ BANKREF_EXTERN(ultiatedestruction_map)
 extern const uint8_t ultiatedestruction_map[];
 BANKREF_EXTERN(theoryofeverything_map)
 extern const uint8_t theoryofeverything_map[];
+BANKREF_EXTERN(electromanadventures_map)
+extern const uint8_t electromanadventures_map[];
 BANKREF_EXTERN(test_map)
 extern const uint8_t test_map[];
 
@@ -78,6 +80,9 @@ BANKREF_EXTERN(ultiatedestruction_sp)
 extern const SpDef theoryofeverything_sp[];
 extern const SpDef theoryofeverything_sp_dmg[];
 BANKREF_EXTERN(theoryofeverything_sp)
+extern const SpDef electromanadventures_sp[];
+extern const SpDef electromanadventures_sp_dmg[];
+BANKREF_EXTERN(electromanadventures_sp)
 extern const SpDef test_sp[];
 extern const SpDef test_sp_dmg[];
 BANKREF_EXTERN(test_sp)
@@ -95,6 +100,7 @@ extern const hUGESong_t cycles;
 extern const hUGESong_t xstep;
 extern const hUGESong_t clutterfunk;
 extern const hUGESong_t ultiatedestruction;
+extern const hUGESong_t electromanadventures;
 
 // Level songs array
 const hUGESong_t * const level_songs[] = {
@@ -111,6 +117,7 @@ const hUGESong_t * const level_songs[] = {
   &clutterfunk, // level_cf
   &ultiatedestruction, // level_ultiatedestruction
   NULL, // level_toe (silent)
+  &electromanadventures, // level_ea
   NULL, // level_test (silent)
 };
 
@@ -129,6 +136,7 @@ const uint8_t song_bank[] = {
   210u, // level_cf
   211u, // level_ultiatedestruction
   0u, // level_toe
+  213u, // level_ea
   0u, // level_test
 };
 
@@ -341,6 +349,22 @@ const Level level_toe = {
   21
 };
 
+const Level level_ea = {
+  "ELECTROMAN ADVENTURES",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  electromanadventures_map,
+  BG_BASE_TILE_COUNT, 879, 64, 0, 0,
+  BANK(electromanadventures_map),
+  211,
+  electromanadventures_sp,
+  BANK(electromanadventures_sp),
+  electromanadventures_sp_dmg,
+  37,
+  2,
+  1
+};
+
 const Level level_test = {
   "TEST",
   chr_gb_tiles,
@@ -372,6 +396,7 @@ const Level* const game_levels[] = {
   &level_cf,
   &level_ultiatedestruction,
   &level_toe,
+  &level_ea,
   &level_test,
 };
 const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);

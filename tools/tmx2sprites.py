@@ -136,8 +136,9 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
     for i in range(42, 64):
         portals_map[sprites_firstgid + i] = i
 
-    # bg colour triggers (128..175) and ground colour triggers (192..239) keep their ids
-    for i in range(128, 176):
+    # bg colour triggers (128..175), block outline colour triggers (176..191, CGB only) and
+    # ground colour triggers (192..239) keep their ids
+    for i in range(128, 192):
         portals_map[sprites_firstgid + i] = i
     for i in range(192, 240):
         portals_map[sprites_firstgid + i] = i

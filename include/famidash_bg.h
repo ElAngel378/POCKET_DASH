@@ -17,6 +17,9 @@ void famidash_bg_set_now(const palette_color_t *pal) BANKED;
 // Apply a background color trigger by NES palette index.
 void famidash_apply_bg_trigger(uint8_t color_id) BANKED;
 
+// Block outline colour trigger n (0..15, Famidash objects $B0..$BF): colour 3 of palettes 0, 1
+void famidash_apply_outline_trigger(uint8_t n) BANKED;
+
 // Apply a ground color trigger by NES palette index.
 void famidash_apply_g_trigger(uint8_t color_id) BANKED;
 

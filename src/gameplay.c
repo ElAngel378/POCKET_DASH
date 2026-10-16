@@ -58,7 +58,8 @@ static void apply_custom_player_palette(void) {
 #define LEVEL_XSTEP 9
 #define LEVEL_CLUTTERFUNK 10
 #define LEVEL_TOE 12
-#define LEVEL_DECO_CLOUD(idx) ((idx) == LEVEL_XSTEP || (idx) == LEVEL_CLUTTERFUNK || (idx) == LEVEL_TOE)
+#define LEVEL_ELECTROMAN 13
+#define LEVEL_DECO_CLOUD(idx) ((idx) == LEVEL_XSTEP || (idx) == LEVEL_CLUTTERFUNK || (idx) == LEVEL_TOE || (idx) == LEVEL_ELECTROMAN)
 // ... and spike set B (background spikes drawn as round bushes, see mt_renderer.c)
 #define LEVEL_SPIKES_B(idx) ((idx) == LEVEL_XSTEP)
 #define BKG_MT_H 16

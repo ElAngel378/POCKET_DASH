@@ -34,6 +34,7 @@ KNOWN_LEVELS = {
     "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 12, "short": "ultiatedestruction"},
     # 1.5; after Ultimate Destruction so the saved progress of the levels before it stays put
     "theoryofeverything": {"title": "THEORY OF EVERYTHING", "divider": 183, "order": 13, "short": "toe"},
+    "electromanadventures": {"title": "ELECTROMAN ADVENTURES", "divider": 183, "order": 14, "short": "ea"},
 }
 
 def load_level_colors(level_name, metadata_dir=None):
