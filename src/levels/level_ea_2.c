@@ -1,4 +1,4 @@
-#pragma bank 127
+#pragma bank 128
 #include <gbdk/incbin.h>
 
 // Columns 512.. of electromanadventures (read through electromanadventures_map's address)

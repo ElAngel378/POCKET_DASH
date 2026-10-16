@@ -68,6 +68,23 @@ def load_level_colors(level_name, metadata_dir=None):
             continue
     return (17, 17)
 
+def level_max_fall_7(level_name, metadata_dir=None):
+    """1 when the level's Famidash header sets max fall speed $07 (metadata maxFallSpeed 7; no
+    value = $06): the cube falls up to 7 px a frame instead of 6"""
+    if metadata_dir is None:
+        metadata_dir = REPO_ROOT / "levels" / "metadata"
+    target = level_name.lower().replace("_", "").replace("-", "")
+    for mf in metadata_dir.glob("*.json"):
+        try:
+            with open(mf, "r", encoding="utf-8") as fp:
+                data = json.load(fp)
+        except Exception:
+            continue
+        for lvl in data.get("official_levels", []) + data.get("community_levels", []):
+            if lvl.get("level", "").lower().replace("_", "").replace("-", "") == target:
+                return 1 if lvl.get("maxFallSpeed") == 7 else 0
+    return 0
+
 def read_uge_tempo(uge_path):
     """
     Extracts (divider/TMA, ticks_per_row) from a hUGETracker .uge file.
@@ -329,7 +346,8 @@ def generate_assets_c(levels):
             f.write(f'  {ident}_sp_dmg,\n')
             f.write(f'  {lvl["map_top"]},\n')
             f.write(f'  {lvl["bg_color"]},\n')
-            f.write(f'  {lvl["g_color"]}\n')
+            f.write(f'  {lvl["g_color"]},\n')
+            f.write(f'  {lvl["max_fall_7"]}\n')
             f.write('};\n\n')
 
         # game_levels array
@@ -504,6 +522,7 @@ def build_all():
             print(f"  - Music: Not found for {stem} (Will play silent)")
 
         bg_color, g_color = load_level_colors(stem)
+        max_fall_7 = level_max_fall_7(stem)
 
         levels_info.append({
             "stem": stem,
@@ -522,7 +541,8 @@ def build_all():
             "divider": divider,
             "has_music": has_music,
             "bg_color": bg_color,
-            "g_color": g_color
+            "g_color": g_color,
+            "max_fall_7": max_fall_7
         })
 
     # src/levels/ only holds generated map wrappers: drop those of levels that are gone

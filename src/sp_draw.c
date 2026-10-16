@@ -629,29 +629,29 @@ static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t ob
             // level export leaves out, see tools/tmx2sprites.py), at +0 on the ceiling
             uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP || obj == OBJ_PAD_PINK_UP);
             if (touch_box(obj_x, obj_y, 0, 15, is_ceiling ? 0 : 13, 3)) {
-                if (!*act) {
-                    *act = 1;
-                    if (obj == OBJ_PAD_BLUE) {
-                        if (!p->gravity_flipped) {
-                            p->gravity_flipped = 1;
-                            p->vel_y.w = -BLUE_PAD_FORCE;
-                            p->on_ground = 0;
-                        }
-                    } else if (obj == OBJ_PAD_BLUE_UP) {
-                        if (p->gravity_flipped) {
-                            p->gravity_flipped = 0;
-                            p->vel_y.w = BLUE_PAD_FORCE;
-                            p->on_ground = 0;
-                        }
-                    } else if (obj == OBJ_PAD_PINK || obj == OBJ_PAD_PINK_UP) {
-                        int16_t force = LAUNCH(p, 3);
-                        p->vel_y.w = (p->gravity_flipped) ? -force : force;
-                        p->on_ground = 0;
-                    } else {
-                        int16_t force = LAUNCH(p, 1);
-                        p->vel_y.w = (p->gravity_flipped) ? -force : force;
+                // Famidash pad_stuff: yellow / pink pads launch on every frame the player
+                // touches them (going up through one, it launches twice); blue pads only while
+                // the gravity is still the one they flip
+                if (obj == OBJ_PAD_BLUE) {
+                    if (!p->gravity_flipped) {
+                        p->gravity_flipped = 1;
+                        p->vel_y.w = -BLUE_PAD_FORCE;
                         p->on_ground = 0;
                     }
+                } else if (obj == OBJ_PAD_BLUE_UP) {
+                    if (p->gravity_flipped) {
+                        p->gravity_flipped = 0;
+                        p->vel_y.w = BLUE_PAD_FORCE;
+                        p->on_ground = 0;
+                    }
+                } else if (obj == OBJ_PAD_PINK || obj == OBJ_PAD_PINK_UP) {
+                    int16_t force = LAUNCH(p, 3);
+                    p->vel_y.w = (p->gravity_flipped) ? -force : force;
+                    p->on_ground = 0;
+                } else {
+                    int16_t force = LAUNCH(p, 1);
+                    p->vel_y.w = (p->gravity_flipped) ? -force : force;
+                    p->on_ground = 0;
                 }
             }
             break;
@@ -716,8 +716,15 @@ void process_sprite_logic(
     if (p->mini) py += MINI_BOX_TOP;
     t_px = px + 1u;
     t_front = p_front + 1u;
-    t_py = py;
-    t_bottom = p->mini ? (uint16_t)(py + 7u) : p_bottom;
+    if (p->mini) {
+        t_py = py;
+        t_bottom = (uint16_t)(py + 7u);
+    } else {
+        // Famidash sprite_collide: the 15x15 box (16 rows: check_collision is inclusive) at its
+        // player y, our py + 1 (see front_y in player.c)
+        t_py = (uint16_t)(py + 1u);
+        t_bottom = (uint16_t)(t_py + 15u);
+    }
     // Loop limits, computed once (SDCC recomputes 16-bit sums on every pass otherwise)
     uint16_t lim_ahead = cam_px + 176u;
     uint16_t lim_lead = px + BG_TRIGGER_LEAD_PX;

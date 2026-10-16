@@ -35,6 +35,8 @@ BANKREF_EXTERN(theoryofeverything_map)
 extern const uint8_t theoryofeverything_map[];
 BANKREF_EXTERN(electromanadventures_map)
 extern const uint8_t electromanadventures_map[];
+BANKREF_EXTERN(bestautomaticlvl_map)
+extern const uint8_t bestautomaticlvl_map[];
 BANKREF_EXTERN(madness_map)
 extern const uint8_t madness_map[];
 BANKREF_EXTERN(leveleasy_map)
@@ -88,6 +90,9 @@ BANKREF_EXTERN(theoryofeverything_sp)
 extern const SpDef electromanadventures_sp[];
 extern const SpDef electromanadventures_sp_dmg[];
 BANKREF_EXTERN(electromanadventures_sp)
+extern const SpDef bestautomaticlvl_sp[];
+extern const SpDef bestautomaticlvl_sp_dmg[];
+BANKREF_EXTERN(bestautomaticlvl_sp)
 extern const SpDef madness_sp[];
 extern const SpDef madness_sp_dmg[];
 BANKREF_EXTERN(madness_sp)
@@ -137,6 +142,7 @@ const hUGESong_t * const level_songs[] = {
   &clutterfunk, // level_cf
   NULL, // level_toe (silent)
   &electromanadventures, // level_ea
+  &dryout, // level_bal
   NULL, // level_mad (silent)
   &stereomadness, // level_le
   &cantletgo, // level_sz
@@ -160,6 +166,7 @@ const uint8_t song_bank[] = {
   210u, // level_cf
   0u, // level_toe
   211u, // level_ea
+  203u, // level_bal
   0u, // level_mad
   200u, // level_le
   205u, // level_sz
@@ -182,7 +189,8 @@ const Level level_sm = {
   stereomadness_sp_dmg,
   37,
   18,
-  2
+  2,
+  1
 };
 
 const Level level_bot = {
@@ -198,7 +206,8 @@ const Level level_bot = {
   backontrack_sp_dmg,
   37,
   20,
-  20
+  20,
+  1
 };
 
 const Level level_pg = {
@@ -214,7 +223,8 @@ const Level level_pg = {
   polargeist_sp_dmg,
   37,
   42,
-  26
+  26,
+  1
 };
 
 const Level level_du = {
@@ -230,7 +240,8 @@ const Level level_du = {
   dryout_sp_dmg,
   37,
   22,
-  22
+  22,
+  1
 };
 
 const Level level_bab = {
@@ -246,7 +257,8 @@ const Level level_bab = {
   baseafterbase_sp_dmg,
   37,
   17,
-  17
+  17,
+  1
 };
 
 const Level level_clg = {
@@ -262,7 +274,8 @@ const Level level_clg = {
   cantletgo_sp_dmg,
   37,
   20,
-  4
+  4,
+  1
 };
 
 const Level level_ju = {
@@ -278,7 +291,8 @@ const Level level_ju = {
   jumper_sp_dmg,
   37,
   19,
-  19
+  19,
+  1
 };
 
 const Level level_tm = {
@@ -294,7 +308,8 @@ const Level level_tm = {
   timemachine_sp_dmg,
   37,
   42,
-  26
+  26,
+  1
 };
 
 const Level level_cy = {
@@ -310,7 +325,8 @@ const Level level_cy = {
   cycles_sp_dmg,
   37,
   4,
-  20
+  20,
+  1
 };
 
 const Level level_xs = {
@@ -326,7 +342,8 @@ const Level level_xs = {
   xstep_sp_dmg,
   37,
   28,
-  12
+  12,
+  1
 };
 
 const Level level_cf = {
@@ -342,7 +359,8 @@ const Level level_cf = {
   clutterfunk_sp_dmg,
   37,
   22,
-  6
+  6,
+  1
 };
 
 const Level level_toe = {
@@ -358,7 +376,8 @@ const Level level_toe = {
   theoryofeverything_sp_dmg,
   7,
   5,
-  21
+  21,
+  1
 };
 
 const Level level_ea = {
@@ -374,6 +393,24 @@ const Level level_ea = {
   electromanadventures_sp_dmg,
   37,
   2,
+  1,
+  1
+};
+
+const Level level_bal = {
+  "BEST AUTOMATIC LVL",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  bestautomaticlvl_map,
+  BG_BASE_TILE_COUNT, 691, 64, 0, 0,
+  BANK(bestautomaticlvl_map),
+  185,
+  bestautomaticlvl_sp,
+  BANK(bestautomaticlvl_sp),
+  bestautomaticlvl_sp_dmg,
+  28,
+  22,
+  16,
   1
 };
 
@@ -390,7 +427,8 @@ const Level level_mad = {
   madness_sp_dmg,
   7,
   18,
-  2
+  2,
+  1
 };
 
 const Level level_le = {
@@ -406,7 +444,8 @@ const Level level_le = {
   leveleasy_sp_dmg,
   37,
   44,
-  28
+  28,
+  0
 };
 
 const Level level_sz = {
@@ -421,6 +460,7 @@ const Level level_sz = {
   BANK(subzero_sp),
   subzero_sp_dmg,
   37,
+  1,
   1,
   1
 };
@@ -438,7 +478,8 @@ const Level level_ultiatedestruction = {
   ultiatedestruction_sp_dmg,
   24,
   17,
-  17
+  17,
+  1
 };
 
 const Level level_dp = {
@@ -454,7 +495,8 @@ const Level level_dp = {
   demonpark_sp_dmg,
   37,
   22,
-  6
+  6,
+  0
 };
 
 const Level level_test = {
@@ -470,7 +512,8 @@ const Level level_test = {
   test_sp_dmg,
   32,
   17,
-  17
+  17,
+  0
 };
 
 // Global level list used by the menu and gameplay systems
@@ -488,6 +531,7 @@ const Level* const game_levels[] = {
   &level_cf,
   &level_toe,
   &level_ea,
+  &level_bal,
   &level_mad,
   &level_le,
   &level_sz,
@@ -498,7 +542,7 @@ const Level* const game_levels[] = {
 const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);
 
 const uint8_t NUM_MAIN_LEVELS = 13;
-const uint8_t NUM_EXTRA_LEVELS = 5;
+const uint8_t NUM_EXTRA_LEVELS = 6;
 
 // Save slot of each level (game_levels order)
 const uint8_t level_save_slot[] = {
@@ -515,6 +559,7 @@ const uint8_t level_save_slot[] = {
   10u, // level_cf
   12u, // level_toe
   13u, // level_ea
+  14u, // level_bal
   15u, // level_mad
   16u, // level_le
   17u, // level_sz

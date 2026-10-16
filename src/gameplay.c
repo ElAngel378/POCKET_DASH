@@ -147,6 +147,10 @@ uint16_t cam_portal_y;
 // VRAM band stay below it, and the player dies above it like at the top of a 16-row map before.
 static uint16_t level_top_px;
 #define PLAYER_WORLD_Y() ((uint16_t)(player.y_base + player.world_y.b.h))
+// Drawn y offset: on a ceiling (flipped gravity) the player rests with its box in the ceiling's
+// last rows, like Famidash's (player.c ceiling collision: cube / ball 2 px, ship / UFO 3, mini
+// 1 less); drawn flush with it
+#define PLAYER_DRAW_DY() (player.gravity_flipped ? (uint8_t)(((player.mode == MODE_SHIP || player.mode == MODE_UFO) ? 3u : 2u) - player.mini) : 0u)
 // VRAM band (see mt_renderer.c): 16 rows around the (up to) 10 visible ones. It only moves when
 // the screen comes within 2 rows of its edge, and then so that 3 rows are left on that side.
 #define BAND_MAX ((_cpu == CGB_TYPE) ? (uint8_t)(GROUND_ROW - 15u) : (uint8_t)(MAP_ROWS - 16u))
@@ -934,7 +938,7 @@ static void start_end_anim(void) {
         : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
     locked_cam_py = cam_py;
     end_start_x = view_rev ? MIRROR_PLAYER_SCREEN_X : ((cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X);
-    end_start_y = (int16_t)PLAYER_WORLD_Y() - (int16_t)cam_py;
+    end_start_y = (int16_t)PLAYER_WORLD_Y() + PLAYER_DRAW_DY() - (int16_t)cam_py;
 
     if (!view_rev) {
         end_target_x = 168; // Exit off the right edge of the screen before disappearing
@@ -1355,6 +1359,7 @@ void play_level(uint8_t idx) BANKED {
 
     reduce_flash = setting_dmg_gradient ? 0 : 1;
     target_bg_idx = dmg_start_bg_idx();
+    level_max_fall_7 = game_levels[idx]->max_fall_7;
     player_init(&player, 0, 240);
     player.y_base = Y_BASE_MAX;
 
@@ -1623,7 +1628,7 @@ void play_level(uint8_t idx) BANKED {
                 scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
                 sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
             }
-            final_py = (int16_t)PLAYER_WORLD_Y() - (int16_t)cam_py;
+            final_py = (int16_t)PLAYER_WORLD_Y() + PLAYER_DRAW_DY() - (int16_t)cam_py;
             if (final_py < 0) final_py = 0;
             else if (final_py > 144) final_py = 144;
         } else if (end_anim_state == END_ANIM_PULL) {

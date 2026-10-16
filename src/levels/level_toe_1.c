@@ -1,4 +1,4 @@
-#pragma bank 122
+#pragma bank 123
 #include <gbdk/incbin.h>
 
 // Columns 256.. of theoryofeverything (read through theoryofeverything_map's address)
