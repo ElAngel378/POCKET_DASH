@@ -36,9 +36,8 @@ KNOWN_LEVELS = {
     "electromanadventures": {"title": "ELECTROMAN ADVENTURES", "divider": 183, "order": 13, "short": "ea", "save": 13},
     # Extra levels (the wrench in the main menu): the other Famidash levels Pocket Dash can play,
     # easiest first. "song": play that level's song (Famidash uses it too).
-    # Best Automatic Lvl, Every Madness and Clubstep only use objects Pocket Dash has, but could not
-    # be cleared yet (normal size spike collision is not Famidash's: side spikes kill on more of the
-    # tile): their .tmx is not in levels/chr_data/tmx, the entries keep their order and save slot.
+    # Every Madness and Clubstep are in although the deathless bot has not cleared them yet
+    # (Every Madness from x ~5971, Clubstep from x ~2822)
     "bestautomaticlvl": {"title": "BEST AUTOMATIC LVL", "divider": 183, "order": 14, "short": "bal", "save": 14, "extra": True, "song": "dryout"},
     "madness":       {"title": "MADNESS",         "divider": 183, "order": 15, "short": "mad", "save": 15, "extra": True},
     "leveleasy":     {"title": "LEVEL EASY",      "divider": 183, "order": 16, "short": "le", "save": 16, "extra": True, "song": "stereomadness"},

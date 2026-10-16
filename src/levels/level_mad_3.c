@@ -1,4 +1,4 @@
-#pragma bank 173
+#pragma bank 177
 #include <gbdk/incbin.h>
 
 // Columns 768.. of madness (read through madness_map's address)

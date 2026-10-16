@@ -45,8 +45,12 @@ BANKREF_EXTERN(subzero_map)
 extern const uint8_t subzero_map[];
 BANKREF_EXTERN(ultiatedestruction_map)
 extern const uint8_t ultiatedestruction_map[];
+BANKREF_EXTERN(everymadness_map)
+extern const uint8_t everymadness_map[];
 BANKREF_EXTERN(demonpark_map)
 extern const uint8_t demonpark_map[];
+BANKREF_EXTERN(clubstep_map)
+extern const uint8_t clubstep_map[];
 BANKREF_EXTERN(test_map)
 extern const uint8_t test_map[];
 
@@ -105,9 +109,15 @@ BANKREF_EXTERN(subzero_sp)
 extern const SpDef ultiatedestruction_sp[];
 extern const SpDef ultiatedestruction_sp_dmg[];
 BANKREF_EXTERN(ultiatedestruction_sp)
+extern const SpDef everymadness_sp[];
+extern const SpDef everymadness_sp_dmg[];
+BANKREF_EXTERN(everymadness_sp)
 extern const SpDef demonpark_sp[];
 extern const SpDef demonpark_sp_dmg[];
 BANKREF_EXTERN(demonpark_sp)
+extern const SpDef clubstep_sp[];
+extern const SpDef clubstep_sp_dmg[];
+BANKREF_EXTERN(clubstep_sp)
 extern const SpDef test_sp[];
 extern const SpDef test_sp_dmg[];
 BANKREF_EXTERN(test_sp)
@@ -147,7 +157,9 @@ const hUGESong_t * const level_songs[] = {
   &stereomadness, // level_le
   &cantletgo, // level_sz
   &ultiatedestruction, // level_ultiatedestruction
+  NULL, // level_em (silent)
   &timemachine, // level_dp
+  NULL, // level_cs (silent)
   NULL, // level_test (silent)
 };
 
@@ -171,7 +183,9 @@ const uint8_t song_bank[] = {
   200u, // level_le
   205u, // level_sz
   213u, // level_ultiatedestruction
+  0u, // level_em
   207u, // level_dp
+  0u, // level_cs
   0u, // level_test
 };
 
@@ -482,6 +496,23 @@ const Level level_ultiatedestruction = {
   1
 };
 
+const Level level_em = {
+  "EVERY MADNESS",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  everymadness_map,
+  BG_BASE_TILE_COUNT, 895, 64, 0, 0,
+  BANK(everymadness_map),
+  183,
+  everymadness_sp,
+  BANK(everymadness_sp),
+  everymadness_sp_dmg,
+  37,
+  18,
+  2,
+  0
+};
+
 const Level level_dp = {
   "DEMON PARK",
   chr_gb_tiles,
@@ -497,6 +528,23 @@ const Level level_dp = {
   22,
   6,
   0
+};
+
+const Level level_cs = {
+  "CLUBSTEP",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  clubstep_map,
+  BG_BASE_TILE_COUNT, 906, 64, 0, 0,
+  BANK(clubstep_map),
+  183,
+  clubstep_sp,
+  BANK(clubstep_sp),
+  clubstep_sp_dmg,
+  24,
+  15,
+  15,
+  1
 };
 
 const Level level_test = {
@@ -536,13 +584,15 @@ const Level* const game_levels[] = {
   &level_le,
   &level_sz,
   &level_ultiatedestruction,
+  &level_em,
   &level_dp,
+  &level_cs,
   &level_test,
 };
 const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);
 
 const uint8_t NUM_MAIN_LEVELS = 13;
-const uint8_t NUM_EXTRA_LEVELS = 6;
+const uint8_t NUM_EXTRA_LEVELS = 8;
 
 // Save slot of each level (game_levels order)
 const uint8_t level_save_slot[] = {
@@ -564,6 +614,8 @@ const uint8_t level_save_slot[] = {
   16u, // level_le
   17u, // level_sz
   11u, // level_ultiatedestruction
+  18u, // level_em
   19u, // level_dp
+  20u, // level_cs
   255u, // level_test
 };
