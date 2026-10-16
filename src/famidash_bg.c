@@ -195,14 +195,19 @@ static const uint8_t outline_nes_color[16] = {
     0x30, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x21, 0x17, 0x0F
 };
 
-// Block outlines: colour 3 of palettes 0 and 1 (Famidash pal_col 3 and 7). The sky trigger
-// leaves them alone, so a checkpoint's palette copy keeps the outline it had.
+// Block outlines: colour 3 of palettes 0 and 1 (Famidash pal_col 3 and 7), right away (no
+// fade, like Famidash). The sky trigger leaves them alone, so a checkpoint's palette copy keeps
+// the outline it had, and a running sky fade never touches them.
 void famidash_apply_outline_trigger(uint8_t n) BANKED {
     palette_color_t c = famidash_sky_table[outline_nes_color[n & 15u]].color;
     if (famidash_bg_target[3] == c && famidash_bg_target[7] == c) return;
     famidash_bg_target[3] = c;
     famidash_bg_target[7] = c;
-    fade_restart = 1;
+    famidash_bg_palettes[3] = c;
+    famidash_bg_palettes[7] = c;
+    shadow_bkg_palettes[3] = c;
+    shadow_bkg_palettes[7] = c;
+    famidash_bkg_palettes_dirty = 1;
 }
 
 void famidash_apply_g_trigger(uint8_t color_id) BANKED {
