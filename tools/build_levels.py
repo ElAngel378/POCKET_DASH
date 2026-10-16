@@ -31,10 +31,10 @@ KNOWN_LEVELS = {
     "cycles":        {"title": "CYCLES",          "divider": 183, "order": 9, "short": "cy"},
     "xstep":         {"title": "XSTEP",           "divider": 138, "order": 10, "short": "xs"},
     "clutterfunk":   {"title": "CLUTTERFUNK",     "divider": 195, "order": 11, "short": "cf"},
-    "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 12, "short": "ultiatedestruction"},
+    "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 14, "short": "ultiatedestruction", "save": 11},
     # 1.5; after Ultimate Destruction so the saved progress of the levels before it stays put
-    "theoryofeverything": {"title": "THEORY OF EVERYTHING", "divider": 183, "order": 13, "short": "toe"},
-    "electromanadventures": {"title": "ELECTROMAN ADVENTURES", "divider": 183, "order": 14, "short": "ea"},
+    "theoryofeverything": {"title": "THEORY OF EVERYTHING", "divider": 183, "order": 12, "short": "toe", "save": 12},
+    "electromanadventures": {"title": "ELECTROMAN ADVENTURES", "divider": 183, "order": 13, "short": "ea", "save": 13},
 }
 
 def load_level_colors(level_name, metadata_dir=None):
@@ -323,7 +323,14 @@ def generate_assets_c(levels):
         for lvl in levels:
             f.write(f'  &level_{lvl["short_name"]},\n')
         f.write('};\n')
-        f.write('const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);\n')
+        f.write('const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);\n\n')
+
+        # save slots: a level keeps its slot when the level order changes
+        f.write('// Save slot of each level (game_levels order)\n')
+        f.write('const uint8_t level_save_slot[] = {\n')
+        for lvl in levels:
+            f.write(f'  {lvl["save_slot"]}u, // level_{lvl["short_name"]}\n')
+        f.write('};\n')
 
 def level_files():
     """The levels' TMX files in game order (a level's index is its position here)."""
@@ -368,6 +375,7 @@ def build_all():
     next_map_bank = FIRST_MAP_BANK
     BASE_SPRITE_BANK = 100
     BASE_MUSIC_BANK = 200
+    PRACTICE_MUSIC_BANK = 212
 
     sys.path.insert(0, str(REPO_ROOT / "tools"))
     from tmx2sprites import extract_portals
@@ -377,16 +385,20 @@ def build_all():
         ident = make_c_ident(stem)
         sprite_bank = BASE_SPRITE_BANK + idx
         music_bank = BASE_MUSIC_BANK + idx
+        if music_bank >= PRACTICE_MUSIC_BANK:
+            music_bank += 1   # src/music/practice.c
 
         if stem in KNOWN_LEVELS:
             meta = KNOWN_LEVELS[stem]
             title = meta["title"]
             divider = meta["divider"]
             short_name = meta["short"]
+            save_slot = meta.get("save", meta["order"] - 1)
         else:
             title = format_title(stem)
             divider = 180
             short_name = ident
+            save_slot = 15   # NUM_SAVE_LEVELS - 1: not a real level
 
         print(f"\n[{idx+1}/{len(tmx_files)}] Processing {title} ({stem})...")
 
@@ -448,6 +460,7 @@ def build_all():
         levels_info.append({
             "ident": ident,
             "short_name": short_name,
+            "save_slot": save_slot,
             "title": title,
             "width": width,
             "height": MAP_ROWS,

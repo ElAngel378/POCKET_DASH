@@ -57,8 +57,8 @@ static void apply_custom_player_palette(void) {
 // (ground "spikes" drawn as round bushes); every other level uses DECO1.
 #define LEVEL_XSTEP 9
 #define LEVEL_CLUTTERFUNK 10
-#define LEVEL_TOE 12
-#define LEVEL_ELECTROMAN 13
+#define LEVEL_TOE 11
+#define LEVEL_ELECTROMAN 12
 #define LEVEL_DECO_CLOUD(idx) ((idx) == LEVEL_XSTEP || (idx) == LEVEL_CLUTTERFUNK || (idx) == LEVEL_TOE || (idx) == LEVEL_ELECTROMAN)
 // ... and spike set B (background spikes drawn as round bushes, see mt_renderer.c)
 #define LEVEL_SPIKES_B(idx) ((idx) == LEVEL_XSTEP)
@@ -520,7 +520,7 @@ static void reload_level_state(uint8_t idx) {
     cube_icon_reset();
     sp_cache_reset(&active_sp, &sp_stream_idx);
     coins_reset();
-    coins_saved = level_coins[idx];
+    coins_saved = level_coins[level_save_slot[idx]];
     percent_hud_reset(max_scroll_px);
     attempt_text_start(1, 0, cam_py);
     sp_cache_col = 0xFFFF;
@@ -910,11 +910,12 @@ uint16_t lc_attempts;
 // The level was completed (after the end animation): save it and hand the result to
 // STATE_LEVEL_COMPLETE, which shows the "LEVEL COMPLETE!" screen once play_level() returns
 static void level_complete_record(uint8_t idx) {
+    uint8_t slot = level_save_slot[idx];
     if (practice_mode) {
-        record_level_progress(idx, 100, 1);
+        record_level_progress(slot, 100, 1);
     } else {
-        record_level_progress(idx, 100, 0);
-        record_level_coins(idx, coins_collected);
+        record_level_progress(slot, 100, 0);
+        record_level_coins(slot, coins_collected);
     }
     lc_level = idx;
     lc_practice = practice_mode;
@@ -1209,7 +1210,7 @@ static void practice_respawn(uint8_t idx) {
 }
 
 static void handle_death(uint8_t idx, uint8_t sprite_x_final, int16_t final_py, uint16_t scroll_px) {
-    record_level_progress_from_cam(idx, cam_px, max_scroll_px, practice_mode);
+    record_level_progress_from_cam(level_save_slot[idx], cam_px, max_scroll_px, practice_mode);
     uint8_t removes = 0;
     if (setting_effects_enabled) {
         removes = play_death_animation(sprite_x_final, (uint8_t)final_py, (uint8_t)scroll_px, (uint8_t)cam_py, practice_mode);
@@ -1446,7 +1447,7 @@ void play_level(uint8_t idx) BANKED {
     lc_pending = 0;
     practice_clear_checkpoints();
     coins_reset();
-    coins_saved = level_coins[idx];
+    coins_saved = level_coins[level_save_slot[idx]];
     percent_hud_reset(max_scroll_px);
     attempt_count = 0;
     attempt_text_start(1, 0, cam_py);

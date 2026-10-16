@@ -31,12 +31,12 @@ BANKREF_EXTERN(xstep_map)
 extern const uint8_t xstep_map[];
 BANKREF_EXTERN(clutterfunk_map)
 extern const uint8_t clutterfunk_map[];
-BANKREF_EXTERN(ultiatedestruction_map)
-extern const uint8_t ultiatedestruction_map[];
 BANKREF_EXTERN(theoryofeverything_map)
 extern const uint8_t theoryofeverything_map[];
 BANKREF_EXTERN(electromanadventures_map)
 extern const uint8_t electromanadventures_map[];
+BANKREF_EXTERN(ultiatedestruction_map)
+extern const uint8_t ultiatedestruction_map[];
 BANKREF_EXTERN(test_map)
 extern const uint8_t test_map[];
 
@@ -74,15 +74,15 @@ BANKREF_EXTERN(xstep_sp)
 extern const SpDef clutterfunk_sp[];
 extern const SpDef clutterfunk_sp_dmg[];
 BANKREF_EXTERN(clutterfunk_sp)
-extern const SpDef ultiatedestruction_sp[];
-extern const SpDef ultiatedestruction_sp_dmg[];
-BANKREF_EXTERN(ultiatedestruction_sp)
 extern const SpDef theoryofeverything_sp[];
 extern const SpDef theoryofeverything_sp_dmg[];
 BANKREF_EXTERN(theoryofeverything_sp)
 extern const SpDef electromanadventures_sp[];
 extern const SpDef electromanadventures_sp_dmg[];
 BANKREF_EXTERN(electromanadventures_sp)
+extern const SpDef ultiatedestruction_sp[];
+extern const SpDef ultiatedestruction_sp_dmg[];
+BANKREF_EXTERN(ultiatedestruction_sp)
 extern const SpDef test_sp[];
 extern const SpDef test_sp_dmg[];
 BANKREF_EXTERN(test_sp)
@@ -99,8 +99,8 @@ extern const hUGESong_t timemachine;
 extern const hUGESong_t cycles;
 extern const hUGESong_t xstep;
 extern const hUGESong_t clutterfunk;
-extern const hUGESong_t ultiatedestruction;
 extern const hUGESong_t electromanadventures;
+extern const hUGESong_t ultiatedestruction;
 
 // Level songs array
 const hUGESong_t * const level_songs[] = {
@@ -115,9 +115,9 @@ const hUGESong_t * const level_songs[] = {
   &cycles, // level_cy
   &xstep, // level_xs
   &clutterfunk, // level_cf
-  &ultiatedestruction, // level_ultiatedestruction
   NULL, // level_toe (silent)
   &electromanadventures, // level_ea
+  &ultiatedestruction, // level_ultiatedestruction
   NULL, // level_test (silent)
 };
 
@@ -134,9 +134,9 @@ const uint8_t song_bank[] = {
   208u, // level_cy
   209u, // level_xs
   210u, // level_cf
-  211u, // level_ultiatedestruction
   0u, // level_toe
   213u, // level_ea
+  214u, // level_ultiatedestruction
   0u, // level_test
 };
 
@@ -317,22 +317,6 @@ const Level level_cf = {
   6
 };
 
-const Level level_ultiatedestruction = {
-  "UTLIMATE DESTCTN",
-  chr_gb_tiles,
-  chr_gb_tiles_rev,
-  ultiatedestruction_map,
-  BG_BASE_TILE_COUNT, 675, 64, 0, 0,
-  BANK(ultiatedestruction_map),
-  183,
-  ultiatedestruction_sp,
-  BANK(ultiatedestruction_sp),
-  ultiatedestruction_sp_dmg,
-  24,
-  17,
-  17
-};
-
 const Level level_toe = {
   "THEORY OF EVERYTHING",
   chr_gb_tiles,
@@ -365,6 +349,22 @@ const Level level_ea = {
   1
 };
 
+const Level level_ultiatedestruction = {
+  "UTLIMATE DESTCTN",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  ultiatedestruction_map,
+  BG_BASE_TILE_COUNT, 675, 64, 0, 0,
+  BANK(ultiatedestruction_map),
+  183,
+  ultiatedestruction_sp,
+  BANK(ultiatedestruction_sp),
+  ultiatedestruction_sp_dmg,
+  24,
+  17,
+  17
+};
+
 const Level level_test = {
   "TEST",
   chr_gb_tiles,
@@ -394,9 +394,28 @@ const Level* const game_levels[] = {
   &level_cy,
   &level_xs,
   &level_cf,
-  &level_ultiatedestruction,
   &level_toe,
   &level_ea,
+  &level_ultiatedestruction,
   &level_test,
 };
 const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);
+
+// Save slot of each level (game_levels order)
+const uint8_t level_save_slot[] = {
+  0u, // level_sm
+  1u, // level_bot
+  2u, // level_pg
+  3u, // level_du
+  4u, // level_bab
+  5u, // level_clg
+  6u, // level_ju
+  7u, // level_tm
+  8u, // level_cy
+  9u, // level_xs
+  10u, // level_cf
+  12u, // level_toe
+  13u, // level_ea
+  11u, // level_ultiatedestruction
+  15u, // level_test
+};

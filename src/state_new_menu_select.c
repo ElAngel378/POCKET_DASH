@@ -33,9 +33,9 @@ static const palette_color_t cgb_level_bg_colors[NUM_LEVEL_STYLES] = {
     RGB8(  0, 122, 248), // Cycles
     RGB8(  0,   0, 255), // xStep
     RGB8(230,  50,  80), // Clutterfunk
-    RGB8(248,   0, 248), // Ultimate Destruction
     RGB8(176,   0,  64), // Theory of Everything (Famidash start colour $05)
     RGB8( 68,  40, 188), // Electroman Adventures (Famidash start colour $02)
+    RGB8(248,   0, 248), // Ultimate Destruction
     RGB8(  0,   0, 255), // Test
 };
 
@@ -51,9 +51,9 @@ static const uint8_t level_difficulties[NUM_LEVEL_STYLES] = {
     4, // Cycles
     5, // xStep
     5, // Clutterfunk
-    6, // Ultimate Destruction
     5, // Theory of Everything
     5, // Electroman Adventures
+    6, // Ultimate Destruction
     1  // Test
 };
 
@@ -403,8 +403,8 @@ static uint8_t last_rendered_norm = 0xFF;
 static uint8_t last_rendered_prac = 0xFF;
 
 static void update_level_progress_bars(uint8_t level_idx) {
-    uint8_t norm_p = level_progress_normal[level_idx % NUM_SAVE_LEVELS];
-    uint8_t prac_p = level_progress_practice[level_idx % NUM_SAVE_LEVELS];
+    uint8_t norm_p = level_progress_normal[level_save_slot[level_idx]];
+    uint8_t prac_p = level_progress_practice[level_save_slot[level_idx]];
 
     if (norm_p != last_rendered_norm) {
         render_progress_bar(norm_p, 0x50);
@@ -431,7 +431,7 @@ static const uint8_t coin_icon_tiles[32] = {
 };
 
 static void draw_level_coins(uint8_t level_idx) {
-    uint8_t c = level_coins[level_idx % NUM_SAVE_LEVELS];
+    uint8_t c = level_coins[level_save_slot[level_idx]];
     for (uint8_t i = 0; i < 3; i++) {
         set_bkg_tile_xy((uint8_t)(13 + i), 8, (uint8_t)(COIN_ICON_TILE + ((c >> i) & 1)));
     }

@@ -1,4 +1,4 @@
-#pragma bank 113
+#pragma bank 112
 #include "assets.h"
 
 BANKREF(electromanadventures_sp)

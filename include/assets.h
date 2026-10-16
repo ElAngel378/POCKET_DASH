@@ -59,5 +59,8 @@ extern const uint8_t chr_gb_tiles[];
 BANKREF_EXTERN(chr_gb)
 
 extern const uint8_t MAX_LEVELS;
+// Save slot of each level (game_levels order): a level keeps its saved progress and coins
+// when the level order changes
+extern const uint8_t level_save_slot[];
 
 #endif

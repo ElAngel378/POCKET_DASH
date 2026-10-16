@@ -1,4 +1,4 @@
-#pragma bank 112
+#pragma bank 111
 #include "assets.h"
 
 BANKREF(theoryofeverything_sp)

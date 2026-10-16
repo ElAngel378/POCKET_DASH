@@ -51,9 +51,10 @@ static const SfxItem sfx_items[4] = {
 };
 
 #define NUM_SFX_ITEMS 4
-// Furnace songs first, then the hUGETracker ones (menu theme, 12 level songs, practice; level_test
-// is silent so it's not listed). Those only show with LEGACY, or after SELECT is held HUGE_UNLOCK_FRAMES.
-#define NUM_LEVEL_SONGS 12
+// Furnace songs first, then the hUGETracker ones (menu theme, the 13 levels that have one in level
+// order, practice; levels without one are skipped). Those only show with LEGACY, or after SELECT
+// is held HUGE_UNLOCK_FRAMES.
+#define NUM_LEVEL_SONGS 13
 #define NUM_HUGE_TRACKS (NUM_LEVEL_SONGS + 2)
 #define HUGE_UNLOCK_FRAMES 150
 #define PRACTICE_TRACK (NUM_LEVEL_SONGS + 1)
@@ -167,7 +168,9 @@ static void get_music_entry(uint8_t idx, MusicEntry *entry) {
         entry->bank = 212;
         entry->divider = 187;   // PRACTICE_MUSIC_DIVIDER in gameplay.c
     } else {
-        uint8_t lvl_idx = idx - 1;
+        // the (idx - 1)th level with a hUGETracker song
+        uint8_t lvl_idx = 0, k = (uint8_t)(idx - 1);
+        while (!level_songs[lvl_idx] || k--) lvl_idx++;
         entry->name = game_levels[lvl_idx]->name;
         entry->song = level_songs[lvl_idx];
         entry->bank = song_bank[lvl_idx];

@@ -1,4 +1,4 @@
-#pragma bank 111
+#pragma bank 113
 #include "assets.h"
 
 BANKREF(ultiatedestruction_sp)
