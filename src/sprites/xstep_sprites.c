@@ -1,4 +1,4 @@
-#pragma bank 109
+#pragma bank 110
 #include "assets.h"
 
 BANKREF(xstep_sp)

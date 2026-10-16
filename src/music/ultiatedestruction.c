@@ -1,4 +1,4 @@
-#pragma bank 214
+#pragma bank 213
 
 #include "hUGEDriver.h"
 #include <stddef.h>
@@ -2438,5 +2438,5 @@ static const unsigned char waves[] = {
     231,71,91,192,156,109,76,108,188,231,237,199,148,177,24,161,
 };
 
-const void __at(214) __bank_ultiatedestruction;
+const void __at(213) __bank_ultiatedestruction;
 const hUGESong_t ultiatedestruction = {6, &order_cnt, order1, order2, order3,order4, duty_instruments, wave_instruments, noise_instruments, NULL, waves};

@@ -10,17 +10,21 @@ BANKREF(save_manager)
 #define SAVE_MAGIC_1 'D'
 #define SAVE_MAGIC_2 'S'
 #define SAVE_MAGIC_3 'H'
-#define SAVE_VERSION 10
+#define SAVE_VERSION 11
 // Level count of the version 3 layout (progress arrays were 11 entries long)
 #define V3_NUM_SAVE_LEVELS 11
 #define NUM_SETTINGS_BYTES 6
+// Levels of the version 1..10 layouts (progress / coins arrays of 16 entries); version 11 puts the
+// slots after them (V10_SAVE_LEVELS..NUM_SAVE_LEVELS - 1) at the end
+#define V10_SAVE_LEVELS 16
 
 #include "settings.h"
 #include "icon_catalog.h"
 
-uint8_t level_progress_normal[NUM_SAVE_LEVELS] = {0};
-uint8_t level_progress_practice[NUM_SAVE_LEVELS] = {0};
-uint8_t level_coins[NUM_SAVE_LEVELS] = {0};
+// (no initializers: they would take bank 0 ROM; init_save_system sets them at boot)
+uint8_t level_progress_normal[NUM_RAM_SAVE_LEVELS];
+uint8_t level_progress_practice[NUM_RAM_SAVE_LEVELS];
+uint8_t level_coins[NUM_RAM_SAVE_LEVELS];
 
 uint8_t selected_icon = 0;
 uint8_t selected_color_primary = 0;
@@ -29,8 +33,8 @@ uint8_t selected_dmg_primary = 2;     // DMG shades (0 white .. 3 black): the or
 uint8_t selected_dmg_secondary = 1;
 
 // Version 4 layout: progress normal[N], practice[N], settings[6], coins[N], checksum
-#define V4_COINS_OFS (5 + NUM_SAVE_LEVELS * 2 + NUM_SETTINGS_BYTES)
-#define V4_DATA_LEN  (NUM_SAVE_LEVELS * 3 + NUM_SETTINGS_BYTES)
+#define V4_COINS_OFS (5 + V10_SAVE_LEVELS * 2 + NUM_SETTINGS_BYTES)
+#define V4_DATA_LEN  (V10_SAVE_LEVELS * 3 + NUM_SETTINGS_BYTES)
 // Version 5: version 4 + one more settings byte (SHOW %) before the checksum
 #define V5_SHOW_PCT_OFS (5 + V4_DATA_LEN)
 #define V5_DATA_LEN  (V4_DATA_LEN + 1)
@@ -53,6 +57,17 @@ uint8_t selected_dmg_secondary = 1;
 // Version 10: version 9 + 1 byte, once the FURNACE test setting; unused (LEGACY isn't saved)
 #define V10_FURNACE_OFS (5 + V9_DATA_LEN)
 #define V10_DATA_LEN (V9_DATA_LEN + 1)
+// Version 11: version 10 + the progress normal, practice and coins of the slots after the first
+// V10_SAVE_LEVELS (the extra levels). Those are only in SRAM (WRAM is full): read and written
+// there by the functions below, kept as they are by save_game_data.
+#if V10_SAVE_LEVELS != NUM_RAM_SAVE_LEVELS
+#error the version 1..10 slots are the ones in WRAM
+#endif
+#define V11_MORE (NUM_SAVE_LEVELS - V10_SAVE_LEVELS)
+#define V11_NORMAL_OFS   (5 + V10_DATA_LEN)
+#define V11_PRACTICE_OFS (V11_NORMAL_OFS + V11_MORE)
+#define V11_COINS_OFS    (V11_PRACTICE_OFS + V11_MORE)
+#define V11_DATA_LEN (V10_DATA_LEN + V11_MORE * 3)
 
 uint8_t setting_music_enabled   = 1;
 uint8_t setting_sfx_enabled     = 1;
@@ -73,6 +88,44 @@ static uint8_t calc_checksum(const uint8_t *data, uint8_t len) {
     return sum;
 }
 
+// The extra slots (version 11) of a save without them: all 0
+static void clear_extra_slots(volatile uint8_t *sram) {
+    for (uint8_t k = 0; k < V11_MORE * 3; k++) sram[V11_NORMAL_OFS + k] = 0;
+}
+
+// Slots NUM_RAM_SAVE_LEVELS.. (only in SRAM): one byte, and storing one (with the checksum)
+static uint8_t extra_get(uint8_t ofs) {
+    ENABLE_RAM;
+    uint8_t v = SRAM_BASE_ADDR[ofs];
+    DISABLE_RAM;
+    return v;
+}
+static void extra_set(uint8_t ofs, uint8_t v) {
+    ENABLE_RAM;
+    volatile uint8_t *sram = SRAM_BASE_ADDR;
+    sram[ofs] = v;
+    sram[5 + V11_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V11_DATA_LEN);
+    DISABLE_RAM;
+}
+
+uint8_t saved_level_coins(uint8_t slot) BANKED {
+    if (slot < NUM_RAM_SAVE_LEVELS) return level_coins[slot];
+    if (slot < NUM_SAVE_LEVELS) return extra_get((uint8_t)(V11_COINS_OFS + slot - NUM_RAM_SAVE_LEVELS)) & 7;
+    return 0;
+}
+
+void clear_all_level_saves(void) BANKED {
+    for (uint8_t i = 0; i < NUM_RAM_SAVE_LEVELS; i++) {
+        level_progress_normal[i] = 0;
+        level_progress_practice[i] = 0;
+        level_coins[i] = 0;
+    }
+    ENABLE_RAM;
+    clear_extra_slots(SRAM_BASE_ADDR);
+    DISABLE_RAM;
+    save_game_data();
+}
+
 void init_save_system(void) BANKED {
     ENABLE_RAM;
     volatile uint8_t *sram = SRAM_BASE_ADDR;
@@ -81,29 +134,30 @@ void init_save_system(void) BANKED {
     if (sram[0] == SAVE_MAGIC_0 && sram[1] == SAVE_MAGIC_1 &&
         sram[2] == SAVE_MAGIC_2 && sram[3] == SAVE_MAGIC_3) {
 
-        if (sram[4] == 10 || sram[4] == 9 || sram[4] == 8 || sram[4] == 7 || sram[4] == 6 || sram[4] == 5 || sram[4] == 4) {
+        if (sram[4] == 11 || sram[4] == 10 || sram[4] == 9 || sram[4] == 8 || sram[4] == 7 || sram[4] == 6 || sram[4] == 5 || sram[4] == 4) {
             uint8_t v5 = (sram[4] >= 5);
             uint8_t v6 = (sram[4] >= 6);
             uint8_t v7 = (sram[4] >= 7);
             uint8_t v8 = (sram[4] >= 8);
             uint8_t v9 = (sram[4] >= 9);
-            uint8_t v10 = (sram[4] == 10);
-            uint8_t len = v10 ? V10_DATA_LEN : v9 ? V9_DATA_LEN : v8 ? V8_DATA_LEN : (v7 ? V7_DATA_LEN : (v6 ? V6_DATA_LEN : (v5 ? V5_DATA_LEN : V4_DATA_LEN)));
+            uint8_t v10 = (sram[4] >= 10);
+            uint8_t v11 = (sram[4] == 11);
+            uint8_t len = v11 ? V11_DATA_LEN : v10 ? V10_DATA_LEN : v9 ? V9_DATA_LEN : v8 ? V8_DATA_LEN : (v7 ? V7_DATA_LEN : (v6 ? V6_DATA_LEN : (v5 ? V5_DATA_LEN : V4_DATA_LEN)));
             uint8_t chk = calc_checksum((const uint8_t *)&sram[5], len);
             if (sram[5 + len] == chk) {
-                for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
+                for (uint8_t i = 0; i < V10_SAVE_LEVELS; i++) {
                     level_coins[i] = sram[V4_COINS_OFS + i] & 7;
                     level_progress_normal[i] = sram[5 + i];
-                    level_progress_practice[i] = sram[5 + NUM_SAVE_LEVELS + i];
+                    level_progress_practice[i] = sram[5 + V10_SAVE_LEVELS + i];
                     if (level_progress_normal[i] > 100) level_progress_normal[i] = 100;
                     if (level_progress_practice[i] > 100) level_progress_practice[i] = 100;
                 }
-                setting_music_enabled    = sram[5 + NUM_SAVE_LEVELS * 2 + 0] ? 1 : 0;
-                setting_sfx_enabled      = sram[5 + NUM_SAVE_LEVELS * 2 + 1] ? 1 : 0;
-                setting_dmg_gradient     = sram[5 + NUM_SAVE_LEVELS * 2 + 2] ? 1 : 0;
-                setting_show_bg_enabled  = sram[5 + NUM_SAVE_LEVELS * 2 + 3] ? 1 : 0;
-                setting_parallax_enabled = sram[5 + NUM_SAVE_LEVELS * 2 + 4] ? 1 : 0;
-                setting_effects_enabled  = sram[5 + NUM_SAVE_LEVELS * 2 + 5] ? 1 : 0;
+                setting_music_enabled    = sram[5 + V10_SAVE_LEVELS * 2 + 0] ? 1 : 0;
+                setting_sfx_enabled      = sram[5 + V10_SAVE_LEVELS * 2 + 1] ? 1 : 0;
+                setting_dmg_gradient     = sram[5 + V10_SAVE_LEVELS * 2 + 2] ? 1 : 0;
+                setting_show_bg_enabled  = sram[5 + V10_SAVE_LEVELS * 2 + 3] ? 1 : 0;
+                setting_parallax_enabled = sram[5 + V10_SAVE_LEVELS * 2 + 4] ? 1 : 0;
+                setting_effects_enabled  = sram[5 + V10_SAVE_LEVELS * 2 + 5] ? 1 : 0;
                 setting_show_percent     = v5 ? (sram[V5_SHOW_PCT_OFS] ? 1 : 0) : 1;
                 setting_old_ship_cam     = v6 ? (sram[V6_SHIP_CAM_OFS] ? 1 : 0) : 0;
                 setting_auto_checkpoints = v7 ? (sram[V7_AUTO_CP_OFS] ? 1 : 0) : 1;
@@ -117,9 +171,10 @@ void init_save_system(void) BANKED {
                 if (selected_dmg_secondary > 3) selected_dmg_secondary = 1;
                 if (selected_color_primary >= 12) selected_color_primary = 0;
                 if (selected_color_secondary >= 12) selected_color_secondary = 1;
+                if (!v11) clear_extra_slots(sram);
                 if (!setting_show_bg_enabled) setting_parallax_enabled = 0;
                 DISABLE_RAM;
-                if (!v10) save_game_data();   // upgrade to version 10
+                if (!v11) save_game_data();   // upgrade to version 11
                 return;
             }
         } else if (sram[4] == 3) {
@@ -139,40 +194,43 @@ void init_save_system(void) BANKED {
                 setting_parallax_enabled = sram[5 + V3_NUM_SAVE_LEVELS * 2 + 4] ? 1 : 0;
                 setting_effects_enabled  = sram[5 + V3_NUM_SAVE_LEVELS * 2 + 5] ? 1 : 0;
                 if (!setting_show_bg_enabled) setting_parallax_enabled = 0;
+                clear_extra_slots(sram);
                 DISABLE_RAM;
                 save_game_data();
                 return;
             }
         } else if (sram[4] == 2) {
             // Upgrade from Version 2 (5 settings bytes, no SHOW BG)
-            uint8_t chk = calc_checksum((const uint8_t *)&sram[5], NUM_SAVE_LEVELS * 2 + 5);
-            if (sram[5 + NUM_SAVE_LEVELS * 2 + 5] == chk) {
-                for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
+            uint8_t chk = calc_checksum((const uint8_t *)&sram[5], V10_SAVE_LEVELS * 2 + 5);
+            if (sram[5 + V10_SAVE_LEVELS * 2 + 5] == chk) {
+                for (uint8_t i = 0; i < V10_SAVE_LEVELS; i++) {
                     level_progress_normal[i] = sram[5 + i];
-                    level_progress_practice[i] = sram[5 + NUM_SAVE_LEVELS + i];
+                    level_progress_practice[i] = sram[5 + V10_SAVE_LEVELS + i];
                     if (level_progress_normal[i] > 100) level_progress_normal[i] = 100;
                     if (level_progress_practice[i] > 100) level_progress_practice[i] = 100;
                 }
-                setting_music_enabled    = sram[5 + NUM_SAVE_LEVELS * 2 + 0] ? 1 : 0;
-                setting_sfx_enabled      = sram[5 + NUM_SAVE_LEVELS * 2 + 1] ? 1 : 0;
-                setting_dmg_gradient     = sram[5 + NUM_SAVE_LEVELS * 2 + 2] ? 1 : 0;
-                setting_parallax_enabled = sram[5 + NUM_SAVE_LEVELS * 2 + 3] ? 1 : 0;
-                setting_effects_enabled  = sram[5 + NUM_SAVE_LEVELS * 2 + 4] ? 1 : 0;
+                setting_music_enabled    = sram[5 + V10_SAVE_LEVELS * 2 + 0] ? 1 : 0;
+                setting_sfx_enabled      = sram[5 + V10_SAVE_LEVELS * 2 + 1] ? 1 : 0;
+                setting_dmg_gradient     = sram[5 + V10_SAVE_LEVELS * 2 + 2] ? 1 : 0;
+                setting_parallax_enabled = sram[5 + V10_SAVE_LEVELS * 2 + 3] ? 1 : 0;
+                setting_effects_enabled  = sram[5 + V10_SAVE_LEVELS * 2 + 4] ? 1 : 0;
                 setting_show_bg_enabled  = 1;
+                clear_extra_slots(sram);
                 DISABLE_RAM;
                 save_game_data();
                 return;
             }
         } else if (sram[4] == 1) {
             // Upgrade from Version 1
-            uint8_t chk = calc_checksum((const uint8_t *)&sram[5], NUM_SAVE_LEVELS * 2);
-            if (sram[5 + NUM_SAVE_LEVELS * 2] == chk) {
-                for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
+            uint8_t chk = calc_checksum((const uint8_t *)&sram[5], V10_SAVE_LEVELS * 2);
+            if (sram[5 + V10_SAVE_LEVELS * 2] == chk) {
+                for (uint8_t i = 0; i < V10_SAVE_LEVELS; i++) {
                     level_progress_normal[i] = sram[5 + i];
-                    level_progress_practice[i] = sram[5 + NUM_SAVE_LEVELS + i];
+                    level_progress_practice[i] = sram[5 + V10_SAVE_LEVELS + i];
                     if (level_progress_normal[i] > 100) level_progress_normal[i] = 100;
                     if (level_progress_practice[i] > 100) level_progress_practice[i] = 100;
                 }
+                clear_extra_slots(sram);
                 DISABLE_RAM;
                 save_game_data();
                 return;
@@ -181,7 +239,8 @@ void init_save_system(void) BANKED {
     }
 
     // Default to 0 on first boot or corrupt save
-    for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
+    clear_extra_slots(sram);
+    for (uint8_t i = 0; i < NUM_RAM_SAVE_LEVELS; i++) {
         level_progress_normal[i] = 0;
         level_progress_practice[i] = 0;
         level_coins[i] = 0;
@@ -214,19 +273,19 @@ void save_game_data(void) BANKED {
     sram[3] = SAVE_MAGIC_3;
     sram[4] = SAVE_VERSION;
 
-    for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
+    for (uint8_t i = 0; i < V10_SAVE_LEVELS; i++) {
         sram[5 + i] = level_progress_normal[i];
-        sram[5 + NUM_SAVE_LEVELS + i] = level_progress_practice[i];
+        sram[5 + V10_SAVE_LEVELS + i] = level_progress_practice[i];
     }
 
-    sram[5 + NUM_SAVE_LEVELS * 2 + 0] = setting_music_enabled;
-    sram[5 + NUM_SAVE_LEVELS * 2 + 1] = setting_sfx_enabled;
-    sram[5 + NUM_SAVE_LEVELS * 2 + 2] = setting_dmg_gradient;
-    sram[5 + NUM_SAVE_LEVELS * 2 + 3] = setting_show_bg_enabled;
-    sram[5 + NUM_SAVE_LEVELS * 2 + 4] = setting_parallax_enabled;
-    sram[5 + NUM_SAVE_LEVELS * 2 + 5] = setting_effects_enabled;
+    sram[5 + V10_SAVE_LEVELS * 2 + 0] = setting_music_enabled;
+    sram[5 + V10_SAVE_LEVELS * 2 + 1] = setting_sfx_enabled;
+    sram[5 + V10_SAVE_LEVELS * 2 + 2] = setting_dmg_gradient;
+    sram[5 + V10_SAVE_LEVELS * 2 + 3] = setting_show_bg_enabled;
+    sram[5 + V10_SAVE_LEVELS * 2 + 4] = setting_parallax_enabled;
+    sram[5 + V10_SAVE_LEVELS * 2 + 5] = setting_effects_enabled;
 
-    for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
+    for (uint8_t i = 0; i < V10_SAVE_LEVELS; i++) {
         sram[V4_COINS_OFS + i] = level_coins[i];
     }
 
@@ -239,13 +298,19 @@ void save_game_data(void) BANKED {
     sram[V9_DMG1_OFS] = selected_dmg_primary;
     sram[V9_DMG2_OFS] = selected_dmg_secondary;
     sram[V10_FURNACE_OFS] = 0;
-    sram[5 + V10_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V10_DATA_LEN);
+    // (the extra slots, V11_*_OFS, stay as they are in SRAM)
+    sram[5 + V11_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V11_DATA_LEN);
     DISABLE_RAM;
 }
 
 void record_level_progress(uint8_t level_idx, uint8_t pct, uint8_t is_practice) BANKED {
     if (level_idx >= NUM_SAVE_LEVELS) return;
     if (pct > 100) pct = 100;
+    if (level_idx >= NUM_RAM_SAVE_LEVELS) {
+        uint8_t ofs = (uint8_t)((is_practice ? V11_PRACTICE_OFS : V11_NORMAL_OFS) + level_idx - NUM_RAM_SAVE_LEVELS);
+        if (pct > extra_get(ofs)) extra_set(ofs, pct);
+        return;
+    }
 
     if (is_practice) {
         if (pct > level_progress_practice[level_idx]) {
@@ -262,6 +327,12 @@ void record_level_progress(uint8_t level_idx, uint8_t pct, uint8_t is_practice) 
 
 void record_level_coins(uint8_t level_idx, uint8_t coins) BANKED {
     if (level_idx >= NUM_SAVE_LEVELS) return;
+    if (level_idx >= NUM_RAM_SAVE_LEVELS) {
+        uint8_t ofs = (uint8_t)(V11_COINS_OFS + level_idx - NUM_RAM_SAVE_LEVELS);
+        uint8_t c = extra_get(ofs);
+        if ((c | coins) != c) extra_set(ofs, c | coins);
+        return;
+    }
     if ((level_coins[level_idx] | coins) != level_coins[level_idx]) {
         level_coins[level_idx] |= coins;
         save_game_data();

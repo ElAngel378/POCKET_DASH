@@ -1,4 +1,4 @@
-#pragma bank 106
+#pragma bank 107
 #include "assets.h"
 
 BANKREF(jumper_sp)

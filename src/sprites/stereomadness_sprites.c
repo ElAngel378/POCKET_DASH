@@ -1,4 +1,4 @@
-#pragma bank 100
+#pragma bank 101
 #include "assets.h"
 
 BANKREF(stereomadness_sp)

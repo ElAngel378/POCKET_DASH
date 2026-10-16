@@ -35,8 +35,16 @@ BANKREF_EXTERN(theoryofeverything_map)
 extern const uint8_t theoryofeverything_map[];
 BANKREF_EXTERN(electromanadventures_map)
 extern const uint8_t electromanadventures_map[];
+BANKREF_EXTERN(madness_map)
+extern const uint8_t madness_map[];
+BANKREF_EXTERN(leveleasy_map)
+extern const uint8_t leveleasy_map[];
+BANKREF_EXTERN(subzero_map)
+extern const uint8_t subzero_map[];
 BANKREF_EXTERN(ultiatedestruction_map)
 extern const uint8_t ultiatedestruction_map[];
+BANKREF_EXTERN(demonpark_map)
+extern const uint8_t demonpark_map[];
 BANKREF_EXTERN(test_map)
 extern const uint8_t test_map[];
 
@@ -80,9 +88,21 @@ BANKREF_EXTERN(theoryofeverything_sp)
 extern const SpDef electromanadventures_sp[];
 extern const SpDef electromanadventures_sp_dmg[];
 BANKREF_EXTERN(electromanadventures_sp)
+extern const SpDef madness_sp[];
+extern const SpDef madness_sp_dmg[];
+BANKREF_EXTERN(madness_sp)
+extern const SpDef leveleasy_sp[];
+extern const SpDef leveleasy_sp_dmg[];
+BANKREF_EXTERN(leveleasy_sp)
+extern const SpDef subzero_sp[];
+extern const SpDef subzero_sp_dmg[];
+BANKREF_EXTERN(subzero_sp)
 extern const SpDef ultiatedestruction_sp[];
 extern const SpDef ultiatedestruction_sp_dmg[];
 BANKREF_EXTERN(ultiatedestruction_sp)
+extern const SpDef demonpark_sp[];
+extern const SpDef demonpark_sp_dmg[];
+BANKREF_EXTERN(demonpark_sp)
 extern const SpDef test_sp[];
 extern const SpDef test_sp_dmg[];
 BANKREF_EXTERN(test_sp)
@@ -117,7 +137,11 @@ const hUGESong_t * const level_songs[] = {
   &clutterfunk, // level_cf
   NULL, // level_toe (silent)
   &electromanadventures, // level_ea
+  NULL, // level_mad (silent)
+  &stereomadness, // level_le
+  &cantletgo, // level_sz
   &ultiatedestruction, // level_ultiatedestruction
+  &timemachine, // level_dp
   NULL, // level_test (silent)
 };
 
@@ -135,8 +159,12 @@ const uint8_t song_bank[] = {
   209u, // level_xs
   210u, // level_cf
   0u, // level_toe
-  213u, // level_ea
-  214u, // level_ultiatedestruction
+  211u, // level_ea
+  0u, // level_mad
+  200u, // level_le
+  205u, // level_sz
+  213u, // level_ultiatedestruction
+  207u, // level_dp
   0u, // level_test
 };
 
@@ -349,6 +377,54 @@ const Level level_ea = {
   1
 };
 
+const Level level_mad = {
+  "MADNESS",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  madness_map,
+  BG_BASE_TILE_COUNT, 869, 64, 0, 0,
+  BANK(madness_map),
+  183,
+  madness_sp,
+  BANK(madness_sp),
+  madness_sp_dmg,
+  7,
+  18,
+  2
+};
+
+const Level level_le = {
+  "LEVEL EASY",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  leveleasy_map,
+  BG_BASE_TILE_COUNT, 895, 64, 0, 0,
+  BANK(leveleasy_map),
+  192,
+  leveleasy_sp,
+  BANK(leveleasy_sp),
+  leveleasy_sp_dmg,
+  37,
+  44,
+  28
+};
+
+const Level level_sz = {
+  "SUBZERO",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  subzero_map,
+  BG_BASE_TILE_COUNT, 850, 64, 0, 0,
+  BANK(subzero_map),
+  196,
+  subzero_sp,
+  BANK(subzero_sp),
+  subzero_sp_dmg,
+  37,
+  1,
+  1
+};
+
 const Level level_ultiatedestruction = {
   "UTLIMATE DESTCTN",
   chr_gb_tiles,
@@ -363,6 +439,22 @@ const Level level_ultiatedestruction = {
   24,
   17,
   17
+};
+
+const Level level_dp = {
+  "DEMON PARK",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  demonpark_map,
+  BG_BASE_TILE_COUNT, 1010, 64, 0, 0,
+  BANK(demonpark_map),
+  40,
+  demonpark_sp,
+  BANK(demonpark_sp),
+  demonpark_sp_dmg,
+  37,
+  22,
+  6
 };
 
 const Level level_test = {
@@ -396,10 +488,17 @@ const Level* const game_levels[] = {
   &level_cf,
   &level_toe,
   &level_ea,
+  &level_mad,
+  &level_le,
+  &level_sz,
   &level_ultiatedestruction,
+  &level_dp,
   &level_test,
 };
 const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);
+
+const uint8_t NUM_MAIN_LEVELS = 13;
+const uint8_t NUM_EXTRA_LEVELS = 5;
 
 // Save slot of each level (game_levels order)
 const uint8_t level_save_slot[] = {
@@ -416,6 +515,10 @@ const uint8_t level_save_slot[] = {
   10u, // level_cf
   12u, // level_toe
   13u, // level_ea
+  15u, // level_mad
+  16u, // level_le
+  17u, // level_sz
   11u, // level_ultiatedestruction
-  15u, // level_test
+  19u, // level_dp
+  255u, // level_test
 };

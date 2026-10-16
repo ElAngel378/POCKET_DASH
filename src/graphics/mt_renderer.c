@@ -23,8 +23,10 @@ static uint8_t mt_big_saws;   // the level has big saws: SAW_CENTER_MT is their 
 
 // Metatile tables the renderer uses: the ROM tables, or a per-level copy in WRAM when
 // the level moves sheet tiles or overrides metatile tiles.
+// The metatile tables the renderer reads: mt_ram (built per level by apply_level_bg_tiles), the
+// mirrored one (mt_tab_rev) has each metatile's tiles swapped left / right
 static const uint8_t (*mt_tab)[4] = metatiles;
-static const uint8_t (*mt_tab_rev)[4] = metatiles_rev;
+static const uint8_t (*mt_tab_rev)[4] = metatiles;
 static uint8_t mt_ram[2][FAMIDASH_NUM_METATILES][4];
 static uint8_t mt_xlat[256];
 static uint8_t mt_ram_level = 0xFF;   // level mt_ram was built for (it depends on the level only)
@@ -234,7 +236,7 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     saw_on = 0;
     saw_anim_reset();
     mt_tab = metatiles;
-    mt_tab_rev = metatiles_rev;
+    mt_tab_rev = metatiles;   // (no level has no tables: tools/build_bg_tiles.py makes them all)
     if (level >= BG_LEVEL_COUNT) return;
     ll_open(level, !cgb);
     mt_big_saws = bg_level_big_saws[level];
@@ -281,8 +283,8 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     // (the overrides follow the moves: n_over is known up front only without moves)
     n_moves = ll_get();
     n_over = n_moves ? 0xFF : ll_get();
-    // (CGB always uses the RAM table: build_mt_rows writes the ground look tiles into it)
-    if (!n_moves && !n_over && !cgb) return;
+    // Every level uses the RAM table (CGB: build_mt_rows writes the ground look tiles into it;
+    // the mirrored table is only there, not in ROM)
     gnd_tab_key = 0xFF;
 
     // Moved sheet tiles (DMG: out of the coin sprite tiles) -> per-level metatile table. The

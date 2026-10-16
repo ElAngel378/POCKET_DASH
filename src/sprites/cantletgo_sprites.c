@@ -1,4 +1,4 @@
-#pragma bank 105
+#pragma bank 106
 #include "assets.h"
 
 BANKREF(cantletgo_sp)

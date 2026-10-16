@@ -243,7 +243,8 @@ void main(void) {
         current_state = update_level_select_state();
         break;
       case STATE_NEW_MENU_SELECT:
-        current_state = update_new_menu_select_state();
+        // back from an extra level: its list (the old level select)
+        current_state = (selected >= NUM_MAIN_LEVELS) ? update_level_select_state() : update_new_menu_select_state();
         break;
       case STATE_PLAY_LEVEL:
         current_state = update_play_level_state();

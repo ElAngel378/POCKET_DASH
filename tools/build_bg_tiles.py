@@ -81,6 +81,8 @@ LEVEL_SETS = {
     "clutterfunk": {"blocks": "B"},
     "theoryofeverything": {"spikes": "C", "blocks": "B"},
     "electromanadventures": {"blocks": "B"},
+    "clubstep": {"blocks": "B"},
+    "demonpark": {"spikes": "C"},
 }
 
 SAW_CENTER_MT = 120

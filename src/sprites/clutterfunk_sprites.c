@@ -1,4 +1,4 @@
-#pragma bank 110
+#pragma bank 111
 #include "assets.h"
 
 BANKREF(clutterfunk_sp)

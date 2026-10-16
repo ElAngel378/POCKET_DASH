@@ -520,7 +520,7 @@ static void reload_level_state(uint8_t idx) {
     cube_icon_reset();
     sp_cache_reset(&active_sp, &sp_stream_idx);
     coins_reset();
-    coins_saved = level_coins[level_save_slot[idx]];
+    coins_saved = saved_level_coins(level_save_slot[idx]);
     percent_hud_reset(max_scroll_px);
     attempt_text_start(1, 0, cam_py);
     sp_cache_col = 0xFFFF;
@@ -1447,7 +1447,7 @@ void play_level(uint8_t idx) BANKED {
     lc_pending = 0;
     practice_clear_checkpoints();
     coins_reset();
-    coins_saved = level_coins[level_save_slot[idx]];
+    coins_saved = saved_level_coins(level_save_slot[idx]);
     percent_hud_reset(max_scroll_px);
     attempt_count = 0;
     attempt_text_start(1, 0, cam_py);

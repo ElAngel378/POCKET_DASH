@@ -20,7 +20,7 @@ extern volatile uint8_t current_song_bank;
 extern const hUGESong_t menuloop;
 
 // Level background colors
-#define NUM_LEVEL_STYLES 15
+#define NUM_LEVEL_STYLES 13   // the main levels (NUM_MAIN_LEVELS)
 static const palette_color_t cgb_level_bg_colors[NUM_LEVEL_STYLES] = {
     RGB8(  0,   0, 255), // Stereo Madness
     RGB8(248,   0, 248), // Back On Track
@@ -35,8 +35,6 @@ static const palette_color_t cgb_level_bg_colors[NUM_LEVEL_STYLES] = {
     RGB8(230,  50,  80), // Clutterfunk
     RGB8(176,   0,  64), // Theory of Everything (Famidash start colour $05)
     RGB8( 68,  40, 188), // Electroman Adventures (Famidash start colour $02)
-    RGB8(248,   0, 248), // Ultimate Destruction
-    RGB8(  0,   0, 255), // Test
 };
 
 static const uint8_t level_difficulties[NUM_LEVEL_STYLES] = {
@@ -53,8 +51,6 @@ static const uint8_t level_difficulties[NUM_LEVEL_STYLES] = {
     5, // Clutterfunk
     5, // Theory of Everything
     5, // Electroman Adventures
-    6, // Ultimate Destruction
-    1  // Test
 };
 
 // Difficulty faces (16x16, drawn as 4 sprites): Auto, Easy, Normal, Hard, Harder, Insane, Demon,
@@ -512,6 +508,7 @@ static const uint8_t scx_table_left[SPRING_ANIM_FRAMES] = {
 #define COLOR_FADE_MAX 16
 
 GameState update_new_menu_select_state(void) BANKED {
+    if (selected >= NUM_MAIN_LEVELS) selected = 0;   // only the main levels here
     init_save_system();
     // load with the display on (off shows white); fade_from_black shows the palettes
     fade_set_black();
@@ -632,7 +629,7 @@ GameState update_new_menu_select_state(void) BANKED {
         }
 
         if ((pressed & (J_RIGHT | J_DOWN)) || (repeat && (joy & (J_RIGHT | J_DOWN)))) {
-            if (selected < MAX_LEVELS - 1) selected++;
+            if (selected < NUM_MAIN_LEVELS - 1) selected++;
             else selected = 0;
 
             bg_color_from = current_bg_color;
@@ -646,7 +643,7 @@ GameState update_new_menu_select_state(void) BANKED {
             }
         } else if ((pressed & (J_LEFT | J_UP)) || (repeat && (joy & (J_LEFT | J_UP)))) {
             if (selected > 0) selected--;
-            else selected = MAX_LEVELS - 1;
+            else selected = NUM_MAIN_LEVELS - 1;
 
             bg_color_from = current_bg_color;
             bg_color_to = cgb_level_bg_colors[selected % NUM_LEVEL_STYLES];

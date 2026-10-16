@@ -1,4 +1,4 @@
-#pragma bank 102
+#pragma bank 103
 #include "assets.h"
 
 BANKREF(polargeist_sp)

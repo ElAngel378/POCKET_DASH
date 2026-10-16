@@ -118,12 +118,7 @@ static void on_setting_change(uint8_t new_val) {
 }
 
 static void on_wipe_save_action(void) {
-    for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
-        level_progress_normal[i] = 0;
-        level_progress_practice[i] = 0;
-        level_coins[i] = 0;
-    }
-    save_game_data();
+    clear_all_level_saves();
     if (setting_sfx_enabled) {
         play_sample_with_music(BANK_SFX_DATA, quit_sound_data, QUIT_SOUND_LEN);
     }

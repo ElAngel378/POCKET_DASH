@@ -7,7 +7,6 @@
 #define NUM_METATILES FAMIDASH_NUM_METATILES
 
 extern const uint8_t metatiles[FAMIDASH_NUM_METATILES][4];
-extern const uint8_t metatiles_rev[FAMIDASH_NUM_METATILES][4];
 extern const uint8_t famidash_metatile_palettes[FAMIDASH_NUM_METATILES];
 extern const uint8_t famidash_metatile_collision[FAMIDASH_NUM_METATILES];
 

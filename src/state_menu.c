@@ -5,6 +5,8 @@
 #include "fade.h"
 #include "gameplay.h"
 #include "assets.h"
+
+extern uint8_t selected;   // main.c: the level of the level selects
 #include "rainbow.h"
 #include "logo.h"
 #include "bg_parallax.h"
@@ -37,61 +39,6 @@
 #define MENU_OBJ16_LINE 100   // CGB: 8x8 sprites above (big buttons), 8x16 below (ground buttons)
 
 static uint8_t tb_cgb_place(uint8_t slot) __nonbanked;
-
-// "COMING SOON" box (the wrench does nothing yet): a 4 row window at the bottom, like the text box
-// in the Pokemon games. Tiles in BG slots no menu screen uses (DMG sky: 53..100, buffers: 168..).
-#define MSG_TILE 101          // 8 frame tiles, then one font glyph per letter
-#define MSG_WIN_Y 112
-#define MSG_FRAMES 150
-#define MSG_ROWS 4
-static const char msg_text[] = "COMING SOON";
-extern const unsigned char FontPusab[];
-#define MSG_SOLID 0xFF, 0xFF
-#define MSG_LEFT  0xC0, 0xC0
-#define MSG_RIGHT 0x03, 0x03
-#define MSG_NONE  0x00, 0x00
-// frame tiles (2 pixel white edge on the box colour): TL, T, TR, L, R, BL, B, BR
-static const uint8_t msg_box_tiles[8 * 16] = {
-    MSG_SOLID, MSG_SOLID, MSG_LEFT, MSG_LEFT, MSG_LEFT, MSG_LEFT, MSG_LEFT, MSG_LEFT,
-    MSG_SOLID, MSG_SOLID, MSG_NONE, MSG_NONE, MSG_NONE, MSG_NONE, MSG_NONE, MSG_NONE,
-    MSG_SOLID, MSG_SOLID, MSG_RIGHT, MSG_RIGHT, MSG_RIGHT, MSG_RIGHT, MSG_RIGHT, MSG_RIGHT,
-    MSG_LEFT, MSG_LEFT, MSG_LEFT, MSG_LEFT, MSG_LEFT, MSG_LEFT, MSG_LEFT, MSG_LEFT,
-    MSG_RIGHT, MSG_RIGHT, MSG_RIGHT, MSG_RIGHT, MSG_RIGHT, MSG_RIGHT, MSG_RIGHT, MSG_RIGHT,
-    MSG_LEFT, MSG_LEFT, MSG_LEFT, MSG_LEFT, MSG_LEFT, MSG_LEFT, MSG_SOLID, MSG_SOLID,
-    MSG_NONE, MSG_NONE, MSG_NONE, MSG_NONE, MSG_NONE, MSG_NONE, MSG_SOLID, MSG_SOLID,
-    MSG_RIGHT, MSG_RIGHT, MSG_RIGHT, MSG_RIGHT, MSG_RIGHT, MSG_RIGHT, MSG_SOLID, MSG_SOLID
-};
-
-static void msg_box_init(void) {
-    uint8_t row[20], x, r;
-    set_bkg_data(MSG_TILE, 8, msg_box_tiles);
-    for (r = 0; r < MSG_ROWS; r++) {
-        for (x = 0; x < 20; x++) {
-            uint8_t edge = (x == 0) ? 0 : (x == 19) ? 2 : 1;   // left, middle, right
-            if (r == 0) row[x] = (uint8_t)(MSG_TILE + edge);
-            else if (r == MSG_ROWS - 1) row[x] = (uint8_t)(MSG_TILE + 5 + edge);
-            else row[x] = (edge == 1) ? 0 : (uint8_t)(MSG_TILE + 3 + (edge >> 1));
-        }
-        if (r == 1) {
-            for (x = 0; msg_text[x]; x++) {
-                uint8_t slot = (uint8_t)(MSG_TILE + 8 + x);
-                if (msg_text[x] == ' ') { row[2 + x] = 0; continue; }
-                set_bkg_data(slot, 1, FontPusab + (uint16_t)(msg_text[x] - 'A' + 13) * 16u);
-                row[2 + x] = slot;
-            }
-        }
-        set_win_tiles(0, r, 20, 1, row);
-    }
-    if (_cpu == CGB_TYPE) {
-        for (x = 0; x < 20; x++) row[x] = 7;   // attributes: palette 7 (0 is the rainbow, 1..6 are used)
-        VBK_REG = 1;
-        for (r = 0; r < MSG_ROWS; r++) set_win_tiles(0, r, 20, 1, row);
-        VBK_REG = 0;
-        palette_color_t pal[4];   // box colour, edge, text outline, white (fade_set_* is banked: RAM copy)
-        pal[0] = RGB8(15, 20, 35); pal[1] = RGB8(0, 130, 180); pal[2] = RGB8(60, 210, 255); pal[3] = RGB8(255, 255, 255);
-        fade_set_bkg_palette(7, 1, pal);
-    }
-}
 
 static void update_menu_sprites(uint8_t sel) {
     // Music button (16x16) on left of ground bar (Screen X = 56..72, OAM X = 64)
@@ -563,7 +510,6 @@ GameState update_menu_state(void) BANKED {
     set_bkg_data(0, 1, blank_tile);
     fill_bkg_rect(0, 0, 32, 32, 0);
     build_ground_variants();
-    msg_box_init();
 
 #if SHOW_MENU_VERSION_LABEL
     // Load Pusab font tiles for version label
@@ -720,7 +666,6 @@ GameState update_menu_state(void) BANKED {
     fade_from_black(2);
     uint8_t sky_phase = 0;
     uint8_t prev_joy = joypad();
-    uint8_t msg_timer = 0;   // frames left of the COMING SOON box
 
     while (1) {
         if (_cpu == CGB_TYPE && setting_show_bg_enabled && setting_parallax_enabled) {
@@ -763,11 +708,6 @@ GameState update_menu_state(void) BANKED {
         uint8_t pressed = joy & ~prev_joy;
         prev_joy = joy;
         uint8_t old_sel = menu_sel;
-        if (msg_timer && (pressed || --msg_timer == 0)) {   // any button, or the time is up
-            msg_timer = 0;
-            HIDE_WIN;
-            update_menu_sprites(menu_sel);
-        }
 
         if (pressed & (J_LEFT | J_RIGHT)) {
             uint8_t left = (pressed & J_LEFT) != 0;
@@ -790,16 +730,8 @@ GameState update_menu_state(void) BANKED {
             update_menu_sprites(menu_sel);
         }
 
-        // A on the wrench (custom levels, not made yet): the COMING SOON box
-        if ((pressed & (J_A | J_START)) && menu_sel == SEL_WRENCH) {
-            msg_timer = MSG_FRAMES;
-            WX_REG = 7;
-            WY_REG = MSG_WIN_Y;
-            SHOW_WIN;
-            for (uint8_t s = 0; s < 4; s++) hide_sprite(s);   // the ground buttons are over the box
-        }
         uint8_t credits = (pressed & J_SELECT) != 0;   // SELECT: the credits again
-        uint8_t go = credits || ((pressed & (J_A | J_START)) && menu_sel != SEL_WRENCH);
+        uint8_t go = credits || (pressed & (J_A | J_START));
         if (go) {
             fade_capture_current();   // the rainbow palette changes: fade out from the current one
             fade_to_black(2);
@@ -810,7 +742,12 @@ GameState update_menu_state(void) BANKED {
             for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
             if (credits) return STATE_CREDITS;
             switch (menu_sel) {
-                case SEL_PLAY:  return STATE_NEW_MENU_SELECT;
+                case SEL_PLAY:
+                    if (selected >= NUM_MAIN_LEVELS) selected = 0;
+                    return STATE_NEW_MENU_SELECT;
+                case SEL_WRENCH:   // the extra levels
+                    if (selected < NUM_MAIN_LEVELS) selected = NUM_MAIN_LEVELS;
+                    return STATE_LEVEL_SELECT;
                 case SEL_MUSIC: return STATE_MUSIC_TEST;
                 case SEL_ICON:  return STATE_ICON_SELECT;
                 default:        return STATE_SETTINGS;

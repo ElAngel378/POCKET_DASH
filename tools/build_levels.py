@@ -31,11 +31,25 @@ KNOWN_LEVELS = {
     "cycles":        {"title": "CYCLES",          "divider": 183, "order": 9, "short": "cy"},
     "xstep":         {"title": "XSTEP",           "divider": 138, "order": 10, "short": "xs"},
     "clutterfunk":   {"title": "CLUTTERFUNK",     "divider": 195, "order": 11, "short": "cf"},
-    "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 14, "short": "ultiatedestruction", "save": 11},
-    # 1.5; after Ultimate Destruction so the saved progress of the levels before it stays put
+    # "save": the level's save slot when it is not order - 1 (slots never move: the order can)
     "theoryofeverything": {"title": "THEORY OF EVERYTHING", "divider": 183, "order": 12, "short": "toe", "save": 12},
     "electromanadventures": {"title": "ELECTROMAN ADVENTURES", "divider": 183, "order": 13, "short": "ea", "save": 13},
+    # Extra levels (the wrench in the main menu): the other Famidash levels Pocket Dash can play,
+    # easiest first. "song": play that level's song (Famidash uses it too).
+    # Best Automatic Lvl, Every Madness and Clubstep only use objects Pocket Dash has, but could not
+    # be cleared yet (normal size spike collision is not Famidash's: side spikes kill on more of the
+    # tile): their .tmx is not in levels/chr_data/tmx, the entries keep their order and save slot.
+    "bestautomaticlvl": {"title": "BEST AUTOMATIC LVL", "divider": 183, "order": 14, "short": "bal", "save": 14, "extra": True, "song": "dryout"},
+    "madness":       {"title": "MADNESS",         "divider": 183, "order": 15, "short": "mad", "save": 15, "extra": True},
+    "leveleasy":     {"title": "LEVEL EASY",      "divider": 183, "order": 16, "short": "le", "save": 16, "extra": True, "song": "stereomadness"},
+    "subzero":       {"title": "SUBZERO",         "divider": 183, "order": 17, "short": "sz", "save": 17, "extra": True, "song": "cantletgo"},
+    "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 18, "short": "ultiatedestruction", "save": 11, "extra": True},
+    "everymadness":  {"title": "EVERY MADNESS",   "divider": 183, "order": 19, "short": "em", "save": 18, "extra": True},
+    "demonpark":     {"title": "DEMON PARK",      "divider": 183, "order": 20, "short": "dp", "save": 19, "extra": True, "song": "timemachine"},
+    "clubstep":      {"title": "CLUBSTEP",        "divider": 183, "order": 21, "short": "cs", "save": 20, "extra": True},
 }
+# Save slots (include/save_manager.h NUM_SAVE_LEVELS); a level not listed above has none
+NO_SAVE_SLOT = 255
 
 def load_level_colors(level_name, metadata_dir=None):
     if metadata_dir is None:
@@ -158,11 +172,13 @@ FIRST_MAP_BANK = 30
 LAST_BANK = 255
 
 
-def used_banks():
-    """Banks of everything that is not a level map (#pragma bank in src/, except src/levels/)."""
+def used_banks(generated=()):
+    """Banks of everything this script does not regenerate (#pragma bank in src/, except the
+    level maps in src/levels/ and the `generated` files: the levels' sprite lists and songs)."""
     used = set()
+    generated = {Path(g).resolve() for g in generated}
     for p in SRC_DIR.rglob("*.c"):
-        if p.parent == LEVELS_DIR:
+        if p.parent == LEVELS_DIR or p.resolve() in generated:
             continue
         m = re.search(r'^#pragma\s+bank\s+(\d+)', p.read_text(errors="ignore"), re.M)
         if m:
@@ -275,9 +291,8 @@ def generate_assets_c(levels):
 
         # External music declarations
         f.write('// Music songs\n')
-        for lvl in levels:
-            if lvl["has_music"]:
-                f.write(f'extern const hUGESong_t {lvl["ident"]};\n')
+        for ident in dict.fromkeys(l["music_ident"] for l in levels if l["has_music"]):
+            f.write(f'extern const hUGESong_t {ident};\n')
         f.write('\n')
 
         # level_songs array
@@ -285,7 +300,7 @@ def generate_assets_c(levels):
         f.write('const hUGESong_t * const level_songs[] = {\n')
         for lvl in levels:
             if lvl["has_music"]:
-                f.write(f'  &{lvl["ident"]}, // level_{lvl["short_name"]}\n')
+                f.write(f'  &{lvl["music_ident"]}, // level_{lvl["short_name"]}\n')
             else:
                 f.write(f'  NULL, // level_{lvl["short_name"]} (silent)\n')
         f.write('};\n\n')
@@ -324,6 +339,16 @@ def generate_assets_c(levels):
             f.write(f'  &level_{lvl["short_name"]},\n')
         f.write('};\n')
         f.write('const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);\n\n')
+
+        # the main levels (the level select of PLAY) come first, then the extra ones (the wrench)
+        n_main = sum(1 for l in levels if l["stem"] in KNOWN_LEVELS and not l["extra"])
+        n_extra = sum(1 for l in levels if l["extra"])
+        assert all(not l["extra"] for l in levels[:n_main])
+        # the main levels' saves are in WRAM (include/save_manager.h NUM_RAM_SAVE_LEVELS)
+        assert all(l["save_slot"] < 16 for l in levels[:n_main])
+        assert all(l["extra"] for l in levels[n_main:n_main + n_extra])
+        f.write(f'const uint8_t NUM_MAIN_LEVELS = {n_main};\n')
+        f.write(f'const uint8_t NUM_EXTRA_LEVELS = {n_extra};\n\n')
 
         # save slots: a level keeps its slot when the level order changes
         f.write('// Save slot of each level (game_levels order)\n')
@@ -371,11 +396,19 @@ def build_all():
 
     levels_info = []
 
-    taken = used_banks()
+    idents = [make_c_ident(p.stem.lower()) for p in tmx_files]
+    taken = used_banks([SPRITES_DIR / f"{i}_sprites.c" for i in idents] +
+                       [MUSIC_DIR / f"{i}.c" for i in idents])
     next_map_bank = FIRST_MAP_BANK
     BASE_SPRITE_BANK = 100
     BASE_MUSIC_BANK = 200
-    PRACTICE_MUSIC_BANK = 212
+    LAST_MUSIC_BANK = 219
+    next_music_bank = BASE_MUSIC_BANK
+    # one bank per level's sprite list, from BASE_SPRITE_BANK (before the maps take banks)
+    sprite_banks = []
+    for _ in tmx_files:
+        sprite_banks.append(allocate_banks(1, sprite_banks[-1] + 1 if sprite_banks else BASE_SPRITE_BANK, taken))
+        taken.add(sprite_banks[-1])
 
     sys.path.insert(0, str(REPO_ROOT / "tools"))
     from tmx2sprites import extract_portals
@@ -383,13 +416,10 @@ def build_all():
     for idx, tmx_path in enumerate(tmx_files):
         stem = tmx_path.stem.lower()
         ident = make_c_ident(stem)
-        sprite_bank = BASE_SPRITE_BANK + idx
-        music_bank = BASE_MUSIC_BANK + idx
-        if music_bank >= PRACTICE_MUSIC_BANK:
-            music_bank += 1   # src/music/practice.c
+        sprite_bank = sprite_banks[idx]
+        meta = KNOWN_LEVELS.get(stem, {})
 
         if stem in KNOWN_LEVELS:
-            meta = KNOWN_LEVELS[stem]
             title = meta["title"]
             divider = meta["divider"]
             short_name = meta["short"]
@@ -398,7 +428,7 @@ def build_all():
             title = format_title(stem)
             divider = 180
             short_name = ident
-            save_slot = 15   # NUM_SAVE_LEVELS - 1: not a real level
+            save_slot = NO_SAVE_SLOT
 
         print(f"\n[{idx+1}/{len(tmx_files)}] Processing {title} ({stem})...")
 
@@ -424,8 +454,26 @@ def build_all():
 
         music_file = MUSIC_DIR / f"{ident}.c"
         uge_file = find_uge_file(stem)
+        song_of = next((l for l in levels_info if l["stem"] == meta.get("song")), None)
+        music_ident = ident
+        if song_of or (uge_file and UGE2SOURCE_BIN.exists()) or music_file.exists():
+            if not song_of:
+                music_bank = allocate_banks(1, next_music_bank, taken)
+                if music_bank > LAST_MUSIC_BANK:
+                    raise SystemExit("no free bank for the hUGETracker song of " + stem)
+                taken.add(music_bank)
+                next_music_bank = music_bank + 1
 
-        if uge_file and UGE2SOURCE_BIN.exists():
+        if song_of:
+            # another level's song (Famidash plays it there too): the same song data
+            if music_file.exists():
+                music_file.unlink()
+            has_music = song_of["has_music"]
+            music_ident = song_of["music_ident"]
+            music_bank = song_of["music_bank"]
+            divider = song_of["divider"]
+            print(f"  - Music: {song_of['title']}'s song")
+        elif uge_file and UGE2SOURCE_BIN.exists():
             uge_divider, uge_ticks = read_uge_tempo(uge_file)
             if uge_divider is not None:
                 divider = uge_divider
@@ -458,7 +506,10 @@ def build_all():
         bg_color, g_color = load_level_colors(stem)
 
         levels_info.append({
+            "stem": stem,
             "ident": ident,
+            "music_ident": music_ident,
+            "extra": meta.get("extra", False),
             "short_name": short_name,
             "save_slot": save_slot,
             "title": title,
