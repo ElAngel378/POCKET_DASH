@@ -126,6 +126,8 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
         sprites_firstgid + 37: 37,  # Pink pad
         sprites_firstgid + 38: 4,   # Pink pad upside down (engine id 4: Famidash's robot portal, unused)
         sprites_firstgid + 74: 74,  # Music note decoration
+        sprites_firstgid + 82: 20,  # Red pad (engine id 20: free below 38, so DMG keeps it)
+        sprites_firstgid + 83: 21,  # Red pad upside down
         # 242 = PLAYER_TRAILS_ON: Famidash's cosmetic player trail, not supported
         sprites_firstgid + 126: 126,  # test
         sprites_firstgid + 121: 121,  # test

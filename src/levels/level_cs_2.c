@@ -1,4 +1,4 @@
-#pragma bank 216
+#pragma bank 195
 #include <gbdk/incbin.h>
 
 // Columns 512.. of clubstep (read through clubstep_map's address)

@@ -1,4 +1,4 @@
-#pragma bank 116
+#pragma bank 115
 #include "assets.h"
 
 BANKREF(leveleasy_sp)

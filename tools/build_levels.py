@@ -39,13 +39,14 @@ KNOWN_LEVELS = {
     # Every Madness and Clubstep are in although the deathless bot has not cleared them yet
     # (Every Madness from x ~5971, Clubstep from x ~2822)
     "bestautomaticlvl": {"title": "BEST AUTOMATIC LVL", "divider": 183, "order": 14, "short": "bal", "save": 14, "extra": True, "song": "dryout"},
-    "madness":       {"title": "MADNESS",         "divider": 183, "order": 15, "short": "mad", "save": 15, "extra": True},
+    # save slot 15: Madness (removed)
     "leveleasy":     {"title": "LEVEL EASY",      "divider": 183, "order": 16, "short": "le", "save": 16, "extra": True, "song": "stereomadness"},
     "subzero":       {"title": "SUBZERO",         "divider": 183, "order": 17, "short": "sz", "save": 17, "extra": True, "song": "cantletgo"},
     "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 18, "short": "ultiatedestruction", "save": 11, "extra": True},
     "everymadness":  {"title": "EVERY MADNESS",   "divider": 183, "order": 19, "short": "em", "save": 18, "extra": True},
     "demonpark":     {"title": "DEMON PARK",      "divider": 183, "order": 20, "short": "dp", "save": 19, "extra": True, "song": "timemachine"},
     "clubstep":      {"title": "CLUBSTEP",        "divider": 183, "order": 21, "short": "cs", "save": 20, "extra": True},
+    "thelightningroad": {"title": "THE LIGHTNING ROAD", "divider": 183, "order": 22, "short": "tlr", "save": 21, "extra": True, "song": "dryout"},
 }
 # Save slots (include/save_manager.h NUM_SAVE_LEVELS); a level not listed above has none
 NO_SAVE_SLOT = 255

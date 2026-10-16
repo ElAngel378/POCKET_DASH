@@ -35,10 +35,8 @@
 // quadrant of the tile is solid, deadly or empty. See col_quads[] in player.c.
 #define COL_QUAD_BASE  0x20
 #define COL_QUAD_COUNT 26
-// Saw parts (ids COL_SAW_BASE..): deadly only inside a circle smaller than the drawn saw, so
-// the saws are not harsher than they look. See saw_circles[] in player.c.
-#define COL_SAW_BASE   0x40
-#define COL_SAW_COUNT  16
+// Saws: Famidash's spike types (COL_DEATH, COL_DEATH_TOP / BOTTOM / LEFT / RIGHT, the diagonal
+// spike quadrants), so they kill exactly where Famidash's do
 
 #define IS_SOLID(col)  ((col) == COL_ALL || (col) == COL_FLOOR_CEIL || \
                         (col) == COL_TOP || (col) == COL_BOTTOM)

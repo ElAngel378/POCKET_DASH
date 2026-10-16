@@ -58,8 +58,8 @@ extern const uint16_t bg_level_list_len[];
 #define SAW_ANIM_TILES 52
 static const uint8_t saw_frame_first[SAW_ANIM_FRAMES] = { 1, 101, 153 };
 // 1 = the level has saws (animate them)
-static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
+static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0 };
 // 1 = the level has big saws, so metatile SAW_CENTER_MT is their centre (CGB)
-static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
+static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0 };
 
 #endif

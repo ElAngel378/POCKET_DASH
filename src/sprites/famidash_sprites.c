@@ -109,6 +109,9 @@ const metasprite_t name[] = { \
         TWO_TILE(famidash_blue_pad_up,   PT_79, PT_7B, P2 | S_FLIPY, P2 | S_FLIPX | S_FLIPY);
         TWO_TILE(famidash_pink_pad,      PT_59, PT_5B, P4,           P4 | S_FLIPX);
         TWO_TILE(famidash_pink_pad_up,   PT_59, PT_5B, P4 | S_FLIPY, P4 | S_FLIPX | S_FLIPY);
+        // Famidash's red pad is the yellow pad's art in red
+        TWO_TILE(famidash_red_pad,       PT_79, PT_7B, P5,           P5 | S_FLIPX);
+        TWO_TILE(famidash_red_pad_up,    PT_79, PT_7B, P5 | S_FLIPY, P5 | S_FLIPX | S_FLIPY);
 
 // Orbs (Restored the S_FLIPX on the right tile so the circle completes)
         TWO_TILE(famidash_yellow_orb,    MT_99, MT_9B, P3,           P3 | S_FLIPX);
@@ -132,7 +135,7 @@ const metasprite_t * const famidash_sprite_table[38] = {
     0,
     famidash_portal_dn_horiz_dn, famidash_portal_dn_horiz_up,
     famidash_portal_up_horiz_dn, famidash_portal_up_horiz_up,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    famidash_red_pad, famidash_red_pad_up, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     famidash_pink_pad
 };
 

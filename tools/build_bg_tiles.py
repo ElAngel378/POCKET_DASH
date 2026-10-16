@@ -83,6 +83,7 @@ LEVEL_SETS = {
     "electromanadventures": {"blocks": "B"},
     "clubstep": {"blocks": "B"},
     "demonpark": {"spikes": "C"},
+    "thelightningroad": {"spikes": "C"},
 }
 
 SAW_CENTER_MT = 120

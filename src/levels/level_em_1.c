@@ -1,4 +1,4 @@
-#pragma bank 190
+#pragma bank 186
 #include <gbdk/incbin.h>
 
 // Columns 256.. of everymadness (read through everymadness_map's address)

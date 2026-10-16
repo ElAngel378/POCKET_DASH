@@ -39,6 +39,8 @@ extern SpCache active_sp;
 #define OBJ_PAD_BLUE_UP   14
 #define OBJ_PAD_PINK      37
 #define OBJ_PAD_PINK_UP   4    // Famidash 38 (tools/tmx2sprites.py)
+#define OBJ_PAD_RED       20   // Famidash 0x52 (tools/tmx2sprites.py)
+#define OBJ_PAD_RED_UP    21   // Famidash 0x53
 #define OBJ_LEVEL_END     15
 #define OBJ_MIRROR_PORTAL 126
 #define OBJ_MIRROR_EXIT   121
@@ -73,17 +75,19 @@ void coins_reset(void) BANKED {
 
 // Orb / pad launch velocities per game mode, normal and mini size
 // (Famidash sprite_gamemode_adjust_heights, 60fps value x 714/708).
-// [mini][kind][mode]: kind 0 yellow orb, 1 yellow pad, 2 pink orb, 3 pink pad;
+// [mini][kind][mode]: kind 0 yellow orb, 1 yellow pad, 2 pink orb, 3 pink pad, 4 red pad;
 // mode 0 cube, 1 ship, 2 ball, 3 UFO.
-static const int16_t launch_force[2][4][4] = {
+static const int16_t launch_force[2][5][4] = {
     { { JUMP_FORCE,         -1113, BALL_YELLOW_ORB, -952 },
       { PAD_JUMP_FORCE,      -968, BALL_YELLOW_PAD, -823 },
       { MAGENTA_JUMP_FORCE,  -516, BALL_PINK_ORB,   -549 },
-      { PINK_PAD_FORCE,      -629, BALL_PINK_PAD,   -597 } },
+      { PINK_PAD_FORCE,      -629, BALL_PINK_PAD,   -597 },
+      { -2566,              -1581, -1597,          -1033 } },
     { { -1242, -1194, -1113, -984 },
       { -1678, -1081, -1242, -936 },
       {  -855,  -484,  -855, -436 },
-      { -1017,  -484,  -920, -339 } },
+      { -1017,  -484,  -920, -339 },
+      { -2114, -1743, -1468, -1372 } },
 };
 #define LAUNCH(p, kind) launch_force[(p)->mini][(kind)][(p)->mode]
 
@@ -98,7 +102,7 @@ static uint8_t sp_has_drawn = 0;
 // DMG draws the portals, orbs and pads, coins and mirror portals (the object cache keeps and
 // draws only these there): bit (o & 7) of dmg_drawn_mask[o >> 3], for the object ids below 128.
 static const uint8_t dmg_drawn_mask[16] = {
-    0xE7, 0x7F, 0x0F, 0x0F, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x42
+    0xE7, 0x7F, 0x3F, 0x0F, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x42
 };
 static inline uint8_t is_dmg_drawn(uint8_t o) {
     return o < 128 && (dmg_drawn_mask[o >> 3] & (uint8_t)(1u << (o & 7)));
@@ -390,6 +394,7 @@ static uint8_t draw_oam_anim2(const metasprite_t* meta, uint8_t anim_x, uint8_t 
 static uint8_t obj_anim_tiles(uint8_t obj) {
     switch (obj) {
         case OBJ_PAD_YELLOW: case OBJ_PAD_YELLOW_UP: case OBJ_PAD_BLUE: case OBJ_PAD_BLUE_UP:
+        case OBJ_PAD_RED: case OBJ_PAD_RED_UP:
             return 234;   // Famidash $FB $FD
         case OBJ_ORB_YELLOW: case OBJ_ORB_BLUE:
             return 238;   // $9D $9F
@@ -624,10 +629,12 @@ static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t ob
         case OBJ_PAD_YELLOW_UP:
         case OBJ_PAD_BLUE_UP:
         case OBJ_PAD_PINK_UP:
+        case OBJ_PAD_RED:
+        case OBJ_PAD_RED_UP:
         {
             // Famidash: 15 x 3, at +5 on the floor (+ the 8 of its floor pad offset, which the
             // level export leaves out, see tools/tmx2sprites.py), at +0 on the ceiling
-            uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP || obj == OBJ_PAD_PINK_UP);
+            uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP || obj == OBJ_PAD_PINK_UP || obj == OBJ_PAD_RED_UP);
             if (touch_box(obj_x, obj_y, 0, 15, is_ceiling ? 0 : 13, 3)) {
                 // Famidash pad_stuff: yellow / pink pads launch on every frame the player
                 // touches them (going up through one, it launches twice); blue pads only while
@@ -646,6 +653,10 @@ static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t ob
                     }
                 } else if (obj == OBJ_PAD_PINK || obj == OBJ_PAD_PINK_UP) {
                     int16_t force = LAUNCH(p, 3);
+                    p->vel_y.w = (p->gravity_flipped) ? -force : force;
+                    p->on_ground = 0;
+                } else if (obj == OBJ_PAD_RED || obj == OBJ_PAD_RED_UP) {
+                    int16_t force = LAUNCH(p, 4);
                     p->vel_y.w = (p->gravity_flipped) ? -force : force;
                     p->on_ground = 0;
                 } else {
@@ -949,16 +960,16 @@ static const uint8_t dmg_badge_tile[7] = { 202, 204, 206, 240, 242, 244, 238 };
 const uint8_t dmg_icon[38] = {
     NI, NI, NI, NI, DMG_ICON_PAD_PINK,   DMG_ICON_ORB_BLUE, DMG_ICON_ORB_PINK, NI,   NI, NI,
     DMG_ICON_PAD_YELLOW, DMG_ICON_ORB_YELLOW, DMG_ICON_PAD_YELLOW, DMG_ICON_PAD_BLUE, DMG_ICON_PAD_BLUE, NI,
-    NI, NI, NI, NI,   NI, NI, NI, NI, NI, NI, NI, NI,   NI, NI, NI, NI, NI, NI, NI, NI, NI,
+    NI, NI, NI, NI,   DMG_ICON_PAD_YELLOW, DMG_ICON_PAD_YELLOW, NI, NI, NI, NI, NI, NI,   NI, NI, NI, NI, NI, NI, NI, NI, NI,
     DMG_ICON_PAD_PINK
 };
 const int8_t dmg_icon_y[38] = {
     0, 0, 0, 0, -8,   0, 0, 0,   0, 0,   8, 0, -8, 8, -8, 0,   0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+    8, -8, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 8
 };
 const uint8_t dmg_icon_prop[38] = {
     0, 0, 0, 0, S_FLIPY,   0, 0, 0,   0, 0,   0, 0, S_FLIPY, 0, S_FLIPY, 0,
-    0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    0, 0, 0, 0,   0, S_FLIPY, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 static const uint8_t dmg_badge[38] = {
     DMG_BADGE_CUBE, DMG_BADGE_SHIP, DMG_BADGE_BALL, DMG_BADGE_UFO, NI,   NI, NI, NI,
@@ -1390,7 +1401,7 @@ static uint8_t cgbf_w;                   // decoration width - 8 (its mirrored x
 // kind, this frame's left tile, its bank bit, right tile, its bank bit (draw_sprites)
 static const uint8_t cgb_anim_kind[38] = {
     0, 0, 0, 0, 4, 2, 3, 0, 0, 0, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4
+    1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4
 };
 static uint8_t cgb_anim_fr[4 * 4];
 static uint8_t cgb_anim_frames[4][4 * 4];

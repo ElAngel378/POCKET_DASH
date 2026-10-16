@@ -8,23 +8,20 @@ BANKREF_EXTERN(fs_electromanadventures_chunk1)
 extern const uint8_t fs_electromanadventures_chunk1[];
 BANKREF_EXTERN(fs_electromanadventures_chunk2)
 extern const uint8_t fs_electromanadventures_chunk2[];
-BANKREF_EXTERN(fs_electromanadventures_chunk3)
-extern const uint8_t fs_electromanadventures_chunk3[];
 
-static const fur_chunk_t fs_electromanadventures_chunks[4] = {
+static const fur_chunk_t fs_electromanadventures_chunks[3] = {
     { BANK(fs_electromanadventures_chunk0), fs_electromanadventures_chunk0 },
     { BANK(fs_electromanadventures_chunk1), fs_electromanadventures_chunk1 },
     { BANK(fs_electromanadventures_chunk2), fs_electromanadventures_chunk2 },
-    { BANK(fs_electromanadventures_chunk3), fs_electromanadventures_chunk3 },
 };
 
 BANKREF(fs_electromanadventures)
 const fur_song_t fs_electromanadventures = {
-    4, /* chunks */
-    3, /* wave pool chunk */
-    0, /* anti-click */
-    0, /* anti-click step at 91.0222 Hz */
-    737280UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 1733 }, { 0, 12833 }, { 1, 678 }, { 1, 14620 } }, /* stream entry points */
+    3, /* chunks */
+    2, /* wave pool chunk */
+    1, /* anti-click */
+    34952, /* anti-click step at 60 Hz */
+    1118481UL, /* tick period in 1/16 cycles */
+    { { 0, 0 }, { 0, 1060 }, { 0, 7062 }, { 0, 10874 }, { 1, 3113 } }, /* stream entry points */
     fs_electromanadventures_chunks
 };

@@ -37,8 +37,6 @@ BANKREF_EXTERN(electromanadventures_map)
 extern const uint8_t electromanadventures_map[];
 BANKREF_EXTERN(bestautomaticlvl_map)
 extern const uint8_t bestautomaticlvl_map[];
-BANKREF_EXTERN(madness_map)
-extern const uint8_t madness_map[];
 BANKREF_EXTERN(leveleasy_map)
 extern const uint8_t leveleasy_map[];
 BANKREF_EXTERN(subzero_map)
@@ -51,6 +49,8 @@ BANKREF_EXTERN(demonpark_map)
 extern const uint8_t demonpark_map[];
 BANKREF_EXTERN(clubstep_map)
 extern const uint8_t clubstep_map[];
+BANKREF_EXTERN(thelightningroad_map)
+extern const uint8_t thelightningroad_map[];
 BANKREF_EXTERN(test_map)
 extern const uint8_t test_map[];
 
@@ -97,9 +97,6 @@ BANKREF_EXTERN(electromanadventures_sp)
 extern const SpDef bestautomaticlvl_sp[];
 extern const SpDef bestautomaticlvl_sp_dmg[];
 BANKREF_EXTERN(bestautomaticlvl_sp)
-extern const SpDef madness_sp[];
-extern const SpDef madness_sp_dmg[];
-BANKREF_EXTERN(madness_sp)
 extern const SpDef leveleasy_sp[];
 extern const SpDef leveleasy_sp_dmg[];
 BANKREF_EXTERN(leveleasy_sp)
@@ -118,6 +115,9 @@ BANKREF_EXTERN(demonpark_sp)
 extern const SpDef clubstep_sp[];
 extern const SpDef clubstep_sp_dmg[];
 BANKREF_EXTERN(clubstep_sp)
+extern const SpDef thelightningroad_sp[];
+extern const SpDef thelightningroad_sp_dmg[];
+BANKREF_EXTERN(thelightningroad_sp)
 extern const SpDef test_sp[];
 extern const SpDef test_sp_dmg[];
 BANKREF_EXTERN(test_sp)
@@ -153,13 +153,13 @@ const hUGESong_t * const level_songs[] = {
   NULL, // level_toe (silent)
   &electromanadventures, // level_ea
   &dryout, // level_bal
-  NULL, // level_mad (silent)
   &stereomadness, // level_le
   &cantletgo, // level_sz
   &ultiatedestruction, // level_ultiatedestruction
   NULL, // level_em (silent)
   &timemachine, // level_dp
   NULL, // level_cs (silent)
+  &dryout, // level_tlr
   NULL, // level_test (silent)
 };
 
@@ -179,13 +179,13 @@ const uint8_t song_bank[] = {
   0u, // level_toe
   211u, // level_ea
   203u, // level_bal
-  0u, // level_mad
   200u, // level_le
   205u, // level_sz
   213u, // level_ultiatedestruction
   0u, // level_em
   207u, // level_dp
   0u, // level_cs
+  203u, // level_tlr
   0u, // level_test
 };
 
@@ -428,23 +428,6 @@ const Level level_bal = {
   1
 };
 
-const Level level_mad = {
-  "MADNESS",
-  chr_gb_tiles,
-  chr_gb_tiles_rev,
-  madness_map,
-  BG_BASE_TILE_COUNT, 869, 64, 0, 0,
-  BANK(madness_map),
-  183,
-  madness_sp,
-  BANK(madness_sp),
-  madness_sp_dmg,
-  7,
-  18,
-  2,
-  1
-};
-
 const Level level_le = {
   "LEVEL EASY",
   chr_gb_tiles,
@@ -547,6 +530,23 @@ const Level level_cs = {
   1
 };
 
+const Level level_tlr = {
+  "THE LIGHTNING ROAD",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  thelightningroad_map,
+  BG_BASE_TILE_COUNT, 843, 64, 0, 0,
+  BANK(thelightningroad_map),
+  185,
+  thelightningroad_sp,
+  BANK(thelightningroad_sp),
+  thelightningroad_sp_dmg,
+  29,
+  15,
+  15,
+  0
+};
+
 const Level level_test = {
   "TEST",
   chr_gb_tiles,
@@ -580,13 +580,13 @@ const Level* const game_levels[] = {
   &level_toe,
   &level_ea,
   &level_bal,
-  &level_mad,
   &level_le,
   &level_sz,
   &level_ultiatedestruction,
   &level_em,
   &level_dp,
   &level_cs,
+  &level_tlr,
   &level_test,
 };
 const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);
@@ -610,12 +610,12 @@ const uint8_t level_save_slot[] = {
   12u, // level_toe
   13u, // level_ea
   14u, // level_bal
-  15u, // level_mad
   16u, // level_le
   17u, // level_sz
   11u, // level_ultiatedestruction
   18u, // level_em
   19u, // level_dp
   20u, // level_cs
+  21u, // level_tlr
   255u, // level_test
 };

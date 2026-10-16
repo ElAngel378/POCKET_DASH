@@ -42,61 +42,6 @@ static const uint8_t col_quads[COL_QUAD_COUNT] = {
     0x40, 0x80, 0x10, 0x20, 0xC0, 0x30                                      // half spikes
 };
 
-// Saw parts: deadly where the player's drawn box (normal 16x16, mini 8x8) overlaps a circle
-// around the centre of their saw (x, y relative to the part's 16x16 metatile; mirror mode
-// mirrors the whole picture, so no flip).
-// The radius is the drawn saw's (teeth: small ~6.5, medium ~15.5, big ~21) minus ~2, so every
-// saw kills when the player is 2-3px into it, at either size and from any direction. Small
-// saw = one metatile (half small saws at the top / bottom of theirs), medium = 2x2 metatiles
-// (centre at their shared corner), big = 3x3 (centre in the middle one). Found through the
-// box corners (saw_corner), not the hazard probes: those sit near the player's centre, so they
-// found the saw only once the player was deep in it, and how deep depended on the direction.
-#define SAW_R_SMALL 5
-#define SAW_R_MED   14
-#define SAW_R_BIG   18
-static const int8_t saw_circles[COL_SAW_COUNT][3] = {
-    {  8,  8, SAW_R_SMALL },   // 0x40 SMALL_SAW
-    {  8, 16, SAW_R_SMALL },   // 0x41 SMALL_SAW_TOP_HALF (saw in the bottom half)
-    {  8,  0, SAW_R_SMALL },   // 0x42 SMALL_SAW_BOTTOM_HALF (saw in the top half)
-    { 16, 16, SAW_R_MED },     // 0x43 MED_SAW_TOP_LEFT
-    {  0, 16, SAW_R_MED },     // 0x44 MED_SAW_TOP_RIGHT
-    { 16,  0, SAW_R_MED },     // 0x45 MED_SAW_BOTTOM_LEFT
-    {  0,  0, SAW_R_MED },     // 0x46 MED_SAW_BOTTOM_RIGHT
-    {  8, 24, SAW_R_BIG },     // 0x47 BIG_SAW_TOP_MIDDLE
-    {  8, -8, SAW_R_BIG },     // 0x48 BIG_SAW_BOTTOM_MIDDLE
-    { 24, 24, SAW_R_BIG },     // 0x49 BIG_SAW_TOP_LEFT
-    { -8, 24, SAW_R_BIG },     // 0x4A BIG_SAW_TOP_RIGHT
-    { 24,  8, SAW_R_BIG },     // 0x4B BIG_SAW_MIDDLE_LEFT
-    { -8,  8, SAW_R_BIG },     // 0x4C BIG_SAW_MIDDLE_RIGHT
-    { 24, -8, SAW_R_BIG },     // 0x4D BIG_SAW_BOTTOM_LEFT
-    { -8, -8, SAW_R_BIG },     // 0x4E BIG_SAW_BOTTOM_RIGHT
-    {  8,  8, SAW_R_BIG },     // 0x4F BIG_SAW_CENTER
-};
-static uint8_t saw_bw, saw_bh;   // player box width - 1, height - 1 (set by player_update)
-
-// Corner (right?, bottom?) of the player box is at (xin, y) of the metatile column col_ptr:
-// 1 when that metatile is a saw part whose circle the box overlaps. A box that overlaps a saw
-// always has a corner in one of its metatiles (the box is never bigger than a metatile).
-static uint8_t saw_corner(const uint8_t *col_ptr, int16_t y, uint8_t xin, uint8_t right, uint8_t bottom) {
-    if ((uint16_t)y & 0xFF00) return 0;
-    uint8_t py8 = (uint8_t)y;
-    uint8_t s = (uint8_t)(famidash_metatile_collision[col_ptr[py8 >> 4]] - COL_SAW_BASE);
-    if (s >= COL_SAW_COUNT) return 0;
-    // the box in the metatile's coordinates
-    int8_t l = (int8_t)xin, t = (int8_t)(py8 & 15u);
-    if (right) l -= (int8_t)saw_bw;
-    if (bottom) t -= (int8_t)saw_bh;
-    int8_t r = (int8_t)(l + saw_bw), b = (int8_t)(t + saw_bh);
-    const int8_t *c = saw_circles[s];
-    // distance from the circle's centre to the nearest point of the box
-    int8_t cx = c[0], cy = c[1];
-    uint8_t dx = (cx < l) ? (uint8_t)(l - cx) : (cx > r) ? (uint8_t)(cx - r) : 0;
-    uint8_t dy = (cy < t) ? (uint8_t)(t - cy) : (cy > b) ? (uint8_t)(cy - b) : 0;
-    uint8_t rad = (uint8_t)c[2];
-    if (dx >= rad || dy >= rad) return 0;
-    return (uint16_t)(dx * dx) + (uint16_t)(dy * dy) < (uint16_t)(rad * rad);
-}
-
 // Collision types that depend on where inside the metatile the probe is (half blocks,
 // half spikes, quadrants). Kept out of inline_col_at so its 13 inlined copies in
 // player_update stay small (SDCC compiles the big inlined version very slowly).
@@ -111,8 +56,6 @@ static uint8_t col_at_partial(uint8_t col, uint8_t inner_y, uint8_t xin) {
     } else if (col == COL_DEATH_BOTTOM_HALF) {
         if (inner_y >= 8) return COL_NONE;
         return COL_DEATH;
-    } else if ((uint8_t)(col - COL_SAW_BASE) < COL_SAW_COUNT) {
-        return COL_NONE;   // saws: saw_corner
     } else if ((uint8_t)(col - COL_QUAD_BASE) < COL_QUAD_COUNT) {
         uint8_t m = col_quads[(uint8_t)(col - COL_QUAD_BASE)];
         uint8_t q = 1;
@@ -414,25 +357,6 @@ uint8_t player_update(
         }
     }
 
-    // Saws: the 4 corners of the drawn player box (see saw_corner)
-    if (saw_on) {
-        saw_bw = mini ? 7 : 15;
-        saw_bh = saw_bw;
-        int16_t ty = (int16_t)py + (mini ? 3 : 0);
-        int16_t by = ty + saw_bh;
-        uint8_t xr = (uint8_t)(wx + saw_bw) & 15u;
-        const uint8_t *cr = GET_COL_FAST(saw_bw);
-        // inline check first: saw_corner (5 arguments on the stack) only runs on a saw part
-#define ON_SAW(cp, y) (!((uint16_t)(y) & 0xFF00) && \
-        (uint8_t)(famidash_metatile_collision[(cp)[(uint8_t)(y) >> 4]] - COL_SAW_BASE) < COL_SAW_COUNT)
-        if ((ON_SAW(c0, ty) && saw_corner(c0, ty, x_mod_16, 0, 0)) ||
-            (ON_SAW(cr, ty) && saw_corner(cr, ty, xr, 1, 0)) ||
-            (ON_SAW(c0, by) && saw_corner(c0, by, x_mod_16, 0, 1)) ||
-            (ON_SAW(cr, by) && saw_corner(cr, by, xr, 1, 1))) {
-            p->dead = 1; return 1;
-        }
-#undef ON_SAW
-    }
 
     // Falling off a ledge / block: start rotation at frame 1 if resting flat (frame 0)
     if (was_on_ground && !p->on_ground && p->mode == MODE_CUBE) {

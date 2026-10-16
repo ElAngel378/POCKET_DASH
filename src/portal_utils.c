@@ -51,8 +51,9 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
             if ((obj_id >= 38 && obj_id < 64) || obj_id == 74 || (obj_id >= 192 && obj_id <= 239)) continue;
         }
 
-        // cache nearly full: keep room for the gameplay objects
-        if (count >= MAX_ACTIVE_SP_OBJECTS - 8 && ((obj_id >= 38 && obj_id < 64) || obj_id == 74)) continue;
+        // cache nearly full: keep 3 entries for the gameplay objects (with 8, a dense part dropped
+        // most of its decorations for good: a skipped one is never loaded again)
+        if (count >= MAX_ACTIVE_SP_OBJECTS - 3 && ((obj_id >= 38 && obj_id < 64) || obj_id == 74)) continue;
 
         if (count >= MAX_ACTIVE_SP_OBJECTS) break;
 
