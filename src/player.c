@@ -137,6 +137,11 @@ static uint8_t spike_at(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
     return 0;
 }
 
+// The collision types spike_at can kill on (a superset is fine: it only gates the spike_at calls)
+#define IS_SPIKE_COL(col) ((uint8_t)((col) - COL_DEATH_RIGHT) < 4u || (col) == COL_DEATH || \
+        (uint8_t)((col) - COL_DEATH_TOP_HALF) < 2u || \
+        (uint8_t)((col) - (COL_QUAD_BASE + 12u)) < (uint8_t)(COL_QUAD_COUNT - 12))
+
 // Saw cores. Saw parts use Famidash's spike types (spike_at), but those only kill in small zones
 // that leave holes: the big saw's centre metatile has no collision at all, and a medium saw only
 // kills in two 3px strips, so a player 1-5px off a saw's centre line went straight through.
@@ -402,7 +407,24 @@ uint8_t player_update(
         p->dead = 1;
         return 1;
     }
-    if (mini) {
+    // Most frames touch no spike: look at the (up to 4) metatiles the spike probes below lie in
+    // first, and only run the 6 spike_at calls when one of them is a spike type
+    uint8_t spike_near = 1;
+    {
+        int16_t sy0 = (int16_t)py + (mini ? 4 : 3);
+        int16_t sy1 = (int16_t)py + (mini ? 10 : 14);
+        if (!(((uint16_t)sy0 | (uint16_t)sy1) & 0xFF00)) {
+            uint8_t r0 = (uint8_t)sy0 >> 4, r1 = (uint8_t)sy1 >> 4;
+            uint8_t k0 = famidash_metatile_collision[c0[r0]];
+            uint8_t k1 = famidash_metatile_collision[c0[r1]];
+            uint8_t k2 = famidash_metatile_collision[c1[r0]];
+            uint8_t k3 = famidash_metatile_collision[c1[r1]];
+            spike_near = IS_SPIKE_COL(k0) || IS_SPIKE_COL(k1) || IS_SPIKE_COL(k2) || IS_SPIKE_COL(k3);
+        }
+    }
+    if (!spike_near) {
+        // no spike probe can hit
+    } else if (mini) {
         // Famidash's mini spike points: bg_coll_floor_spikes (x+3 / x+5 at the box top + 0 and
         // bottom - 2), bg_coll_death (centre x+3, y+7) and the front side point (x+8)
         if (SPIKE(3, py + 4) || SPIKE(5, py + 4) ||
