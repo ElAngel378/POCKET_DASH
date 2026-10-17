@@ -482,7 +482,7 @@ static void reload_level_state(uint8_t idx) {
     view_rev = 0;
 
     // Reload tileset and sprite data on respawn/restart
-    load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
+    load_level_bg_sheet(idx, 0, level_tiles, level_tile_count, level_tiles_bank);
     apply_level_bg_tiles(idx, 0);
     if (!setting_show_bg_enabled) {
         // Hide BG: blank DMG tile 12 so empty areas are solid
@@ -1047,7 +1047,7 @@ static void mirror_reload(uint8_t idx, uint8_t enable_display) {
     const uint8_t* target_tiles = (player.reversed && !mt_cgb_flip)
         ? l->tiles_rev
         : level_tiles;
-    load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
+    load_level_bg_sheet(idx, player.reversed && !mt_cgb_flip, target_tiles, level_tile_count, level_tiles_bank);
     PROF_MARK(15);   // mirror: level tiles
     apply_level_bg_tiles(idx, player.reversed);
     if (!setting_show_bg_enabled) {
@@ -1102,7 +1102,7 @@ static void mirror_reflect(uint8_t idx) {
     enable_interrupts();
     DISPLAY_OFF;   // returns at once when it is off
     PROF_MARK(14);   // mirror: tileset
-    load_bkg_tileset(player.reversed ? l->tiles_rev : level_tiles, level_tile_count, level_tiles_bank);
+    load_level_bg_sheet(idx, player.reversed, player.reversed ? l->tiles_rev : level_tiles, level_tile_count, level_tiles_bank);
     PROF_MARK(15);   // mirror: level tiles
     apply_level_bg_tiles(idx, player.reversed);
     if (!setting_show_bg_enabled) set_bkg_data(12, 1, blank_bg_tile);
@@ -1373,7 +1373,7 @@ void play_level(uint8_t idx) BANKED {
 #ifdef DEBUG_NO_SEAMLESS
     seamless = 0;   // test builds: CGB mirror portals through mirror_reload
 #endif
-    load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
+    load_level_bg_sheet(idx, 0, level_tiles, level_tile_count, level_tiles_bank);
     apply_level_bg_tiles(idx, 0);
     if (!setting_show_bg_enabled) {
         set_bkg_data(12, 1, blank_bg_tile);
