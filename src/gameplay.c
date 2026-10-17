@@ -687,7 +687,7 @@ static uint8_t practice_draw_checkpoints(uint8_t oam_index, uint16_t cam_x, uint
 static void practice_respawn(uint8_t idx);
 
 static uint8_t pause_menu(uint8_t idx) {
-    music_gate = 0;
+    music_gate_off();
     wait_vbl_done();
 
     // Pause music and mute active sound
@@ -1215,7 +1215,7 @@ static void practice_respawn(uint8_t idx) {
 }
 
 static void handle_death(uint8_t idx, uint8_t sprite_x_final, int16_t final_py, uint16_t scroll_px) {
-    music_gate = 0;   // the music runs freely until the loop starts again (practice: it keeps playing)
+    music_gate_off();   // the music runs freely until the loop starts again (practice: it keeps playing)
     record_level_progress_from_cam(level_save_slot[idx], cam_px, max_scroll_px, practice_mode);
     uint8_t removes = 0;
     if (setting_effects_enabled) {
@@ -1923,7 +1923,7 @@ void play_level(uint8_t idx) BANKED {
         if (died) handle_death(idx, sprite_x_final, final_py, scroll_px);
     }
 
-    music_gate = 0;
+    music_gate_off();
     bg_parallax_isr_stop();
     if (lc_pending) {
         // Level complete: the level stays on screen (sprites included) and the song keeps

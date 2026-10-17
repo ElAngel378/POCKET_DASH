@@ -120,15 +120,16 @@ static void step_music(void) {
 // Music paced by the level. During play_level's loop (music_gate) every iteration grants one
 // frame of music time (music_grant), and a tick only plays while there is time for it: when the
 // level drops a frame, the music waits for it too and stays in sync with the level, like a song
-// slowing down with the game. At full speed the time never runs out: it starts two frames ahead
-// and may build up to a tick plus two frames (the timer and the loop are not in phase), so the
-// music is at most ~2 frames ahead of the level.
+// slowing down with the game. A tick without time stops the timer; the next grant plays it and
+// restarts the timer, so the music shifts by the lag and its ticks keep their spacing (a tick
+// that waited for the next interrupt instead played right before the following one: uneven
+// note lengths). The time starts two frames ahead and builds up to a tick plus two frames.
 // Times in 1/128 of a 4096 Hz timer count (a CGB double speed count is half of one): a frame,
 // 70224 dots at 1024 dots a count, is exactly MUSIC_FRAME.
 #define MUSIC_FRAME 8778u
 volatile uint8_t music_gate;
-static volatile uint16_t music_allow;
-static uint8_t music_owed;   // ticks the timer asked for that had no time yet (at most 3)
+static uint16_t music_allow;
+static uint8_t music_blocked;   // a tick waits for time (the timer is stopped)
 
 // The time a music tick takes (the timer pacing, main.c / music_select.c)
 static uint16_t music_tick_time(void) {
@@ -139,34 +140,60 @@ static uint16_t music_tick_time(void) {
   return (uint16_t)(256u - current_music_divider) << 7;   // CGB: every other interrupt ticks
 }
 
-// The timer says a tick is due
+// The timer says a tick is due (sound effect samples: not paced, the timer runs them)
 static void music_tick(void) {
-  if (!music_gate) {
+  if (!music_gate || sample_playing) {
     step_music();
     return;
   }
   uint16_t t = music_tick_time();
-  if (music_owed < 3) music_owed++;
-  while (music_owed && music_ready && music_allow >= t) {
+  if (music_allow >= t) {
     music_allow -= t;
-    music_owed--;
     step_music();
+    return;
   }
+  TAC_REG = 0x00;
+  music_blocked = 1;
+}
+
+// The waiting tick, now: the timer starts a full period (TMA: already the next one) from here.
+// Interrupts off.
+static void music_unblock(void) {
+  music_blocked = 0;
+  TIMA_REG = TMA_REG;
+  IF_REG &= ~TIM_IFLAG;
+  cgb_music_tick = 1;   // CGB hUGE / slow Furnace songs: the next interrupt is the half that skips
+  TAC_REG = 0x04;
+  if (music_ready) step_music();
 }
 
 void music_gate_on(void) {
   disable_interrupts();
   music_allow = 2u * MUSIC_FRAME;
-  music_owed = 0;
+  music_blocked = 0;
   music_gate = 1;
   enable_interrupts();
 }
 
+void music_gate_off(void) {
+  disable_interrupts();
+  music_gate = 0;
+  if (music_blocked) music_unblock();
+  enable_interrupts();
+}
+
 void music_grant(void) {
-  uint16_t cap = music_tick_time() + 2u * MUSIC_FRAME;
+  uint16_t t = music_tick_time();
+  uint16_t cap = t + 2u * MUSIC_FRAME;
   disable_interrupts();
   uint16_t a = music_allow + MUSIC_FRAME;
-  music_allow = (a > cap) ? cap : a;
+  if (a > cap) a = cap;
+  if (music_blocked && a >= t) {
+    music_allow = a - t;
+    music_unblock();
+  } else {
+    music_allow = a;
+  }
   enable_interrupts();
 }
 
