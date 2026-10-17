@@ -180,6 +180,8 @@ static const int8_t saw_core_hi[12][3] = {
 };
 #define IS_SAW_MT(mt) ((uint8_t)((mt) - 8u) < 4u || (mt) == 4u || (uint8_t)((mt) - SAW_MT_HI) < 12u)
 static uint8_t saw_bw, saw_bh;   // player box width - 1, height - 1 (set by player_update)
+// n * n (the 16-bit multiply is a library call)
+static const uint8_t saw_sq[16] = { 0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225 };
 
 // Corner (right?, bottom?) of the player box is at (xin, y) of the metatile column col_ptr:
 // 1 when that metatile is a saw part whose core the box overlaps. A box that overlaps a core
@@ -204,7 +206,7 @@ static uint8_t saw_corner(const uint8_t *col_ptr, int16_t y, uint8_t xin, uint8_
     uint8_t dx = (cx < l) ? (uint8_t)(l - cx) : (cx > r) ? (uint8_t)(cx - r) : 0;
     uint8_t dy = (cy < t) ? (uint8_t)(t - cy) : (cy > b) ? (uint8_t)(cy - b) : 0;
     if (dx >= rad || dy >= rad) return 0;
-    return (uint16_t)(dx * dx) + (uint16_t)(dy * dy) < (uint16_t)(rad * rad);
+    return (uint16_t)(saw_sq[dx] + saw_sq[dy]) < saw_sq[rad];   // dx, dy < rad <= 15
 }
 
 // off: x offset of the probe point inside the player box

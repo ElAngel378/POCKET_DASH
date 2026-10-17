@@ -711,6 +711,171 @@ static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t ob
 #undef p
 }
 
+// Object logic pre-pass, hand-written like the draw loops: the C loop below ran its chain of checks
+// on every cached object every frame (SDCC keeps its locals on the stack: ~600 cycles for an
+// object near the player), up to 30% of a DMG frame in dense parts (Xstep's pads, portal runs). This lists, in cache order, only the entries the C loop could act on: the
+// level end, triggers, coins, horizontal gravity portals and the objects overlapping the player
+// in x (touch_object). It skips the ones the C loop would pass over with a continue (activated,
+// behind lim_back, decorations, past lim_near, out of reach vertically, not overlapping) and stops
+// where it would break (inactive, past lim_ahead, past lim_lead, past p_front + 16), so the C loop
+// does the same. Positions are taken relative to lim_back (one 16-bit subtraction per entry).
+static uint16_t psl_back, psl_py20;
+// the limits minus lim_back (all < 256)
+static uint8_t psl_rel_ahead, psl_rel_lead, psl_rel_near, psl_rel_tfront, psl_rel_pf16, psl_rel_x24;
+static uint8_t psl_obj, psl_rel;
+static uint8_t psl_n;
+static uint8_t psl_idx[MAX_ACTIVE_SP_OBJECTS];
+static void psl_filter(void) __naked {
+    __asm
+        ld      bc, #0                  ; b = cache index, c = entries listed
+    00001$:
+        ld      a, b
+        cp      a, #MAX_ACTIVE_SP_OBJECTS
+        jp      NC, 00009$
+        ld      e, b
+        ld      d, #0
+        ; active[b]: the active entries are the first ones
+        ld      hl, #(_active_sp + 80)
+        add     hl, de
+        ld      a, (hl)
+        or      a, a
+        jp      Z, 00009$
+        ; activated[b]: skip
+        ld      hl, #(_active_sp + 96)
+        add     hl, de
+        ld      a, (hl)
+        or      a, a
+        jp      NZ, 00008$
+        ; psl_obj = obj[b]
+        ld      hl, #_active_sp
+        add     hl, de
+        ld      a, (hl)
+        ld      (_psl_obj), a
+        ; e = rel = px[b] - psl_back
+        ld      hl, #(_active_sp + 16)
+        add     hl, de
+        add     hl, de
+        ld      a, (_psl_back)
+        ld      e, a
+        ld      a, (hl+)
+        sub     a, e
+        ld      e, a
+        ld      a, (_psl_back + 1)
+        ld      d, a
+        ld      a, (hl)
+        sbc     a, d
+        jr      NC, 00002$
+        ; behind lim_back: the level end to C, the rest skipped
+        ld      a, (_psl_obj)
+        cp      a, #OBJ_LEVEL_END
+        jp      Z, 00007$
+        jp      00008$
+    00002$:
+        jp      NZ, 00009$              ; rel >= 256: past lim_ahead, done
+        ld      a, (_psl_obj)
+        ld      d, a                    ; d = obj
+        cp      a, #OBJ_LEVEL_END
+        jr      NZ, 00003$
+        ld      a, (_psl_rel_ahead)     ; the level end: to C up to lim_ahead
+        cp      a, e
+        jp      C, 00009$
+        jp      00007$
+    00003$:
+        ld      a, (_psl_rel_lead)      ; past lim_lead: done
+        cp      a, e
+        jp      C, 00009$
+        ld      a, d
+        cp      a, #128                 ; triggers: to C
+        jp      NC, 00007$
+        cp      a, #OBJ_MUSIC_NOTE      ; decorations (38..63), the music note: skip
+        jp      Z, 00008$
+        sub     a, #38
+        cp      a, #26
+        jp      C, 00008$
+        ld      a, (_psl_rel_near)      ; past lim_near: skip
+        cp      a, e
+        jp      C, 00008$
+        ld      a, e
+        ld      (_psl_rel), a
+        ; out of reach vertically (dy = player y - py[b] not in -20..50): skip
+        ld      a, b
+        add     a, a
+        ld      e, a
+        ld      d, #0
+        ld      hl, #(_active_sp + 48)
+        add     hl, de
+        ld      a, (_psl_py20)
+        sub     a, (hl)
+        ld      e, a
+        inc     hl
+        ld      a, (_psl_py20 + 1)
+        sbc     a, (hl)
+        jp      NZ, 00008$
+        ld      a, e
+        cp      a, #71
+        jp      NC, 00008$
+        ; coins and horizontal gravity portals (16..19): to C
+        ld      a, (_psl_obj)
+        cp      a, #OBJ_COIN1
+        jp      Z, 00007$
+        cp      a, #OBJ_COIN2
+        jp      Z, 00007$
+        cp      a, #OBJ_COIN3
+        jp      Z, 00007$
+        sub     a, #16
+        cp      a, #4
+        jp      C, 00007$
+        ; overlapping the player in x (obj_x <= t_front, px <= obj_x + 24): to C (touch_object)
+        ld      a, (_psl_rel)
+        ld      e, a
+        ld      a, (_psl_rel_tfront)
+        cp      a, e
+        jr      C, 00004$
+        ld      a, (_psl_rel_x24)
+        ld      d, a
+        ld      a, e
+        cp      a, d
+        jp      NC, 00007$
+        jp      00008$
+    00004$:
+        ld      a, (_psl_rel_pf16)      ; obj_x > p_front + 16: the C loop stops there
+        cp      a, e
+        jp      C, 00009$
+        jp      00008$
+    00007$:
+        ld      hl, #_psl_idx
+        ld      e, c
+        ld      d, #0
+        add     hl, de
+        ld      (hl), b
+        inc     c
+    00008$:
+        inc     b
+        jp      00001$
+    00009$:
+        ld      a, c
+        ld      (_psl_n), a
+        ret
+    __endasm;
+}
+
+// Background colour trigger (object ids 128..175)
+static void bg_trigger(uint8_t obj, uint8_t *target_bg_idx) {
+    uint8_t pal_idx = (uint8_t)(obj - 128);
+
+    if (_cpu == CGB_TYPE) {
+        famidash_apply_bg_trigger(pal_idx);
+    }
+
+    if (pal_idx < 16) {
+        *target_bg_idx = (pal_idx == 15) ? 3 : 2;
+    } else if (pal_idx < 32) {
+        *target_bg_idx = 1;
+    } else {
+        *target_bg_idx = 0;
+    }
+}
+
 void process_sprite_logic(
         SpCache *cache_arg, uint16_t cam_px,
         Player* p_arg, uint8_t joy, uint8_t* target_bg_idx
@@ -742,7 +907,39 @@ void process_sprite_logic(
     uint16_t lim_near = px + 48u;
     uint16_t lim_back = (px >= 48u) ? (uint16_t)(px - 48u) : 0;   // obj_x + 48 < px
 
-    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+    psl_back = lim_back;
+    psl_py20 = py + 20u;   // (uint16_t)(dy + 20) <= 70: the dy test below
+    uint8_t fast = ((uint16_t)(lim_ahead - lim_back) < 256u && lim_lead >= lim_back && lim_near >= lim_back);
+    if (fast) {
+        // always (px is cam_px: 224, 208, 96 at most)
+        psl_rel_ahead = (uint8_t)(lim_ahead - lim_back);
+        psl_rel_lead = (uint8_t)(lim_lead - lim_back);
+        psl_rel_near = (uint8_t)(lim_near - lim_back);
+        psl_rel_tfront = (uint8_t)(t_front - lim_back);
+        psl_rel_pf16 = (uint8_t)(p_front + 16u - lim_back);
+        psl_rel_x24 = (px >= lim_back + 24u) ? (uint8_t)(px - 24u - lim_back) : 0;   // px <= obj_x + 24
+        psl_filter();
+    } else {
+        for (psl_n = 0; psl_n < MAX_ACTIVE_SP_OBJECTS; psl_n++) psl_idx[psl_n] = psl_n;
+    }
+    for (uint8_t k = 0; k < psl_n; k++) {
+        i = psl_idx[k];
+        if (fast) {
+            // psl_filter listed it, so the checks below up to its branch pass: go there directly
+            // for the common ones (an object overlapping the player, a colour trigger)
+            uint8_t o = cache->obj[i];
+            if (o >= 128) {
+                if (o <= 175) {
+                    bg_trigger(o, target_bg_idx);
+                    cache->activated[i] = 1;
+                    continue;
+                }
+            } else if (o != OBJ_LEVEL_END && o != OBJ_COIN1 && o != OBJ_COIN2 && o != OBJ_COIN3 &&
+                       (uint8_t)(o - 16u) >= 4u) {
+                touch_object(p, o, cache->px[i], cache->py[i], joy, &cache->activated[i]);
+                continue;
+            }
+        }
         if (!cache->active[i]) break;
         if (cache->activated[i]) continue;
 
@@ -785,23 +982,9 @@ void process_sprite_logic(
 
         if (obj >= 128 && obj <= 175) {
             if (lim_lead >= obj_x) {
-                uint8_t pal_idx = (uint8_t)(obj - 128);
-
-                if (_cpu == CGB_TYPE) {
-                    famidash_apply_bg_trigger(pal_idx);
-                }
-
-                if (pal_idx < 16) {
-                    *target_bg_idx = (pal_idx == 15) ? 3 : 2;
-                } else if (pal_idx < 32) {
-                    *target_bg_idx = 1;
-                } else {
-                    *target_bg_idx = 0;
-                }
-
+                bg_trigger(obj, target_bg_idx);
                 cache->activated[i] = 1;
             }
-
             continue;
         }
 
@@ -1028,15 +1211,19 @@ static const uint8_t dmg_pt_obj[DMG_PT_KINDS] = {
     16, 17, 18, 19, OBJ_MINI_PORTAL, OBJ_GROW_PORTAL, OBJ_MIRROR_PORTAL, OBJ_MIRROR_EXIT
 };
 
-static uint8_t dmg_portal_kind(uint8_t obj) {
-    if (obj <= OBJ_BALL_PORTAL) return obj;
-    if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) return (uint8_t)(obj - 5);
-    if (obj >= 16 && obj <= 19) return (uint8_t)(obj - 11);
-    if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL) return (uint8_t)(obj - 15);
-    if (obj == OBJ_MIRROR_PORTAL) return 11;
-    if (obj == OBJ_MIRROR_EXIT) return 12;
-    return 0xFF;
-}
+// Portal kind (index in dmg_pt_obj) of the object ids below 38 (0xFF: none; the mirror portals are
+// drawn directly), and each kind's offset in dmg_portal_art[mirror mode]
+#define PK 0xFF
+static const uint8_t dmg_portal_kind_of[38] = {
+    0, 1, 2, PK, PK, PK, PK, PK,   3, 4,   PK, PK, PK, PK, PK, PK,   5, 6, 7, 8,
+    PK, PK, PK, PK, 9, 10, PK, PK,   PK, PK, PK, PK, PK, PK, PK, PK, PK, PK
+};
+#undef PK
+#define PA (1 + DMG_PT_MAX * 4)
+static const uint16_t dmg_portal_art_ofs[DMG_PT_KINDS] = {
+    0, PA, 2 * PA, 3 * PA, 4 * PA, 5 * PA, 6 * PA, 7 * PA, 8 * PA, 9 * PA, 10 * PA, 11 * PA, 12 * PA
+};
+#undef PA
 
 // A portal drawn the slow way: badge (in front: lower OAM index), then the art.
 static uint8_t dmg_draw_portal_slow(uint8_t obj, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
@@ -1336,6 +1523,90 @@ static void dmg_object_loop(void) __naked {
     __endasm;
 }
 
+// The portals with recorded art (dmg_portal_art) in dmgd_slow, from entry dmgd_pos on, copied to
+// OAM in order: stops at the first other entry (dmgd_pos: it, for C), at the end of the list
+// (dmgd_pos = dmgd_slow_n), or at a portal that no longer fits (dmgd_full = 1: nothing more is
+// drawn). In C, the loop overhead was most of a portal's cost (DMG frame drops in Best
+// Automatic Lvl's portal runs).
+static const uint8_t *dmgp_base;   // dmg_portal_art[mirror mode]
+static uint8_t dmgd_pos, dmgd_full;
+static void dmg_slow_portals(void) __naked {
+    __asm
+        ld      a, (_dmgd_pos)
+        ld      b, a
+    00001$:
+        ld      a, (_dmgd_slow_n)
+        cp      a, b
+        jr      Z, 00008$               ; end of the list
+        ; hl = &dmgd_slow[4 * b]
+        ld      a, b
+        add     a, a
+        add     a, a
+        add     a, #<_dmgd_slow
+        ld      l, a
+        ld      a, #>_dmgd_slow
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl+)                ; object
+        cp      a, #38
+        jr      NC, 00008$              ; not a portal with recorded art: C
+        push    hl
+        add     a, #<_dmg_portal_kind_of
+        ld      l, a
+        ld      a, #>_dmg_portal_kind_of
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        pop     hl
+        cp      a, #0xFF
+        jr      Z, 00008$
+        ld      c, a                    ; c = kind
+        ld      a, (hl+)
+        ld      (_dmgp_sx), a
+        ld      a, (hl)
+        ld      (_dmgp_sy), a
+        ; hl = dmgp_base + dmg_portal_art_ofs[kind]
+        ld      a, c
+        add     a, a
+        add     a, #<_dmg_portal_art_ofs
+        ld      l, a
+        ld      a, #>_dmg_portal_art_ofs
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+        ld      a, (_dmgp_base)
+        add     a, l
+        ld      l, a
+        ld      a, (_dmgp_base + 1)
+        adc     a, h
+        ld      h, a
+        ; no longer fits (dmgd_oam + art[0] > MAX_HARDWARE_SPRITES): done
+        ld      a, (_dmgd_oam)
+        add     a, (hl)
+        cp      a, #(MAX_HARDWARE_SPRITES + 1)
+        jr      NC, 00009$
+        ld      a, l
+        ld      (_dmgp_src), a
+        ld      a, h
+        ld      (_dmgp_src + 1), a
+        push    bc
+        call    _dmg_copy_art
+        pop     bc
+        inc     b
+        jp      00001$
+    00008$:
+        ld      a, b
+        ld      (_dmgd_pos), a
+        ret
+    00009$:
+        ld      a, #1
+        ld      (_dmgd_full), a
+        ret
+    __endasm;
+}
+
 static uint8_t draw_sprites_dmg(uint16_t cam_px, uint16_t cam_py, uint8_t reversed, uint8_t oam_start) {
     dmgd_lim = cam_px + 176u;
     dmgd_ybias = 48u - cam_py;
@@ -1344,39 +1615,33 @@ static uint8_t draw_sprites_dmg(uint16_t cam_px, uint16_t cam_py, uint8_t revers
     dmgd_rej = reversed ? 208 : 224;
     dmgd_oam = oam_start;
     dmg_object_loop();
-    oam_start = dmgd_oam;
 
-    const uint8_t *e = dmgd_slow;
-    for (uint8_t n = dmgd_slow_n; n; n--, e += 4) {
+    // The listed objects in order: portals by dmg_slow_portals, the rest here
+    dmgp_base = &dmg_portal_art[reversed ? 1 : 0][0][0];
+    dmgd_pos = 0;
+    dmgd_full = 0;
+    for (;;) {
+        dmg_slow_portals();
+        if (dmgd_full || dmgd_pos >= dmgd_slow_n) break;
+        const uint8_t *e = &dmgd_slow[(uint8_t)(dmgd_pos << 2)];
         uint8_t obj = e[0], screen_x = e[1], screen_y = e[2];
+        oam_start = dmgd_oam;
         if (obj == OBJ_COIN1 || obj == OBJ_COIN2 || obj == OBJ_COIN3) {
-            if (cache->activated[e[3]]) continue;
-            if (oam_start > MAX_HARDWARE_SPRITES - 2) break;
-            oam_start += draw_oam_coin(oam_start, screen_x, screen_y, coins_saved & coin_bit(obj));
-            continue;
-        }
-        if (obj == OBJ_MIRROR_PORTAL || obj == OBJ_MIRROR_EXIT) {   // 12 sprites: not in the art cache
+            if (!cache->activated[e[3]]) {
+                if (oam_start > MAX_HARDWARE_SPRITES - 2) break;
+                oam_start += draw_oam_coin(oam_start, screen_x, screen_y, coins_saved & coin_bit(obj));
+            }
+        } else if (obj == OBJ_MIRROR_PORTAL || obj == OBJ_MIRROR_EXIT) {   // 12 sprites: not in the art cache
             if (oam_start > MAX_HARDWARE_SPRITES - 12) break;
             oam_start += draw_oam_mirror_portal(obj, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
-            continue;
-        }
-        if (obj == OBJ_UFO_PORTAL) {   // rare (Theory of Everything): drawn directly, not cached (WRAM is full)
+        } else if (obj == OBJ_UFO_PORTAL) {   // rare (Theory of Everything): drawn directly, not cached (WRAM is full)
             if (oam_start > MAX_HARDWARE_SPRITES - 10) break;
             oam_start += dmg_draw_portal_slow(obj, oam_start, screen_x, screen_y, reversed);
-            continue;
         }
-        uint8_t kind = dmg_portal_kind(obj);
-        if (kind == 0xFF) continue;
-        const uint8_t *art = dmg_portal_art[reversed ? 1 : 0][kind];
-        if ((uint8_t)(oam_start + art[0]) > MAX_HARDWARE_SPRITES) break;
         dmgd_oam = oam_start;
-        dmgp_src = art;
-        dmgp_sx = screen_x;
-        dmgp_sy = screen_y;
-        dmg_copy_art();
-        oam_start = dmgd_oam;
+        dmgd_pos++;
     }
-    return oam_start;
+    return dmgd_oam;
 }
 
 // CGB: OAM slots reserved before the player (gameplay.c) for the front column of the portal the
