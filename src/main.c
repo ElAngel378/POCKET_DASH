@@ -117,6 +117,59 @@ static void step_music(void) {
   }
 }
 
+// Music paced by the level. During play_level's loop (music_gate) every iteration grants one
+// frame of music time (music_grant), and a tick only plays while there is time for it: when the
+// level drops a frame, the music waits for it too and stays in sync with the level, like a song
+// slowing down with the game. At full speed the time never runs out: it starts two frames ahead
+// and may build up to a tick plus two frames (the timer and the loop are not in phase), so the
+// music is at most ~2 frames ahead of the level.
+// Times in 1/128 of a 4096 Hz timer count (a CGB double speed count is half of one): a frame,
+// 70224 dots at 1024 dots a count, is exactly MUSIC_FRAME.
+#define MUSIC_FRAME 8778u
+volatile uint8_t music_gate;
+static volatile uint16_t music_allow;
+static uint8_t music_owed;   // ticks the timer asked for that had no time yet (at most 3)
+
+// The time a music tick takes (the timer pacing, main.c / music_select.c)
+static uint16_t music_tick_time(void) {
+  if (music_driver == MUSIC_FUR) {
+    if (_cpu == CGB_TYPE && !fur_half) return (uint16_t)((uint16_t)fur_tbase << 6) + (fur_tfrac >> 8);
+    return (uint16_t)((uint16_t)fur_tbase << 7) + (fur_tfrac >> 7);
+  }
+  return (uint16_t)(256u - current_music_divider) << 7;   // CGB: every other interrupt ticks
+}
+
+// The timer says a tick is due
+static void music_tick(void) {
+  if (!music_gate) {
+    step_music();
+    return;
+  }
+  uint16_t t = music_tick_time();
+  if (music_owed < 3) music_owed++;
+  while (music_owed && music_ready && music_allow >= t) {
+    music_allow -= t;
+    music_owed--;
+    step_music();
+  }
+}
+
+void music_gate_on(void) {
+  disable_interrupts();
+  music_allow = 2u * MUSIC_FRAME;
+  music_owed = 0;
+  music_gate = 1;
+  enable_interrupts();
+}
+
+void music_grant(void) {
+  uint16_t cap = music_tick_time() + 2u * MUSIC_FRAME;
+  disable_interrupts();
+  uint16_t a = music_allow + MUSIC_FRAME;
+  music_allow = (a > cap) ? cap : a;
+  enable_interrupts();
+}
+
 #include "save_manager.h"
 #include "settings.h"
 
@@ -176,7 +229,7 @@ void play_music_safe(void) {
       // the timer runs at 256 Hz for the sample: 16 counts of 4096 Hz (32 of 8192 Hz)
       fur_left -= (_cpu == CGB_TYPE && !fur_half) ? 32 : 16;
       while (music_ready && fur_left <= 0) {
-        step_music();
+        music_tick();
         fur_left += fur_period_counts();
       }
     } else if (music_ready && sample_keeps_music && setting_music_enabled) {
@@ -184,7 +237,7 @@ void play_music_safe(void) {
       uint16_t period = 256 - current_music_divider;
       while (music_ready && music_time_acc >= period) {
         music_time_acc -= period;
-        step_music();
+        music_tick();
       }
     }
     return;
@@ -193,11 +246,11 @@ void play_music_safe(void) {
     if (music_driver == MUSIC_FUR) {
       if (fur_half && (cgb_music_tick++ & 1u)) return;
       TMA_REG = (uint8_t)(0 - fur_period_counts());   // the period after this one
-      step_music();
+      music_tick();
       return;
     }
     if ((_cpu == CGB_TYPE) && (cgb_music_tick++ & 1u)) return;
-    step_music();
+    music_tick();
   }
 }
 

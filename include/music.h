@@ -29,5 +29,10 @@ void music_borrow(uint8_t channels);
 void music_give_back(uint8_t channels);
 // After something else used wave RAM (pause): the song reloads its wave
 void music_reload_wave(void) BANKED;
+// Music paced by the level (main.c): music_gate_on when play_level's loop (re)starts, then
+// music_grant once per iteration; music_gate = 0 whenever the loop stops (pause, death, exit)
+extern volatile uint8_t music_gate;
+void music_gate_on(void);
+void music_grant(void);
 
 #endif
