@@ -22,6 +22,6 @@ const fur_song_t fs_cantletgo = {
     1, /* anti-click */
     30660, /* anti-click step at 68.4 Hz */
     981124UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 238 }, { 0, 3986 }, { 0, 11856 }, { 1, 9185 } }, /* stream entry points */
+    { { 0, 0 }, { 0, 238 }, { 0, 3996 }, { 0, 12118 }, { 1, 8890 } }, /* stream entry points */
     fs_cantletgo_chunks
 };

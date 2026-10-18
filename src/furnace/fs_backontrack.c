@@ -20,8 +20,8 @@ const fur_song_t fs_backontrack = {
     3, /* chunks */
     2, /* wave pool chunk */
     1, /* anti-click */
-    34952, /* anti-click step at 60 Hz */
-    1118481UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 217 }, { 0, 2569 }, { 0, 7236 }, { 1, 2225 } }, /* stream entry points */
+    36921, /* anti-click step at 56.8 Hz */
+    1181494UL, /* tick period in 1/16 cycles */
+    { { 0, 0 }, { 0, 193 }, { 0, 1853 }, { 0, 8327 }, { 1, 1964 } }, /* stream entry points */
     fs_backontrack_chunks
 };
