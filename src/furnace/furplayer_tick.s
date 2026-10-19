@@ -82,7 +82,7 @@ _fur_tick::
 	jr	z, ac_done
 	bit	7, a
 	jr	z, ac_model
-	and	#0xcf			; FUR_AC_MEASURE: a new tick, no wave pending, no NR30 held
+	and	#0xdf			; FUR_AC_MEASURE: a new tick, no wave pending in it yet
 	ld	(_fur_ac_on), a
 	ld	hl, #_fur_ac_x + 1
 	bit	7, (hl)
@@ -177,9 +177,6 @@ resume:					; back from an op handler: the loop for the mute state
 	ld	a, (_fur_mute)
 	or	a
 	jr	nz, fnext
-	ld	a, (_fur_ac_on)
-	bit	5, a
-	jr	nz, fnext		; FUR_AC_MEASURE: a wave pending (NR30 on waits for it)
 
 next:
 	ld	a, (hl+)
@@ -203,18 +200,7 @@ fnext:					; the same, skipping writes to muted channels
 	jr	nz, fnext
 	ld	b, a
 	ld	a, c
-	cp	#0x0a
-	jr	nz, 1$
-	bit	7, b			; NR30 DAC on with a wave pending (FUR_AC_MEASURE): it comes with
-	jr	z, 1$			; the copy, right before the trigger, as in Furnace's order
-	ld	a, (_fur_ac_on)
-	bit	5, a
-	jr	z, 2$
-	or	#0x10
-	ld	(_fur_ac_on), a
-	jr	fnext
-2$:	ld	a, #0x0a
-1$:	add	a, #0x10
+	add	a, #0x10
 	ld	c, a
 	ld	a, b
 	ldh	(c), a
@@ -702,9 +688,6 @@ ac_trigger:
 	push	de
 	ld	a, (_fur_ac_pos)
 	push	af
-	ldh	a, (0x1a)
-	and	#0x80
-	ld	(fur_tmp + 1), a	; NR30's DAC bit, cleared by the copy (wave_copy uses fur_tmp)
 2$:	ldh	a, (0x04)		; DIV
 	ld	b, a
 	push	bc			; B = DIV, C = flags
@@ -743,7 +726,12 @@ ac_trigger:
 	ld	c, a
 	ld	a, (fur_wave_last + 1)
 	ld	b, a
-	call	wave_copy		; DAC off until the check below passed
+	ldh	a, (0x1a)
+	and	#0x80
+	push	af			; NR30's DAC bit, cleared by the copy
+	call	wave_copy
+	pop	af
+	ldh	(0x1a), a
 	ld	a, (fur_bank)
 	ldh	(__current_bank), a
 	ld	(rROMB0), a
@@ -765,8 +753,6 @@ ac_trigger:
 	jr	2$
 7$:	pop	af
 	pop	hl
-	ld	a, (fur_tmp + 1)
-	call	ac_dac_on
 	ld	a, (_fur_ac_on)
 	and	#0xdf
 	ld	(_fur_ac_on), a
@@ -807,22 +793,7 @@ ac_flush:
 	ld	c, a
 	ld	a, (fur_wave_last + 1)
 	ld	b, a
-	call	wave_copy
-	xor	a
-	jr	ac_dac_on
-
-; After a pending wave's copy: NR30 = A (the DAC bit before it), or DAC on if a write was held
-ac_dac_on:
-	ld	b, a
-	ld	a, (_fur_ac_on)
-	bit	4, a
-	jr	z, 1$
-	and	#0xef
-	ld	(_fur_ac_on), a
-	ld	b, #0x80
-1$:	ld	a, b
-	ldh	(0x1a), a
-	ret
+	jp	wave_copy
 
 ; pos, cnt += DE (signed, 2097152 Hz units) at the current ch3 period
 ac_shift:
