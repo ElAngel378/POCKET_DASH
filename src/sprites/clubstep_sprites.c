@@ -1,4 +1,4 @@
-#pragma bank 121
+#pragma bank 114
 #include "assets.h"
 
 BANKREF(clubstep_sp)

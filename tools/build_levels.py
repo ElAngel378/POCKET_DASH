@@ -34,19 +34,19 @@ KNOWN_LEVELS = {
     # "save": the level's save slot when it is not order - 1 (slots never move: the order can)
     "theoryofeverything": {"title": "THEORY OF EVERYTHING", "divider": 183, "order": 12, "short": "toe", "save": 12},
     "electromanadventures": {"title": "ELECTROMAN ADVENTURES", "divider": 183, "order": 13, "short": "ea", "save": 13},
+    "clubstep":      {"title": "CLUBSTEP",        "divider": 183, "order": 14, "short": "cs", "save": 15},
     # Extra levels (the wrench in the main menu): the other Famidash levels Pocket Dash can play,
     # easiest first. "song": play that level's song (Famidash uses it too).
-    # Every Madness and Clubstep are in although the deathless bot has not cleared them yet
-    # (Every Madness from x ~5971, Clubstep from x ~2822)
-    "bestautomaticlvl": {"title": "BEST AUTOMATIC LVL", "divider": 183, "order": 14, "short": "bal", "save": 14, "extra": True, "song": "dryout"},
-    # save slot 15: Madness (removed)
-    "leveleasy":     {"title": "LEVEL EASY",      "divider": 183, "order": 16, "short": "le", "save": 16, "extra": True, "song": "stereomadness"},
-    "subzero":       {"title": "SUBZERO",         "divider": 183, "order": 17, "short": "sz", "save": 17, "extra": True, "song": "cantletgo"},
-    "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 18, "short": "ultiatedestruction", "save": 11, "extra": True},
-    "everymadness":  {"title": "EVERY MADNESS",   "divider": 183, "order": 19, "short": "em", "save": 18, "extra": True},
-    "demonpark":     {"title": "DEMON PARK",      "divider": 183, "order": 20, "short": "dp", "save": 19, "extra": True, "song": "timemachine"},
-    "clubstep":      {"title": "CLUBSTEP",        "divider": 183, "order": 21, "short": "cs", "save": 20, "extra": True},
-    "thelightningroad": {"title": "THE LIGHTNING ROAD", "divider": 183, "order": 22, "short": "tlr", "save": 21, "extra": True, "song": "dryout"},
+    # Every Madness is in although the deathless bot has not cleared it yet (from x ~5971)
+    "bestautomaticlvl": {"title": "BEST AUTOMATIC LVL", "divider": 183, "order": 15, "short": "bal", "save": 14, "extra": True, "song": "dryout"},
+    # save slot 15 was Madness (removed); Clubstep has it since it moved to the main levels (save
+    # version 12 moves its slot 20 progress there). Slot 20 is free
+    "leveleasy":     {"title": "LEVEL EASY",      "divider": 183, "order": 17, "short": "le", "save": 16, "extra": True, "song": "stereomadness"},
+    "subzero":       {"title": "SUBZERO",         "divider": 183, "order": 18, "short": "sz", "save": 17, "extra": True, "song": "cantletgo"},
+    "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 19, "short": "ultiatedestruction", "save": 11, "extra": True},
+    "everymadness":  {"title": "EVERY MADNESS",   "divider": 183, "order": 20, "short": "em", "save": 18, "extra": True},
+    "demonpark":     {"title": "DEMON PARK",      "divider": 183, "order": 21, "short": "dp", "save": 19, "extra": True, "song": "timemachine"},
+    "thelightningroad": {"title": "THE LIGHTNING ROAD", "divider": 183, "order": 23, "short": "tlr", "save": 21, "extra": True, "song": "dryout"},
 }
 # Save slots (include/save_manager.h NUM_SAVE_LEVELS); a level not listed above has none
 NO_SAVE_SLOT = 255

@@ -1,4 +1,4 @@
-#pragma bank 114
+#pragma bank 115
 #include "assets.h"
 
 BANKREF(bestautomaticlvl_sp)

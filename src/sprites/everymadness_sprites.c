@@ -1,4 +1,4 @@
-#pragma bank 118
+#pragma bank 119
 #include "assets.h"
 
 BANKREF(everymadness_sp)

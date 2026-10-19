@@ -1,4 +1,4 @@
-#pragma bank 119
+#pragma bank 121
 #include "assets.h"
 
 BANKREF(demonpark_sp)

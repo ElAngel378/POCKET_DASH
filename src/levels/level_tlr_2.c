@@ -1,4 +1,4 @@
-#pragma bank 216
+#pragma bank 225
 #include <gbdk/incbin.h>
 
 // Columns 512.. of thelightningroad (read through thelightningroad_map's address)

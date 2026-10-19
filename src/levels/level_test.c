@@ -1,4 +1,4 @@
-#pragma bank 218
+#pragma bank 227
 #include <gbdk/incbin.h>
 
 INCBIN(test_map, "levels/level_data/test.bin")

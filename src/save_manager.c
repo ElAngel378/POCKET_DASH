@@ -10,7 +10,7 @@ BANKREF(save_manager)
 #define SAVE_MAGIC_1 'D'
 #define SAVE_MAGIC_2 'S'
 #define SAVE_MAGIC_3 'H'
-#define SAVE_VERSION 11
+#define SAVE_VERSION 12
 // Level count of the version 3 layout (progress arrays were 11 entries long)
 #define V3_NUM_SAVE_LEVELS 11
 #define NUM_SETTINGS_BYTES 6
@@ -68,6 +68,10 @@ uint8_t selected_dmg_secondary = 1;
 #define V11_PRACTICE_OFS (V11_NORMAL_OFS + V11_MORE)
 #define V11_COINS_OFS    (V11_PRACTICE_OFS + V11_MORE)
 #define V11_DATA_LEN (V10_DATA_LEN + V11_MORE * 3)
+// Version 12: the version 11 layout. Clubstep moved to the main levels: its slot went from 20
+// (SRAM only) to 15 (WRAM; before, Madness's, a removed level). Older saves: slot 20 -> 15.
+#define V12_CLUBSTEP_OLD_SLOT 20
+#define V12_CLUBSTEP_SLOT     15
 
 uint8_t setting_music_enabled   = 1;
 uint8_t setting_sfx_enabled     = 1;
@@ -91,6 +95,20 @@ static uint8_t calc_checksum(const uint8_t *data, uint8_t len) {
 // The extra slots (version 11) of a save without them: all 0
 static void clear_extra_slots(volatile uint8_t *sram) {
     for (uint8_t k = 0; k < V11_MORE * 3; k++) sram[V11_NORMAL_OFS + k] = 0;
+}
+
+// A save older than version 12: Clubstep's slot 20 (version 11) to 15, Madness's progress there
+// dropped
+static void move_clubstep_slot(volatile uint8_t *sram, uint8_t v11) {
+    uint8_t k = V12_CLUBSTEP_OLD_SLOT - V10_SAVE_LEVELS;
+    level_progress_normal[V12_CLUBSTEP_SLOT] = v11 ? sram[V11_NORMAL_OFS + k] : 0;
+    level_progress_practice[V12_CLUBSTEP_SLOT] = v11 ? sram[V11_PRACTICE_OFS + k] : 0;
+    level_coins[V12_CLUBSTEP_SLOT] = v11 ? (sram[V11_COINS_OFS + k] & 7) : 0;
+    if (level_progress_normal[V12_CLUBSTEP_SLOT] > 100) level_progress_normal[V12_CLUBSTEP_SLOT] = 100;
+    if (level_progress_practice[V12_CLUBSTEP_SLOT] > 100) level_progress_practice[V12_CLUBSTEP_SLOT] = 100;
+    sram[V11_NORMAL_OFS + k] = 0;
+    sram[V11_PRACTICE_OFS + k] = 0;
+    sram[V11_COINS_OFS + k] = 0;
 }
 
 // Slots NUM_RAM_SAVE_LEVELS.. (only in SRAM): one byte, and storing one (with the checksum)
@@ -134,14 +152,15 @@ void init_save_system(void) BANKED {
     if (sram[0] == SAVE_MAGIC_0 && sram[1] == SAVE_MAGIC_1 &&
         sram[2] == SAVE_MAGIC_2 && sram[3] == SAVE_MAGIC_3) {
 
-        if (sram[4] == 11 || sram[4] == 10 || sram[4] == 9 || sram[4] == 8 || sram[4] == 7 || sram[4] == 6 || sram[4] == 5 || sram[4] == 4) {
+        if (sram[4] == 12 || sram[4] == 11 || sram[4] == 10 || sram[4] == 9 || sram[4] == 8 || sram[4] == 7 || sram[4] == 6 || sram[4] == 5 || sram[4] == 4) {
             uint8_t v5 = (sram[4] >= 5);
             uint8_t v6 = (sram[4] >= 6);
             uint8_t v7 = (sram[4] >= 7);
             uint8_t v8 = (sram[4] >= 8);
             uint8_t v9 = (sram[4] >= 9);
             uint8_t v10 = (sram[4] >= 10);
-            uint8_t v11 = (sram[4] == 11);
+            uint8_t v11 = (sram[4] >= 11);
+            uint8_t v12 = (sram[4] == 12);
             uint8_t len = v11 ? V11_DATA_LEN : v10 ? V10_DATA_LEN : v9 ? V9_DATA_LEN : v8 ? V8_DATA_LEN : (v7 ? V7_DATA_LEN : (v6 ? V6_DATA_LEN : (v5 ? V5_DATA_LEN : V4_DATA_LEN)));
             uint8_t chk = calc_checksum((const uint8_t *)&sram[5], len);
             if (sram[5 + len] == chk) {
@@ -171,10 +190,11 @@ void init_save_system(void) BANKED {
                 if (selected_dmg_secondary > 3) selected_dmg_secondary = 1;
                 if (selected_color_primary >= 12) selected_color_primary = 0;
                 if (selected_color_secondary >= 12) selected_color_secondary = 1;
+                if (!v12) move_clubstep_slot(sram, v11);
                 if (!v11) clear_extra_slots(sram);
                 if (!setting_show_bg_enabled) setting_parallax_enabled = 0;
                 DISABLE_RAM;
-                if (!v11) save_game_data();   // upgrade to version 11
+                if (!v12) save_game_data();   // upgrade to version 12
                 return;
             }
         } else if (sram[4] == 3) {
@@ -194,6 +214,7 @@ void init_save_system(void) BANKED {
                 setting_parallax_enabled = sram[5 + V3_NUM_SAVE_LEVELS * 2 + 4] ? 1 : 0;
                 setting_effects_enabled  = sram[5 + V3_NUM_SAVE_LEVELS * 2 + 5] ? 1 : 0;
                 if (!setting_show_bg_enabled) setting_parallax_enabled = 0;
+                move_clubstep_slot(sram, 0);
                 clear_extra_slots(sram);
                 DISABLE_RAM;
                 save_game_data();
@@ -215,6 +236,7 @@ void init_save_system(void) BANKED {
                 setting_parallax_enabled = sram[5 + V10_SAVE_LEVELS * 2 + 3] ? 1 : 0;
                 setting_effects_enabled  = sram[5 + V10_SAVE_LEVELS * 2 + 4] ? 1 : 0;
                 setting_show_bg_enabled  = 1;
+                move_clubstep_slot(sram, 0);
                 clear_extra_slots(sram);
                 DISABLE_RAM;
                 save_game_data();
@@ -230,6 +252,7 @@ void init_save_system(void) BANKED {
                     if (level_progress_normal[i] > 100) level_progress_normal[i] = 100;
                     if (level_progress_practice[i] > 100) level_progress_practice[i] = 100;
                 }
+                move_clubstep_slot(sram, 0);
                 clear_extra_slots(sram);
                 DISABLE_RAM;
                 save_game_data();

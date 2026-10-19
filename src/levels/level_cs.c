@@ -1,4 +1,4 @@
-#pragma bank 193
+#pragma bank 175
 #include <gbdk/incbin.h>
 
 // Columns 0..255; the rest are in level_cs_1.c.. (next banks, same address)

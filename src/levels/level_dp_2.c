@@ -1,4 +1,4 @@
-#pragma bank 191
+#pragma bank 216
 #include <gbdk/incbin.h>
 
 // Columns 512.. of demonpark (read through demonpark_map's address)
