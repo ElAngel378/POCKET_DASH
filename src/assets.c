@@ -518,7 +518,7 @@ const Level level_cs = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   clubstep_map,
-  BG_BASE_TILE_COUNT, 906, 64, 0, 0,
+  BG_BASE_TILE_COUNT, 905, 64, 0, 0,
   BANK(clubstep_map),
   183,
   clubstep_sp,
