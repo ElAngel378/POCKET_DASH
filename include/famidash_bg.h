@@ -37,6 +37,16 @@ inline static void famidash_apply_palettes(void) {
         do {
             BCPD_REG = *p++;
         } while (--n);
+        // palette 5 (fake spikes): sky, darker sky, black, black (see upload_palette)
+        p = (const uint8_t *)famidash_bg_palettes;
+        n = 4;
+        do {
+            BCPD_REG = *p++;
+        } while (--n);
+        n = 4;
+        do {
+            BCPD_REG = 0;
+        } while (--n);
         famidash_bkg_palettes_dirty = 0;
     }
 }

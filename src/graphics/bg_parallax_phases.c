@@ -136,7 +136,9 @@ static void copy_row16x2(void) __naked {
     __endasm;
 }
 
-// Writes the 40 bytes of famidash_bg_palettes to CGB background palette RAM 0..
+// Writes the 40 bytes of famidash_bg_palettes to CGB background palette RAM 0.., then palette 5
+// (fake spikes, Famidash's PAL_3): colours 0 and 1 of palette 0 (sky, darker sky), black, black.
+// Not stored: 8 more bytes in the palette, fade and checkpoint arrays overflowed the stack.
 static void upload_palette(void) __naked {
     __asm
         ld      hl, #_famidash_bg_palettes
@@ -145,6 +147,15 @@ static void upload_palette(void) __naked {
         ld      c, #0x69
         .rept 40
         ld      a, (hl+)
+        ldh     (c), a
+        .endm
+        ld      hl, #_famidash_bg_palettes
+        .rept 4
+        ld      a, (hl+)
+        ldh     (c), a
+        .endm
+        xor     a, a
+        .rept 4
         ldh     (c), a
         .endm
         ret

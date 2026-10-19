@@ -105,6 +105,15 @@ static void fade_channels(void) __naked {
     __endasm;
 }
 
+// shadow_bkg_palettes' palette 5 (fake spikes, Famidash PAL_3): sky, darker sky, black, black,
+// from the level palettes (not stored there, see upload_palette)
+static void shadow_fake_spike_palette(void) {
+    shadow_bkg_palettes[20] = famidash_bg_palettes[0];
+    shadow_bkg_palettes[21] = famidash_bg_palettes[1];
+    shadow_bkg_palettes[22] = 0;
+    shadow_bkg_palettes[23] = 0;
+}
+
 // Once per frame (CGB): next step of a running fade
 void famidash_bg_fade_step(void) BANKED {
     if (fade_restart) {
@@ -118,6 +127,7 @@ void famidash_bg_fade_step(void) BANKED {
         memcpy(famidash_bg_palettes, famidash_bg_target, sizeof(famidash_bg_target));
         // the pause box and the death fade start from shadow_bkg_palettes
         memcpy(shadow_bkg_palettes, famidash_bg_palettes, 20 * sizeof(palette_color_t));
+        shadow_fake_spike_palette();
     } else {
         fade_channels();
         const FadeCh *c = fade_ch;
@@ -136,6 +146,7 @@ void famidash_bg_set_now(const palette_color_t *pal) BANKED {
     memcpy(famidash_bg_target, pal, sizeof(famidash_bg_target));
     memcpy(famidash_bg_palettes, pal, sizeof(famidash_bg_target));
     memcpy(shadow_bkg_palettes, pal, 20 * sizeof(palette_color_t));
+    shadow_fake_spike_palette();
     fade_left = 0;
     fade_restart = 0;
 }
@@ -251,6 +262,7 @@ void famidash_reset_bg_palettes(uint8_t idx) BANKED {
         // through the fade module: it fades what it knows (it only dimmed the sprites leaving a
         // level, and the level popped in at full brightness after the fade in)
         fade_set_bkg_palette(0, 5, famidash_bg_palettes);
+        fade_set_bkg_palette(5, 1, &shadow_bkg_palettes[20]);
     }
     famidash_bkg_palettes_dirty = 0;
 }

@@ -39,7 +39,7 @@ extern uint8_t music_ready;
 #define BOX_ROW_COINS      12
 #define BOX_ROW_MODE       13
 #define BOX_ROW_BUTTONS    15
-#define PAL_BORDER         5     // CGB BG palettes 5..7 are unused in gameplay
+#define PAL_BORDER         5     // CGB BG palettes 5..7 (5: the fake spikes' in gameplay)
 #define PAL_BOARD          6
 #define PAL_TEXT           7
 #define TILE_BLANK         12    // the gameplay sheet's transparent tile: the board interior

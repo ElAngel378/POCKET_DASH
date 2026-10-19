@@ -260,6 +260,7 @@ const uint8_t metatiles[FAMIDASH_NUM_METATILES][4] = {
 };
 
 
+// Famidash's PAL_3 (fake spikes) is CGB palette 5 here: palette 3 is the parallax background's
 const uint8_t famidash_metatile_palettes[FAMIDASH_NUM_METATILES] = {
     0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2,
     0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -273,8 +274,8 @@ const uint8_t famidash_metatile_palettes[FAMIDASH_NUM_METATILES] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 3,
-    3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0, 5, 5, 5, 5, 5,
+    5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
