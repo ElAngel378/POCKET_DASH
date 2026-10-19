@@ -21,3 +21,5 @@ _fur_loop_p::
 	.ds	2
 _fur_next_t::
 	.ds	2
+_music_vbl_ticks::		; Furnace ticks put off to the VBlank handler's end (main.c)
+	.ds	1

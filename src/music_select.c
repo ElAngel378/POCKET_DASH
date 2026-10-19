@@ -35,6 +35,7 @@ void music_play_fur(uint8_t id) BANKED {
     // wave synths click unless their wave rotation follows the real time: the timer interrupt
     // comes a little early or late (CGB runs in double speed, main.c)
     fur_measure_time(_cpu == CGB_TYPE);
+    music_vbl_ticks = 0;
     music_ticks = 0;
     fur_end = fur_ends[id];
     music_beats_start(0);   // no hUGE timeline

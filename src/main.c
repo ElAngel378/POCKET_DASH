@@ -68,8 +68,25 @@ void level_select_vbl_isr(void) {
 #define HUGE_ORDER_CNT     (*((volatile uint8_t *)(&hUGE_mute_mask - 0x1D)))
 #define HUGE_CURRENT_ORDER (*((volatile uint8_t *)(&hUGE_mute_mask + 6)))
 
-// not inline: it is called from three places and bank 0 is full
+// A Furnace tick in a level runs whole, with interrupts off: when the VBlank handler came in the
+// middle of one (~8% of them), its register writes landed ~1 ms apart and wave synths sounded
+// worse. A tick takes up to ~15k cycles (~33 lines, half in double speed): one due within
+// MUSIC_VBL_LINES of line 144 would make VBlank wait, so it waits for the VBlank handler instead
+// (music_vbl_run, at its end). The wave rotation follows the real time (fur_measure_time).
+#define MUSIC_VBL_LINES(cgb) ((cgb) ? 20u : 40u)
+// music_vbl_ticks: HRAM (src/furnace/music_hram.s)
+
+// not inline: it is called from four places and bank 0 is full
 static void step_music(void) {
+  if (music_driver == MUSIC_FUR && bg_vbl_on && (LCDC_REG & LCDCF_ON)) {
+    uint8_t ly = LY_REG;
+    // also once line 144 is reached with the VBlank handler still to come (the timer interrupt's
+    // entry takes ~3 lines)
+    if ((ly < 144u && ly >= (uint8_t)(144u - MUSIC_VBL_LINES(_cpu == CGB_TYPE))) || (IF_REG & VBL_IFLAG)) {
+      music_vbl_ticks++;
+      return;
+    }
+  }
   uint8_t order_before = HUGE_CURRENT_ORDER;
   uint8_t prev_bank = _current_bank;
   uint8_t prev_ie = IE_REG;
@@ -80,6 +97,7 @@ static void step_music(void) {
   // tick in the way made that land up to 7 lines late (the sky's top rows jumped).
   // With a scanline handler on, VBlank nests too (the level select has no bg handler).
   uint8_t nest = (bg_vbl_on || (prev_ie & LCD_IFLAG)) ? (uint8_t)(VBL_IFLAG | (prev_ie & LCD_IFLAG)) : 0;
+  if (music_driver == MUSIC_FUR && bg_vbl_on) nest = 0;   // whole (see above)
   if (nest) {
     IE_REG = nest;
     enable_interrupts();
@@ -114,6 +132,14 @@ static void step_music(void) {
       NR30_REG = 0;
       NR42_REG = 0; NR44_REG = 0x80;
     }
+  }
+}
+
+// The VBlank handler's end (interrupts off): the Furnace ticks put off by step_music
+void music_vbl_run(void) {
+  while (music_vbl_ticks) {
+    music_vbl_ticks--;
+    if (music_ready) step_music();
   }
 }
 

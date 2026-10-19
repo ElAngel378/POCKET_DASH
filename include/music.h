@@ -35,5 +35,9 @@ extern volatile uint8_t music_gate;
 void music_gate_on(void);
 void music_gate_off(void);
 void music_grant(void);
+// In a level, Furnace ticks run whole (no interrupt in between, like Furnace's own writes); one
+// due too close to VBlank waits for the VBlank handler, which then runs it (music_vbl_run)
+extern volatile uint8_t music_vbl_ticks;
+void music_vbl_run(void);
 
 #endif

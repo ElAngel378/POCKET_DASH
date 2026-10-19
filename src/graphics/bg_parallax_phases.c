@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "bg_parallax.h"
 #include "famidash_bg.h"
+#include "music.h"
 
 volatile uint8_t bg_gdma_pending;
 volatile uint8_t bg_gdma_phase;
@@ -425,6 +426,8 @@ void bg_parallax_vbl_isr(void) {
         SWITCH_ROM(prev_b);
     }
     VBK_REG = vbk;
+    // last: the music ticks put off so as not to delay this handler (main.c)
+    if (music_vbl_ticks) music_vbl_run();
 #ifdef DEBUG_PROFILE
     gpmark = prof_prev;
 #endif
