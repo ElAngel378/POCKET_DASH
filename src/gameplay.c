@@ -1840,13 +1840,15 @@ void play_level(uint8_t idx) BANKED {
         }
 
         PROF_MARK(6);   // level sprites
-        // Level sprites
+        // Level sprites: drawn as if the player were at PLAYER_SCREEN_X. At the level start the
+        // screen stays put until the player gets there (scroll_px 0): the sprites too.
+        uint16_t sp_cam_px = (!view_rev && cam_px < PLAYER_SCREEN_X) ? PLAYER_SCREEN_X : cam_px;
         oam_index = draw_sprites(
-            &active_sp, (uint16_t)((int16_t)cam_px + cur_shake_x), (uint16_t)((int16_t)cam_py + cur_shake_y),
+            &active_sp, (uint16_t)((int16_t)sp_cam_px + cur_shake_x), (uint16_t)((int16_t)cam_py + cur_shake_y),
             view_rev, oam_index
         );
         if (practice_mode) {
-            oam_index = practice_draw_checkpoints(oam_index, cam_px, cam_py, view_rev);
+            oam_index = practice_draw_checkpoints(oam_index, sp_cam_px, cam_py, view_rev);
         }
         // DMG: the text's glyphs are in the ship's tiles (a ship portal while it is shown)
         if (_cpu != CGB_TYPE && player.mode == MODE_SHIP) attempt_text_hide();

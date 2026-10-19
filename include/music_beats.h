@@ -8,12 +8,14 @@
 
 #define MUSIC_HIT_WEAK 1
 #define MUSIC_HIT_STRONG 2
+#define MUSIC_HIT_FAKE 3     // the drums have been silent a second or more: a beat of the song's tempo
 
 extern volatile uint16_t music_ticks;   // hUGE_dosound calls since the song started (main.c)
 
 // The song that init_music_banked just started (no timeline: no hits)
 void music_beats_start(const hUGESong_t *song) BANKED;
-// Strongest hit the music played since the last call: 0 none, MUSIC_HIT_WEAK, MUSIC_HIT_STRONG
+// Strongest hit the music played since the last call: 0 none, MUSIC_HIT_WEAK, MUSIC_HIT_STRONG,
+// MUSIC_HIT_FAKE (none of the others)
 uint8_t music_beats_poll(void) BANKED;
 
 #endif

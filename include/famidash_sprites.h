@@ -76,7 +76,7 @@ extern const metasprite_t * const famidash_sprite_table[38];
 #define D_F7 34
 #define D_E9 36
 #define D_EB 38
-#define D_PB 90   // pulsing ball: CGB bank 1 tiles 250..255 (7 / 5 / 3 px), see PB_TILE in sp_draw.c
+#define D_PB 40   // pulsing ball: CGB bank 1 tiles 250..255 (7 / 5 / 3 px), see deco_tile_sets in sp_draw.c
 
 extern const metasprite_t famidash_deco_45[];
 

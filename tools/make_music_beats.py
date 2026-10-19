@@ -9,7 +9,8 @@ next order), after the last order back to order 0, where the game stops the leve
 step_music; the timeline loops when the song gets back to a row it already played) and lists its hits in driver ticks (hUGE_dosound calls,
 counted by step_music in main.c) on the noise channel (drums): a strong hit on a beat (every 4th
 row of a pattern) or with the song's kick (its lowest drum note in common use), a weak one
-otherwise (hi-hats and the like).
+otherwise (hi-hats and the like). Where the drums are silent for a second or more, fake beats keep
+the rods pulsing to the song's tempo (add_fake_beats; also used by tools/convert_furnace.py).
 
 Writes src/music/music_beats.c (bank 65: the timelines and music_beats_start / music_beats_poll)
 and include/music_beats.h.
@@ -23,6 +24,8 @@ OUT_C = MUSIC / "music_beats.c"
 OUT_H = ROOT / "include" / "music_beats.h"
 BANK = 65
 STRONG, WEAK, FILL, END, LOOP = 2, 1, 0, 0xFE, 0xFF
+FAKE = 3                       # a fake beat (add_fake_beats): sp_draw.c pulses gentler
+HUGE_HZ = 55                   # hUGE songs: timer dividers 176..187 (assets.c), 51..59 ticks a second
 LOOPING_SONGS = {"practice"}   # not stopped at their end (main.c step_music: banks 1 and 212)
 
 
@@ -105,6 +108,45 @@ def timeline(tempo, pats, orders, stops_at_end=True):
             return hits, t, None
 
 
+def add_fake_beats(hits, end_t, hz):
+    """hits plus FAKE beats where the drums are silent for a second (hz ticks) or more: from a
+    second after the last hit up to half a step before the next one (or the song's end), twice a
+    beat (on the beat and halfway). The beat: the most common gap between the strong hits around (16 on each side), doubled
+    or halved into 0.3 .. 0.8 s; on the grid of the last strong hit before the silence (the first
+    one after it for the silence at the start). Without 2 strong hits: no fake beats."""
+    strong = [t for t, c in hits if c == STRONG]
+    if len(strong) < 2:
+        return list(hits)
+
+    def beat_at(i):
+        ds = [strong[j + 1] - strong[j] for j in range(max(0, i - 16), min(len(strong) - 1, i + 16))]
+        ds = [d for d in ds if d > 0] or [strong[-1] - strong[0]]
+        p = float(max(set(ds), key=lambda d: (ds.count(d), -d)))
+        while p < 0.3 * hz:
+            p *= 2
+        while p > 0.8 * hz:
+            p /= 2
+        return p
+    fakes = []
+    real = sorted({t for t, _ in hits})
+    for a, b, last in [(0, real[0], False)] + list(zip(real, real[1:], [False] * len(real))) + [(real[-1], end_t, True)]:
+        if b - a < hz:
+            continue
+        before = [i for i, t in enumerate(strong) if t <= a]
+        i = before[-1] if before else 0
+        p = beat_at(i) / 2   # twice a beat
+        k = int((a + hz - strong[i]) // p)   # the first step a second into the silence or later
+        while True:
+            t = strong[i] + k * p
+            k += 1
+            if t < a + hz:
+                continue
+            if (t >= b) if last else (t > b - p / 2):
+                break
+            fakes.append((int(round(t)), FAKE))
+    return sorted(list(hits) + fakes)
+
+
 def encode(hits, end_t, loop_t):
     """(delta, code) pairs: delta ticks after the previous entry (FILL entries bridge gaps over
     255), then the END or LOOP entry at end_t. A looping song has a FILL entry at the loop point:
@@ -146,9 +188,11 @@ def main():
     arrays, entries = [], []
     for name, tempo, pats, orders in songs:
         hits, end_t, loop_t = timeline(tempo, pats, orders, name not in LOOPING_SONGS)
+        hits = add_fake_beats(hits, end_t, HUGE_HZ)
         data, loop_i = encode(hits, end_t, loop_t)
         strong = sum(1 for _, c in hits if c == STRONG)
-        print(f"{name}: {len(hits)} hits ({strong} strong), {end_t} ticks"
+        fake = sum(1 for _, c in hits if c == FAKE)
+        print(f"{name}: {len(hits) - fake} hits ({strong} strong) + {fake} fake beats, {end_t} ticks"
               + (f", loops to tick {loop_t}" if loop_t is not None else ""))
         flat = ", ".join(f"{d}, {c}" for d, c in data)
         arrays.append(f"static const uint8_t beats_{name}[] = {{ {flat} }};")
@@ -202,7 +246,7 @@ uint8_t music_beats_poll(void) BANKED {{
         if (c == {END}) {{ bp = 0; break; }}
         if (c == {LOOP}) bp = loop_p;
         else {{
-            if (c > hit) hit = c;
+            if (c == {FAKE} ? !hit : (c > hit || hit == {FAKE})) hit = c;   // a fake beat: only alone
             bp += 2;
         }}
         next_t += bp[0];
@@ -220,12 +264,14 @@ uint8_t music_beats_poll(void) BANKED {{
 
 #define MUSIC_HIT_WEAK {WEAK}
 #define MUSIC_HIT_STRONG {STRONG}
+#define MUSIC_HIT_FAKE {FAKE}     // the drums have been silent a second or more: a beat of the song's tempo
 
 extern volatile uint16_t music_ticks;   // hUGE_dosound calls since the song started (main.c)
 
 // The song that init_music_banked just started (no timeline: no hits)
 void music_beats_start(const hUGESong_t *song) BANKED;
-// Strongest hit the music played since the last call: 0 none, MUSIC_HIT_WEAK, MUSIC_HIT_STRONG
+// Strongest hit the music played since the last call: 0 none, MUSIC_HIT_WEAK, MUSIC_HIT_STRONG,
+// MUSIC_HIT_FAKE (none of the others)
 uint8_t music_beats_poll(void) BANKED;
 
 #endif

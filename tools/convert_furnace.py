@@ -36,6 +36,8 @@ import shutil
 import sys
 from pathlib import Path
 
+import make_music_beats   # add_fake_beats (tools/ is on the path: run as a script)
+
 ROOT = Path(__file__).resolve().parent.parent
 FUR2GB = Path(os.environ.get("FUR2GB_DIR", ROOT.parent / "fur2gb"))
 
@@ -336,7 +338,9 @@ def convert(levels=None):
         files = fur2gb.emit_c(OUT, sym, song, bank_for=banks)
         (OUT / f"{sym}.h").unlink()
         bank = int(files[-2].read_text().split("\n")[1].split()[-1])
-        data, loop_ofs = timeline(*conv["beats"])
+        hits, end, loop = conv["beats"]
+        # the rods keep pulsing to the tempo where the drums are silent (make_music_beats.py)
+        data, loop_ofs = timeline(make_music_beats.add_fake_beats(hits, end, song["hz"]), end, loop)
         beat_arrays.append((ident, data, loop_ofs))
         table.append((ident, sym, bank))
         print(f"  {fur.name} -> {name}: {use}; {song['bytes'] + song['wave_bytes']} B"
@@ -420,7 +424,7 @@ def write_sources(songs, table, beat_arrays, levels, banks):
               "        if (c == 254) { bp = 0; break; }",
               "        if (c == 255) bp = loop_p;",
               "        else {",
-              "            if (c > hit) hit = c;",
+              "            if (c == 3 ? !hit : (c > hit || hit == 3)) hit = c;   // 3: a fake beat, only alone",
               "            bp += 2;",
               "        }",
               "        next_t += bp[0];",

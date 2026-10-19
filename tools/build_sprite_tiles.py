@@ -19,7 +19,7 @@ Game Boy colour index (white = 0, light grey = 1, dark grey = 2, black = 3).
                      sprite palette 6, palette 7 is the HUD text palette; drawn by
                      tools/make_mirror_portal_gfx.py)
 
-Decorations (CGB_DECO, CGB_DECO_CLOUD, ROD_PULSE) are drawn in the player's sprite palette 0, so
+Decorations (CGB_DECO, CGB_DECO_CLOUD, ROD_PULSE, PULSE_SMALL) are drawn in the player's sprite palette 0, so
 in the cube's colour 1: their colour 1 (black) is loaded as colour 3 (black in that palette).
 
 ROD_PULSE (generated, not in the image): the rods' (Famidash "lights") ball tops, deco pairs
@@ -30,6 +30,12 @@ music's hits (src/music/music_beats.c), so the balls pulse to the music like GD'
 PULSE_BALL (generated, not in the image): Famidash's pulsing ball decoration (object 73, a lone
 ball in the lower half of its tile pair, $F9), 7 / 5 / 3 px like the rod balls and pulsing with
 them: CGB bank 1 tiles 250..255.
+
+PULSE_SMALL (bank 1 pairs 33..40 of the image, tiles 66..81): Famidash's second deco CHR bank
+(bankblank2.chr, which it swaps in every 16 frames) for the other decorations it pulses: the
+rhombus $E1, ? $E3, ! $E5, arrow $E7, X $ED, the line's ball $F1 (a small star), music note $E9
+$EB. sp_draw.c shows them between the music's hits (deco_tile_sets). Bank 1 tiles 36..65 are the
+attempt text's (percent_hud.c), 66..127 were free.
 
 Only the ranges in LOADS are loaded; the other slots are empty in the image because
 gameplay fills them from the font at runtime ("PAUSED" 76..87, debug HUD and % 90..115)
@@ -66,6 +72,7 @@ LOADS = [  # condition, VRAM bank, first tile, count, source section, first tile
     (CGB_DECO_CLOUD, 1, 160, 40, "DECO_CLOUD", 0),
     (CGB, 1, 222, 12, "ROD_PULSE", 0),     # rod balls between beats (both deco sets draw the same rods)
     (CGB, 1, 250, 6, "PULSE_BALL", 0),     # pulsing ball decoration, 7 / 5 / 3 px
+    (CGB, 1, 66, 16, "BANK1", 66),         # PULSE_SMALL: pulsing decorations between beats
     (CGB, 1, 234, 16, "BANK1", 234),       # pad / orb animation frames 2, 3 (Famidash $FB $FD, $9D $9F, $BD $BF, $5D $5F)
     # coins: levels/chr_data/coin.chr (tools/make_coin_tiles.py), loaded by famidash_sprite_tiles.c
 ]
@@ -162,7 +169,8 @@ def main():
     rows = []
     for cond, bank, first, count, section, src in LOADS:
         rows.append((cond, bank, first, count, len(blob) // 16))
-        deco = cond in (CGB_DECO, CGB_DECO_CLOUD) or section in ("ROD_PULSE", "PULSE_BALL")
+        deco = (cond in (CGB_DECO, CGB_DECO_CLOUD) or section in ("ROD_PULSE", "PULSE_BALL")
+                or (bank, first) == (1, 66))
         for i in range(count):
             blob += deco_colours(tile(section, src + i)) if deco else tile(section, src + i)
     (ROOT / "levels" / "chr_data" / "sprite_tiles.bin").write_bytes(blob)

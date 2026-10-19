@@ -327,7 +327,7 @@ static void cache_retire(void) __naked {
 }
 
 void sp_cache_retire(uint16_t cam_px) BANKED {
-    cr_keep = (cam_px >= 48u) ? (uint16_t)(cam_px - 48u) : 0;   // px + 48 >= cam_px
+    cr_keep = (cam_px >= 56u) ? (uint16_t)(cam_px - 56u) : 0;   // px + 56 >= cam_px (draw_sprites: dmgd_rej)
     cr_dmg = (_cpu != CGB_TYPE);
     cache_retire();
 }
@@ -483,28 +483,70 @@ static uint8_t draw_oam_horizontal_portal(uint8_t obj, uint8_t tile_base, uint8_
 #define ROD_PULSE_STRONG 12     // frames: 4 at 7 px, 4 at 5 px, then 3 px
 #define ROD_PULSE_WEAK   10     // 2 at 7 px, 4 at 5 px
 #define ROD_PULSE_5PX    4      // above: 5 px, above ROD_PULSE_5PX + 4: 7 px
-#define ROD_TILE_7PX (FAMIDASH_SPRITE_TILE_BASE)
-#define ROD_TILE_5PX (222 - D_C9)
-#define ROD_TILE_3PX (228 - D_C9)
+// Fake beats (MUSIC_HIT_FAKE: the drums silent a second or more, the song's tempo, see
+// tools/make_music_beats.py): gentler, 2 frames at 7 px, then resting at 5 px, not 3
+#define ROD_PULSE_FAKE   10
+#define ROD_FAKE_HOLD    64     // frames the 5 px rest lasts after a fake beat (beats are under 0.8 s)
+static uint8_t rod_fake;        // frames left of it, 0: rest at 3 px
 static uint8_t rod_pulse;
-static uint8_t rod_tile = (uint8_t)ROD_TILE_3PX;   // + D_C9 / D_CB / D_CD: the ball tops shown
-// the pulsing ball decoration (D_PB) pulses with the rods: 7 px 250, 5 px 252, 3 px 254
-#define PB_TILE_7PX (FAMIDASH_SPRITE_TILE_BASE + D_PB)
-static uint8_t pb_tile = (uint8_t)(PB_TILE_7PX + 4);
+// The other decorations Famidash pulses (its deco CHR bank swap every 16 frames, state_game.h:
+// the rhombus, ?, !, arrow, X, music note and the ball at the end of the short / medium lines,
+// not the ground spikes) show Famidash's smaller art (its second deco bank, CGB bank 1 tiles
+// 66..81, tools/build_sprite_tiles.py PULSE_SMALL) except for about half a beat after one:
+// deco_big frames after a strong hit (a beat), DECO_BIG_FAKE after a fake beat (twice a beat).
+// Not after weak hits (hi-hats come every few frames: they would stay big). The art only gets
+// a pixel thinner, so the big state has to last to be seen (Famidash holds each 16 frames).
+// The pulsing ball (D_PB) pulses with the rods: 7 px 250, 5 px 252, 3 px 254.
+#define DECO_BIG_STRONG 12
+#define DECO_BIG_FAKE   6
+static uint8_t deco_big;
+// VRAM tile of every decoration tile pair (index: D_xx / 2), per pulse state
+#define DECO_SET (D_PB / 2 + 1)
+#define DB FAMIDASH_SPRITE_TILE_BASE
+#define DT_FIXED_A DB + D_CF
+#define DT_FIXED_B DB + D_D5, DB + D_D7, DB + D_D9, DB + D_DB, DB + D_DD, DB + D_DF
+#define DT_SHAPES_BIG DB + D_E1, DB + D_E3, DB + D_E5, DB + D_E7, DB + D_ED, DB + D_F5, DB + D_F1, DB + D_F7, DB + D_E9, DB + D_EB
+#define DT_SHAPES_SMALL 66, 68, 70, 72, 74, DB + D_F5, 76, DB + D_F7, 78, 80
+// rods 7 / 5 / 3 px, each with the shapes big, then small
+#define DT_ROD7 DT_FIXED_A, DB + D_C9, DB + D_CB, DB + D_CD, DT_FIXED_B
+#define DT_ROD5 DT_FIXED_A, 222, 224, 226, DT_FIXED_B
+#define DT_ROD3 DT_FIXED_A, 228, 230, 232, DT_FIXED_B
+static const uint8_t deco_tile_sets[6][DECO_SET] = {
+    { DT_ROD7, DT_SHAPES_BIG, 250 }, { DT_ROD7, DT_SHAPES_SMALL, 250 },
+    { DT_ROD5, DT_SHAPES_BIG, 252 }, { DT_ROD5, DT_SHAPES_SMALL, 252 },
+    { DT_ROD3, DT_SHAPES_BIG, 254 }, { DT_ROD3, DT_SHAPES_SMALL, 254 },
+};
+#undef DB
+// the set shown this frame: its offset in deco_tile_sets (rod_pulse_update, every frame before drawing)
+static uint8_t deco_set;
 
 static void rod_pulse_update(void) {
     uint8_t hit = music_beats_poll();
     uint8_t fur_hit = fur_beats_poll();   // the Furnace song's timeline (furnace_songs.c)
     if (fur_hit > hit) hit = fur_hit;
-    if (hit == MUSIC_HIT_STRONG) rod_pulse = ROD_PULSE_STRONG;
-    else if (hit && rod_pulse < ROD_PULSE_WEAK) rod_pulse = ROD_PULSE_WEAK;
-    else if (rod_pulse) rod_pulse--;
-    rod_tile = (rod_pulse > ROD_PULSE_5PX + 4) ? ROD_TILE_7PX : (rod_pulse > ROD_PULSE_5PX) ? ROD_TILE_5PX : ROD_TILE_3PX;
-    pb_tile = (uint8_t)(PB_TILE_7PX + ((rod_pulse > ROD_PULSE_5PX + 4) ? 0 : (rod_pulse > ROD_PULSE_5PX) ? 2 : 4));
+    if (deco_big) deco_big--;
+    if (hit == MUSIC_HIT_FAKE) {
+        rod_fake = ROD_FAKE_HOLD;
+        if (rod_pulse < ROD_PULSE_FAKE) rod_pulse = ROD_PULSE_FAKE;
+        if (deco_big < DECO_BIG_FAKE) deco_big = DECO_BIG_FAKE;
+    } else if (hit) {
+        rod_fake = 0;   // the drums are back
+        if (hit == MUSIC_HIT_STRONG) {
+            rod_pulse = ROD_PULSE_STRONG;
+            deco_big = DECO_BIG_STRONG;
+        } else if (rod_pulse < ROD_PULSE_WEAK) {
+            rod_pulse = ROD_PULSE_WEAK;
+        }
+    } else if (rod_pulse > (rod_fake ? ROD_PULSE_5PX + 1u : 0u)) {
+        rod_pulse--;
+    }
+    if (rod_fake) rod_fake--;
+    uint8_t set = (rod_pulse > ROD_PULSE_5PX + 4) ? 0 : (rod_pulse > ROD_PULSE_5PX) ? 2 * DECO_SET : 4 * DECO_SET;
+    deco_set = deco_big ? set : (uint8_t)(set + DECO_SET);
 }
 
-// tile of a deco sprite: a rod's ball top or the pulsing ball in the size shown
-#define DECO_TILE(t, tile_base) ((uint8_t)((t) == D_PB ? pb_tile : (uint8_t)((t) - D_C9) <= (uint8_t)(D_CD - D_C9) ? rod_tile + (t) : (tile_base) + (t)))
+// tile of a deco sprite, pulsing ones in the size shown
+#define DECO_TILE(t, tile_base) (deco_tile_sets[0][(uint8_t)(deco_set + ((uint8_t)(t) >> 1))])
 
 inline static uint8_t draw_oam_deco(const FamidashDeco *deco, uint8_t tile_base,
                              uint8_t oam_idx, uint8_t sx, uint8_t sy,
@@ -1762,7 +1804,7 @@ static void cgb_object_loop(void) __naked {
         sub     a, c
 00004$:
         ld      (_dmgd_sx), a
-        ; d = py[b] + ybias; on screen (48px margin) when <= 192
+        ; d = py[b] + ybias; on screen (48px margin above, 16 below: decorations reach 16 px up) when <= 208
         ld      a, b
         add     a, a
         add     a, #<(_active_sp + 48)
@@ -1777,7 +1819,7 @@ static void cgb_object_loop(void) __naked {
         ld      a, (_dmgd_ybias + 1)
         adc     a, (hl)
         jp      NZ, 00009$
-        ld      a, #192
+        ld      a, #208
         cp      a, e
         jp      C, 00009$
         ld      a, e
@@ -1856,21 +1898,18 @@ static void cgb_object_loop(void) __naked {
         inc     hl
         inc     hl
         inc     hl
-        ld      a, (hl)                 ; tile: a rod ball top / the pulsing ball is shown in the pulse size
-        ld      c, a
-        cp      a, #D_PB
-        jr      NZ, 00036$
-        ld      a, (_pb_tile)
-        jr      00037$
-00036$:
-        sub     a, #D_C9
-        cp      a, #(D_CD - D_C9 + 1)
-        ld      a, (_rod_tile)
-        jr      C, 00034$
-        ld      a, #FAMIDASH_SPRITE_TILE_BASE
-00034$:
-        add     a, c
-00037$:
+        ld      a, (hl)                 ; tile: deco_tile_sets[0][deco_set + tile / 2] (pulsing ones in the size shown)
+        push    hl
+        rrca
+        ld      hl, #_deco_set
+        add     a, (hl)
+        add     a, #<_deco_tile_sets
+        ld      l, a
+        ld      a, #>_deco_tile_sets
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        pop     hl
         ld      (de), a
         inc     e
         inc     hl
@@ -2079,7 +2118,8 @@ uint8_t draw_sprites(
     dmgd_ybias = 48u - cam_py;
     dmgd_camlo = (uint8_t)cam_px;
     dmgd_rev = reversed;
-    dmgd_rej = reversed ? 208 : 224;
+    // until fully off screen: left of it from dist_x -56 (a 24 px decoration at x -24..-1)
+    dmgd_rej = reversed ? 208 : 200;
     dmgd_oam = oam_start;
     cgb_deco_n = 0;
     cgb_object_loop();
