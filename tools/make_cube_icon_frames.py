@@ -31,7 +31,13 @@ the left half of an 8x16 pair it draws mirrored for the right), 5 frames: 15 and
 down, level, 8 and 15 up (same colours): RotSprite of the level one; made when missing or with
 --regen (needs famidash-main then).
 
-src/graphics/cube_icon_frames.c (bank 61: icon 0, ship, ball, UFO) and cube_fd_frames_0.c /
+levels/chr_data/mini_frames.png: the mini ship, ball and UFO, frames of 8x8 (same colours), RotSprite
+of their 8x8 images in sprite_tiles.png (pairs 61, 62, 9: the top halves): the ship 30, 15, 0, -15,
+-30 degrees clockwise (45 does not fit 8x8; its black outline weighted down, see mini_frames), the
+ball 0, 22.5 .. 157.5 (like a cube icon, the other half turn flipped both ways), the UFO level, 8 and
+15 degrees nose down (drawn mirrored for nose up). Made when missing or with --regen.
+
+src/graphics/cube_icon_frames.c (bank 61: icon 0, ship, ball, UFO, mini frames) and cube_fd_frames_0.c /
 cube_fd_frames_1.c .. cube_fd_frames_4.c (banks 62 / 63 / 66 / 67 / 68: 10 icons each, the last 5), nothing
 else in their banks, not even
 code (GDMA needs 16 byte aligned data): per frame 4 sprite tiles, left 8x16 pair then right pair
@@ -80,6 +86,11 @@ BALL_PNG = ROOT / "levels" / "chr_data" / "ball_frames.png"
 UFO_PNG = ROOT / "levels" / "chr_data" / "ufo_frames.png"
 UFO_ANGLES = [15, 8, 0, -8, -15]   # frame k: degrees clockwise (nose down .. level .. up)
 UFO_FRAMES = len(UFO_ANGLES)
+MINI_PNG = ROOT / "levels" / "chr_data" / "mini_frames.png"
+MINI_SHIP_ANGLES = [30, 15, 0, -15, -30]
+MINI_BALL_ANGLES = [22.5 * k for k in range(8)]
+MINI_UFO_ANGLES = [0, 8, 15]
+MINI_FRAMES = len(MINI_SHIP_ANGLES) + len(MINI_BALL_ANGLES) + len(MINI_UFO_ANGLES)
 HAND_BALL = {6: 0, 8: 4}             # sprite_tiles.png pair of an old ball frame: its frame (x 7.5 degrees)
 SCROLL_SPEED_FP = 714                # gameplay.c: x speed, 8.8 px per frame
 STEP = 7.5   # degrees per frame
@@ -180,6 +191,59 @@ def ufo_frames():
     frames = rotate(level, UFO_ANGLES, 8.0, 8.0)
     frames[UFO_ANGLES.index(0)] = level
     return frames
+
+
+def mini_frames():
+    """The mini ship, ball and UFO (MINI_*_ANGLES): their 8x8 image in sprite_tiles.png (top half
+    of pairs 61, 62, 9) turned clockwise (RotSprite) on a 16x16 canvas, cropped back to 8x8."""
+    st = Image.open(ROOT / "levels" / "chr_data" / "sprite_tiles.png").convert("L")
+    idx = lambda v: min(range(4), key=lambda i: abs(v - SHADE[i]))
+
+    def mini(pr):
+        return [[idx(st.getpixel(((pr % 16) * 8 + x, (pr // 16) * 16 + y))) for x in range(8)] for y in range(8)]
+
+    def turned(img, angles):
+        c = [[0] * 16 for _ in range(16)]
+        for y in range(8):
+            c[4 + y][4:12] = img[y]
+        out = []
+        for deg, f in zip(angles, rotate(c, angles, 8.0, 8.0)):
+            out.append([row[:] for row in img] if deg == 0 else [row[4:12] for row in f[4:12]])
+        return out
+
+    def voted(img, angles, black=0.6, sub=4):
+        # the ship: mostly outline, RotSprite's nearest pixel turned it into black blobs. Per
+        # pixel, sub x sub points of the scaled-up image (as RotSprite) vote, black votes count
+        # 0.6: transparent if most points are, else the colour with the most votes
+        c = [[0] * 16 for _ in range(16)]
+        for y in range(8):
+            c[4 + y][4:12] = img[y]
+        big = scale2x(scale2x(scale2x(c)))
+        out = []
+        for deg in angles:
+            if deg == 0:
+                out.append([row[:] for row in img])
+                continue
+            a = math.radians(deg)
+            ca, sa = math.cos(a), math.sin(a)
+            f = [[0] * 8 for _ in range(8)]
+            for y in range(8):
+                for x in range(8):
+                    votes = [0.0] * 4
+                    for j in range(sub):
+                        for i in range(sub):
+                            px, py = x - 4 + (i + 0.5) / sub, y - 4 + (j + 0.5) / sub
+                            bx, by = int((px * ca + py * sa + 8) * 8), int((-px * sa + py * ca + 8) * 8)
+                            votes[big[by][bx] if 0 <= bx < 128 and 0 <= by < 128 else 0] += 1
+                    if votes[0] > sub * sub / 2:
+                        continue
+                    votes[0] = 0
+                    votes[3] *= black
+                    f[y][x] = max(range(4), key=lambda v: votes[v])
+            out.append(f)
+        return out
+    return (voted(mini(61), MINI_SHIP_ANGLES) + turned(mini(62), MINI_BALL_ANGLES) +
+            turned(mini(9), MINI_UFO_ANGLES))
 
 
 def default_cube():
@@ -394,6 +458,15 @@ def main():
         img.save(UFO_PNG)
         print("wrote", UFO_PNG)
 
+    if "--regen" in sys.argv or not MINI_PNG.exists():
+        img = Image.new("L", (MINI_FRAMES * 8, 8), 255)
+        for k, f in enumerate(mini_frames()):
+            for y in range(8):
+                for x in range(8):
+                    img.putpixel((k * 8 + x, y), SHADE[f[y][x]])
+        img.save(MINI_PNG)
+        print("wrote", MINI_PNG)
+
     idx = lambda v: min(range(4), key=lambda i: abs(v - SHADE[i]))
     data = bytearray()
 
@@ -423,6 +496,18 @@ def main():
     img = Image.open(UFO_PNG).convert("L")
     for k in range(UFO_FRAMES):
         add_frame(img, k * 16, 0)
+    # mini frames: 64 bytes like the others (the same copy), the image in the first tile, the rest empty
+    mini_first = len(data) // 64
+    img = Image.open(MINI_PNG).convert("L")
+    for k in range(MINI_FRAMES):
+        for y in range(8):
+            lo = hi = 0
+            for x in range(8):
+                v = idx(img.getpixel((k * 8 + x, y)))
+                lo = (lo << 1) | (v & 1)
+                hi = (hi << 1) | (v >> 1)
+            data += bytes([lo, hi])
+        data += bytes(48)
     # |vertical speed| (8.8) from which the ship tilts k steps (3k degrees, rounded): its flight
     # direction, atan(vy / x speed)
     steps = [round(SCROLL_SPEED_FP * math.tan(math.radians(3 * k - 1.5))) for k in range(1, 16)]
@@ -458,7 +543,7 @@ const uint8_t cube_fd_frames_{b}[{len(data)}] = {{
 
     OUT_C.write_text(f"""#pragma bank 61
 // Generated by tools/make_cube_icon_frames.py from levels/chr_data/cube_icon_frames.png,
-// ship_frames.png, ball_frames.png and ufo_frames.png. Do not edit.
+// ship_frames.png, ball_frames.png, ufo_frames.png and mini_frames.png. Do not edit.
 // The only thing in its bank (no code either), so 16 byte aligned: GDMA source.
 
 #include <gb/gb.h>
@@ -501,6 +586,17 @@ extern const uint8_t cube_icon_frames[];   // per frame: left 8x16 pair, right p
 #define UFO_FRAME_COUNT {UFO_FRAMES}
 #define UFO_FRAME_LEVEL {UFO_FRAMES // 2}
 #define UFO_FRAME(k) (cube_icon_frames + ((uint16_t){ufo_first} + (k)) * 64u)
+// Mini frames, after the UFO: the image in the first tile (top of the left 8x16 pair). Ship
+// {", ".join(str(a) for a in MINI_SHIP_ANGLES)} degrees clockwise, ball 0..157.5 in 22.5 degree steps (the
+// other half turn flipped both ways), UFO level, {", ".join(str(a) for a in MINI_UFO_ANGLES[1:])} nose down (mirrored: nose up)
+#define MINI_SHIP_FRAMES {len(MINI_SHIP_ANGLES)}
+#define MINI_BALL_FRAMES {len(MINI_BALL_ANGLES)}
+#define MINI_UFO_FRAMES {len(MINI_UFO_ANGLES)}
+#define MINI_SHIP_FIRST 0
+#define MINI_BALL_FIRST {len(MINI_SHIP_ANGLES)}
+#define MINI_UFO_FIRST {len(MINI_SHIP_ANGLES) + len(MINI_BALL_ANGLES)}
+#define MINI_FRAME_COUNT {MINI_FRAMES}
+#define MINI_FRAME(k) (cube_icon_frames + ((uint16_t){mini_first} + (k)) * 64u)
 
 // |vel_y| (8.8) from which the ship tilts one more step: the frame for its flight direction. An
 // initializer, not an array: anything defined here would also land in bank 61 ahead of the frames
@@ -510,7 +606,7 @@ extern const uint8_t cube_icon_frames[];   // per frame: left 8x16 pair, right p
 
 #endif
 """)
-    print(f"icon 0 x {NUM_FRAMES} + {SHIP_FRAMES} ship + {NUM_FRAMES} ball + {UFO_FRAMES} UFO frames: {main_len} bytes, "
+    print(f"icon 0 x {NUM_FRAMES} + {SHIP_FRAMES} ship + {NUM_FRAMES} ball + {UFO_FRAMES} UFO + {MINI_FRAMES} mini frames: {main_len} bytes, "
           f"{FD_COUNT} Famidash icons x {FD_FRAMES} frames in {fd_banks} banks")
 
 

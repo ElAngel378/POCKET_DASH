@@ -39,6 +39,17 @@ extern const uint8_t cube_fd_frames_4[];
 #define UFO_FRAME_COUNT 5
 #define UFO_FRAME_LEVEL 2
 #define UFO_FRAME(k) (cube_icon_frames + ((uint16_t)79 + (k)) * 64u)
+// Mini frames, after the UFO: the image in the first tile (top of the left 8x16 pair). Ship
+// 30, 15, 0, -15, -30 degrees clockwise, ball 0..157.5 in 22.5 degree steps (the
+// other half turn flipped both ways), UFO level, 8, 15 nose down (mirrored: nose up)
+#define MINI_SHIP_FRAMES 5
+#define MINI_BALL_FRAMES 8
+#define MINI_UFO_FRAMES 3
+#define MINI_SHIP_FIRST 0
+#define MINI_BALL_FIRST 5
+#define MINI_UFO_FIRST 13
+#define MINI_FRAME_COUNT 16
+#define MINI_FRAME(k) (cube_icon_frames + ((uint16_t)84 + (k)) * 64u)
 
 // |vel_y| (8.8) from which the ship tilts one more step: the frame for its flight direction. An
 // initializer, not an array: anything defined here would also land in bank 61 ahead of the frames

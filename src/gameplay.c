@@ -278,10 +278,13 @@ static uint8_t practice_mode = 0;
 // ground too).
 // UFO: Famidash's, 5 images: 15 and 8 degrees nose down, level, 8 and 15 up, following its
 // vertical speed (ufo_tilt_vy): it tilts nose down on a jump and up as it falls.
-// Frame ids: cube step 0..47, ship PL_SHIP + image, ball PL_BALL + step, UFO PL_UFO + image.
+// Mini ship, ball and UFO: 8x8 images in the first tile of the buffer (the cube's 3 stay in VRAM).
+// Frame ids: cube step 0..47, ship PL_SHIP + image, ball PL_BALL + step, UFO PL_UFO + image,
+// mini PL_MINI + image (MINI_*_FIRST ..).
 #define PL_SHIP 64
 #define PL_BALL 128
 #define PL_UFO 192
+#define PL_MINI 200
 // ship / UFO: tilted images, drawn mirrored (no half turn), 1 px higher than the cube
 #define PL_TILTED(id) ((id) >= PL_UFO || ((id) >= PL_SHIP && (id) < PL_BALL))
 static metasprite_t cube_ms[3];
@@ -327,6 +330,7 @@ static uint8_t player_frame_id(void) {
 
 // Icons 1..45 (Famidash and custom, tools/make_cube_icon_frames.py): 24 frames like icon 0, 10 icons a bank
 static const uint8_t *player_frame_src(uint8_t id) {
+    if (id >= PL_MINI) return MINI_FRAME(id - PL_MINI);
     if (id >= PL_UFO) return UFO_FRAME(id - PL_UFO);
     if (id >= PL_BALL) return BALL_FRAME(CUBE_IMG((uint8_t)(id - PL_BALL)));
     if (id >= PL_SHIP) return SHIP_FRAME(id - PL_SHIP);
@@ -387,7 +391,9 @@ static void ufo_tilt_update(void) {
     else if (ufo_tilt > target) ufo_tilt--;
 }
 
-static const metasprite_t *player_frame_metasprite(uint8_t want) {
+// Asks for frame want (copied into the other buffer if it is not the one shown) and returns the
+// frame id shown this frame, in the buffer at sprite tile cube_front * 4
+static uint8_t player_frame_show(uint8_t want) {
     if (cube_req != 0xFF && !bg_cube_pending) {
         cube_front ^= 1;
         cube_shown = cube_req;
@@ -404,7 +410,11 @@ static const metasprite_t *player_frame_metasprite(uint8_t want) {
         cube_req_mir = cube_mirror;
         bg_cube_pending = 4;   // tiles (DMG: copied a few per VBlank)
     }
-    uint8_t show = same ? want : cube_shown;
+    return same ? want : cube_shown;
+}
+
+static const metasprite_t *player_frame_metasprite(uint8_t want) {
+    uint8_t show = player_frame_show(want);
     uint8_t t = (uint8_t)(cube_front << 2);
     // cube / ball, second half turn: the image of the step - 24, flipped both ways (halves swapped)
     uint8_t tilted = PL_TILTED(show);
@@ -1716,21 +1726,69 @@ void play_level(uint8_t idx) BANKED {
 
         if (end_anim_state != END_ANIM_SHAKE && player.mini) {
             // Mini size: one 8x16 sprite, image in its top half, drawn at box top - 1
-            // like Famidash (x .. x+7, y+3 .. y+10). Cube: 3 rotation images + mirror.
+            // like Famidash (x .. x+7, y+3 .. y+10). Cube: 3 rotation images + mirror, in VRAM.
+            // Ship, ball, UFO: their turned images (mini_frames.png) streamed like the big player's
+            // into the buffer (its tiles are free while mini); until the first one is copied, the
+            // level image in VRAM.
             static const uint8_t mini_cube_img[6] = { 0, 1, 1, 2, 1, 0 };
+            // ship image (0 steep down .. 30 steep up) -> mini image (30, 15, 0, -15, -30 degrees)
+            static const uint8_t mini_ship_img[SHIP_FRAME_COUNT] = {
+                0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 };
             uint8_t tile, prop = S_PALETTE;   // DMG: OBP1, the player's palette
-            if (player.mode == MODE_SHIP) tile = MINI_PLAYER_TILE_BASE + 6;
-            else if (player.mode == MODE_BALL) tile = MINI_PLAYER_TILE_BASE + 8;
-            else if (player.mode == MODE_UFO) tile = MINI_UFO_TILE;
-            else {
+            uint8_t mirrored = 1;             // drawn flipped with the gravity / mirror mode
+            if (player.mode == MODE_CUBE) {
                 uint8_t q = (uint8_t)(player.anim_frame % 6u);
                 tile = MINI_PLAYER_TILE_BASE + (uint8_t)(mini_cube_img[q] << 1);
                 if (q == 4) prop ^= S_FLIPX;
+            } else {
+                uint8_t first, n, want;
+                if (player.mode == MODE_SHIP) {
+                    ship_tilt_update();
+                    first = MINI_SHIP_FIRST; n = MINI_SHIP_FRAMES;
+                    want = (uint8_t)(PL_MINI + MINI_SHIP_FIRST + mini_ship_img[ship_tilt]);
+                    tile = MINI_PLAYER_TILE_BASE + 6;
+                } else if (player.mode == MODE_UFO) {
+                    // like the big UFO: 15, 8 degrees nose down, level; nose up: those mirrored
+                    ufo_tilt_update();
+                    first = MINI_UFO_FIRST; n = MINI_UFO_FRAMES;
+                    uint8_t d = (ufo_tilt > UFO_FRAME_LEVEL) ? (uint8_t)(ufo_tilt - UFO_FRAME_LEVEL)
+                                                             : (uint8_t)(UFO_FRAME_LEVEL - ufo_tilt);
+                    want = (uint8_t)(PL_MINI + MINI_UFO_FIRST + d);
+                    tile = MINI_UFO_TILE;
+                } else {
+                    // like the big ball: never mirrored, it rolls the other way on the ceiling;
+                    // 16 images a turn (a step of 22.5 degrees is 3 half steps)
+                    mirrored = 0;
+                    first = MINI_BALL_FIRST; n = MINI_BALL_FRAMES;
+                    uint8_t k = (uint8_t)(cube_turn(ball_step()) / 3u);
+                    if (k >= MINI_BALL_FRAMES) { k -= MINI_BALL_FRAMES; prop ^= S_FLIPX | S_FLIPY; }
+                    want = (uint8_t)(PL_MINI + MINI_BALL_FIRST + k);
+                    tile = MINI_PLAYER_TILE_BASE + 8;
+                }
+                uint8_t show = player_frame_show(want);
+                uint8_t k = (uint8_t)(show - PL_MINI - first);
+                if (show >= PL_MINI && k < n) {
+                    tile = (uint8_t)(cube_front << 2);
+                    if (player.mode == MODE_UFO && ufo_tilt > UFO_FRAME_LEVEL) prop ^= S_FLIPX;
+                    // still the image from before a flip of the drawing (copied a frame late):
+                    // undo that flip, like the big ship's
+                    if (mirrored) {
+                        uint8_t undo = (uint8_t)(cube_img_mir ^ cube_mirror);
+                        if (undo & 1u) prop ^= S_FLIPY;
+                        if (undo & 2u) prop ^= S_FLIPX;
+                    }
+                } else {
+                    prop &= (uint8_t)~(S_FLIPX | S_FLIPY);   // the level image in VRAM
+                }
+            }
+            if (mirrored) {
+                if (player.gravity_flipped) prop ^= S_FLIPY;
+                if (view_rev) prop ^= S_FLIPX;
             }
             uint8_t oy = (uint8_t)(final_py + 16 + 3);
-            if (player.gravity_flipped) { prop ^= S_FLIPY; oy -= 8; }
+            if (prop & S_FLIPY) oy -= 8;   // the image in the bottom half
             uint8_t ox = (uint8_t)(sprite_x_final + 8);
-            if (view_rev) { prop ^= S_FLIPX; ox += 8; }
+            if (view_rev) ox += 8;
             shadow_OAM[oam_index].y = oy;
             shadow_OAM[oam_index].x = ox;
             shadow_OAM[oam_index].tile = tile;
