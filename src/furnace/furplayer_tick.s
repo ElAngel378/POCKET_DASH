@@ -82,7 +82,7 @@ _fur_tick::
 	jr	z, ac_done
 	bit	7, a
 	jr	z, ac_model
-	and	#0xdf			; FUR_AC_MEASURE: a new tick, no wave pending in it yet
+	and	#0xdf			; FUR_AC_MEASURE: a new tick, no wave written in it yet
 	ld	(_fur_ac_on), a
 	ld	hl, #_fur_ac_x + 1
 	bit	7, (hl)
@@ -150,10 +150,6 @@ ac_done:
 	call	run_stream
 	.endm
 tick_done:
-	ld	a, (_fur_ac_on)
-	and	#0xa0
-	cp	#0xa0
-	call	z, ac_flush
 	pop	af
 	ldh	(__current_bank), a
 	ld	(rROMB0), a
@@ -562,13 +558,12 @@ op_wave:				; NR30 = 0, then the base wave rotated by the anti-click position
 	jp	nz, resume
 	ld	a, (_fur_ac_on)
 	bit	7, a
+	push	hl
 	jr	z, 1$
-	or	#0x20			; FUR_AC_MEASURE: copied at this tick's NR34 trigger
-	ld	(_fur_ac_on), a
-	jp	resume
-1$:	push	hl
-	call	wave_copy
-	ld	a, (fur_bank)
+	call	ac_wave			; FUR_AC_MEASURE: rotated for the real time
+	jr	2$
+1$:	call	wave_copy
+2$:	ld	a, (fur_bank)
 	ldh	(__current_bank), a
 	ld	(rROMB0), a
 	pop	hl
@@ -654,53 +649,32 @@ _fur_forget_wave::
 
 ; FUR_AC_MEASURE. Furnace writes a tick's registers at the tick's exact time; a game's ticks come
 ; a little early or late (interrupt latency, how much the tick does before ch3), and ch3 runs on in
-; real time: a wave rotated for Furnace's time starts some samples off and clicks. So a wave write
-; waits for its tick's NR34 trigger (bit 5 of fur_ac_on: one is pending), and there the rotation
-; moves by the real time minus Furnace's since ch3 last restarted: fur_ac_x is where DIV would be
-; now by Furnace's ticks, set at each restart and stepped every tick. AC_TRIG is the time from the
-; DIV read below to the NR34 write. Interrupts stay on (a game's VBlank handler must not wait): when
-; one came in between (DIV moved AC_REDO counts or more), the rotation and the copy are done again
-; (ch3 is stopped until the trigger). DIV counts 2097152 Hz / 128 (/ 64 in double speed): the two
-; times must stay within 128 counts (7.8 / 3.9 ms).
-	AC_TRIG = 1765			; 2097152 Hz units, single speed (Mesen: 3510-3550 cycles in both speeds)
-	AC_REDO = 16			; DIV counts (256 cycles in both speeds): the path takes 13 or 14
+; real time: a wave rotated for Furnace's time starts some samples off and clicks. So the rotation
+; of a wave written now moves by the real time minus Furnace's from ch3's last restart to the coming
+; one, this tick's NR34 trigger AC_WAVE later. fur_ac_x is where DIV would be by Furnace's ticks: set
+; at each restart, stepped every tick. Bit 5 of fur_ac_on: a wave was written in this tick (its
+; trigger keeps fur_ac_x). The waves are written where Furnace writes them: deferred to the
+; trigger, they sounded clearly worse. An interrupt between the wave and its trigger makes that
+; restart late: the game should keep ticks whole. DIV counts 2097152 Hz / 128 (/ 64 in double
+; speed): the two times must stay within 128 counts (7.8 / 3.9 ms).
+	AC_WAVE = 2100			; 2097152 Hz units, single speed (Mesen: ~4200 cycles in both speeds)
 
-; NR34 with the trigger bit about to be written (A). Keeps A, HL.
-ac_trigger:
-	push	af
+; Wave op: the wave, rotated for the real time of the coming restart (BC = wave id + 1, wave pool
+; bank left selected like wave_copy; the caller restores the stream's)
+ac_wave:
 	ld	a, (_fur_ac_on)
-	bit	7, a
-	jp	z, 9$
-	push	hl
-	push	bc
-	push	de
 	ld	c, a			; C = flags
-	bit	5, c
-	jr	nz, 1$
-	ldh	a, (0x04)		; no wave: ch3 restarts right after this
+	ldh	a, (0x04)		; DIV
 	call	ac_divtime
-	ld	de, #0
-	jp	8$
-1$:	ld	a, (_fur_ac_cnt)	; the rotation before this restart, for a redo
-	ld	e, a
-	ld	a, (_fur_ac_cnt + 1)
-	ld	d, a
-	push	de
-	ld	a, (_fur_ac_pos)
-	push	af
-2$:	ldh	a, (0x04)		; DIV
-	ld	b, a
-	push	bc			; B = DIV, C = flags
-	call	ac_divtime		; HL = DIV time
-	ld	de, #AC_TRIG / 2
+	ld	de, #AC_WAVE / 2
 	bit	6, c
-	jr	nz, 3$
-	ld	de, #AC_TRIG
-3$:	add	hl, de			; HL = the real time of the restart
+	jr	nz, 1$
+	ld	de, #AC_WAVE
+1$:	add	hl, de			; HL = the real time of the coming restart
 	push	hl
 	ld	a, (_fur_ac_x + 1)
 	bit	7, a
-	jr	nz, 6$			; Furnace's time not known yet: as Furnace rotates it
+	jr	nz, 5$			; Furnace's time not known yet: as Furnace rotates it
 	ld	d, a
 	ld	a, (_fur_ac_x)
 	ld	e, a
@@ -710,63 +684,59 @@ ac_trigger:
 	ld	a, h
 	sbc	a, d			; real - Furnace's time
 	bit	6, c
-	jr	nz, 4$
+	jr	nz, 3$
 	and	#0x7f			; mod 32768, -16384..16383
 	bit	6, a
-	jr	z, 5$
+	jr	z, 4$
 	or	#0x80
-	jr	5$
-4$:	and	#0x3f			; double speed: mod 16384, -8192..8191
+	jr	4$
+3$:	and	#0x3f			; double speed: mod 16384, -8192..8191
 	bit	5, a
-	jr	z, 5$
+	jr	z, 4$
 	or	#0xc0
-5$:	ld	d, a
+4$:	ld	d, a
 	call	ac_shift
-6$:	ld	a, (fur_wave_last)
+5$:	ld	a, (fur_wave_last)
 	ld	c, a
 	ld	a, (fur_wave_last + 1)
 	ld	b, a
-	ldh	a, (0x1a)
-	and	#0x80
-	push	af			; NR30's DAC bit, cleared by the copy
 	call	wave_copy
-	pop	af
-	ldh	(0x1a), a
-	ld	a, (fur_bank)
-	ldh	(__current_bank), a
-	ld	(rROMB0), a
-	pop	de			; DE = the restart time
-	pop	bc			; B = DIV then, C = flags
-	ldh	a, (0x04)
-	sub	b
-	cp	#AC_REDO
-	jr	c, 7$
-	pop	af			; an interrupt came: again, from the rotation before
-	ld	(_fur_ac_pos), a
 	pop	hl
-	ld	a, l
-	ld	(_fur_ac_cnt), a
-	ld	a, h
-	ld	(_fur_ac_cnt + 1), a
-	push	hl
-	push	af
-	jr	2$
-7$:	pop	af
-	pop	hl
-	ld	a, (_fur_ac_on)
-	and	#0xdf
-	ld	(_fur_ac_on), a
-	ld	h, d
-	ld	l, e
-8$:	res	7, h			; HL = fur_ac_x
+	res	7, h
 	ld	a, l
 	ld	(_fur_ac_x), a
 	ld	a, h
 	ld	(_fur_ac_x + 1), a
-	pop	de
-	pop	bc
+	ld	a, (_fur_ac_on)
+	or	#0x20
+	ld	(_fur_ac_on), a
+	ret
+
+; NR34 with the trigger bit about to be written: ch3 restarts. After this tick's wave the time is
+; set already; otherwise the new time is now. Keeps all registers.
+ac_trigger:
+	push	af
+	ld	a, (_fur_ac_on)
+	bit	7, a
+	jr	z, 2$
+	bit	5, a
+	jr	z, 1$
+	and	#0xdf
+	ld	(_fur_ac_on), a
+	jr	2$
+1$:	push	bc
+	push	hl
+	ld	c, a
+	ldh	a, (0x04)
+	call	ac_divtime
+	res	7, h
+	ld	a, l
+	ld	(_fur_ac_x), a
+	ld	a, h
+	ld	(_fur_ac_x + 1), a
 	pop	hl
-9$:	pop	af
+	pop	bc
+2$:	pop	af
 	ret
 
 ; A = DIV, C = flags -> HL = its time in 2097152 Hz units (DIV << 7, or << 6 in double speed)
@@ -783,17 +753,6 @@ ac_divtime:
 	ret	nz
 	add	hl, hl
 	ret
-
-; End of a tick with a wave pending (no NR34 trigger in it): copy it, as Furnace rotates it
-ac_flush:
-	ld	a, (_fur_ac_on)
-	and	#0xdf
-	ld	(_fur_ac_on), a
-	ld	a, (fur_wave_last)
-	ld	c, a
-	ld	a, (fur_wave_last + 1)
-	ld	b, a
-	jp	wave_copy
 
 ; pos, cnt += DE (signed, 2097152 Hz units) at the current ch3 period
 ac_shift:

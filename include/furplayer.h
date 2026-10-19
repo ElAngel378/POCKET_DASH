@@ -55,9 +55,10 @@ void fur_play(const fur_song_t *song, uint8_t bank) FUR_API;
    song's tick count. Furnace writes each tick at its exact time; a game's ticks come a little
    early or late (interrupt latency, a busy frame), and in a song that changes the wave every
    tick (wavetable synths) every such write clicks. Ticks must stay within 7.8 ms (3.9 ms in
-   double speed) of the song's tick rate; DIV must not be reset while a song plays. A wave write
-   then happens right before its NR34 trigger. No effect on songs without anti-click. Not for
-   checking the writes against Furnace (tests/verify_rom.py). */
+   double speed) of the song's tick rate; DIV must not be reset while a song plays. Keep ticks
+   whole: an interrupt between a wave write and its NR34 trigger (both in one tick) makes that
+   restart late, a click. No effect on songs without anti-click. Not for checking the writes
+   against Furnace (tests/verify_rom.py). */
 #define FUR_AC_MEASURE      0x80
 #define FUR_AC_DOUBLE_SPEED 0x40
 void fur_measure_time(uint8_t double_speed) FUR_API;
