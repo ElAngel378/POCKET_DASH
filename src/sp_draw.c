@@ -679,7 +679,11 @@ static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t ob
         {
             if (joy & J_A) {
                 // Famidash: 16 x 18 at -1
-                if ((!(p->last_joy & J_A) || p->orb_buffered) && touch_box(obj_x, obj_y, 0, 16, -1, 18)) {
+                if (!touch_box(obj_x, obj_y, 0, 16, -1, 18)) break;
+                // Famidash sprite_gamemode_main: the ball holding on an orb uses up the hold,
+                // landing does not switch gravity until A is released
+                if (p->mode == MODE_BALL) p->ball_switched = 1;
+                if (!(p->last_joy & J_A) || p->orb_buffered) {
                     if (!*act) {
                         *act = 1;
                         p->orb_buffered = 0; // Clear buffer after hit

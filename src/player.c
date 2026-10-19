@@ -272,11 +272,6 @@ uint8_t player_update(
         }
     }
 
-    // Buffer jump input while airborne (not the UFO: its presses are its jumps)
-    if ((joy & J_A) && !(p->last_joy & J_A) && !p->on_ground && p->mode != MODE_UFO) {
-        p->orb_buffered = 1;
-    }
-
     // Movement & collision resolution
     uint16_t prev_y = p->world_y.w;
     p->world_y.w += p->vel_y.w;

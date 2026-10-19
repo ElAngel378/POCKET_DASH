@@ -1557,6 +1557,14 @@ void play_level(uint8_t idx) BANKED {
         }
 
         PROF_MARK(2);   // object logic
+        // Buffer an airborne press for the orbs (Famidash check_for_cube_data_2_set, before
+        // sprite_collide): set here, before the orbs run, an orb that takes this press clears it.
+        // Set after them, a press on the frame an orb took (or one taken on the ground) stayed
+        // buffered and fired the next orb while held.
+        if ((joy & J_A) && !(player.last_joy & J_A) && player.vel_y.w != 0 &&
+            player.mode != MODE_UFO && player.mode != MODE_SHIP) {
+            player.orb_buffered = 1;
+        }
         process_sprite_logic(&active_sp, cam_px, &player, joy, &target_bg_idx);
         PROF_MARK(3);   // collision columns, player physics
 
