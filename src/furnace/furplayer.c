@@ -19,6 +19,7 @@ extern uint16_t fur_ac_freq;
 extern uint8_t fur_nr33;
 extern uint8_t fur_ac_q;
 extern uint16_t fur_ac_r;
+extern uint16_t fur_ac_x;
 
 #ifndef FUR_NO_FRAME   /* a game that ticks the player itself can leave fur_frame() out */
 static uint32_t fur_acc;       /* fur_frame() time accumulator, 1/16 cycles */
@@ -61,6 +62,7 @@ void fur_play(const fur_song_t *song, uint8_t bank) FUR_API {
     fur_nr33 = 0;
     fur_ac_q = 0;
     fur_ac_r = 0;
+    fur_ac_x = 0x8000;   /* FUR_AC_MEASURE: the time is not known yet */
     fur_forget_wave();
 #ifndef FUR_NO_FRAME
     /* the first fur_frame() plays exactly tick 0 */
@@ -71,6 +73,10 @@ void fur_play(const fur_song_t *song, uint8_t bank) FUR_API {
     NR52_REG = 0x00;
     for (i = 0; i < 16; i++) AUD3WAVE[i] = 0;
     fur_playing = 1;
+}
+
+void fur_measure_time(uint8_t double_speed) FUR_API {
+    if (fur_ac_on) fur_ac_on = FUR_AC_MEASURE | (double_speed ? FUR_AC_DOUBLE_SPEED : 0) | 1;
 }
 
 void fur_stop(void) FUR_API {

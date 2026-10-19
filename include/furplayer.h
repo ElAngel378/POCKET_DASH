@@ -3,7 +3,8 @@
  * furplayer - replays Furnace Game Boy songs compiled by tools/fur2gb.py.
  *
  * A song is the exact register-write stream Furnace's own GB backend produces, tick by tick.
- * The player only adds the backend's anti-click wave rotation, which it computes like Furnace.
+ * The player only adds the backend's anti-click wave rotation, which it computes like Furnace
+ * (or from the real time, see fur_measure_time()).
  *
  * Usage:
  *     fur_play(&my_song, BANK(my_song));
@@ -50,6 +51,16 @@ typedef struct {
 /* Start a song (bank = BANK() of the song header). Powers the APU off and on so it starts
    from the same state as Furnace's emulated chip. Keeps fur_mute. */
 void fur_play(const fur_song_t *song, uint8_t bank) FUR_API;
+/* After fur_play(): base the anti-click wave rotation on the real time (DIV) instead of the
+   song's tick count. Furnace writes each tick at its exact time; a game's ticks come a little
+   early or late (interrupt latency, a busy frame), and in a song that changes the wave every
+   tick (wavetable synths) every such write clicks. Ticks must stay within 7.8 ms (3.9 ms in
+   double speed) of the song's tick rate; DIV must not be reset while a song plays. A wave write
+   then happens right before its NR34 trigger. No effect on songs without anti-click. Not for
+   checking the writes against Furnace (tests/verify_rom.py). */
+#define FUR_AC_MEASURE      0x80
+#define FUR_AC_DOUBLE_SPEED 0x40
+void fur_measure_time(uint8_t double_speed) FUR_API;
 /* Stop playback and silence the APU. */
 void fur_stop(void) FUR_API;
 /* Call once per frame (VBlank, 70224 cycles): plays as many ticks as the song's tick rate needs. */
