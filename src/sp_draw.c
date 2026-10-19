@@ -53,6 +53,7 @@ extern SpCache active_sp;
 #define OBJ_GROW_PORTAL   25
 #define OBJ_COIN2         26
 #define OBJ_COIN3         27
+#define OBJ_PULSING_BALL  73
 #define OBJ_MUSIC_NOTE    74
 
 static inline uint8_t coin_bit(uint8_t o) {
@@ -487,6 +488,9 @@ static uint8_t draw_oam_horizontal_portal(uint8_t obj, uint8_t tile_base, uint8_
 #define ROD_TILE_3PX (228 - D_C9)
 static uint8_t rod_pulse;
 static uint8_t rod_tile = (uint8_t)ROD_TILE_3PX;   // + D_C9 / D_CB / D_CD: the ball tops shown
+// the pulsing ball decoration (D_PB) pulses with the rods: 7 px 250, 5 px 252, 3 px 254
+#define PB_TILE_7PX (FAMIDASH_SPRITE_TILE_BASE + D_PB)
+static uint8_t pb_tile = (uint8_t)(PB_TILE_7PX + 4);
 
 static void rod_pulse_update(void) {
     uint8_t hit = music_beats_poll();
@@ -496,10 +500,11 @@ static void rod_pulse_update(void) {
     else if (hit && rod_pulse < ROD_PULSE_WEAK) rod_pulse = ROD_PULSE_WEAK;
     else if (rod_pulse) rod_pulse--;
     rod_tile = (rod_pulse > ROD_PULSE_5PX + 4) ? ROD_TILE_7PX : (rod_pulse > ROD_PULSE_5PX) ? ROD_TILE_5PX : ROD_TILE_3PX;
+    pb_tile = (uint8_t)(PB_TILE_7PX + ((rod_pulse > ROD_PULSE_5PX + 4) ? 0 : (rod_pulse > ROD_PULSE_5PX) ? 2 : 4));
 }
 
-// tile of a deco sprite: a rod's ball top in the size shown
-#define DECO_TILE(t, tile_base) ((uint8_t)((uint8_t)((t) - D_C9) <= (uint8_t)(D_CD - D_C9) ? rod_tile + (t) : (tile_base) + (t)))
+// tile of a deco sprite: a rod's ball top or the pulsing ball in the size shown
+#define DECO_TILE(t, tile_base) ((uint8_t)((t) == D_PB ? pb_tile : (uint8_t)((t) - D_C9) <= (uint8_t)(D_CD - D_C9) ? rod_tile + (t) : (tile_base) + (t)))
 
 inline static uint8_t draw_oam_deco(const FamidashDeco *deco, uint8_t tile_base,
                              uint8_t oam_idx, uint8_t sx, uint8_t sy,
@@ -787,7 +792,9 @@ static void psl_filter(void) __naked {
         ld      a, d
         cp      a, #128                 ; triggers: to C
         jp      NC, 00007$
-        cp      a, #OBJ_MUSIC_NOTE      ; decorations (38..63), the music note: skip
+        cp      a, #OBJ_MUSIC_NOTE      ; decorations (38..63, the pulsing ball), the music note: skip
+        jp      Z, 00008$
+        cp      a, #OBJ_PULSING_BALL
         jp      Z, 00008$
         sub     a, #38
         cp      a, #26
@@ -964,7 +971,7 @@ void process_sprite_logic(
         if (obj_x < lim_back) continue;
 
         if (obj >= 38 && obj < 64) continue;
-        if (obj == OBJ_MUSIC_NOTE) continue;
+        if (obj == OBJ_MUSIC_NOTE || obj == OBJ_PULSING_BALL) continue;
 
         if (obj == OBJ_COIN1 || obj == OBJ_COIN2 || obj == OBJ_COIN3) {
             uint16_t cy = cache->py[i];
@@ -1845,8 +1852,13 @@ static void cgb_object_loop(void) __naked {
         inc     hl
         inc     hl
         inc     hl
-        ld      a, (hl)                 ; tile: a rod ball top is shown in the pulse size
+        ld      a, (hl)                 ; tile: a rod ball top / the pulsing ball is shown in the pulse size
         ld      c, a
+        cp      a, #D_PB
+        jr      NZ, 00036$
+        ld      a, (_pb_tile)
+        jr      00037$
+00036$:
         sub     a, #D_C9
         cp      a, #(D_CD - D_C9 + 1)
         ld      a, (_rod_tile)
@@ -1854,6 +1866,7 @@ static void cgb_object_loop(void) __naked {
         ld      a, #FAMIDASH_SPRITE_TILE_BASE
 00034$:
         add     a, c
+00037$:
         ld      (de), a
         inc     e
         inc     hl

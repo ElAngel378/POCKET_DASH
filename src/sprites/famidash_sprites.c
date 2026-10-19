@@ -163,6 +163,7 @@ static const FamidashDeco deco_chain_up = {2, 16, {4,4,0}, {16,0,0}, {D_D7,D_D5,
 static const FamidashDeco deco_medium_right = {3, 24, {0,8,16}, {-4,-4,-4}, {D_F1,D_F7,D_F5}, {DP|S_FLIPX,DP|S_FLIPX,DP|S_FLIPX}};
 static const FamidashDeco deco_medium_left = {3, 24, {0,8,16}, {-4,-4,-4}, {D_F5,D_F7,D_F1}, {DP,DP,DP}};
 
+static const FamidashDeco deco_pulsing_ball = {1, 16, {4,0,0}, {-4,0,0}, {D_PB,0,0}, {DP,0,0}};
 static const FamidashDeco deco_music_note = {2, 16, {0,8,0}, {0,0,0}, {D_E9,D_EB,0}, {DP,DP,0}};
 
 const FamidashDeco * const famidash_deco_table[FAMIDASH_DECO_TABLE_SIZE] = {
@@ -177,5 +178,5 @@ const FamidashDeco * const famidash_deco_table[FAMIDASH_DECO_TABLE_SIZE] = {
     [58] = &deco_long_up, [59] = &deco_medium_up,
     [60] = &deco_short_up, [61] = &deco_chain_up,
     [62] = &deco_medium_right, [63] = &deco_medium_left,
-    [74] = &deco_music_note
+    [73] = &deco_pulsing_ball, [74] = &deco_music_note
 };

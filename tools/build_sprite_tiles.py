@@ -27,6 +27,10 @@ D_C9 / D_CB / D_CD (bank 1 pairs 81..83), with a 5 px and a 3 px ball instead of
 CGB bank 1 tiles 222..233 (5 px: 222..227, 3 px: 228..233). sp_draw.c shows them between the
 music's hits (src/music/music_beats.c), so the balls pulse to the music like GD's pulse rods.
 
+PULSE_BALL (generated, not in the image): Famidash's pulsing ball decoration (object 73, a lone
+ball in the lower half of its tile pair, $F9), 7 / 5 / 3 px like the rod balls and pulsing with
+them: CGB bank 1 tiles 250..255.
+
 Only the ranges in LOADS are loaded; the other slots are empty in the image because
 gameplay fills them from the font at runtime ("PAUSED" 76..87, debug HUD and % 90..115)
 or they are background tiles (bank 0 128..159; DMG coins use 144..159), or the coin
@@ -61,6 +65,7 @@ LOADS = [  # condition, VRAM bank, first tile, count, source section, first tile
     (CGB_DECO, 1, 160, 40, "BANK1", 160),  # level decorations
     (CGB_DECO_CLOUD, 1, 160, 40, "DECO_CLOUD", 0),
     (CGB, 1, 222, 12, "ROD_PULSE", 0),     # rod balls between beats (both deco sets draw the same rods)
+    (CGB, 1, 250, 6, "PULSE_BALL", 0),     # pulsing ball decoration, 7 / 5 / 3 px
     (CGB, 1, 234, 16, "BANK1", 234),       # pad / orb animation frames 2, 3 (Famidash $FB $FD, $9D $9F, $BD $BF, $5D $5F)
     # coins: levels/chr_data/coin.chr (tools/make_coin_tiles.py), loaded by famidash_sprite_tiles.c
 ]
@@ -104,9 +109,36 @@ def main():
         return out
     rod_pulse = rod_pulse_tiles()
 
+    def pulse_ball_tiles():
+        """Famidash's pulsing ball ($F9): a colour 2 disc centred at (3, 12) of the pair, in the
+        rod balls' sizes and shape"""
+        out = []
+        for size in (7, 5, 3):
+            rad = size / 2
+            g = [[0] * 8 for _ in range(16)]
+            for y in range(16):
+                for x in range(8):
+                    dx, dy = abs(x - 3), abs(y - 12)
+                    if dx < rad and dy < rad and (size == 3 or dx + dy < rad + 1):
+                        g[y][x] = 2
+            for half in (0, 8):
+                t = bytearray()
+                for r in range(8):
+                    lo = hi = 0
+                    for x in range(8):
+                        v = g[half + r][x]
+                        lo = (lo << 1) | (v & 1)
+                        hi = (hi << 1) | (v >> 1)
+                    t += bytes([lo, hi])
+                out.append(bytes(t))
+        return out
+    pulse_ball = pulse_ball_tiles()
+
     def tile(section, i):
         if section == "ROD_PULSE":
             return rod_pulse[i]
+        if section == "PULSE_BALL":
+            return pulse_ball[i]
         p = i >> 1
         x0, y0 = (p % 16) * 8, (SECTION_ROW[section] + p // 16) * 16 + (i & 1) * 8
         out = bytearray()
@@ -130,7 +162,7 @@ def main():
     rows = []
     for cond, bank, first, count, section, src in LOADS:
         rows.append((cond, bank, first, count, len(blob) // 16))
-        deco = cond in (CGB_DECO, CGB_DECO_CLOUD) or section == "ROD_PULSE"
+        deco = cond in (CGB_DECO, CGB_DECO_CLOUD) or section in ("ROD_PULSE", "PULSE_BALL")
         for i in range(count):
             blob += deco_colours(tile(section, src + i)) if deco else tile(section, src + i)
     (ROOT / "levels" / "chr_data" / "sprite_tiles.bin").write_bytes(blob)
