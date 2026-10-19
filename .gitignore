@@ -36,3 +36,5 @@ bin/POCKETDASH_prof.*
 .cache/
 # Build objects (make)
 temp/
+# Emulator save files (bin/POCKETDASH.sav changes whenever the game is played)
+*.sav
