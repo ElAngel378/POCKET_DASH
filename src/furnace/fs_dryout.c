@@ -25,6 +25,6 @@ const fur_song_t fs_dryout = {
     1, /* anti-click */
     36408, /* anti-click step at 57.6 Hz */
     1165084UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 174 }, { 0, 3733 }, { 0, 11016 }, { 1, 11917 } }, /* stream entry points */
+    { { 0, 0 }, { 0, 174 }, { 0, 3733 }, { 0, 11086 }, { 1, 12088 } }, /* stream entry points */
     fs_dryout_chunks
 };
