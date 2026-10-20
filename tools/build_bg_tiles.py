@@ -108,7 +108,9 @@ SAW_CENTER_MT = 120
 BIG_SAW_PARTS = {116, 117, 118, 119, 121, 122, 123, 124}
 SAW_VRAM_BASE = 64           # CGB VRAM bank 1
 DMG_BG_SLOTS = 144           # DMG BG tiles 0..143 (144..159 = coin sprite tiles)
-DMG_RESERVED_TILES = [12, 26] + list(range(48, 54))   # blank, black fill, ground (used by code)
+# blank, black fill (used by code). The ground strip tiles 48..53 are CGB VRAM bank 1 tiles: on DMG
+# their bank 0 slots are only taken when the level's metatiles use them.
+DMG_RESERVED_TILES = [12, 26]
 # DMG BG tiles 128..255 are sprite tiles 128..255. Some of those sprites are never drawn on DMG, so
 # a level short of slots (Theory of Everything: block set B, spike set C and every saw) puts saw
 # tiles there: 224..237 (CGB-only mirror exit art; 238, 239 are the UFO badge) and, in levels
@@ -285,6 +287,9 @@ def main():
         saw_mts = {m: t for m, t in SAW_METATILES.items() if m != SAW_CENTER_MT or big_saw}
         # BLOCKS_B2: only the slots the level's metatiles show (DMG slots are scarce)
         b2 = {t for m in level_mts for t in sheet_mt[m]} & set(BLOCKS_B2_SLOTS)
+        # DMG: block set B too (the quarters a saw tile replaces show no sheet tile)
+        dmg_b = {sheet_mt[m][q] for m in level_mts for q in range(4)
+                 if m not in saw_mts or saw_mts[m][q] is None} & set(BLOCKS_B_SLOTS)
 
         # CGB
         # bank bit 7: never load mirrored (CGB mirrors saws with the X flip attribute)
@@ -304,7 +309,7 @@ def main():
         # DMG
         loads = []
         if sets.get("blocks") == "B":
-            loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B_SLOTS, first["BLOCKS_B_DMG"])]
+            loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B_SLOTS, first["BLOCKS_B_DMG"], dmg_b)]
             loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B2_SLOTS, first["BLOCKS_B2_DMG"], b2)]
         overrides = []
         if sets.get("spikes") == "B":
@@ -315,7 +320,7 @@ def main():
         used_t = set(DMG_RESERVED_TILES)
         # slots that hold a loaded tile set B must not be handed out as free slots
         if sets.get("blocks") == "B":
-            used_t.update(BLOCKS_B_SLOTS)
+            used_t.update(dmg_b)
             used_t.update(b2)
         if sets.get("spikes") == "B":
             used_t.update(SPIKES_B_SLOTS)
