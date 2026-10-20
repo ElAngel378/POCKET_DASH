@@ -326,9 +326,7 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     // CGB: the saws just loaded from bg_extra_tiles are the DMG version (outlined); stream
     // frame 0 of the CGB art (saw_anim_tiles) right away
     if (cgb && saw_on) saw_pos = 0;
-    // (the overrides follow the moves: n_over is known up front only without moves)
     n_moves = ll_get();
-    n_over = n_moves ? 0xFF : ll_get();
 
     // Moved sheet tiles (DMG: out of the coin sprite tiles) -> per-level metatile table. The
     // table only depends on the level, so a mirror portal or a respawn only moves the tiles again.
@@ -349,7 +347,18 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
         }
         mt_xlat[src] = dst;
     }
-    if (n_moves) n_over = ll_get();
+    // DMG fake spike tiles: a sheet tile with colour 3 turned into 2 (CGB: palette 5); the
+    // overrides point the fake spike metatiles at them
+    for (n = ll_get(); n; n--) {
+        uint8_t dst = ll_get(), src = ll_get();
+        if (baked) continue;   // in the sheet
+        if (display_off) memcpy(buf, BG_TILE_ADDR(src), 16);
+        else get_bkg_data(src, 1, buf);
+        for (uint8_t i = 0; i < 16; i += 2) buf[i] &= (uint8_t)~buf[i + 1];
+        if (display_off) memcpy(BG_TILE_ADDR(dst), buf, 16);
+        else set_bkg_data(dst, 1, buf);
+    }
+    n_over = ll_get();
     mt_tab = mt_ram[0];
     mt_tab_rev = mt_ram[1];
     if (!rebuild) return;

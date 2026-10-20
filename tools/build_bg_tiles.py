@@ -40,7 +40,13 @@ Outputs:
     include/bg_tiles.h                         BG_BASE_TILE_COUNT
 
 Per level and platform the load list says: extra tiles to load (VRAM bank, slot, count,
-first extra tile), sheet tiles to move (DMG), and metatile tiles to override. On DMG, BG
+first extra tile), sheet tiles to move (DMG), fake spike tiles to make (DMG), and metatile tiles
+to override.
+
+FAKE SPIKES (DMG): CGB draws the fake spike metatiles (FAKE_SPIKE_MTS) with the real spikes'
+tiles in palette 5, whose colour 3 (the white outline) is black like colour 2. DMG has one BGP,
+so a level with fake spikes copies their sheet tiles to free slots with colour 3 turned into 2
+(fake_tile) and points the fake metatiles there. On DMG, BG
 tiles 144..159 share VRAM with the coin sprite tiles, so tiles a level uses there move to
 slots it leaves free, and its saw tiles go to free slots too.
 
@@ -93,6 +99,10 @@ LEVEL_SETS = {
     "demonpark": {"spikes": "C"},
     "thelightningroad": {"spikes": "C"},
 }
+
+# Fake spike metatiles (CGB palette 5, see FAKE SPIKES above)
+FAKE_SPIKE_MTS = [197, 198] + list(range(203, 211))
+BLANK_TILE = 12
 
 SAW_CENTER_MT = 120
 BIG_SAW_PARTS = {116, 117, 118, 119, 121, 122, 123, 124}
@@ -171,6 +181,11 @@ def gb_bytes(rows):
     return bytes(out)
 
 
+def fake_tile(data):
+    """DMG fake spike tile: colour 3 -> 2 (the low bit plane cleared where the high one is set)"""
+    return bytes(data[i] & ~data[i + 1] & 0xFF if i % 2 == 0 else data[i] for i in range(16))
+
+
 def mirrored(rows):
     return [row[::-1] for row in rows]
 
@@ -229,9 +244,10 @@ def main():
     a = src.index("const uint8_t metatiles[FAMIDASH_NUM_METATILES][4]")
     sheet_mt = [list(map(int, m)) for m in re.findall(r'\{ (\d+), (\d+), (\d+), (\d+) \}', src[a:src.index("};", a)])]
 
-    def stream(loads, moves, overrides):
+    def stream(loads, moves, fakes, overrides):
         data = [len(loads)] + [v for l in loads for v in l]
         data += [len(moves)] + [v for m in moves for v in m]
+        data += [len(fakes)] + [v for f in fakes for v in f]
         data += [len(overrides)] + [v for o in overrides for v in o]
         return data
 
@@ -242,8 +258,9 @@ def main():
     base = [gb_bytes(t) for t in section["BASE"]]
     base_rev = [gb_bytes(mirrored(t)) for t in section["BASE"]]
 
-    def bake(loads, moves, rev):
-        """The DMG sheet (slots 0..159) after apply_level_bg_tiles: BASE, the loads, the moves"""
+    def bake(loads, moves, fakes, rev):
+        """The DMG sheet (slots 0..159) after apply_level_bg_tiles: BASE, the loads, the moves,
+        the fake spike tiles"""
         vram = list(base_rev if rev else base)
         for bank, dst, count, first_tile in loads:
             for j in range(count):
@@ -252,6 +269,8 @@ def main():
                     vram[dst + j] = bytes(extra[o:o + 16])
         for dst, src_ in moves:
             vram[dst] = vram[src_]
+        for dst, src_ in fakes:
+            vram[dst] = fake_tile(vram[src_])
         return b"".join(vram)
 
     streams = []   # (level var, cgb data, dmg data)
@@ -280,7 +299,7 @@ def main():
             overrides += SPIKES_B_OVERRIDES
         if sets.get("spikes") == "C":
             loads += [(0, d, n, s) for d, n, s in runs(SPIKES_C_SLOTS, first["SPIKES_C"])]
-        cgb = stream(loads, [], overrides)
+        cgb = stream(loads, [], [], overrides)
 
         # DMG
         loads = []
@@ -315,8 +334,21 @@ def main():
         if len(high) > len(free):
             raise SystemExit("%s: needs %d free DMG BG slots, has %d" % (name, len(high), len(free)))
         moves = list(zip(free, high))
-        saw_free = free[len(high):]
         mirror = has_mirror_portal(name)
+        # fake spike tiles (their sources stay: they are in used_t). A level without room for
+        # them and its saws keeps fake spikes looking like real ones.
+        fake_mts = [m for m in FAKE_SPIKE_MTS if m in level_mts]
+        fake_src = sorted({t for m in fake_mts for t in sheet_mt[m] if t != BLANK_TILE})
+        assert all(t < DMG_BG_SLOTS for t in fake_src)
+        room = len(free) - len(high) + (len(DMG_SHARED_SLOTS + ([] if mirror else DMG_MIRROR_SLOTS)) if saw_k else 0)
+        if fake_src and len(fake_src) + len(saw_k) > room:
+            print("DMG %-20s no room for its %d fake spike tiles: they look like real spikes" % (name, len(fake_src)))
+            fake_mts, fake_src = [], []
+        fake_slot = dict(zip(fake_src, free[len(high):]))
+        fakes = [(d, s_) for s_, d in sorted(fake_slot.items())]
+        overrides += [(m, q, fake_slot[sheet_mt[m][q]]) for m in fake_mts for q in range(4)
+                      if sheet_mt[m][q] != BLANK_TILE]
+        saw_free = free[len(high) + len(fake_src):]
         if len(saw_k) > len(saw_free):
             saw_free += DMG_SHARED_SLOTS + ([] if mirror else DMG_MIRROR_SLOTS)
         if len(saw_k) > len(saw_free):
@@ -326,17 +358,17 @@ def main():
             loads.append((0, saw_slot[k_], 1, first["SAWS_0"] + k_))
         overrides += [(m, q, saw_slot[saw_mts[m][q]]) for m in sorted(level_mts) if m in saw_mts
                       for q in range(4) if saw_mts[m][q] is not None]
-        dmg = stream(loads, moves, overrides)
-        if mirror and (moves or any(d < len(base) for _, d, _, _ in loads)):
-            sheets[name] = bake(loads, moves, False) + bake(loads, moves, True)
+        dmg = stream(loads, moves, fakes, overrides)
+        if mirror and (moves or fakes or any(d < len(base) for _, d, _, _ in loads)):
+            sheets[name] = bake(loads, moves, fakes, False) + bake(loads, moves, fakes, True)
             # the loads the sheet does not hold (saws in sprite slots): a mirror portal still
             # loads these one by one
             sheet_rest[name] = [v for _, d, n, f in loads if d + n > len(base) for v in (d, n, f)]
         streams.append((lv, name, cgb, dmg, big_saw, any(m in saw_mts for m in level_mts)))
-        if moves or saw_slot:
+        if moves or saw_slot or fakes:
             shared = sum(1 for s in saw_slot.values() if s >= DMG_BG_SLOTS)
-            print("DMG %-20s %d tiles moved above slot %d, %d saw tiles (%d in sprite tiles), %d free slots left"
-                  % (name, len(moves), DMG_BG_SLOTS, len(saw_slot), shared, len(saw_free) - len(saw_k)))
+            print("DMG %-20s %d tiles moved above slot %d, %d fake spike tiles, %d saw tiles (%d in sprite tiles), %d free slots left"
+                  % (name, len(moves), DMG_BG_SLOTS, len(fakes), len(saw_slot), shared, len(saw_free) - len(saw_k)))
 
     # baked DMG sheets: one file each, packed into free banks from the top down (the #pragma bank
     # numbers here are real banks; tools/build_levels.py allocates the level maps from bank 30 up)
@@ -423,6 +455,7 @@ def main():
          "// Per level load lists:",
          "//   n, n x (VRAM bank (bit 7: never mirrored), slot, count, first bg_extra_tiles tile)",
          "//   n, n x (slot, sheet tile)   sheet tiles moved to another slot (DMG)",
+         "//   n, n x (slot, sheet tile)   fake spike tiles: the sheet tile, colour 3 -> 2 (DMG)",
          "//   n, n x (metatile, quarter, tile)"]
     for lv, name, cgb, dmg, _, _ in streams:
         C.append("static const uint8_t bg_cgb_%s[] = { %s };" % (name, ", ".join(map(str, cgb))))
