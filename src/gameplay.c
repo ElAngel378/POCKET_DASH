@@ -1699,7 +1699,7 @@ void play_level(uint8_t idx) BANKED {
         // Player sprite
         percent_hud_update(cam_px);
         uint8_t oam_index = PERCENT_HUD_OAM;   // slots 0..3: % display
-        // CGB: slots before the player in OAM (drawn over it) for the front column of the portal
+        // CGB: slots before the player in OAM (drawn over it) for the front half of the portal
         // it is in, which draw_sprites fills, so the player passes through the ring. Not while
         // the level end shakes the level sprites (those are drawn with the shake offset).
         if (_cpu == CGB_TYPE && end_anim_state != END_ANIM_SHAKE) {

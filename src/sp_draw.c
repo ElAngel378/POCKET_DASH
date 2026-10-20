@@ -408,8 +408,8 @@ static uint8_t obj_anim_tiles(uint8_t obj) {
 }
 
 // 2x3 metasprite (gravity portals)
-// Portal columns (bit c = art column c) for draw_oam_2x3 / 3x3 / mini_portal. CGB: the column
-// with the ring's far arc is drawn before the player (draw_portal_fronts), the rest after it, so
+// Portal columns (bit c = art column c) for draw_oam_2x3 / 3x3 / mini_portal. CGB: the columns
+// of the front half are drawn before the player (portal_front_cols), the rest after it, so
 // the player goes through the ring instead of over it.
 #define COLS_ALL 0xFF
 
@@ -1702,9 +1702,12 @@ static uint8_t draw_sprites_dmg(uint16_t cam_px, uint16_t cam_py, uint8_t revers
 // after the player) under it, so the player goes through the ring. 0: none this frame.
 uint8_t sp_front_slot;
 
-// The column with the ring's far arc: art column 1, the mini / growth portal's column at +8
+// The front half: the ring's far arc (art column 1) and, on the 3 column mode portals, the body
+// behind it (column 2: a player past the ring was drawn over it); the mini / growth portal's
+// column at +8
 static uint8_t portal_front_cols(uint8_t obj) {
-    return (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL) ? 4 : 2;
+    if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL) return 4;
+    return (obj <= OBJ_UFO_PORTAL) ? 6 : 2;
 }
 
 // CGB objects: the loop, in asm like the DMG one (in C the decorations and pads were 2 to 4
