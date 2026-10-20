@@ -106,11 +106,17 @@ static const uint8_t quad_spike_zone[COL_QUAD_COUNT - 12][3] = {
 // inside a small core of its metatile (a whole 16x16 spike tile, or the whole half of a side
 // spike, killed far around it).
 // xin, inner y: probe position inside the metatile. Ranges are inclusive.
+#define MT_BOTTOM_BACKGROUND_SPIKES 12
+#define MT_PITSPIKES                24
 static uint8_t spike_at(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
     if ((uint16_t)y & 0xFF00) return 0;
     uint8_t py8 = (uint8_t)y;
-    uint8_t col = famidash_metatile_collision[col_ptr[py8 >> 4]];
+    uint8_t mt = col_ptr[py8 >> 4];
+    uint8_t col = famidash_metatile_collision[mt];
     uint8_t iy = py8 & 0x0F;
+    // Pit spikes and background spikes are a row of spikes across the whole metatile: they
+    // kill at any x (Famidash: x 5..7 only, so touching them for a frame often did nothing)
+    if (mt == MT_PITSPIKES || mt == MT_BOTTOM_BACKGROUND_SPIKES) return iy > 10u;
     switch (col) {
         case COL_DEATH:              // full spikes: x 4..8, y 4..11
             return (uint8_t)(xin - 4u) <= 4u && (uint8_t)(iy - 4u) <= 7u;
