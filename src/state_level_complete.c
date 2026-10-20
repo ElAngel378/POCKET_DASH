@@ -54,6 +54,17 @@ static uint8_t map_x0, map_y0;                          // BG map cell at the to
 #define text_slot   (scratch_buf)                                   // VRAM slots of the text's tiles
 #define border_slot (scratch_buf + PRACTICE_COMPLETE_TEXT_UNIQUE)     // ... of the box border tiles
 #define font_slot   (scratch_buf + PRACTICE_COMPLETE_TEXT_UNIQUE + 10) // ... of the font glyphs (0xFF: not loaded)
+#define slot_use    (scratch_buf + 128)                             // per BG slot 0..127: SLOT_* bits
+
+// What shows a BG slot until the screen covers it. The text, the box border and the font are
+// loaded in turn, each into slots no cell still showing the level uses: the text before it wipes
+// in (every visible cell), the border once the text is drawn (cells under the text are covered),
+// the font once the box is drawn (cells under the box too). Loading them all up front put
+// glyphs into the level's tiles under the box while it was still on screen.
+#define SLOT_OTHER  1   // a cell neither the text nor the box covers
+#define SLOT_TEXT   2   // a cell the text covers
+#define SLOT_BOX    4   // a cell the box covers
+#define SLOT_TAKEN  8   // loaded with one of this screen's tiles
 
 // settings_bg tiles of the box border, in border_slot order
 static const uint8_t border_src[10] = { 2, 3, 4, 5, 6, 7, 8, 9, 0x18, 0x19 };
@@ -143,17 +154,14 @@ static uint8_t text_covers(uint8_t x, uint8_t y) {
     return map[(uint8_t)(r * LEVEL_COMPLETE_TEXT_COLS + c)] != 0xFF;
 }
 
-// Picks VRAM slots no visible cell outside the text and the box shows, and loads the tiles there.
-// Returns 0 when there are not enough free slots.
-static uint8_t tiles_load(void) {
-    uint8_t used[128];
-    uint8_t x, y, i, t, n;
-    for (i = 0; i < 128; i++) used[i] = 0;
-    used[TILE_BLANK] = 1;
+// Notes which slots the visible cells show (slot_use) and checks there are enough free slots
+// for each loading step. Returns 0 when there are not.
+static uint8_t tiles_scan(void) {
+    uint8_t x, y, i, t;
+    for (i = 0; i < 128; i++) slot_use[i] = 0;
+    slot_use[TILE_BLANK] = SLOT_OTHER;
     for (y = 0; y < 18; y++) {
         for (x = 0; x < 20; x++) {
-            if (y >= BOX_TOP && y <= BOX_BOTTOM && x >= 2 && x <= 17) continue;   // overwritten
-            if (text_covers(x, y)) continue;
             uint8_t mx = (uint8_t)((map_x0 + x) & 31), my = (uint8_t)((map_y0 + y) & 31);
             if (_cpu == CGB_TYPE) {         // a cell showing a bank 1 tile (parallax, saws) uses no slot here
                 VBK_REG = 1;
@@ -162,43 +170,60 @@ static uint8_t tiles_load(void) {
                 if (t & 8) continue;
             }
             t = get_bkg_tile_xy(mx, my);
-            if (t < 128) used[t] = 1;
+            if (t >= 128) continue;
+            if (y >= BOX_TOP && y <= BOX_BOTTOM && x >= 2 && x <= 17) slot_use[t] |= SLOT_BOX;
+            else if (text_covers(x, y)) slot_use[t] |= SLOT_TEXT;
+            else slot_use[t] |= SLOT_OTHER;
         }
     }
     for (i = 0; i < 44; i++) font_slot[i] = 0xFF;
     need_glyphs("ATTEMPTS COINS RETRY MENU PRACTICE RUN");
     need_glyphs("0123456789/>");
-    uint8_t text_unique = lc_practice ? PRACTICE_COMPLETE_TEXT_UNIQUE : LEVEL_COMPLETE_TEXT_UNIQUE;
-    const uint8_t *text_tiles = lc_practice ? practice_complete_text_tiles : level_complete_text_tiles;
-    uint8_t need = (uint8_t)(text_unique + 10);
-    for (i = 0; i < 44; i++) if (font_slot[i] == 0) need++;
-    uint8_t free_n = 0;
-    for (i = 0; i < 128; i++) if (!used[i]) free_n++;
-    lc_dbg_free = free_n;
-    lc_dbg_need = need;
-    if (free_n < need) return 0;
+    uint8_t n_text = lc_practice ? PRACTICE_COMPLETE_TEXT_UNIQUE : LEVEL_COMPLETE_TEXT_UNIQUE;
+    uint8_t n_font = 0, free_text = 0, free_border = 0, free_font = 0;
+    for (i = 0; i < 44; i++) if (font_slot[i] == 0) n_font++;
+    // the slots each step may use: free_text within free_border within free_font
+    for (i = 0; i < 128; i++) {
+        t = slot_use[i];
+        if (!t) free_text++;
+        if (!(t & (SLOT_OTHER | SLOT_BOX))) free_border++;
+        if (!(t & SLOT_OTHER)) free_font++;
+    }
+    lc_dbg_free = free_font;
+    lc_dbg_need = (uint8_t)(n_text + 10 + n_font);
+    return n_text <= free_text && (uint8_t)(n_text + 10) <= free_border && lc_dbg_need <= free_font;
+}
 
-    i = 0;
-    for (n = 0; n < text_unique; n++) {
-        while (used[i]) i++;
-        text_slot[n] = i;
-        used[i] = 1;
-        load_tile(i, text_tiles + (uint16_t)n * 16u, 1);
+// A slot none of whose cells has a SLOT_* bit of mask (tiles_scan made sure there is one)
+static uint8_t take_slot(uint8_t mask) {
+    uint8_t i = 0;
+    while (slot_use[i] & (uint8_t)(mask | SLOT_TAKEN)) i++;
+    slot_use[i] |= SLOT_TAKEN;
+    return i;
+}
+
+static void load_text_tiles(void) {
+    uint8_t n_text = lc_practice ? PRACTICE_COMPLETE_TEXT_UNIQUE : LEVEL_COMPLETE_TEXT_UNIQUE;
+    const uint8_t *text_tiles = lc_practice ? practice_complete_text_tiles : level_complete_text_tiles;
+    for (uint8_t n = 0; n < n_text; n++) {
+        text_slot[n] = take_slot(SLOT_OTHER | SLOT_TEXT | SLOT_BOX);
+        load_tile(text_slot[n], text_tiles + (uint16_t)n * 16u, 1);
     }
-    for (n = 0; n < 10; n++) {
-        while (used[i]) i++;
-        border_slot[n] = i;
-        used[i] = 1;
-        load_tile(i, settings_bg_tiles + (uint16_t)border_src[n] * 16u, 0);
+}
+
+static void load_border_tiles(void) {
+    for (uint8_t n = 0; n < 10; n++) {
+        border_slot[n] = take_slot(SLOT_OTHER | SLOT_BOX);
+        load_tile(border_slot[n], settings_bg_tiles + (uint16_t)border_src[n] * 16u, 0);
     }
-    for (n = 0; n < 44; n++) {
+}
+
+static void load_font_tiles(void) {
+    for (uint8_t n = 0; n < 44; n++) {
         if (font_slot[n] != 0) continue;
-        while (used[i]) i++;
-        font_slot[n] = i;
-        used[i] = 1;
-        load_tile(i, n >= 39 ? extra_font_tiles + (uint16_t)(n - 39) * 16u : FontPusab + (uint16_t)n * 16u, 0);
+        font_slot[n] = take_slot(SLOT_OTHER);
+        load_tile(font_slot[n], n >= 39 ? extra_font_tiles + (uint16_t)(n - 39) * 16u : FontPusab + (uint16_t)n * 16u, 0);
     }
-    return 1;
 }
 
 // One column of the text: LEVEL / PRACTICE (rows 0..1) or COMPLETE! (rows 2..3)
@@ -325,7 +350,8 @@ GameState update_level_complete_state(void) BANKED {
     move_bkg(scx, scy);
     map_x0 = (uint8_t)(scx >> 3);
     map_y0 = (uint8_t)(scy >> 3);
-    uint8_t have_gfx = tiles_load();
+    uint8_t have_gfx = tiles_scan();
+    if (have_gfx) load_text_tiles();
     if (_cpu == CGB_TYPE) {
         palette_color_t pal[4];
         pal[0] = level_colour();                       // around the letters
@@ -373,10 +399,12 @@ GameState update_level_complete_state(void) BANKED {
         // 2 seconds with the text on the level (A skips the wait)
         for (y = 0; y < 120 && !skip; y++) wait_frames(1);
         skip = 0;
+        load_border_tiles();
         for (y = BOX_TOP; y <= BOX_BOTTOM; y++) {
             box_row(y);
             wait_frames(2);
         }
+        load_font_tiles();
         draw_stats();
         draw_buttons(sel);
     }
