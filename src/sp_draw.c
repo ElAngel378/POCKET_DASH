@@ -1701,6 +1701,10 @@ static uint8_t draw_sprites_dmg(uint16_t cam_px, uint16_t cam_py, uint8_t revers
 // player is in: drawn there, that column is over the player and the rest of the portal (drawn
 // after the player) under it, so the player goes through the ring. 0: none this frame.
 uint8_t sp_front_slot;
+// CGB: a portal is (about to be) at the player: gameplay.c reserves the slots next frame. Only
+// then: always reserved, the 6 slots left too few for a whole portal (9) after the decorations.
+uint8_t sp_front_want;
+#define IS_FRONT_PORTAL(o) ((o) <= OBJ_UFO_PORTAL || (o) == OBJ_GRAVITY_DOWN || (o) == OBJ_GRAVITY_UP ||                             (o) == OBJ_MINI_PORTAL || (o) == OBJ_GROW_PORTAL)
 
 // The front half: the ring's far arc (art column 1) and, on the 3 column mode portals, the body
 // behind it (column 2: a player past the ring was drawn over it); the mini / growth portal's
@@ -2130,6 +2134,7 @@ uint8_t draw_sprites(
 
     uint8_t front_free = (sp_front_slot != 0);
     uint8_t front_n = 0;
+    sp_front_want = 0;
     const uint8_t *e = dmgd_slow;
     for (uint8_t n = dmgd_slow_n; n; n--, e += 4) {
         uint8_t obj = e[0];
@@ -2141,9 +2146,9 @@ uint8_t draw_sprites(
         // the portal the player is in (t_px: process_sprite_logic): front column in the slots
         // reserved before the player
         uint8_t cols = COLS_ALL;
-        if (front_free && (obj <= OBJ_UFO_PORTAL || obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP ||
-                           obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL)
-            && obj_x <= t_px + 16u && obj_x + 32u >= t_px) {
+        // next frame's window, 8 px wider on each side (the player moves less than that a frame)
+        if (IS_FRONT_PORTAL(obj) && obj_x <= t_px + 24u && obj_x + 40u >= t_px) sp_front_want = 1;
+        if (front_free && IS_FRONT_PORTAL(obj) && obj_x <= t_px + 16u && obj_x + 32u >= t_px) {
             cols = portal_front_cols(obj);
             front_free = 0;
             uint8_t fs = sp_front_slot;
@@ -2177,7 +2182,8 @@ uint8_t draw_sprites(
 
         if (obj >= 38) continue;   // decorations: cgb_object_loop
 
-        if (oam_start > MAX_HARDWARE_SPRITES - 9) break;
+        // a portal whose front half is in the reserved slots: 3 sprites left to draw
+        if (oam_start > MAX_HARDWARE_SPRITES - (cols == COLS_ALL ? 9 : 3)) break;
         const metasprite_t *sprite = famidash_sprite_table[obj];
         if (sprite == 0) continue;
 

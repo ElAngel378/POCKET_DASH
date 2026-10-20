@@ -1702,7 +1702,7 @@ void play_level(uint8_t idx) BANKED {
         // CGB: slots before the player in OAM (drawn over it) for the front half of the portal
         // it is in, which draw_sprites fills, so the player passes through the ring. Not while
         // the level end shakes the level sprites (those are drawn with the shake offset).
-        if (_cpu == CGB_TYPE && end_anim_state != END_ANIM_SHAKE) {
+        if (_cpu == CGB_TYPE && end_anim_state != END_ANIM_SHAKE && sp_front_want) {
             sp_front_slot = oam_index;
             oam_index += PORTAL_FRONT_SLOTS;
         }

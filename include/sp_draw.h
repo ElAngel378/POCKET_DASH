@@ -15,6 +15,7 @@ uint8_t draw_sprites(SpCache *cache, uint16_t cam_px, uint16_t cam_py,
 // draw_sprites fills (or hides) and clears (see sp_draw.c). 0: none.
 #define PORTAL_FRONT_SLOTS 6
 extern uint8_t sp_front_slot;
+extern uint8_t sp_front_want;   // reserve them next frame (a portal is near the player)
 
 void process_sprite_logic(SpCache *cache, uint16_t cam_px,
                           Player *p, uint8_t joy, uint8_t *target_bg_idx) BANKED;
