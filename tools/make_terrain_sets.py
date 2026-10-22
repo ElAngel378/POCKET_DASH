@@ -21,11 +21,32 @@ STYLES = [
     ("Checkerboard blocks (set B)", "#50e3c2", r"CHECKERBOARD(_\d+)?_BB"),
     ("X blocks", "#e24a4a", r"X_\w+"),
     ("Black blocks", "#9b9b9b", r"BLACK_\w+"),
+    # 1.6 blocks: the outlined pieces, FILLER is the inside. Left out: the single blocks (BLOCK,
+    # SIDE_BLOCK_*), and the shading pieces one cell further in (NO_OUT sides, SID_INS_CRN_*),
+    # which depend on more than the next cells: place those by hand
+    ("1.6 blocks", "#7b68ee", r"1\.6_(SIDE_(TOP|BOT|LFT|RGT)|CORNER_\w\w|INS_CRN_\w\w|DBL_\w+|FILLER)"),
 ]
 OUTLINE = 3
 # Pieces whose art does not show their terrain: CHECKERBOARD_11 is the bottom right dot piece of
 # its set (like CHECKERBOARD_11_BB), but Famidash drew it without the dot
 TERRAIN_OVERRIDES = {"CHECKERBOARD_11": (1, 1, 1, 0, 1, 1, 1, 1)}
+# 1.6 inside corners are drawn as a notch in the shading, not an outline dot: air at the corners
+# their names say (wangid positions of TL, TR, BL, BR)
+CORNER = {"TL": 7, "TR": 1, "BL": 5, "BR": 3}
+NOTCHES = [(r"1\.6_INS_CRN_(\w\w)", None),
+           (r"1\.6_DBL_INS_CRN_TOP", ("TL", "TR")), (r"1\.6_DBL_INS_CRN_BOT", ("BL", "BR")),
+           (r"1\.6_DBL_INS_CRN_LFT", ("TL", "BL")), (r"1\.6_DBL_INS_CRN_RGT", ("TR", "BR"))]
+
+
+def notched(name, ids):
+    for pattern, corners in NOTCHES:
+        m = re.fullmatch(pattern, name)
+        if m:
+            ids = list(ids)
+            for c in corners or (m.group(1),):
+                ids[CORNER[c]] = 0
+            return tuple(ids)
+    return ids
 
 
 def terrain(art):
@@ -47,7 +68,8 @@ def main():
     out = [" <wangsets>"]
     for name, colour, pattern in STYLES:
         tiles = sorted(i for i, o in cat.objects.items() if re.fullmatch(pattern, o["name"]))
-        ids = {i: TERRAIN_OVERRIDES.get(cat.objects[i]["name"]) or terrain(cat.art(i)) for i in tiles}
+        ids = {i: TERRAIN_OVERRIDES.get(cat.objects[i]["name"]) or
+               notched(cat.objects[i]["name"], terrain(cat.art(i))) for i in tiles}
         full = next((i for i in tiles if ids[i] == (1,) * 8), tiles[0])
         out.append('  <wangset name="%s" type="mixed" tile="%d">' % (name, full))
         out.append('   <wangcolor name="%s" color="%s" tile="%d" probability="1"/>' % (name, colour, full))

@@ -561,10 +561,15 @@ def build_all():
             print(f"Removing stale {p.name}")
             p.unlink()
 
-    # Furnace songs: music/Furnace/*.fur, matched to the levels by name like the .uge files
-    print("\nConverting Furnace songs (music/Furnace)...")
-    import convert_furnace
-    convert_furnace.convert([p.stem.lower() for p in tmx_files])
+    # Furnace songs: music/Furnace/*.fur, matched to the levels by name like the .uge files.
+    # --no-music keeps the songs converted last time (tracing a new or changed .fur in Furnace
+    # takes minutes; the level and tile steps take seconds)
+    if "--no-music" in sys.argv:
+        print("\nFurnace songs: skipped (--no-music), keeping the ones converted last time")
+    else:
+        print("\nConverting Furnace songs (music/Furnace)...")
+        import convert_furnace
+        convert_furnace.convert([p.stem.lower() for p in tmx_files])
 
     print("\nGenerating src/assets.c...")
     generate_assets_c(levels_info)
