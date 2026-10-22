@@ -42,13 +42,46 @@ Only then add the 1.6 art, Clubstep first (the most 1.6 objects), then Electroma
 
 ## Limits per level (two separate ones)
 
-- Object kinds: up to 256 per level (one byte per map cell), but per level, so thousands in the
-  game. Two-byte cells would lift it at the cost of double map size and a slower renderer;
-  probably never needed.
-- Unique 8x8 tiles: the real limit. CGB: bank 0 (~160 level tiles) plus what bank 1 has free
-  after the background, ground, saws and sprite data (~50). Objects share tiles and CGB can flip
-  them (a symmetric block often needs 1-2 unique tiles instead of 4).
+- Object kinds (metatiles: 16x16 pieces; every orientation, edge and corner variant counts, and on
+  CGB every recolour too). The current format stores one byte per map cell: 256 kinds per level.
+  The new format uses TWO bytes per cell from the start (65536 kinds): maps double in size (fine,
+  the ROM is 4 MB), the per-level object table grows (512 kinds x 8 bytes = 4 KB: CGB WRAM banks
+  1..7; DMG keeps a smaller table, it uses fallbacks anyway), and drawing a screen gets a bit
+  slower.
+- Unique 8x8 tiles in VRAM. The background sees 256 tile slots per VRAM bank:
+  - bank 0: 96 are sprite art (portals, orbs, chain, ...), 160 are the level sheet
+  - bank 1: parallax background 48, ground 9, saws 52, sprite tiles and coins: ~50 free
+  - so ~210 per level on CGB today. Objects share tiles, and CGB flips them (a symmetric block
+    often needs 1-2 unique tiles instead of 4).
 - CGB background palettes: 8, some already taken (ground, background, text).
+
+### Raising the tile limit (CGB)
+
+1. Move the sprite art out of bank 0: CGB sprites can use bank 1 too. Frees up to 96 bank 0
+   slots: ~300 per level.
+2. Tile streaming: load an object's tiles as it scrolls on screen and reuse the slots of tiles
+   that scrolled off. CGB HDMA copies 100+ tiles per frame while the screen draws, so the limit
+   becomes "unique tiles on one screen at a time" instead of "in the whole level". Biggest
+   change; it removes the ceiling in practice.
+
+DMG can do neither (one VRAM bank, a few tiles per frame by CPU copy: its saw animation is
+already spread over frames), so DMG stays on fallback objects.
+
+### Measured: GDA's Clubstep (2026-10-20)
+
+geometry_dash_advance/levels/clubstep.json (899 x 54 cells, two tile layers l1 / l2), with GDA's
+src/metatiles.c (8672 metatiles); sprites (SP layer) not counted:
+
+- object kinds: 111 (l1 101, l2 35). On one layer every l1 + l2 combination in a cell is its own
+  kind: 164. Under 256 either way.
+- unique 8x8 tiles in the whole level: 106 with flips free (CGB), 249 when every flipped copy is
+  its own tile (DMG).
+- most unique tiles on one Game Boy screen (11 x 10 cells): 45 (CGB), 94 (DMG).
+
+So a 1.6-accurate Clubstep fits the ~210 CGB budget even without streaming (106 + saws), and
+streaming would leave lots of room (45 per screen). DMG would need 249 tiles for the full art:
+over its ~144 slots, hence the fallbacks. Caveat: GDA's tiles are 16 colours (GBA 4bpp); redrawing
+them in 4 colours may split some tiles, so the GB numbers will be somewhat higher.
 
 ## DMG
 
