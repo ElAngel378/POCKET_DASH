@@ -1,6 +1,6 @@
 # Plan: objects past 1.5 (own object catalog, split from Famidash)
 
-Status: planning only, nothing implemented yet (agreed in principle 2026-10-20).
+Status: stages A and B done (branch object-catalog, 2026-10-22); next: the 1.6 art.
 
 ## The problem
 
@@ -64,7 +64,12 @@ from the art of the objects it uses (the base sheet, the Famidash tile sets, the
 the runtime fake spike tiles are gone). Level ids: tools/objects_catalog.py assign_level_ids
 (famidash_id when there is one, else a free id), so new objects (famidash_id = -1) work.
 Checked: the visible background of every level, DMG and CGB, rendered from VRAM at 13 points
-each, against the stage A build.
+each, against the stage A build; played through by the user on hardware / emulator. Adding a new
+object (art + properties + placing it in a TMX, no code) checked end to end on CGB and DMG.
+
+Editing comfort (done): Tiled shows objects_preview.png (generated: CGB colours, markers for
+fake / invisible / one-sided objects), the DMG-only art moved to objects_dmg.png, and the four
+block styles are Tiled terrain sets (tools/make_terrain_sets.py).
 
 Design notes as planned:
 

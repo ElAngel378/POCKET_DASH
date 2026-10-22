@@ -49,7 +49,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
-from objects_catalog import load_catalog, tmx_level_objects, assign_level_ids  # noqa: E402
+from objects_catalog import load_catalog, tmx_level_objects, assign_level_ids, write_preview  # noqa: E402
 
 PNG = ROOT / "levels" / "chr_data" / "bg_tiles.png"
 
@@ -224,6 +224,7 @@ def main():
     assets = (ROOT / "src" / "assets.c").read_text()
     order = re.findall(r'&(level_\w+)', assets.split("game_levels[] = {")[1].split("};")[0])
     ident = dict(re.findall(r'const Level (level_\w+) = \{.*?\n\s*(\w+)_map,', assets, re.S))
+    write_preview()                       # Tiled's view of objects.png
     cat = load_catalog()
 
     def has_mirror_portal(name):

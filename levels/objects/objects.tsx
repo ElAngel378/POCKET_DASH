@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="objects" tilewidth="16" tileheight="16" tilecount="354" columns="16">
- <image source="objects.png" width="256" height="368"/>
+<tileset version="1.10" tiledversion="1.11.2" name="objects" tilewidth="16" tileheight="16" tilecount="288" columns="16">
+ <image source="objects_preview.png" width="256" height="288"/>
  <tile id="0">
   <properties>
    <property name="name" value="EMPTY"/>
@@ -43,7 +43,7 @@
    <property name="collision" type="int" value="17"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="4"/>
-   <property name="dmg_art" type="int" value="283"/>
+   <property name="dmg_art" type="int" value="0"/>
   </properties>
  </tile>
  <tile id="5">
@@ -79,7 +79,7 @@
    <property name="collision" type="int" value="4"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="8"/>
-   <property name="dmg_art" type="int" value="284"/>
+   <property name="dmg_art" type="int" value="1"/>
   </properties>
  </tile>
  <tile id="9">
@@ -88,7 +88,7 @@
    <property name="collision" type="int" value="4"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="9"/>
-   <property name="dmg_art" type="int" value="285"/>
+   <property name="dmg_art" type="int" value="2"/>
   </properties>
  </tile>
  <tile id="10">
@@ -97,7 +97,7 @@
    <property name="collision" type="int" value="3"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="10"/>
-   <property name="dmg_art" type="int" value="286"/>
+   <property name="dmg_art" type="int" value="3"/>
   </properties>
  </tile>
  <tile id="11">
@@ -106,7 +106,7 @@
    <property name="collision" type="int" value="3"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="11"/>
-   <property name="dmg_art" type="int" value="287"/>
+   <property name="dmg_art" type="int" value="4"/>
   </properties>
  </tile>
  <tile id="12">
@@ -538,7 +538,7 @@
    <property name="collision" type="int" value="4"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="59"/>
-   <property name="dmg_art" type="int" value="288"/>
+   <property name="dmg_art" type="int" value="5"/>
   </properties>
  </tile>
  <tile id="60">
@@ -871,7 +871,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="96"/>
-   <property name="dmg_art" type="int" value="289"/>
+   <property name="dmg_art" type="int" value="6"/>
   </properties>
  </tile>
  <tile id="97">
@@ -880,7 +880,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="97"/>
-   <property name="dmg_art" type="int" value="290"/>
+   <property name="dmg_art" type="int" value="7"/>
   </properties>
  </tile>
  <tile id="98">
@@ -889,7 +889,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="98"/>
-   <property name="dmg_art" type="int" value="291"/>
+   <property name="dmg_art" type="int" value="8"/>
   </properties>
  </tile>
  <tile id="99">
@@ -898,7 +898,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="99"/>
-   <property name="dmg_art" type="int" value="292"/>
+   <property name="dmg_art" type="int" value="9"/>
   </properties>
  </tile>
  <tile id="100">
@@ -907,7 +907,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="100"/>
-   <property name="dmg_art" type="int" value="293"/>
+   <property name="dmg_art" type="int" value="10"/>
   </properties>
  </tile>
  <tile id="101">
@@ -916,7 +916,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="101"/>
-   <property name="dmg_art" type="int" value="294"/>
+   <property name="dmg_art" type="int" value="11"/>
   </properties>
  </tile>
  <tile id="102">
@@ -925,7 +925,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="102"/>
-   <property name="dmg_art" type="int" value="295"/>
+   <property name="dmg_art" type="int" value="12"/>
   </properties>
  </tile>
  <tile id="103">
@@ -934,7 +934,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="103"/>
-   <property name="dmg_art" type="int" value="296"/>
+   <property name="dmg_art" type="int" value="13"/>
   </properties>
  </tile>
  <tile id="104">
@@ -943,7 +943,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="104"/>
-   <property name="dmg_art" type="int" value="297"/>
+   <property name="dmg_art" type="int" value="14"/>
   </properties>
  </tile>
  <tile id="105">
@@ -952,7 +952,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="105"/>
-   <property name="dmg_art" type="int" value="298"/>
+   <property name="dmg_art" type="int" value="15"/>
   </properties>
  </tile>
  <tile id="106">
@@ -961,7 +961,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="106"/>
-   <property name="dmg_art" type="int" value="299"/>
+   <property name="dmg_art" type="int" value="16"/>
   </properties>
  </tile>
  <tile id="107">
@@ -970,7 +970,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="107"/>
-   <property name="dmg_art" type="int" value="300"/>
+   <property name="dmg_art" type="int" value="17"/>
   </properties>
  </tile>
  <tile id="108">
@@ -979,7 +979,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="108"/>
-   <property name="dmg_art" type="int" value="301"/>
+   <property name="dmg_art" type="int" value="18"/>
   </properties>
  </tile>
  <tile id="109">
@@ -988,7 +988,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="109"/>
-   <property name="dmg_art" type="int" value="302"/>
+   <property name="dmg_art" type="int" value="19"/>
   </properties>
  </tile>
  <tile id="110">
@@ -997,7 +997,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="110"/>
-   <property name="dmg_art" type="int" value="303"/>
+   <property name="dmg_art" type="int" value="20"/>
   </properties>
  </tile>
  <tile id="111">
@@ -1006,7 +1006,7 @@
    <property name="collision" type="int" value="0"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="111"/>
-   <property name="dmg_art" type="int" value="304"/>
+   <property name="dmg_art" type="int" value="21"/>
   </properties>
  </tile>
  <tile id="112">
@@ -1015,7 +1015,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="112"/>
-   <property name="dmg_art" type="int" value="305"/>
+   <property name="dmg_art" type="int" value="22"/>
   </properties>
  </tile>
  <tile id="113">
@@ -1024,7 +1024,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="113"/>
-   <property name="dmg_art" type="int" value="306"/>
+   <property name="dmg_art" type="int" value="23"/>
   </properties>
  </tile>
  <tile id="114">
@@ -1033,7 +1033,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="114"/>
-   <property name="dmg_art" type="int" value="307"/>
+   <property name="dmg_art" type="int" value="24"/>
   </properties>
  </tile>
  <tile id="115">
@@ -1042,7 +1042,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="115"/>
-   <property name="dmg_art" type="int" value="308"/>
+   <property name="dmg_art" type="int" value="25"/>
   </properties>
  </tile>
  <tile id="116">
@@ -1051,7 +1051,7 @@
    <property name="collision" type="int" value="53"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="116"/>
-   <property name="dmg_art" type="int" value="309"/>
+   <property name="dmg_art" type="int" value="26"/>
   </properties>
  </tile>
  <tile id="117">
@@ -1060,7 +1060,7 @@
    <property name="collision" type="int" value="4"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="117"/>
-   <property name="dmg_art" type="int" value="310"/>
+   <property name="dmg_art" type="int" value="27"/>
   </properties>
  </tile>
  <tile id="118">
@@ -1069,7 +1069,7 @@
    <property name="collision" type="int" value="52"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="118"/>
-   <property name="dmg_art" type="int" value="311"/>
+   <property name="dmg_art" type="int" value="28"/>
   </properties>
  </tile>
  <tile id="119">
@@ -1078,7 +1078,7 @@
    <property name="collision" type="int" value="1"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="119"/>
-   <property name="dmg_art" type="int" value="312"/>
+   <property name="dmg_art" type="int" value="29"/>
   </properties>
  </tile>
  <tile id="120">
@@ -1087,7 +1087,7 @@
    <property name="collision" type="int" value="0"/>
    <property name="palette" type="int" value="2"/>
    <property name="famidash_id" type="int" value="120"/>
-   <property name="dmg_art" type="int" value="313"/>
+   <property name="dmg_art" type="int" value="30"/>
   </properties>
  </tile>
  <tile id="121">
@@ -1096,7 +1096,7 @@
    <property name="collision" type="int" value="2"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="121"/>
-   <property name="dmg_art" type="int" value="314"/>
+   <property name="dmg_art" type="int" value="31"/>
   </properties>
  </tile>
  <tile id="122">
@@ -1105,7 +1105,7 @@
    <property name="collision" type="int" value="55"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="122"/>
-   <property name="dmg_art" type="int" value="315"/>
+   <property name="dmg_art" type="int" value="32"/>
   </properties>
  </tile>
  <tile id="123">
@@ -1114,7 +1114,7 @@
    <property name="collision" type="int" value="3"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="123"/>
-   <property name="dmg_art" type="int" value="316"/>
+   <property name="dmg_art" type="int" value="33"/>
   </properties>
  </tile>
  <tile id="124">
@@ -1123,7 +1123,7 @@
    <property name="collision" type="int" value="54"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="124"/>
-   <property name="dmg_art" type="int" value="317"/>
+   <property name="dmg_art" type="int" value="34"/>
   </properties>
  </tile>
  <tile id="125">
@@ -1132,7 +1132,7 @@
    <property name="collision" type="int" value="8"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="125"/>
-   <property name="dmg_art" type="int" value="318"/>
+   <property name="dmg_art" type="int" value="35"/>
   </properties>
  </tile>
  <tile id="126">
@@ -1141,7 +1141,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="126"/>
-   <property name="dmg_art" type="int" value="319"/>
+   <property name="dmg_art" type="int" value="36"/>
   </properties>
  </tile>
  <tile id="127">
@@ -1150,7 +1150,7 @@
    <property name="collision" type="int" value="16"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="127"/>
-   <property name="dmg_art" type="int" value="320"/>
+   <property name="dmg_art" type="int" value="37"/>
   </properties>
  </tile>
  <tile id="128">
@@ -1249,7 +1249,7 @@
    <property name="collision" type="int" value="33"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="138"/>
-   <property name="dmg_art" type="int" value="321"/>
+   <property name="dmg_art" type="int" value="38"/>
   </properties>
  </tile>
  <tile id="139">
@@ -1258,7 +1258,7 @@
    <property name="collision" type="int" value="32"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="139"/>
-   <property name="dmg_art" type="int" value="322"/>
+   <property name="dmg_art" type="int" value="39"/>
   </properties>
  </tile>
  <tile id="140">
@@ -1267,7 +1267,7 @@
    <property name="collision" type="int" value="33"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="140"/>
-   <property name="dmg_art" type="int" value="323"/>
+   <property name="dmg_art" type="int" value="40"/>
   </properties>
  </tile>
  <tile id="141">
@@ -1276,7 +1276,7 @@
    <property name="collision" type="int" value="32"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="141"/>
-   <property name="dmg_art" type="int" value="324"/>
+   <property name="dmg_art" type="int" value="41"/>
   </properties>
  </tile>
  <tile id="142">
@@ -1780,7 +1780,7 @@
    <property name="collision" type="int" value="0"/>
    <property name="palette" type="int" value="5"/>
    <property name="famidash_id" type="int" value="197"/>
-   <property name="dmg_art" type="int" value="325"/>
+   <property name="dmg_art" type="int" value="42"/>
   </properties>
  </tile>
  <tile id="198">
@@ -1789,7 +1789,7 @@
    <property name="collision" type="int" value="0"/>
    <property name="palette" type="int" value="5"/>
    <property name="famidash_id" type="int" value="198"/>
-   <property name="dmg_art" type="int" value="326"/>
+   <property name="dmg_art" type="int" value="43"/>
   </properties>
  </tile>
  <tile id="199">
@@ -1834,7 +1834,7 @@
    <property name="collision" type="int" value="0"/>
    <property name="palette" type="int" value="5"/>
    <property name="famidash_id" type="int" value="203"/>
-   <property name="dmg_art" type="int" value="327"/>
+   <property name="dmg_art" type="int" value="44"/>
   </properties>
  </tile>
  <tile id="204">
@@ -1843,7 +1843,7 @@
    <property name="collision" type="int" value="0"/>
    <property name="palette" type="int" value="5"/>
    <property name="famidash_id" type="int" value="204"/>
-   <property name="dmg_art" type="int" value="328"/>
+   <property name="dmg_art" type="int" value="45"/>
   </properties>
  </tile>
  <tile id="205">
@@ -1852,7 +1852,7 @@
    <property name="collision" type="int" value="0"/>
    <property name="palette" type="int" value="5"/>
    <property name="famidash_id" type="int" value="205"/>
-   <property name="dmg_art" type="int" value="329"/>
+   <property name="dmg_art" type="int" value="46"/>
   </properties>
  </tile>
  <tile id="206">
@@ -1861,7 +1861,7 @@
    <property name="collision" type="int" value="0"/>
    <property name="palette" type="int" value="5"/>
    <property name="famidash_id" type="int" value="206"/>
-   <property name="dmg_art" type="int" value="330"/>
+   <property name="dmg_art" type="int" value="47"/>
   </properties>
  </tile>
  <tile id="207">
@@ -1870,7 +1870,7 @@
    <property name="collision" type="int" value="0"/>
    <property name="palette" type="int" value="5"/>
    <property name="famidash_id" type="int" value="207"/>
-   <property name="dmg_art" type="int" value="331"/>
+   <property name="dmg_art" type="int" value="48"/>
   </properties>
  </tile>
  <tile id="208">
@@ -1879,7 +1879,7 @@
    <property name="collision" type="int" value="0"/>
    <property name="palette" type="int" value="5"/>
    <property name="famidash_id" type="int" value="208"/>
-   <property name="dmg_art" type="int" value="332"/>
+   <property name="dmg_art" type="int" value="49"/>
   </properties>
  </tile>
  <tile id="209">
@@ -1888,7 +1888,7 @@
    <property name="collision" type="int" value="0"/>
    <property name="palette" type="int" value="5"/>
    <property name="famidash_id" type="int" value="209"/>
-   <property name="dmg_art" type="int" value="333"/>
+   <property name="dmg_art" type="int" value="50"/>
   </properties>
  </tile>
  <tile id="210">
@@ -2356,7 +2356,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="32"/>
-   <property name="dmg_art" type="int" value="334"/>
+   <property name="dmg_art" type="int" value="51"/>
   </properties>
  </tile>
  <tile id="262">
@@ -2365,7 +2365,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="33"/>
-   <property name="dmg_art" type="int" value="335"/>
+   <property name="dmg_art" type="int" value="52"/>
   </properties>
  </tile>
  <tile id="263">
@@ -2374,7 +2374,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="34"/>
-   <property name="dmg_art" type="int" value="336"/>
+   <property name="dmg_art" type="int" value="53"/>
   </properties>
  </tile>
  <tile id="264">
@@ -2383,7 +2383,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="35"/>
-   <property name="dmg_art" type="int" value="337"/>
+   <property name="dmg_art" type="int" value="54"/>
   </properties>
  </tile>
  <tile id="265">
@@ -2392,7 +2392,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="36"/>
-   <property name="dmg_art" type="int" value="338"/>
+   <property name="dmg_art" type="int" value="55"/>
   </properties>
  </tile>
  <tile id="266">
@@ -2401,7 +2401,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="37"/>
-   <property name="dmg_art" type="int" value="339"/>
+   <property name="dmg_art" type="int" value="56"/>
   </properties>
  </tile>
  <tile id="267">
@@ -2410,7 +2410,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="38"/>
-   <property name="dmg_art" type="int" value="340"/>
+   <property name="dmg_art" type="int" value="57"/>
   </properties>
  </tile>
  <tile id="268">
@@ -2419,7 +2419,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="39"/>
-   <property name="dmg_art" type="int" value="341"/>
+   <property name="dmg_art" type="int" value="58"/>
   </properties>
  </tile>
  <tile id="269">
@@ -2428,7 +2428,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="40"/>
-   <property name="dmg_art" type="int" value="342"/>
+   <property name="dmg_art" type="int" value="59"/>
   </properties>
  </tile>
  <tile id="270">
@@ -2437,7 +2437,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="41"/>
-   <property name="dmg_art" type="int" value="343"/>
+   <property name="dmg_art" type="int" value="60"/>
   </properties>
  </tile>
  <tile id="271">
@@ -2446,7 +2446,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="42"/>
-   <property name="dmg_art" type="int" value="344"/>
+   <property name="dmg_art" type="int" value="61"/>
   </properties>
  </tile>
  <tile id="272">
@@ -2455,7 +2455,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="43"/>
-   <property name="dmg_art" type="int" value="345"/>
+   <property name="dmg_art" type="int" value="62"/>
   </properties>
  </tile>
  <tile id="273">
@@ -2464,7 +2464,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="44"/>
-   <property name="dmg_art" type="int" value="346"/>
+   <property name="dmg_art" type="int" value="63"/>
   </properties>
  </tile>
  <tile id="274">
@@ -2473,7 +2473,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="45"/>
-   <property name="dmg_art" type="int" value="347"/>
+   <property name="dmg_art" type="int" value="64"/>
   </properties>
  </tile>
  <tile id="275">
@@ -2482,7 +2482,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="46"/>
-   <property name="dmg_art" type="int" value="348"/>
+   <property name="dmg_art" type="int" value="65"/>
   </properties>
  </tile>
  <tile id="276">
@@ -2500,7 +2500,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="48"/>
-   <property name="dmg_art" type="int" value="349"/>
+   <property name="dmg_art" type="int" value="66"/>
   </properties>
  </tile>
  <tile id="278">
@@ -2509,7 +2509,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="49"/>
-   <property name="dmg_art" type="int" value="350"/>
+   <property name="dmg_art" type="int" value="67"/>
   </properties>
  </tile>
  <tile id="279">
@@ -2518,7 +2518,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="50"/>
-   <property name="dmg_art" type="int" value="351"/>
+   <property name="dmg_art" type="int" value="68"/>
   </properties>
  </tile>
  <tile id="280">
@@ -2527,7 +2527,7 @@
    <property name="collision" type="int" value="7"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="51"/>
-   <property name="dmg_art" type="int" value="352"/>
+   <property name="dmg_art" type="int" value="69"/>
   </properties>
  </tile>
  <tile id="281">
@@ -2536,7 +2536,7 @@
    <property name="collision" type="int" value="4"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="59"/>
-   <property name="dmg_art" type="int" value="353"/>
+   <property name="dmg_art" type="int" value="70"/>
   </properties>
  </tile>
  <tile id="282">
@@ -2548,359 +2548,98 @@
    <property name="dmg_art" type="int" value="-1"/>
   </properties>
  </tile>
- <tile id="283">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="284">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="285">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="286">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="287">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="288">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="289">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="290">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="291">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="292">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="293">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="294">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="295">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="296">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="297">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="298">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="299">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="300">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="301">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="302">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="303">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="304">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="305">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="306">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="307">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="308">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="309">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="310">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="311">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="312">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="313">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="314">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="315">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="316">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="317">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="318">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="319">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="320">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="321">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="322">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="323">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="324">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="325">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="326">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="327">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="328">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="329">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="330">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="331">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="332">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="333">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="334">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="335">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="336">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="337">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="338">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="339">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="340">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="341">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="342">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="343">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="344">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="345">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="346">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="347">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="348">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="349">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="350">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="351">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="352">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="353">
-  <properties>
-   <property name="dmg_only" type="bool" value="true"/>
-  </properties>
- </tile>
+ <wangsets>
+  <wangset name="Checkerboard blocks" type="mixed" tile="47">
+   <wangcolor name="Checkerboard blocks" color="#4a90e2" tile="47" probability="1"/>
+   <wangtile tileid="32" wangid="0,0,0,0,0,0,0,0"/>
+   <wangtile tileid="33" wangid="0,0,1,1,1,1,1,0"/>
+   <wangtile tileid="34" wangid="1,0,0,0,1,1,1,1"/>
+   <wangtile tileid="35" wangid="1,1,1,0,0,0,1,1"/>
+   <wangtile tileid="36" wangid="1,1,1,1,1,0,0,0"/>
+   <wangtile tileid="37" wangid="0,0,1,1,1,0,0,0"/>
+   <wangtile tileid="38" wangid="0,0,0,0,1,1,1,0"/>
+   <wangtile tileid="39" wangid="1,0,0,0,0,0,1,1"/>
+   <wangtile tileid="40" wangid="1,1,1,0,0,0,0,0"/>
+   <wangtile tileid="41" wangid="1,1,1,1,1,1,1,0"/>
+   <wangtile tileid="42" wangid="1,0,1,1,1,1,1,1"/>
+   <wangtile tileid="43" wangid="1,1,1,0,1,1,1,1"/>
+   <wangtile tileid="44" wangid="1,1,1,1,1,0,1,1"/>
+   <wangtile tileid="45" wangid="1,0,0,0,1,0,0,0"/>
+   <wangtile tileid="46" wangid="0,0,1,0,0,0,1,0"/>
+   <wangtile tileid="47" wangid="1,1,1,1,1,1,1,1"/>
+   <wangtile tileid="48" wangid="0,0,0,0,1,0,0,0"/>
+   <wangtile tileid="49" wangid="0,0,0,0,0,0,1,0"/>
+   <wangtile tileid="50" wangid="1,0,0,0,0,0,0,0"/>
+   <wangtile tileid="51" wangid="0,0,1,0,0,0,0,0"/>
+  </wangset>
+  <wangset name="Checkerboard blocks (set B)" type="mixed" tile="276">
+   <wangcolor name="Checkerboard blocks (set B)" color="#50e3c2" tile="276" probability="1"/>
+   <wangtile tileid="261" wangid="0,0,0,0,0,0,0,0"/>
+   <wangtile tileid="262" wangid="0,0,1,1,1,1,1,0"/>
+   <wangtile tileid="263" wangid="1,0,0,0,1,1,1,1"/>
+   <wangtile tileid="264" wangid="1,1,1,0,0,0,1,1"/>
+   <wangtile tileid="265" wangid="1,1,1,1,1,0,0,0"/>
+   <wangtile tileid="266" wangid="0,0,1,1,1,0,0,0"/>
+   <wangtile tileid="267" wangid="0,0,0,0,1,1,1,0"/>
+   <wangtile tileid="268" wangid="1,0,0,0,0,0,1,1"/>
+   <wangtile tileid="269" wangid="1,1,1,0,0,0,0,0"/>
+   <wangtile tileid="270" wangid="1,1,1,1,1,1,1,0"/>
+   <wangtile tileid="271" wangid="1,0,1,1,1,1,1,1"/>
+   <wangtile tileid="272" wangid="1,1,1,0,1,1,1,1"/>
+   <wangtile tileid="273" wangid="1,1,1,1,1,0,1,1"/>
+   <wangtile tileid="274" wangid="1,0,0,0,1,0,0,0"/>
+   <wangtile tileid="275" wangid="0,0,1,0,0,0,1,0"/>
+   <wangtile tileid="276" wangid="1,1,1,1,1,1,1,1"/>
+   <wangtile tileid="277" wangid="0,0,0,0,1,0,0,0"/>
+   <wangtile tileid="278" wangid="0,0,0,0,0,0,1,0"/>
+   <wangtile tileid="279" wangid="1,0,0,0,0,0,0,0"/>
+   <wangtile tileid="280" wangid="0,0,1,0,0,0,0,0"/>
+  </wangset>
+  <wangset name="X blocks" type="mixed" tile="79">
+   <wangcolor name="X blocks" color="#e24a4a" tile="79" probability="1"/>
+   <wangtile tileid="64" wangid="0,0,0,0,0,0,0,0"/>
+   <wangtile tileid="65" wangid="0,0,1,1,1,1,1,0"/>
+   <wangtile tileid="66" wangid="1,0,0,0,1,1,1,1"/>
+   <wangtile tileid="67" wangid="1,1,1,0,0,0,1,1"/>
+   <wangtile tileid="68" wangid="1,1,1,1,1,0,0,0"/>
+   <wangtile tileid="69" wangid="0,0,1,1,1,0,0,0"/>
+   <wangtile tileid="70" wangid="0,0,0,0,1,1,1,0"/>
+   <wangtile tileid="71" wangid="1,0,0,0,0,0,1,1"/>
+   <wangtile tileid="72" wangid="1,1,1,0,0,0,0,0"/>
+   <wangtile tileid="73" wangid="1,1,1,1,1,1,1,0"/>
+   <wangtile tileid="74" wangid="1,0,1,1,1,1,1,1"/>
+   <wangtile tileid="75" wangid="1,1,1,0,1,1,1,1"/>
+   <wangtile tileid="76" wangid="1,1,1,1,1,0,1,1"/>
+   <wangtile tileid="77" wangid="1,0,0,0,1,0,0,0"/>
+   <wangtile tileid="78" wangid="0,0,1,0,0,0,1,0"/>
+   <wangtile tileid="79" wangid="1,1,1,1,1,1,1,1"/>
+   <wangtile tileid="80" wangid="0,0,0,0,1,0,0,0"/>
+   <wangtile tileid="81" wangid="0,0,0,0,0,0,1,0"/>
+   <wangtile tileid="82" wangid="1,0,0,0,0,0,0,0"/>
+   <wangtile tileid="83" wangid="0,0,1,0,0,0,0,0"/>
+  </wangset>
+  <wangset name="Black blocks" type="mixed" tile="111">
+   <wangcolor name="Black blocks" color="#9b9b9b" tile="111" probability="1"/>
+   <wangtile tileid="96" wangid="0,0,0,0,0,0,0,0"/>
+   <wangtile tileid="97" wangid="0,0,1,1,1,1,1,0"/>
+   <wangtile tileid="98" wangid="1,0,0,0,1,1,1,1"/>
+   <wangtile tileid="99" wangid="1,1,1,0,0,0,1,1"/>
+   <wangtile tileid="100" wangid="1,1,1,1,1,0,0,0"/>
+   <wangtile tileid="101" wangid="0,0,1,1,1,0,0,0"/>
+   <wangtile tileid="102" wangid="0,0,0,0,1,1,1,0"/>
+   <wangtile tileid="103" wangid="1,0,0,0,0,0,1,1"/>
+   <wangtile tileid="104" wangid="1,1,1,0,0,0,0,0"/>
+   <wangtile tileid="105" wangid="1,1,1,1,1,1,1,0"/>
+   <wangtile tileid="106" wangid="1,0,1,1,1,1,1,1"/>
+   <wangtile tileid="107" wangid="1,1,1,0,1,1,1,1"/>
+   <wangtile tileid="108" wangid="1,1,1,1,1,0,1,1"/>
+   <wangtile tileid="109" wangid="1,0,0,0,1,0,0,0"/>
+   <wangtile tileid="110" wangid="0,0,1,0,0,0,1,0"/>
+   <wangtile tileid="111" wangid="1,1,1,1,1,1,1,1"/>
+   <wangtile tileid="112" wangid="0,0,0,0,1,0,0,0"/>
+   <wangtile tileid="113" wangid="0,0,0,0,0,0,1,0"/>
+   <wangtile tileid="114" wangid="1,0,0,0,0,0,0,0"/>
+   <wangtile tileid="115" wangid="0,0,1,0,0,0,0,0"/>
+  </wangset>
+ </wangsets>
 </tileset>
