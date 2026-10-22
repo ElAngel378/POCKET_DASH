@@ -100,6 +100,9 @@ def famidash_engine_ids():
         38: 4,   # Pink pad upside down (engine id 4: Famidash's robot portal, unused)
         73: 73,  # Pulsing ball decoration
         74: 74,  # Music note decoration
+        # our pulsing shapes (in cells of Famidash sprites the engine doesn't support):
+        # circle, ring, heart, square, triangle, X, !, arrow, ?
+        **{111 + k: 64 + k for k in range(9)},
         82: 20,  # Red pad (engine id 20: free below 38, so DMG keeps it)
         83: 21,  # Red pad upside down
         # 242 = PLAYER_TRAILS_ON: Famidash's cosmetic player trail, not supported

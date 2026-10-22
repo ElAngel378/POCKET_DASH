@@ -501,20 +501,22 @@ static uint8_t rod_pulse;
 #define DECO_BIG_FAKE   6
 static uint8_t deco_big;
 // VRAM tile of every decoration tile pair (index: D_xx / 2), per pulse state
-#define DECO_SET (D_PB / 2 + 1)
+#define DECO_SET (D_LAST / 2 + 1)
 #define DB FAMIDASH_SPRITE_TILE_BASE
 #define DT_FIXED_A DB + D_CF
 #define DT_FIXED_B DB + D_D5, DB + D_D7, DB + D_D9, DB + D_DB, DB + D_DD, DB + D_DF
 #define DT_SHAPES_BIG DB + D_E1, DB + D_E3, DB + D_E5, DB + D_E7, DB + D_ED, DB + D_F5, DB + D_F1, DB + D_F7, DB + D_E9, DB + D_EB
 #define DT_SHAPES_SMALL 66, 68, 70, 72, 74, DB + D_F5, 76, DB + D_F7, 78, 80
+#define DT_GDP_BIG 82, 84, 86, 88, 90, 92, 94, 96, 98, 100, 102
+#define DT_GDP_SMALL 104, 106, 108, 110, 112, 114, 116, 118, 120, 122, 124
 // rods 7 / 5 / 3 px, each with the shapes big, then small
 #define DT_ROD7 DT_FIXED_A, DB + D_C9, DB + D_CB, DB + D_CD, DT_FIXED_B
 #define DT_ROD5 DT_FIXED_A, 222, 224, 226, DT_FIXED_B
 #define DT_ROD3 DT_FIXED_A, 228, 230, 232, DT_FIXED_B
 static const uint8_t deco_tile_sets[6][DECO_SET] = {
-    { DT_ROD7, DT_SHAPES_BIG, 250 }, { DT_ROD7, DT_SHAPES_SMALL, 250 },
-    { DT_ROD5, DT_SHAPES_BIG, 252 }, { DT_ROD5, DT_SHAPES_SMALL, 252 },
-    { DT_ROD3, DT_SHAPES_BIG, 254 }, { DT_ROD3, DT_SHAPES_SMALL, 254 },
+    { DT_ROD7, DT_SHAPES_BIG, 250, DT_GDP_BIG }, { DT_ROD7, DT_SHAPES_SMALL, 250, DT_GDP_SMALL },
+    { DT_ROD5, DT_SHAPES_BIG, 252, DT_GDP_BIG }, { DT_ROD5, DT_SHAPES_SMALL, 252, DT_GDP_SMALL },
+    { DT_ROD3, DT_SHAPES_BIG, 254, DT_GDP_BIG }, { DT_ROD3, DT_SHAPES_SMALL, 254, DT_GDP_SMALL },
 };
 #undef DB
 // the set shown this frame: its offset in deco_tile_sets (rod_pulse_update, every frame before drawing)
@@ -1016,8 +1018,7 @@ void process_sprite_logic(
         if (cache->activated[i]) continue;
         if (obj_x < lim_back) continue;
 
-        if (obj >= 38 && obj < 64) continue;
-        if (obj == OBJ_MUSIC_NOTE || obj == OBJ_PULSING_BALL) continue;
+        if (obj >= 38 && obj < FAMIDASH_DECO_TABLE_SIZE) continue;   // decorations (ids 38..74)
 
         if (obj == OBJ_COIN1 || obj == OBJ_COIN2 || obj == OBJ_COIN3) {
             uint16_t cy = cache->py[i];

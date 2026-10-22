@@ -669,56 +669,56 @@
  </tile>
  <tile id="111">
   <properties>
-   <property name="name" value="PLAYER_INVIS_ON"/>
-   <property name="engine_id" type="int" value="-1"/>
+   <property name="name" value="PULSE_CIRCLE"/>
+   <property name="engine_id" type="int" value="64"/>
   </properties>
  </tile>
  <tile id="112">
   <properties>
-   <property name="name" value="GRAVITY_13_PORTAL_INVIS"/>
-   <property name="engine_id" type="int" value="-1"/>
+   <property name="name" value="PULSE_RING"/>
+   <property name="engine_id" type="int" value="65"/>
   </properties>
  </tile>
  <tile id="113">
   <properties>
-   <property name="name" value="GRAVITY_12_PORTAL_INVIS"/>
-   <property name="engine_id" type="int" value="-1"/>
+   <property name="name" value="PULSE_HEART"/>
+   <property name="engine_id" type="int" value="66"/>
   </properties>
  </tile>
  <tile id="114">
   <properties>
-   <property name="name" value="GRAVITY_23_PORTAL_INVIS"/>
-   <property name="engine_id" type="int" value="-1"/>
+   <property name="name" value="PULSE_SQUARE"/>
+   <property name="engine_id" type="int" value="67"/>
   </properties>
  </tile>
  <tile id="115">
   <properties>
-   <property name="name" value="GRAVITY_2X_PORTAL_INVIS"/>
-   <property name="engine_id" type="int" value="-1"/>
+   <property name="name" value="PULSE_TRIANGLE"/>
+   <property name="engine_id" type="int" value="68"/>
   </properties>
  </tile>
  <tile id="116">
   <properties>
-   <property name="name" value="GRAVITY_1X_PORTAL_INVIS"/>
-   <property name="engine_id" type="int" value="-1"/>
+   <property name="name" value="PULSE_X"/>
+   <property name="engine_id" type="int" value="69"/>
   </properties>
  </tile>
  <tile id="117">
   <properties>
-   <property name="name" value="INVIS_TELEPORT_PORTAL_UPWARDS_ENTER"/>
-   <property name="engine_id" type="int" value="-1"/>
+   <property name="name" value="PULSE_EXCLAMATION"/>
+   <property name="engine_id" type="int" value="70"/>
   </properties>
  </tile>
  <tile id="118">
   <properties>
-   <property name="name" value="INVIS_TELEPORT_PORTAL_DOWNWARDS_EXIT"/>
-   <property name="engine_id" type="int" value="-1"/>
+   <property name="name" value="PULSE_ARROW"/>
+   <property name="engine_id" type="int" value="71"/>
   </properties>
  </tile>
  <tile id="119">
   <properties>
-   <property name="name" value="INVIS_TELEPORT_PORTAL_DOWNWARDS_ENTER"/>
-   <property name="engine_id" type="int" value="-1"/>
+   <property name="name" value="PULSE_QUESTION"/>
+   <property name="engine_id" type="int" value="72"/>
   </properties>
  </tile>
  <tile id="120">

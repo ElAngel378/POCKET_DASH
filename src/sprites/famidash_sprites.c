@@ -164,6 +164,16 @@ static const FamidashDeco deco_medium_right = {3, 24, {0,8,16}, {-4,-4,-4}, {D_F
 static const FamidashDeco deco_medium_left = {3, 24, {0,8,16}, {-4,-4,-4}, {D_F5,D_F7,D_F1}, {DP,DP,DP}};
 
 static const FamidashDeco deco_pulsing_ball = {1, 16, {4,0,0}, {-4,0,0}, {D_PB,0,0}, {DP,0,0}};
+// our pulsing shapes (engine ids 64..72, sprite sheet cells 111..119)
+static const FamidashDeco deco_circle = {2, 16, {0,8,0}, {0,0,0}, {D_CIRCLE,D_CIRCLE,0}, {DP,DP|S_FLIPX,0}};
+static const FamidashDeco deco_ring = {2, 16, {0,8,0}, {0,0,0}, {D_RING,D_RING,0}, {DP,DP|S_FLIPX,0}};
+static const FamidashDeco deco_heart = {2, 16, {0,8,0}, {0,0,0}, {D_HEART,D_HEART,0}, {DP,DP|S_FLIPX,0}};
+static const FamidashDeco deco_square = {2, 16, {0,8,0}, {0,0,0}, {D_SQUARE,D_SQUARE,0}, {DP,DP|S_FLIPX,0}};
+static const FamidashDeco deco_triangle = {2, 16, {0,8,0}, {0,0,0}, {D_TRIANGLE,D_TRIANGLE,0}, {DP,DP|S_FLIPX,0}};
+static const FamidashDeco deco_x2 = {2, 16, {0,8,0}, {0,0,0}, {D_X,D_X,0}, {DP,DP|S_FLIPX,0}};
+static const FamidashDeco deco_excl2 = {2, 16, {0,8,0}, {0,0,0}, {D_EXCL,D_EXCL,0}, {DP,DP|S_FLIPX,0}};
+static const FamidashDeco deco_arrow2 = {2, 16, {0,8,0}, {0,0,0}, {D_ARROW_L,D_ARROW_R,0}, {DP,DP,0}};
+static const FamidashDeco deco_quest2 = {2, 16, {0,8,0}, {0,0,0}, {D_QUEST_L,D_QUEST_R,0}, {DP,DP,0}};
 static const FamidashDeco deco_music_note = {2, 16, {0,8,0}, {0,0,0}, {D_E9,D_EB,0}, {DP,DP,0}};
 
 const FamidashDeco * const famidash_deco_table[FAMIDASH_DECO_TABLE_SIZE] = {
@@ -178,5 +188,7 @@ const FamidashDeco * const famidash_deco_table[FAMIDASH_DECO_TABLE_SIZE] = {
     [58] = &deco_long_up, [59] = &deco_medium_up,
     [60] = &deco_short_up, [61] = &deco_chain_up,
     [62] = &deco_medium_right, [63] = &deco_medium_left,
+    [64] = &deco_circle, [65] = &deco_ring, [66] = &deco_heart, [67] = &deco_square,
+    [68] = &deco_triangle, [69] = &deco_x2, [70] = &deco_excl2, [71] = &deco_arrow2, [72] = &deco_quest2,
     [73] = &deco_pulsing_ball, [74] = &deco_music_note
 };

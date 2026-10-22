@@ -83,6 +83,9 @@ go by hand.
   more than 4 within one screen.
 - **Slabs** (`1.6_SLAB_*`, `OUTLINE_SLAB_*`): half and smaller blocks with GDA's hitboxes. The
   player lands on the slab's own top edge.
+- **Theory of Everything objects**: `TOE_BRICK_*` (solid bricks, named by their outlined sides),
+  `BG_SQUARES_*` (background squares, place a group's pieces side by side on the floor),
+  `BUSH_SPIKE_*` (deadly in their bottom half; `_TOP` on ceilings) and `BUSH_DECO`.
 - **Ground looks** (`GROUND_*`, `BG5`, `BG6`): pieces drawn in the ground's colours, for floors
   and ceilings made of ground.
 
@@ -102,6 +105,7 @@ crossed out: placing them does nothing. The ones that work:
 | coins 1, 2, 3 | 3 per level at most, one of each |
 | `LEVEL_END_TRIGGER` | **required**: the level is finished when the player reaches it |
 | pulsing ball, music note, lights, chains and the other decorations (ids 42..63) | |
+| `PULSE_*` (circle, ring, heart, square, triangle, X, !, arrow, ?) | our pulsing shapes, big on the music's hits (CGB only, like all decorations) |
 | `BG_COLOR_*`, `GROUND_COLOR_*` | change the background / ground colour from there on |
 | `OBJ_COLOR_*` | change the block outline colour (CGB only) |
 

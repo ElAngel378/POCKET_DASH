@@ -37,6 +37,12 @@ rhombus $E1, ? $E3, ! $E5, arrow $E7, X $ED, the line's ball $F1 (a small star),
 $EB. sp_draw.c shows them between the music's hits (deco_tile_sets). Bank 1 tiles 36..65 are the
 attempt text's (percent_hud.c), 66..127 were free.
 
+PULSE_GDP (generated from levels/objects/source/GDP Pulsing Obj.chr and GDP TOE.chr, not in the
+image): our pulsing shapes (sprite sheet cells 111..119, engine ids 64..72): circle, ring, heart,
+square, triangle, X, ! (left halves, drawn mirrored), arrow and ? (left and right halves), big
+(on the music's hits) in CGB bank 1 tiles 82..103, small (between them) in 104..125, in the order
+of their D_ ids (include/famidash_sprites.h).
+
 Only the ranges in LOADS are loaded; the other slots are empty in the image because
 gameplay fills them from the font at runtime ("PAUSED" 76..87, debug HUD and % 90..115)
 or they are background tiles (bank 0 128..159; DMG coins use 144..159), or the coin
@@ -49,6 +55,11 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 PNG = ROOT / "levels" / "chr_data" / "sprite_tiles.png"
+CHR_DIR = ROOT / "levels" / "objects" / "source"
+# PULSE_GDP: (file, x, y big, y small, halves) of each shape's 16 x 16 cell, in D_ id order;
+# halves 1: the left half only (the shape is symmetric), 2: left and right
+PULSE_GDP = [("GDP Pulsing Obj.chr", 16 * k, 0, 16, 1) for k in range(6)] + [
+    ("GDP TOE.chr", 88, 80, 96, 1), ("GDP TOE.chr", 72, 80, 96, 2), ("GDP TOE.chr", 104, 80, 96, 2)]
 
 SECTION_ROW = {"BANK0": 0, "BANK1": 8, "DECO_CLOUD": 16, "CGB_MIRROR_EXIT": 18}
 # load conditions (must match src/sprites/famidash_sprite_tiles.c)
@@ -73,6 +84,7 @@ LOADS = [  # condition, VRAM bank, first tile, count, source section, first tile
     (CGB, 1, 222, 12, "ROD_PULSE", 0),     # rod balls between beats (both deco sets draw the same rods)
     (CGB, 1, 250, 6, "PULSE_BALL", 0),     # pulsing ball decoration, 7 / 5 / 3 px
     (CGB, 1, 66, 16, "BANK1", 66),         # PULSE_SMALL: pulsing decorations between beats
+    (CGB, 1, 82, 44, "PULSE_GDP", 0),      # our pulsing shapes, big then small
     (CGB, 1, 234, 16, "BANK1", 234),       # pad / orb animation frames 2, 3 (Famidash $FB $FD, $9D $9F, $BD $BF, $5D $5F)
     # coins: levels/chr_data/coin.chr (tools/make_coin_tiles.py), loaded by famidash_sprite_tiles.c
 ]
@@ -141,7 +153,31 @@ def main():
         return out
     pulse_ball = pulse_ball_tiles()
 
+    def pulse_gdp_tiles():
+        """The PULSE_GDP shapes as tile pairs: big ones, then small ones. Their colour 3 is drawn
+        as colour 2, like the other pulsing decorations."""
+        out = []
+        for size in (0, 1):
+            for name, x0, yb, ys, halves in PULSE_GDP:
+                d = (CHR_DIR / name).read_bytes()
+                y0 = ys if size else yb
+                for h in range(halves):
+                    for half in (0, 8):
+                        t = bytearray()
+                        for r in range(8):
+                            y = y0 + half + r
+                            x = x0 + 8 * h
+                            k = (y // 8) * 16 + x // 8
+                            lo, hi = d[k * 16 + 2 * (y % 8)], d[k * 16 + 2 * (y % 8) + 1]
+                            t += bytes([0, lo | hi])
+                        out.append(bytes(t))
+        assert len(out) == 44, len(out)
+        return out
+    pulse_gdp = pulse_gdp_tiles()
+
     def tile(section, i):
+        if section == "PULSE_GDP":
+            return pulse_gdp[i]
         if section == "ROD_PULSE":
             return rod_pulse[i]
         if section == "PULSE_BALL":
@@ -169,7 +205,7 @@ def main():
     rows = []
     for cond, bank, first, count, section, src in LOADS:
         rows.append((cond, bank, first, count, len(blob) // 16))
-        deco = (cond in (CGB_DECO, CGB_DECO_CLOUD) or section in ("ROD_PULSE", "PULSE_BALL")
+        deco = (cond in (CGB_DECO, CGB_DECO_CLOUD) or section in ("ROD_PULSE", "PULSE_BALL", "PULSE_GDP")
                 or (bank, first) == (1, 66))
         for i in range(count):
             blob += deco_colours(tile(section, src + i)) if deco else tile(section, src + i)

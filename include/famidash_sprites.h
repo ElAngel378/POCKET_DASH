@@ -77,6 +77,20 @@ extern const metasprite_t * const famidash_sprite_table[38];
 #define D_E9 36
 #define D_EB 38
 #define D_PB 40   // pulsing ball: CGB bank 1 tiles 250..255 (7 / 5 / 3 px), see deco_tile_sets in sp_draw.c
+// our pulsing shapes (engine ids 64..72): CGB bank 1 tiles 82..103 big, 104..125 small
+// (tools/build_sprite_tiles.py PULSE_GDP); _L / _R: left and right half, the others are mirrored
+#define D_CIRCLE   42
+#define D_RING     44
+#define D_HEART    46
+#define D_SQUARE   48
+#define D_TRIANGLE 50
+#define D_X        52
+#define D_EXCL     54
+#define D_ARROW_L  56
+#define D_ARROW_R  58
+#define D_QUEST_L  60
+#define D_QUEST_R  62
+#define D_LAST     D_QUEST_R
 
 extern const metasprite_t famidash_deco_45[];
 

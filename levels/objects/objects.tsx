@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="objects" tilewidth="16" tileheight="16" tilecount="448" columns="16">
- <image source="objects_preview.png" width="256" height="448"/>
+<tileset version="1.10" tiledversion="1.11.2" name="objects" tilewidth="16" tileheight="16" tilecount="464" columns="16">
+ <image source="objects_preview.png" width="256" height="464"/>
  <tile id="0">
   <properties>
    <property name="name" value="EMPTY"/>
@@ -4030,6 +4030,222 @@
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
    <property name="gda_name" value="1.6_EA_INS_CRN_ALT_TL"/>
+  </properties>
+ </tile>
+ <tile id="433">
+  <properties>
+   <property name="name" value="BG_SQUARES_A_1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="434">
+  <properties>
+   <property name="name" value="BG_SQUARES_A_2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="435">
+  <properties>
+   <property name="name" value="BG_SQUARES_A_3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="436">
+  <properties>
+   <property name="name" value="BG_SQUARES_A_4"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="437">
+  <properties>
+   <property name="name" value="BG_SQUARES_B_1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="438">
+  <properties>
+   <property name="name" value="BG_SQUARES_B_2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="439">
+  <properties>
+   <property name="name" value="BG_SQUARES_B_3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="440">
+  <properties>
+   <property name="name" value="BG_SQUARES_C_1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="441">
+  <properties>
+   <property name="name" value="BG_SQUARES_C_2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="442">
+  <properties>
+   <property name="name" value="BG_SQUARES_C_3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="443">
+  <properties>
+   <property name="name" value="TOE_BRICK_TOP_BOTTOM_LEFT_RIGHT"/>
+   <property name="collision" type="int" value="7"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="444">
+  <properties>
+   <property name="name" value="TOE_BRICK_TOP"/>
+   <property name="collision" type="int" value="7"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="445">
+  <properties>
+   <property name="name" value="TOE_BRICK_TOP_LEFT"/>
+   <property name="collision" type="int" value="7"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="446">
+  <properties>
+   <property name="name" value="TOE_BRICK_LEFT_RIGHT"/>
+   <property name="collision" type="int" value="7"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="447">
+  <properties>
+   <property name="name" value="TOE_BRICK_TOP_LEFT_DOT"/>
+   <property name="collision" type="int" value="7"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="448">
+  <properties>
+   <property name="name" value="TOE_BRICK_NO_OUTLINE"/>
+   <property name="collision" type="int" value="7"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="449">
+  <properties>
+   <property name="name" value="TOE_BRICK_TOP_LEFT_RIGHT"/>
+   <property name="collision" type="int" value="7"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="450">
+  <properties>
+   <property name="name" value="BUSH_SPIKE_1"/>
+   <property name="collision" type="int" value="16"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="451">
+  <properties>
+   <property name="name" value="BUSH_SPIKE_1_TOP"/>
+   <property name="collision" type="int" value="17"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="452">
+  <properties>
+   <property name="name" value="BUSH_SPIKE_2"/>
+   <property name="collision" type="int" value="16"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="453">
+  <properties>
+   <property name="name" value="BUSH_SPIKE_2_TOP"/>
+   <property name="collision" type="int" value="17"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="454">
+  <properties>
+   <property name="name" value="BUSH_SPIKE_3"/>
+   <property name="collision" type="int" value="16"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="455">
+  <properties>
+   <property name="name" value="BUSH_SPIKE_3_TOP"/>
+   <property name="collision" type="int" value="17"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+  </properties>
+ </tile>
+ <tile id="456">
+  <properties>
+   <property name="name" value="BUSH_DECO"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
   </properties>
  </tile>
  <wangsets>

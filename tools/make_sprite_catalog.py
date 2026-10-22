@@ -24,6 +24,15 @@ from tmx2sprites import famidash_engine_ids  # noqa: E402
 SHEET = ROOT / "levels" / "chr_data" / "graphics" / "sprites.png"
 # ids the engine uses for something else than Famidash
 OURS = {121: "MIRROR_EXIT", 126: "MIRROR_PORTAL", 38: "PINK_PAD_UP"}
+# our pulsing shapes (engine ids 64..72), their art from levels/objects/source (the big size,
+# like tools/build_sprite_tiles.py PULSE_GDP): sprite id -> (name, chr file, x, y)
+PULSING = {111 + k: (n, f, x, y) for k, (n, f, x, y) in enumerate([
+    ("PULSE_CIRCLE", "GDP Pulsing Obj.chr", 0, 0), ("PULSE_RING", "GDP Pulsing Obj.chr", 16, 0),
+    ("PULSE_HEART", "GDP Pulsing Obj.chr", 32, 0), ("PULSE_SQUARE", "GDP Pulsing Obj.chr", 48, 0),
+    ("PULSE_TRIANGLE", "GDP Pulsing Obj.chr", 64, 0), ("PULSE_X", "GDP Pulsing Obj.chr", 80, 0),
+    ("PULSE_EXCLAMATION", "GDP TOE.chr", 88, 80), ("PULSE_ARROW", "GDP TOE.chr", 72, 80),
+    ("PULSE_QUESTION", "GDP TOE.chr", 104, 80)])}
+PULSE_COLOUR = (123, 255, 0, 255)   # the decorations' colour in the default player colours
 # our own art in the sheet: the mirror portals (entrance 126 orange, exit 121 cyan, their colours
 # in the game), drawn like Famidash's portals: its mini portal (a crescent with teeth, like our
 # mirror portals' rings) with its stripe recoloured
@@ -45,6 +54,16 @@ def paint_ours(sheet):
                 if a and max(r, g, b) - min(r, g, b) > 60:   # the (pink) stripe, not black, white, grey
                     px[x, y] = colour + (a,)
         sheet.paste(art, cell(sid))
+    for sid, (_, name, x0, y0) in PULSING.items():
+        d = (CATALOG_DIR / "source" / name).read_bytes()
+        art = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+        for y in range(16):
+            for x in range(16):
+                t = ((y0 + y) // 8) * 16 + (x0 + x) // 8
+                r = (y0 + y) % 8
+                if (d[t * 16 + 2 * r] | d[t * 16 + 2 * r + 1]) >> (7 - (x0 + x) % 8) & 1:
+                    art.putpixel((x, y), PULSE_COLOUR)
+        sheet.paste(art, cell(sid))
 
 
 def main():
@@ -58,6 +77,7 @@ def main():
         kind = "BG_COLOR" if i < 176 else "OBJ_COLOR" if i < 192 else "GROUND_COLOR"
         names[i] = "%s_%02X" % (kind, i)
     names.update(OURS)
+    names.update({sid: p[0] for sid, p in PULSING.items()})
     engine = famidash_engine_ids()
     X = ['<?xml version="1.0" encoding="UTF-8"?>',
          '<tileset version="1.10" tiledversion="1.11.2" name="sprites" tilewidth="16" tileheight="16" '

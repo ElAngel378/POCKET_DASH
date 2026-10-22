@@ -79,3 +79,9 @@ Portals, orbs, pads, coins, decorations and colour triggers go in a level's `SP`
 id the game gets (`tools/tmx2sprites.py` reads it); -1 = not supported, the game ignores it (Tiled
 shows those dimmed and crossed out, `sprites_preview.png`, generated from `sprites.png`). Made by
 `tools/make_sprite_catalog.py` from Famidash's sprite sheet and names.
+
+Our own pulsing shapes (`PULSE_*`, cells 111..119, engine ids 64..72) are drawn from
+`source/GDP Pulsing Obj.chr` and `source/GDP TOE.chr`: their tiles are made by
+`tools/build_sprite_tiles.py` (PULSE_GDP), their layout is in `src/sprites/famidash_sprites.c`.
+The Theory of Everything objects of those files (bricks, BG squares, bush spikes, bush
+decoration) are catalog objects, added by `tools/import_gdp_chr.py`.
