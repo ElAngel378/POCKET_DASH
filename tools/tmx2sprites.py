@@ -68,6 +68,80 @@ def build_offset_dict(global_settings, level_settings):
                         out[o] = [prev[0] + off[0], prev[1] + off[1]]
     return out
 
+def famidash_engine_ids():
+    """Famidash sprite id (its sprite sheet's tile) -> engine object id, for the TMXs that still
+    use the Famidash sprite sheet (levels/objects/sprites.tsx has these as engine_id)"""
+    # sprite sheet tile -> engine object id
+    ids = {
+        0:  0,   # Cube portal
+        1:  1,   # Ship portal
+        2:  2,   # Ball portal
+        3:  3,   # UFO portal (1.5)
+        5:  5,   # Blue Orb (Gravity)
+        6:  6,   # Pink Orb
+        8:  8,   # Normal gravity trigger
+        9:  9,   # Inverted gravity trigger
+        10: 10,  # Yellow Pad
+        11: 11,  # Yellow Orb
+        12: 12,  # Yellow Pad (upside down)
+        13: 13,  # Blue Pad
+        14: 14,  # Blue Pad (upside down)
+        15: 15,  # Level end
+        16: 16,  # Normal gravity portal (horizontal down)
+        17: 17,  # Normal gravity portal (horizontal up)
+        18: 18,  # Inverted gravity portal (horizontal down)
+        19: 19,  # Inverted gravity portal (horizontal up)
+        7:  7,   # Coin 1 (1.4)
+        24: 24,  # Mini portal (1.4)
+        25: 25,  # Growth portal (1.4)
+        26: 26,  # Coin 2
+        27: 27,  # Coin 3
+        37: 37,  # Pink pad
+        38: 4,   # Pink pad upside down (engine id 4: Famidash's robot portal, unused)
+        73: 73,  # Pulsing ball decoration
+        74: 74,  # Music note decoration
+        82: 20,  # Red pad (engine id 20: free below 38, so DMG keeps it)
+        83: 21,  # Red pad upside down
+        # 242 = PLAYER_TRAILS_ON: Famidash's cosmetic player trail, not supported
+        126: 126,  # test
+        121: 121,  # test
+        253: 13,  # Blue Pad (invisible)
+        254: 14,  # Blue Pad (invisible)
+    }
+
+    for i in range(42, 64):
+        ids[i] = i
+
+    # bg colour triggers (128..175), block outline colour triggers (176..191, CGB only) and
+    # ground colour triggers (192..239) keep their ids
+    for i in range(128, 192):
+        ids[i] = i
+    for i in range(192, 240):
+        ids[i] = i
+
+    return ids
+
+
+def sprite_tileset(root, tmx_filepath):
+    """(firstgid, {gid: engine object id}) of a TMX's sprite tileset: levels/objects/sprites.tsx
+    (its tiles' engine_id property), or the old embedded 'sprites' tileset (famidash_engine_ids)"""
+    for tileset in root.findall('tileset'):
+        source = tileset.get('source') or ''
+        if source.endswith('sprites.tsx'):
+            firstgid = int(tileset.get('firstgid'))
+            tsx = ET.parse(os.path.join(os.path.dirname(os.path.abspath(tmx_filepath)), source)).getroot()
+            ids = {}
+            for tile in tsx.findall('tile'):
+                props = {p.get('name'): p.get('value') for p in tile.iter('property')}
+                if int(props.get('engine_id', -1)) >= 0:
+                    ids[firstgid + int(tile.get('id'))] = int(props['engine_id'])
+            return firstgid, ids
+        if tileset.get('name') == 'sprites':
+            firstgid = int(tileset.get('firstgid'))
+            return firstgid, {firstgid + k: v for k, v in famidash_engine_ids().items()}
+    return None, {}
+
+
 def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, skip=None):
     """skip(x_px, y_px, obj_id) -> True drops that object"""
     try:
@@ -86,65 +160,10 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
     map_width = int(root.attrib['width'])
     map_height = int(root.attrib['height'])
 
-    sprites_firstgid = None
-    for tileset in root.findall('tileset'):
-        if tileset.get('name') == 'sprites':
-            firstgid_attr = tileset.get('firstgid')
-            if firstgid_attr is not None:
-                sprites_firstgid = int(firstgid_attr)
-            break
-
+    sprites_firstgid, portals_map = sprite_tileset(root, tmx_filepath)
     if sprites_firstgid is None:
-        print(f"Error: Could not find a tileset named 'sprites' in {tmx_filepath}.")
+        print(f"Error: Could not find a tileset named 'sprites' (or sprites.tsx) in {tmx_filepath}.")
         sys.exit(1)
-
-    # TMX global id -> engine object id
-    portals_map = {
-        sprites_firstgid + 0:  0,   # Cube portal
-        sprites_firstgid + 1:  1,   # Ship portal
-        sprites_firstgid + 2:  2,   # Ball portal
-        sprites_firstgid + 3:  3,   # UFO portal (1.5)
-        sprites_firstgid + 5:  5,   # Blue Orb (Gravity)
-        sprites_firstgid + 6:  6,   # Pink Orb
-        sprites_firstgid + 8:  8,   # Normal gravity trigger
-        sprites_firstgid + 9:  9,   # Inverted gravity trigger
-        sprites_firstgid + 10: 10,  # Yellow Pad
-        sprites_firstgid + 11: 11,  # Yellow Orb
-        sprites_firstgid + 12: 12,  # Yellow Pad (upside down)
-        sprites_firstgid + 13: 13,  # Blue Pad
-        sprites_firstgid + 14: 14,  # Blue Pad (upside down)
-        sprites_firstgid + 15: 15,  # Level end
-        sprites_firstgid + 16: 16,  # Normal gravity portal (horizontal down)
-        sprites_firstgid + 17: 17,  # Normal gravity portal (horizontal up)
-        sprites_firstgid + 18: 18,  # Inverted gravity portal (horizontal down)
-        sprites_firstgid + 19: 19,  # Inverted gravity portal (horizontal up)
-        sprites_firstgid + 7:  7,   # Coin 1 (1.4)
-        sprites_firstgid + 24: 24,  # Mini portal (1.4)
-        sprites_firstgid + 25: 25,  # Growth portal (1.4)
-        sprites_firstgid + 26: 26,  # Coin 2
-        sprites_firstgid + 27: 27,  # Coin 3
-        sprites_firstgid + 37: 37,  # Pink pad
-        sprites_firstgid + 38: 4,   # Pink pad upside down (engine id 4: Famidash's robot portal, unused)
-        sprites_firstgid + 73: 73,  # Pulsing ball decoration
-        sprites_firstgid + 74: 74,  # Music note decoration
-        sprites_firstgid + 82: 20,  # Red pad (engine id 20: free below 38, so DMG keeps it)
-        sprites_firstgid + 83: 21,  # Red pad upside down
-        # 242 = PLAYER_TRAILS_ON: Famidash's cosmetic player trail, not supported
-        sprites_firstgid + 126: 126,  # test
-        sprites_firstgid + 121: 121,  # test
-        sprites_firstgid + 253: 13,  # Blue Pad (invisible)
-        sprites_firstgid + 254: 14,  # Blue Pad (invisible)
-    }
-
-    for i in range(42, 64):
-        portals_map[sprites_firstgid + i] = i
-
-    # bg colour triggers (128..175), block outline colour triggers (176..191, CGB only) and
-    # ground colour triggers (192..239) keep their ids
-    for i in range(128, 192):
-        portals_map[sprites_firstgid + i] = i
-    for i in range(192, 240):
-        portals_map[sprites_firstgid + i] = i
 
     offset_dict = load_metadata_for_level(file_base_name)
     if offset_dict:

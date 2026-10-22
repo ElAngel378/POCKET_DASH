@@ -268,9 +268,7 @@ def report():
 TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="{w}" height="{h}" tilewidth="16" tileheight="16" infinite="0" nextlayerid="3" nextobjectid="1">
  <tileset firstgid="1" source="../../objects/objects.tsx"/>
- <tileset firstgid="{sp}" name="sprites" tilewidth="16" tileheight="16" tilecount="256" columns="16">
-  <image source="../../../GRAPHICS/sprites.png" width="256" height="256"/>
- </tileset>
+ <tileset firstgid="{sp}" source="../../objects/sprites.tsx"/>
  <layer id="1" width="{w}" height="{h}">
   <data encoding="csv">
 {map}

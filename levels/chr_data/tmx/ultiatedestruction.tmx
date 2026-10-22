@@ -5,9 +5,7 @@
   <export target="../LEVEL DATA/ultiatedestruction.csv" format="csv"/>
  </editorsettings>
  <tileset firstgid="1" source="../../objects/objects.tsx"/>
- <tileset firstgid="4097" name="sprites" tilewidth="16" tileheight="16" tilecount="256" columns="16">
-  <image source="../../../../../../OneDrive/Documents/GBDASH-REV/levels/famidash/graphics/sprites.png" width="256" height="256"/>
- </tileset>
+ <tileset firstgid="4097" source="../../objects/sprites.tsx"/>
  <imagelayer id="3" name="Image Layer 1" parallaxx="0.9" parallaxy="0.9" repeatx="1" repeaty="1">
   <image source="../../../GRAPHICS/Old/parallax Blue.bmp"/>
  </imagelayer>

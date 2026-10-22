@@ -173,3 +173,30 @@ def write_preview():
 
 if __name__ == "__main__":
     write_preview()
+
+
+SPRITES_TSX = CATALOG_DIR / "sprites.tsx"
+SPRITES_ART = CATALOG_DIR / "sprites.png"
+SPRITES_PREVIEW = CATALOG_DIR / "sprites_preview.png"
+
+
+def write_sprite_preview():
+    """sprites_preview.png (the image Tiled shows for sprites.tsx) from sprites.png: the sprites
+    the game does not support (engine_id -1) dimmed and crossed out"""
+    from PIL import ImageDraw
+    img = Image.open(SPRITES_ART).convert("RGBA")
+    root = ET.parse(SPRITES_TSX).getroot()
+    cols = int(root.get("columns"))
+    draw = ImageDraw.Draw(img)
+    for tile in root.findall("tile"):
+        props = {p.get("name"): p.get("value") for p in tile.iter("property")}
+        if int(props.get("engine_id", -1)) >= 0:
+            continue
+        i = int(tile.get("id"))
+        ox, oy = (i % cols) * 16, (i // cols) * 16
+        cell = img.crop((ox, oy, ox + 16, oy + 16))
+        cell.putalpha(cell.getchannel("A").point(lambda a: a * 30 // 100))
+        img.paste(cell, (ox, oy))
+        draw.line((ox + 2, oy + 2, ox + 13, oy + 13), fill=(255, 40, 40, 255))
+        draw.line((ox + 13, oy + 2, ox + 2, oy + 13), fill=(255, 40, 40, 255))
+    img.save(SPRITES_PREVIEW)

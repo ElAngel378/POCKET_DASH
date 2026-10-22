@@ -71,3 +71,11 @@ single block (outlined on all 4 sides) is the one piece the brush does not place
 
 The catalog was made once from the Famidash data by `tools/make_object_catalog.py`; see
 `docs/PLAN_POST_1.5_OBJECTS.md` for the plan.
+
+## Sprites (the SP layer)
+
+Portals, orbs, pads, coins, decorations and colour triggers go in a level's `SP` layer, from
+`sprites.tsx` (tile id = the Famidash sprite id). Properties: `name`, and `engine_id`, the object
+id the game gets (`tools/tmx2sprites.py` reads it); -1 = not supported, the game ignores it (Tiled
+shows those dimmed and crossed out, `sprites_preview.png`, generated from `sprites.png`). Made by
+`tools/make_sprite_catalog.py` from Famidash's sprite sheet and names.
