@@ -33,7 +33,7 @@ The preview (and the tile count in `objects.tsx`) is remade by `tools/build_bg_t
 | property | type | meaning |
 |---|---|---|
 | `name` | string | unique name |
-| `collision` | int | collision type, `COL_*` in `include/collision.h` (0 = none, 7 = solid block, ...) |
+| `collision` | int | collision type, `COL_*` in `include/collision.h` (0 = none, 7 = solid block, 22 = breakable block, 0x40.. = slab boxes, ...) |
 | `palette` | int | CGB background palette: 0 blocks / spikes (sky, darker sky, black, white), 1 like 0 with colour 2 = sky, 2 background decorations (colour 3 = the decoration accent), 5 fake spikes (sky, darker sky, black, black) |
 | `famidash_id` | int | the Famidash metatile it came from; **-1 for new objects** |
 | `dmg_art` | int | tile id in `objects_dmg.png` of its DMG art, -1 = the same art on DMG |
@@ -49,6 +49,17 @@ Objects with a `famidash_id` keep it as their id in the level: the engine knows 
    a similar object and change `name`, `famidash_id` = -1).
 4. Place it in a level in Tiled and save.
 5. `python tools/build_levels.py` (maps, sprite lists and the tile build), then `make`.
+
+## Special objects
+
+- Breakable blocks (`BREAKABLE_BRICK`, collision 22): solid from above and below, they break when
+  the player runs into them (the engine keeps the last 4 broken blocks; they come back on a
+  respawn).
+- Saws are known by their `famidash_id` (the engine animates those parts). The 1.6 saws
+  (`1.6_SAW_*`, `tools/make_saws_16.py`) use the same ids, so a level has either the Famidash saws
+  or the 1.6 ones; on DMG a level with 1.6 saws shows the Famidash saws. Their animation frames are
+  `levels/chr_data/bg_tiles.png` sections SAWS16_0..2 (frames 1 and 2 were made by rotating frame
+  0: redraw them there to improve them).
 
 ## Terrain sets (painting blocks)
 

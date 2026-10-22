@@ -44,6 +44,7 @@ static uint8_t gnd_tab_key = 0xFF;    // strip column | reversed << 3 the ground
 #define SAW_PERIOD_DMG ((SAW_ANIM_TILES + DMG_SAW_TILES_PER_FRAME - 1) / DMG_SAW_TILES_PER_FRAME + SAW_STEP_FRAMES)
 uint8_t saw_on;                      // this level has saws (player.c: saw collision)
 static uint8_t saw_reversed;
+static uint8_t saw_set;              // CGB: first frame of the level's saw art in saw_anim_tiles (1.6 saws: 3)
 static uint8_t saw_frame;            // frame being / last uploaded
 static uint8_t saw_pos;              // next tile of that frame; == SAW_ANIM_TILES: idle
 static uint8_t saw_timer;            // frames since saw_frame started uploading (saw_anim_request)
@@ -81,7 +82,7 @@ void saw_anim_request(void) BANKED {
     }
     if (cgb) {
         bg_saw_bank = BANK(saw_anim);
-        bg_saw_src = saw_anim_tiles + ((uint16_t)(saw_frame * SAW_ANIM_TILES + saw_pos) << 4);
+        bg_saw_src = saw_anim_tiles + ((uint16_t)((saw_frame + saw_set) * SAW_ANIM_TILES + saw_pos) << 4);
         bg_saw_dst = (uint16_t)0x1000 + ((uint16_t)(SAW_VRAM_BASE + saw_pos) << 4);
         bg_saw_blocks = SAW_CHUNK_TILES;
         bg_saw_pending = 1;
@@ -269,6 +270,7 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     if (level >= BG_LEVEL_COUNT) return;   // (tools/build_bg_tiles.py makes tables for every level)
     mt_big_saws = bg_level_big_saws[level];
     saw_on = bg_level_saws[level];
+    saw_set = bg_level_saw_set[level] ? SAW_ANIM_FRAMES : 0;
     saw_reversed = reversed;
     // Every level uses the RAM tables (CGB: build_mt_rows writes the ground look tiles into them;
     // the mirrored table is only there, not in ROM)

@@ -62,9 +62,11 @@ extern const uint8_t * const bg_level_sheet[];
 #define SAW_ANIM_TILES 52
 static const uint8_t saw_frame_first[SAW_ANIM_FRAMES] = { 1, 101, 153 };
 // 1 = the level has saws (animate them)
-static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
+static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1 };
+// CGB saw art: 0 = Famidash, 1 = the 1.6 saws (saw_anim_tiles frames 3..5)
+static const uint8_t bg_level_saw_set[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
 // 1 = the level has big saws, so metatile SAW_CENTER_MT is their centre (CGB)
-static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
+static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1 };
 static const uint8_t bg_sheet_rest_clutterfunk[] = { 3, 224, 1, 50, 225, 1, 51, 226, 1, 52 };
 static const uint8_t bg_sheet_rest_theoryofeverything[] = { 13, 224, 1, 40, 225, 1, 41, 226, 1, 42, 227, 1, 43, 228, 1, 44, 229, 1, 45, 230, 1, 46, 231, 1, 47, 232, 1, 48, 233, 1, 49, 234, 1, 50, 235, 1, 51, 236, 1, 52 };
 static const uint8_t bg_sheet_rest_electromanadventures[] = { 4, 224, 1, 49, 225, 1, 50, 226, 1, 51, 227, 1, 52 };

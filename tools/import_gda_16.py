@@ -37,6 +37,12 @@ COLLISION = {
     "COL_SLAB_TINY_TOP": COL_BOX_BASE + 4, "COL_SLAB_TINY_BOTTOM": COL_BOX_BASE + 5,
     "COL_SLAB_TINY_LEFT": COL_BOX_BASE + 6, "COL_SLAB_TINY_RIGHT": COL_BOX_BASE + 7,
 }
+# Pieces of 1_6 objects.chr GDA has outside its 1.6 set: (GDA name, piece, h flip, v flip, collision)
+COL_BREAKABLE = 0x16
+EXTRA_A = [("OUTLINE_BLOCK", "4.0", 0, 0, COL_ALL),
+           ("OUTLINE_SLAB_TOP", "4.1", 0, 0, COL_TOP), ("OUTLINE_SLAB_BOTTOM", "4.1", 0, 1, COL_BOTTOM),
+           ("OUTLINE_SLAB_RIGHT", "5.1", 0, 0, COL_QUAD_BASE + 1), ("OUTLINE_SLAB_LEFT", "5.1", 1, 0, COL_QUAD_BASE + 0),
+           ("BREAKABLE_BRICK", "6.0", 0, 0, COL_BREAKABLE), ("BREAKABLE_BRICK_ROT", "6.1", 0, 0, COL_BREAKABLE)]
 # Which GDA metatiles: the 1.6 block set and its slabs (not slopes, spikes, Electroman pieces)
 WANTED = re.compile(r"1\.6_(SIDE|CORNER|INS_CRN|DBL|BLOCK|FILLER|SID_INS|SLAB)\w*")
 MIN_SCORE = {"block": 220, "slab": 165}   # matching pixels of 256
@@ -104,8 +110,7 @@ def flip(a, h, v):
 
 def main():
     cat = load_catalog()
-    if any(o.get("gda_name") for o in cat.objects.values()):
-        raise SystemExit("already imported")
+    have = {o.get("gda_name") for o in cat.objects.values()}   # run again: only adds the objects not there yet
     chr_ = (GDA / "graphics" / "tileset.chr").read_bytes()
     pal = (GDA / "graphics" / "tileset.pal").read_bytes()   # palette bank 0: 16 colours
     ours = pieces(SOURCE)
@@ -128,36 +133,47 @@ def main():
     ours_b = pieces(SOURCE_B)
     for name, k, h, v, col in EXTRA:
         new.append((name, col, flip(ours_b[k], h, v), "1p6blocks %s%s%s" % (k, " H" if h else "", " V" if v else "")))
+    for name, k, h, v, col in EXTRA_A:
+        new.append((name, col, flip(ours[k], h, v), "%s%s%s" % (k, " H" if h else "", " V" if v else "")))
+    new = [n for n in new if n[0] not in have]
+    if not new:
+        raise SystemExit("nothing new to add")
 
-    # append the art to objects.png after the last object, and the objects to objects.tsx
+    append_objects(cat, [dict(name=n, collision=c, art=a, src=src, gda_name=n) for n, c, a, src in new])
+
+
+def append_objects(cat, new):
+    """Appends objects to the catalog: their art to objects.png (after the last object), their
+    tiles to objects.tsx. new: dicts of name, collision, art (16 rows of 16 colour indices), src
+    (printed), and optionally palette, famidash_id, dmg_art, gda_name."""
     first = max(cat.objects) + 1
     art = Image.open(ART).convert("L")
     rows = (first + len(new) + 15) // 16
-    img = Image.new("L", (256, rows * 16), 255)
+    img = Image.new("L", (256, max(rows * 16, art.height)), 255)
     img.paste(art, (0, 0))
     px = img.load()
     tiles = []
-    for i, (name, col, a, src) in enumerate(new):
+    for i, o in enumerate(new):
         tid = first + i
         for y in range(16):
             for x in range(16):
-                px[(tid % 16) * 16 + x, (tid // 16) * 16 + y] = 255 - 85 * a[y][x]
+                px[(tid % 16) * 16 + x, (tid // 16) * 16 + y] = 255 - 85 * o["art"][y][x]
         tiles += [' <tile id="%d">' % tid, "  <properties>",
-                  '   <property name="name" value="%s"/>' % name,
-                  '   <property name="collision" type="int" value="%d"/>' % col,
-                  '   <property name="palette" type="int" value="0"/>',
-                  '   <property name="famidash_id" type="int" value="-1"/>',
-                  '   <property name="dmg_art" type="int" value="-1"/>',
-                  '   <property name="gda_name" value="%s"/>' % name,
-                  "  </properties>", " </tile>"]
-        print("  %3d %-28s col %3d  from %s" % (tid, name, col, src))
+                  '   <property name="name" value="%s"/>' % o["name"],
+                  '   <property name="collision" type="int" value="%d"/>' % o["collision"],
+                  '   <property name="palette" type="int" value="%d"/>' % o.get("palette", 0),
+                  '   <property name="famidash_id" type="int" value="%d"/>' % o.get("famidash_id", -1),
+                  '   <property name="dmg_art" type="int" value="%d"/>' % o.get("dmg_art", -1)]
+        if o.get("gda_name"):
+            tiles.append('   <property name="gda_name" value="%s"/>' % o["gda_name"])
+        tiles += ["  </properties>", " </tile>"]
+        print("  %3d %-28s col %3d  from %s" % (tid, o["name"], o["collision"], o["src"]))
     img.save(ART)
     tsx = TSX.read_text(encoding="utf-8")
     at = tsx.index(" <wangsets>") if " <wangsets>" in tsx else tsx.index("</tileset>")
     TSX.write_text(tsx[:at] + "\n".join(tiles) + "\n" + tsx[at:], encoding="utf-8")
     write_preview()
     print("%d objects added (tiles %d..%d)" % (len(new), first, first + len(new) - 1))
-
 
 if __name__ == "__main__":
     main()

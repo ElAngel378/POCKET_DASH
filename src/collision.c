@@ -19,6 +19,35 @@ static uint8_t _prev_map_bank;
 
 uint8_t level_mt_col[256];   // collision.h
 
+// Broken breakable blocks (collision.h): the last BROKEN_MAX, a ring. A broken block has left the
+// screen long before that many more are broken.
+#define BROKEN_MAX 4
+static uint16_t broken_col[BROKEN_MAX];
+static uint8_t broken_row[BROKEN_MAX];
+static uint8_t broken_n, broken_next;
+uint16_t broken_redraw = 0xFFFF;
+
+void break_block(uint16_t col, uint8_t row) {
+  broken_col[broken_next] = col;
+  broken_row[broken_next] = row;
+  broken_next = (broken_next + 1u) & (BROKEN_MAX - 1u);
+  if (broken_n < BROKEN_MAX) broken_n++;
+  broken_redraw = col;
+}
+
+void broken_reset(void) {
+  broken_n = broken_next = 0;
+  broken_redraw = 0xFFFF;
+}
+
+// Empties the broken cells of map column `col` in dest, which holds its rows row0 .. row0+n-1
+static void patch_broken(uint16_t col, uint8_t *dest, uint8_t row0, uint8_t n) {
+  for (uint8_t i = 0; i < broken_n; i++) {
+    uint8_t r = (uint8_t)(broken_row[i] - row0);
+    if (broken_col[i] == col && r < n) dest[r] = 0;
+  }
+}
+
 void col_at_begin(uint8_t map_bank) {
     if (_current_bank == map_bank) {
         _prev_map_bank = 0xFF;
@@ -228,6 +257,10 @@ void load_collision_columns(uint16_t map_col, const uint8_t* map,
   SWITCH_ROM(MAP_BANK(map_bank, right_col));
   memcpy(columns + 16, MAP_COL(map, right_col) + row0, 16);
   SWITCH_ROM(_prev);
+  if (broken_n) {
+    patch_broken(map_col, columns, row0, 16);
+    patch_broken(right_col, columns + 16, row0, 16);
+  }
 }
 
 // The 16 map rows the VRAM ring holds for band `band`: dest[k] = map row band + ((k - band) & 15),
@@ -244,6 +277,10 @@ void get_map_column(uint16_t map_col, const uint8_t *map, uint8_t map_bank, uint
     else memset(dest, 0, b);   // below the map: the ground row
   }
   SWITCH_ROM(_prev);
+  // dest[k] is map row band + ((k - band) & 15): a broken row r of the band is at r & 15
+  for (uint8_t i = 0; i < broken_n; i++) {
+    if (broken_col[i] == map_col && (uint8_t)(broken_row[i] - band) < 16u) dest[broken_row[i] & 15u] = 0;
+  }
 }
 
 // Metatiles of map row `row` at ring positions first .. first+n-1 (the columns loaded_r maps them
@@ -300,6 +337,7 @@ void get_map_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r,
     memset(out, 0, n);
     return;
   }
+  uint8_t n0 = n;
   // Consecutive ring positions are consecutive columns (backwards in mirror mode), except where
   // the ring wraps: read runs of columns (cut at the wrap and at ROM bank boundaries) with
   // map_row_read. Column by column in C this took ~0.8k dots per position, ~1/10 of a DMG
@@ -328,6 +366,14 @@ void get_map_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r,
     n -= (uint8_t)run;
     if (!reversed) c = (c + run > loaded_r) ? lo : c + run;
     else c = (c - run < lo || c < run) ? loaded_r : c - run;
+  }
+  // broken cells of this row in the ring: column c is at ring position c & 15 (mirrored: -c & 15)
+  for (uint8_t i = 0; i < broken_n; i++) {
+    uint16_t bc = broken_col[i];
+    if (broken_row[i] != row || bc > loaded_r || bc < lo) continue;
+    uint8_t pos = reversed ? (uint8_t)(-(int8_t)bc & 15u) : (uint8_t)(bc & 15u);
+    uint8_t k = (uint8_t)((uint8_t)(pos - first) & 15u);
+    if (k < n0) out[k] = 0;
   }
 }
 

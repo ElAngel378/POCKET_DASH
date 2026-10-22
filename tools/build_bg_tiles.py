@@ -68,6 +68,11 @@ SECTIONS = [  # name, first row, tile count
     ("SPIKES_C", 30, 4),
     ("BLOCKS_B2_CGB", 31, 20),
     ("BLOCKS_B2_DMG", 33, 20),
+    # the 1.6 saws (tools/make_saws_16.py): CGB only, so not in bg_extra_tiles (DMG draws the
+    # Famidash saws in those levels too)
+    ("SAWS16_0", 35, SAW_TILES),
+    ("SAWS16_1", 39, SAW_TILES),
+    ("SAWS16_2", 43, SAW_TILES),
 ]
 
 SHEET_TILES = 160            # BG_BASE_TILE_COUNT: a sheet fills VRAM tiles 0..159
@@ -207,6 +212,8 @@ def main():
     first = {}
     k = 0
     for name, _, count in SECTIONS[1:]:
+        if name.startswith("SAWS16"):
+            continue
         first[name] = k
         for t in section[name]:
             extra += gb_bytes(t) + gb_bytes(mirrored(t))
@@ -216,8 +223,10 @@ def main():
     n_extra = k
     # saw animation frames for the CGB VBlank handler: contiguous 16 byte tiles, 3 frames
     # (the art as drawn: bg_extra_tiles has the DMG version, see dmg_saw_outline)
+    # then the 1.6 saw set's 3 frames (saw set 1)
     (out_dir / "saw_anim_tiles.bin").write_bytes(b"".join(
-        gb_bytes(t) for f in range(SAW_FRAMES) for t in cgb_saws[f]))
+        gb_bytes(t) for f in range(SAW_FRAMES) for t in cgb_saws[f]) + b"".join(
+        gb_bytes(t) for f in range(SAW_FRAMES) for t in section["SAWS16_%d" % f]))
     saw_extra = lambda s, rev: bytes(extra[(first["SAWS_0"] + s) * 32 + (16 if rev else 0):][:16])
 
     # levels in game_levels order
@@ -298,6 +307,7 @@ def main():
             pal[m] = cat.objects[objs[m]]["palette"]
         levels.append(dict(lv=lv, name=name, cgb=stream(cgb_loads), dmg=stream(dmg_loads),
                            big_saw=big_saw, saws=any(m in saw_mts for m in level_mts),
+                           saw_set=int(any(cat.objects[objs[m]]["name"].startswith("1.6_SAW") for m in mts)),
                            cgb_mt=bytes(cgb_mt), dmg_mt=bytes(dmg_mt), col=bytes(col), pal=bytes(pal),
                            cgb_sheet=b"".join(cgb_sheet), dmg_sheet=b"".join(dmg_sheet + dmg_rev),
                            rest=rest))
@@ -378,6 +388,8 @@ def main():
               str(first["SAWS_%d" % f]) for f in range(SAW_FRAMES)),
           "// 1 = the level has saws (animate them)",
           "static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { %s };" % ", ".join(str(int(L_["saws"])) for L_ in levels),
+          "// CGB saw art: 0 = Famidash, 1 = the 1.6 saws (saw_anim_tiles frames 3..5)",
+          "static const uint8_t bg_level_saw_set[BG_LEVEL_COUNT] = { %s };" % ", ".join(str(L_["saw_set"]) for L_ in levels),
           "// 1 = the level has big saws, so metatile SAW_CENTER_MT is their centre (CGB)",
           "static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { %s };" % ", ".join(str(int(L_["big_saw"])) for L_ in levels)]
     for L_ in levels:
