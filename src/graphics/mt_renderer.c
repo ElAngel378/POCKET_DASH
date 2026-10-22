@@ -225,16 +225,20 @@ void bg_level_set_flip_mode(uint8_t level) BANKED {
 // VRAM address of BG tile slot (BG tiles 0..127 are at 0x9000, 128..255 at 0x8800)
 #define BG_TILE_ADDR(slot) ((uint8_t *)((((slot) < 128u) ? 0x9000u : 0x8000u) + ((uint16_t)(slot) << 4)))
 
-// The level's BG sheet (`tiles`: the base sheet in this orientation). A DMG level with a mirror
-// portal has it ready-made (tools/build_bg_tiles.py: the base sheet with its extra tiles and
-// moves applied), so a mirror portal is one copy; apply_level_bg_tiles, called next, then skips
-// what the sheet already holds.
+// The level's BG sheet: every level has its own (tools/build_bg_tiles.py: the tiles of the objects
+// it uses, CGB / DMG; the DMG one also mirrored, for mirror portals: one copy). `tiles` (the base
+// sheet in this orientation) only for a level without one. apply_level_bg_tiles, called next,
+// then skips what the sheet already holds.
 static uint8_t mt_sheet_baked;
 void load_level_bg_sheet(uint8_t level, uint8_t reversed, const uint8_t *tiles, uint16_t count, uint8_t bank) BANKED {
     mt_sheet_baked = 0;
-    if (_cpu != CGB_TYPE && level < BG_LEVEL_COUNT && bg_dmg_sheet_bank[level]) {
-        load_bkg_tileset(bg_dmg_sheet[level] + (reversed ? BG_BASE_TILE_COUNT * 16u : 0u),
-                         BG_BASE_TILE_COUNT, bg_dmg_sheet_bank[level]);
+    if (level < BG_LEVEL_COUNT) {
+        uint8_t k = (uint8_t)((level << 1) | (_cpu != CGB_TYPE));
+        const uint8_t *sheet;
+        fur_copy_banked(&sheet, &bg_level_sheet[k], sizeof(sheet), BANK(bg_level_lists));
+        // CGB mirrors with the X flip attribute (bg_level_set_flip_mode): one orientation
+        if (reversed && (k & 1u)) sheet += BG_BASE_TILE_COUNT * 16u;
+        load_bkg_tileset(sheet, BG_BASE_TILE_COUNT, bg_level_sheet_bank[k + 1u]);
         mt_sheet_baked = 1;
         return;
     }
@@ -253,7 +257,7 @@ static void bm_info_build(uint8_t level);
 
 // Called after load_level_bg_sheet (display off). level: game_levels index.
 void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
-    uint8_t n, n_moves, buf[16];
+    uint8_t n;
     uint8_t cgb = (_cpu == CGB_TYPE);
     uint8_t display_off = !(LCDC_REG & LCDCF_ON);
     uint8_t baked = mt_sheet_baked;
@@ -270,11 +274,14 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     // the mirrored table is only there, not in ROM)
     gnd_tab_key = 0xFF;
     if (baked && mt_ram_level == level) {
-        // A mirror portal or a respawn: the sheet holds the extra tiles and moves, and the
-        // tables and saw_dmg_dst are this level's already. Only the extra tiles outside the
-        // sheet are left (walking the whole list in C took up to 2 frames).
+        // A mirror portal or a respawn: the sheet holds the level's tiles, and the tables and
+        // saw_dmg_dst are this level's already. Only DMG's saw tiles outside the sheet (sprite
+        // tiles) are left (walking the whole list in C took up to 2 frames); CGB's saws are in
+        // VRAM bank 1, which the sheet does not touch.
         const uint8_t *r = bg_dmg_sheet_rest[level];
-        for (n = *r++; n; n--) {
+        n = *r++;
+        if (cgb) n = 0;
+        for (; n; n--) {
             uint8_t dst = *r++, count = *r++;
             const uint8_t *src = bg_extra_tiles + (uint16_t)(*r++) * 32u + (reversed ? 16u : 0u);
             if (display_off) {
@@ -303,7 +310,7 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
         }
         if (reversed && !(bank & 0x80) && !mt_cgb_flip) src += 16;
         if (cgb) VBK_REG = bank & 1;
-        if (baked && (uint16_t)dst + count <= BG_BASE_TILE_COUNT) {
+        if (baked && !(bank & 1) && (uint16_t)dst + count <= BG_BASE_TILE_COUNT) {
             count = 0;   // in the sheet
         } else if (display_off) {
             if (dst < 128u && (uint8_t)(dst + count) > 128u) {
@@ -330,32 +337,6 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     // CGB: the saws just loaded from bg_extra_tiles are the DMG version (outlined); stream
     // frame 0 of the CGB art (saw_anim_tiles) right away
     if (cgb && saw_on) saw_pos = 0;
-    n_moves = ll_get();
-
-    // Moved sheet tiles (DMG: out of the coin sprite tiles; the level's metatile table already
-    // points at their new slots)
-    for (n = n_moves; n; n--) {
-        uint8_t dst = ll_get(), src = ll_get();
-        if (baked) {
-            // in the sheet
-        } else if (display_off) {
-            memcpy(BG_TILE_ADDR(dst), BG_TILE_ADDR(src), 16);
-        } else {
-            get_bkg_data(src, 1, buf);
-            set_bkg_data(dst, 1, buf);
-        }
-    }
-    // DMG fake spike tiles: a sheet tile with colour 3 turned into 2 (CGB: palette 5); the fake
-    // spike metatiles point at them
-    for (n = ll_get(); n; n--) {
-        uint8_t dst = ll_get(), src = ll_get();
-        if (baked) continue;   // in the sheet
-        if (display_off) memcpy(buf, BG_TILE_ADDR(src), 16);
-        else get_bkg_data(src, 1, buf);
-        for (uint8_t i = 0; i < 16; i += 2) buf[i] &= (uint8_t)~buf[i + 1];
-        if (display_off) memcpy(BG_TILE_ADDR(dst), buf, 16);
-        else set_bkg_data(dst, 1, buf);
-    }
     // The level's tables only depend on the level: a mirror portal or a respawn keeps them
     if (mt_ram_level == level) return;
     mt_ram_level = level;

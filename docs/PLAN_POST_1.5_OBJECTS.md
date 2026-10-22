@@ -55,7 +55,18 @@ Only then add the 1.6 art, Clubstep first (the most 1.6 objects), then Electroma
 - Engine code still knows some metatile ids (saw parts 0x00..0x0B / 0x74..0x7F / 120, ground
   looks 1, 2, 5, 6, 136, 137, pit spikes 12, 24): stage B keeps those objects on those ids.
 
-### Stage B: the object catalog (no visual change)
+### Stage B: the object catalog (no visual change) - done 2026-10-22
+
+Status: levels/objects/ holds the catalog (283 objects + 71 DMG-only art tiles, see its
+README.md for editing it), every TMX uses it (tools/convert_tmx_to_catalog.py, maps and sprite
+lists byte-identical), and tools/build_bg_tiles.py builds each level's own CGB / DMG tile sheet
+from the art of the objects it uses (the base sheet, the Famidash tile sets, the DMG tile moves and
+the runtime fake spike tiles are gone). Level ids: tools/objects_catalog.py assign_level_ids
+(famidash_id when there is one, else a free id), so new objects (famidash_id = -1) work.
+Checked: the visible background of every level, DMG and CGB, rendered from VRAM at 13 points
+each, against the stage A build.
+
+Design notes as planned:
 
 - levels/objects/objects.tsx + objects.png: a Tiled tileset, one 16x16 tile per object, 4 grey
   levels = colour indices (like bg_tiles.png). Per-tile properties: name, collision, CGB palette,

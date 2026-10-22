@@ -1,66 +1,56 @@
-"""Builds the gameplay background tile data from ONE image: levels/chr_data/bg_tiles.png.
+"""Builds the gameplay background tile data: every level's own tile sheets and tables, from the
+object catalog (levels/objects/objects.tsx + objects.png) and the objects its TMX uses, plus the
+saw animation tiles from levels/chr_data/bg_tiles.png.
 
     python tools/build_bg_tiles.py
 
-bg_tiles.png is 16 tiles (128 px) wide; the colour of a pixel is its Game Boy colour index
-(white = 0, light grey = 1, dark grey = 2, black = 3). Edit the art there and rerun this.
+PER LEVEL (levels in game_levels order, src/assets.c; the objects: levels/chr_data/tmx/<level>.tmx,
+the map bytes: levels/level_data/<level>.bin, written by tools/build_levels.py): a map byte is the
+level's id of an object (tools/objects_catalog.py assign_level_ids: its famidash_id when it has
+one, so the engine keeps knowing the saw parts, ground looks and pit spikes). For both platforms:
+    - the object's 4 quarters (CGB art / DMG art from the catalog) are cut into 8x8 tiles; a blank
+      quarter is the reserved transparent tile 12 (CGB: the parallax background shows through it),
+      identical tiles are merged
+    - they get sheet slots: CGB 0..159 (160..255 are sprite tiles), DMG 0..143 (144..159 are the
+      coin sprite tiles)
+    - its sheet: those tiles at their slots, BG_BASE_TILE_COUNT tiles (DMG: then the mirrored copy,
+      loaded by a mirror portal; CGB mirrors with the X flip attribute)
+    - its metatile table (256 x 4 slots), collision table and CGB palette table
+SAWS animate: a saw part's quarters (SAW_METATILES) are drawn from the saw tiles. CGB: VRAM bank 1
+tiles SAW_VRAM_BASE.. (all levels, streamed from saw_anim_tiles.bin). DMG: the level's saw tiles
+go to free sheet slots, then to sprite tiles DMG never draws (DMG_SHARED_SLOTS, and
+DMG_MIRROR_SLOTS in levels without mirror portals), loaded and animated from bg_extra_tiles.bin.
 
-Sections (first tile row, tile count). Tile rows are 8 px:
-    row  0  BASE          160  the level tile sheet every level loads (VRAM tiles 0..159);
-                               include/famidash_metatiles_dmg.c indexes into it
-    row 10  BLACK_FILL      1  CGB: replaces tile 26 (Famidash BLACK_* fill: black is
-                               colour 2 on CGB, colour 3 on DMG)
-    row 11  SAWS_0         52  sawblades, animation frame 0 (rows 11..14; rows 15, 16 are unused)
-                               CGB: VRAM bank 1 tiles 64..115 (all levels); DMG: loaded into free
-                               slots of levels with saws. Colours: 2 = black, 1 = ring, 3 = hub
-                               (the DMG copy gets a colour 3 outline, see dmg_saw_outline)
+bg_tiles.png is 16 tiles (128 px) wide; the colour of a pixel is its Game Boy colour index
+(white = 0, light grey = 1, dark grey = 2, black = 3). Sections (first tile row, tile count):
+    row  0  BASE          160  the Famidash tile sheet the catalog was made from (tools/make_object_
+                               catalog.py); its bins are still the levels' `tiles` in src/assets.c
+    row 11  SAWS_0         52  sawblades, animation frame 0 (rows 11..14). Colours: 2 = black,
+                               1 = ring, 3 = hub (the DMG copy gets a colour 3 outline, see
+                               dmg_saw_outline)
     row 22  SAWS_1         52  sawblades, animation frame 1 (rotated anticlockwise)
     row 26  SAWS_2         52  sawblades, animation frame 2
-    row 17  BLOCKS_B_CGB   20  Famidash block set B (CGB), replaces BLOCKS_B_SLOTS
-    row 19  BLOCKS_B_DMG   20  Famidash block set B (DMG), replaces BLOCKS_B_SLOTS
-    row 21  SPIKES_B_CGB    8  Famidash spike set B background spikes (CGB and DMG: the
-                               gameplay BGP keeps the CGB colour order), replaces SPIKES_B_SLOTS
-    row 30  SPIKES_C        4  Famidash spike set C pit spikes (CGB and DMG, tools/make_spikes_c.py),
-                               replaces SPIKES_C_SLOTS
-    row 31  BLOCKS_B2_CGB  20  the rest of block set B: plain blocks as bricks (CGB,
-                               tools/make_blocks_b2.py), replaces BLOCKS_B2_SLOTS
-    row 33  BLOCKS_B2_DMG  20  the same for DMG
-
-Which Famidash tile sets a level uses: LEVEL_SETS below.
+    (rows 10, 17..21, 30..34: the Famidash tile set sections the catalog was made from)
 
 Outputs:
-    levels/chr_data/bg_base_tiles.bin          BASE, and the mirrored copy
-    levels/chr_data/bg_base_tiles_flipped.bin  (mirror mode loads the flipped sheet)
-    levels/chr_data/bg_extra_tiles.bin         every other section, per tile: normal + mirrored
-    levels/chr_data/saw_anim_tiles.bin         the 3 saw frames, contiguous (CGB streams them)
-    src/graphics/bg_level_tables.h             saw metatile tables, per level flags
-    src/graphics/bg_level_lists.c              per level load lists (own bank)
-    levels/chr_data/bg_sheet_<level>.bin       DMG levels with mirror portals: their whole sheet,
-    src/graphics/bg_sheet_<level>.c            normal then mirrored (see BAKED SHEETS below)
-    include/bg_tiles.h                         BG_BASE_TILE_COUNT
-
-Per level and platform the load list says: extra tiles to load (VRAM bank, slot, count,
-first extra tile), sheet tiles to move (DMG), fake spike tiles to make (DMG), and metatile tiles
-to override.
-
-FAKE SPIKES (DMG): CGB draws the fake spike metatiles (FAKE_SPIKE_MTS) with the real spikes'
-tiles in palette 5, whose colour 3 (the white outline) is black like colour 2. DMG has one BGP,
-so a level with fake spikes copies their sheet tiles to free slots with colour 3 turned into 2
-(fake_tile) and points the fake metatiles there. On DMG, BG
-tiles 144..159 share VRAM with the coin sprite tiles, so tiles a level uses there move to
-slots it leaves free, and its saw tiles go to free slots too.
-
-BAKED SHEETS: a DMG mirror portal turns the display off and reloads the sheet mirrored. Loading a
-level's extra tiles and moves one by one on top of it took up to 3 frames (Electroman: ~200
-tiles), so a DMG level with a mirror portal and extra tiles or moves gets its sheet ready-made
-(BASE with them applied, slots 0..159, both orientations): the flip is one copy, and only the
-extra tiles outside it (saws in sprite slots) are still loaded one by one.
+    levels/chr_data/bg_base_tiles.bin, bg_base_tiles_flipped.bin   BASE (normal / mirrored)
+    levels/chr_data/bg_extra_tiles.bin    the other sections, per tile: normal + mirrored
+    levels/chr_data/saw_anim_tiles.bin    the 3 saw frames as drawn (CGB streams them)
+    levels/chr_data/bg_sheet_<level>_cgb.bin, _dmg.bin, src/graphics/bg_sheet_<level>.c   sheets
+    src/graphics/bg_level_mt_*.c          per level tables (deduplicated)
+    src/graphics/bg_level_lists.c         per level load lists and table / sheet pointers
+    src/graphics/bg_level_tables.h        saw tables, per level flags, banks
+    include/bg_tiles.h                    BG_BASE_TILE_COUNT
 """
 import re
+import sys
 from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "tools"))
+from objects_catalog import load_catalog, tmx_level_objects, assign_level_ids  # noqa: E402
+
 PNG = ROOT / "levels" / "chr_data" / "bg_tiles.png"
 
 SAW_FRAMES = 3
@@ -79,47 +69,25 @@ SECTIONS = [  # name, first row, tile count
     ("BLOCKS_B2_CGB", 31, 20),
     ("BLOCKS_B2_DMG", 33, 20),
 ]
-BLOCKS_B_SLOTS = [82, 83, 84, 85, 86, 87, 98, 99, 100, 101, 102, 103, 110, 111, 112, 113, 122, 123, 124, 125]
-# plain blocks (NES $40..$49, $50..$59): Theory of Everything's bricks
-BLOCKS_B2_SLOTS = list(range(72, 82)) + list(range(88, 98))
-SPIKES_B_SLOTS = [0, 1, 23, 24, 25, 37, 38, 39]
-# Metatiles 12 / 13 (background spikes) have the transparent tile 12 where spike set B has
-# art: on CGB those quarters use tiles 0 / 1 of SPIKES_B_SLOTS.
-SPIKES_B_OVERRIDES = [(12, 0, 0), (13, 2, 1)]
-SPIKES_C_SLOTS = [19, 20, 33, 34]   # pit spikes left / right (NES $08, $09, $18, $19)
-BLACK_FILL_SLOT = 26
 
-# Famidash tile sets per level (by level map name), defaults: spikes A, blocks A
-LEVEL_SETS = {
-    "xstep": {"spikes": "B"},
-    "clutterfunk": {"blocks": "B"},
-    "theoryofeverything": {"spikes": "C", "blocks": "B"},
-    "electromanadventures": {"blocks": "B"},
-    "clubstep": {"blocks": "B"},
-    "demonpark": {"spikes": "C"},
-    "thelightningroad": {"spikes": "C"},
-}
-
-# Fake spike metatiles (CGB palette 5, see FAKE SPIKES above)
-FAKE_SPIKE_MTS = [197, 198] + list(range(203, 211))
-BLANK_TILE = 12
+SHEET_TILES = 160            # BG_BASE_TILE_COUNT: a sheet fills VRAM tiles 0..159
+BLANK_TILE = 12              # transparent (CGB: the parallax shows through); the level complete
+                             # screen's board too
+CGB_SLOTS = [s for s in range(SHEET_TILES) if s != BLANK_TILE]
+DMG_BG_SLOTS = 144           # DMG BG tiles 0..143 (144..159 = coin sprite tiles)
+DMG_SLOTS = [s for s in range(DMG_BG_SLOTS) if s != BLANK_TILE]
+# DMG BG tiles 128..255 are sprite tiles 128..255. Some of those sprites are never drawn on DMG, so
+# a level short of slots puts saw tiles there: 224..237 (CGB-only mirror exit art; 238, 239 are the
+# UFO badge) and, in levels without mirror portals, 208..223 (the mirror portal art). Only saw tiles
+# (reloaded from ROM after the sprite tiles by reapply_bg_shared_slots).
+DMG_SHARED_SLOTS = list(range(224, 238))
+DMG_MIRROR_SLOTS = list(range(208, 224))
 
 SAW_CENTER_MT = 120
 BIG_SAW_PARTS = {116, 117, 118, 119, 121, 122, 123, 124}
 SAW_VRAM_BASE = 64           # CGB VRAM bank 1
-DMG_BG_SLOTS = 144           # DMG BG tiles 0..143 (144..159 = coin sprite tiles)
-# blank, black fill (used by code). The ground strip tiles 48..53 are CGB VRAM bank 1 tiles: on DMG
-# their bank 0 slots are only taken when the level's metatiles use them.
-DMG_RESERVED_TILES = [12, 26]
-# DMG BG tiles 128..255 are sprite tiles 128..255. Some of those sprites are never drawn on DMG, so
-# a level short of slots (Theory of Everything: block set B, spike set C and every saw) puts saw
-# tiles there: 224..237 (CGB-only mirror exit art; 238, 239 are the UFO badge) and, in levels
-# without mirror portals, 208..223 (the mirror portal art). Only saw tiles (reloaded from ROM after
-# the sprite tiles by reapply_bg_shared_slots), never moved sheet tiles (copied from VRAM).
-DMG_SHARED_SLOTS = list(range(224, 238))
-DMG_MIRROR_SLOTS = list(range(208, 224))
 
-# Sawblade metatiles: metatile id -> its 4 saw tiles (0..47, None = keep the sheet tile)
+# Sawblade metatiles: metatile id -> its 4 saw tiles (0..47, None = the object's own art)
 SAW_METATILES = {
     4: (0x1A, 0x1F, None, None),    # SMALL_SAW_BOTTOM_HALF
     8: (0x20, 0x21, 0x24, 0x25),    # MED_SAW_TOP_LEFT
@@ -183,31 +151,37 @@ def gb_bytes(rows):
     return bytes(out)
 
 
-def fake_tile(data):
-    """DMG fake spike tile: colour 3 -> 2 (the low bit plane cleared where the high one is set)"""
-    return bytes(data[i] & ~data[i + 1] & 0xFF if i % 2 == 0 else data[i] for i in range(16))
-
-
 def mirrored(rows):
-    return [row[::-1] for row in rows]
+    return [list(row[::-1]) for row in rows]
 
 
-def runs(slots, first_src, only=None):
-    """[(dst, count, src)] for runs of consecutive slots (only: the slots to load, default all)"""
-    out = []
-    for i, s in enumerate(slots):
-        if only is not None and s not in only:
+def mirrored_bytes(data):
+    """2bpp tile data mirrored left / right"""
+    rev = lambda b: int("{:08b}".format(b)[::-1], 2)
+    return bytes(rev(b) for b in data)
+
+
+def level_objects(name, cat):
+    """level id -> catalog object of the level (its TMX's map layer, tools/objects_catalog.py)"""
+    tids = tmx_level_objects(ROOT / "levels" / "chr_data" / "tmx" / ("%s.tmx" % name))
+    assert tids is not None, "%s.tmx does not use the object catalog (tools/convert_tmx_to_catalog.py)" % name
+    return {i: tid for tid, i in assign_level_ids(cat, tids).items()}
+
+
+def allocate(datas, slots, what):
+    """slot per distinct tile (first come first served); BLANK_TILE for a blank one"""
+    slot, it = {}, iter(slots)
+    for d in datas:
+        if d in slot:
             continue
-        if out and out[-1][0] + out[-1][1] == s and out[-1][2] + out[-1][1] == first_src + i:
-            out[-1] = (out[-1][0], out[-1][1] + 1, out[-1][2])
-        else:
-            out.append((s, 1, first_src + i))
-    return out
-
-
-# Per level layout, filled by main() for other tools (tools/make_object_catalog.py): level name ->
-# its loads, moves, fake spike tiles and final metatile tables; "_" -> the shared tile data
-LAYOUT = {}
+        if d == bytes(16):
+            slot[d] = BLANK_TILE
+            continue
+        s = next(it, None)
+        if s is None:
+            raise SystemExit("%s: more than %d distinct tiles" % (what, len(slots)))
+        slot[d] = s
+    return slot
 
 
 def main():
@@ -224,6 +198,7 @@ def main():
         section["SAWS_%d" % f] = [dmg_saw_outline(t) for t in cgb_saws[f]]
 
     out_dir = ROOT / "levels" / "chr_data"
+    gfx = ROOT / "src" / "graphics"
     (out_dir / "bg_base_tiles.bin").write_bytes(b"".join(gb_bytes(t) for t in section["BASE"]))
     (out_dir / "bg_base_tiles_flipped.bin").write_bytes(b"".join(gb_bytes(mirrored(t)) for t in section["BASE"]))
 
@@ -238,199 +213,132 @@ def main():
         k += count
     assert k < 256
     (out_dir / "bg_extra_tiles.bin").write_bytes(extra)
+    n_extra = k
     # saw animation frames for the CGB VBlank handler: contiguous 16 byte tiles, 3 frames
     # (the art as drawn: bg_extra_tiles has the DMG version, see dmg_saw_outline)
     (out_dir / "saw_anim_tiles.bin").write_bytes(b"".join(
         gb_bytes(t) for f in range(SAW_FRAMES) for t in cgb_saws[f]))
+    saw_extra = lambda s, rev: bytes(extra[(first["SAWS_0"] + s) * 32 + (16 if rev else 0):][:16])
 
     # levels in game_levels order
     assets = (ROOT / "src" / "assets.c").read_text()
     order = re.findall(r'&(level_\w+)', assets.split("game_levels[] = {")[1].split("};")[0])
     ident = dict(re.findall(r'const Level (level_\w+) = \{.*?\n\s*(\w+)_map,', assets, re.S))
-    src = (ROOT / "include" / "famidash_metatiles_dmg.c").read_text()
-    a = src.index("const uint8_t metatiles[FAMIDASH_NUM_METATILES][4]")
-    sheet_mt = [list(map(int, m)) for m in re.findall(r'\{ (\d+), (\d+), (\d+), (\d+) \}', src[a:src.index("};", a)])]
-
-    def table(name):
-        a = src.index(name)
-        return list(map(int, re.findall(r'\d+', src[src.index("{", a):src.index("};", a)])))
-    mt_col = table("famidash_metatile_collision[FAMIDASH_NUM_METATILES]")
-    mt_pal = table("famidash_metatile_palettes[FAMIDASH_NUM_METATILES]")
-    assert len(sheet_mt) == len(mt_col) == len(mt_pal) == 256
-
-    def level_table(moves, overrides):
-        """The level's metatile table as apply_level_bg_tiles loads it: the sheet tiles, moved
-        ones at their new slot, then the overrides"""
-        xlat = list(range(256))
-        for dst, src_ in moves:
-            xlat[src_] = dst
-        t = [[xlat[q] for q in m] for m in sheet_mt]
-        for m, q, tile in overrides:
-            t[m][q] = tile
-        return bytes(v for m in t for v in m)
-
-    def stream(loads, moves, fakes):
-        data = [len(loads)] + [v for l in loads for v in l]
-        data += [len(moves)] + [v for m in moves for v in m]
-        data += [len(fakes)] + [v for f in fakes for v in f]
-        return data
+    cat = load_catalog()
 
     def has_mirror_portal(name):
         sp = (ROOT / "src" / "sprites" / ("%s_sprites.c" % name)).read_text()
         return re.search(r"\{\s*\d+,\s*\d+,\s*(121|126)\s*\}", sp) is not None
 
-    base = [gb_bytes(t) for t in section["BASE"]]
-    base_rev = [gb_bytes(mirrored(t)) for t in section["BASE"]]
-    LAYOUT["_"] = dict(base=base, extra=extra, first=first, section=section, cgb_saws=cgb_saws,
-                       sheet_mt=sheet_mt, mt_col=mt_col, mt_pal=mt_pal)
+    def stream(loads):
+        return [len(loads)] + [v for l in loads for v in l]
 
-    def bake(loads, moves, fakes, rev):
-        """The DMG sheet (slots 0..159) after apply_level_bg_tiles: BASE, the loads, the moves,
-        the fake spike tiles"""
-        vram = list(base_rev if rev else base)
-        for bank, dst, count, first_tile in loads:
-            for j in range(count):
-                if dst + j < len(vram):
-                    o = (first_tile + j) * 32 + (16 if rev and not bank & 0x80 else 0)
-                    vram[dst + j] = bytes(extra[o:o + 16])
-        for dst, src_ in moves:
-            vram[dst] = vram[src_]
-        for dst, src_ in fakes:
-            vram[dst] = fake_tile(vram[src_])
-        return b"".join(vram)
-
-    streams = []   # (level var, cgb data, dmg data)
-    sheets = {}    # level name -> baked DMG sheets (normal + mirrored)
-    sheet_rest = {}
+    levels = []
     for lv in order:
         name = ident[lv]
-        sets = LEVEL_SETS.get(name, {})
+        objs = level_objects(name, cat)
         level_mts = set((ROOT / "levels" / "level_data" / ("%s.bin" % name)).read_bytes())
+        missing = level_mts - set(objs) - {0}
+        assert not missing, "%s: map ids without an object: %s" % (name, sorted(missing))
+        objs.setdefault(0, 0)
         # metatile 120 is also Xstep's diamond: it is the big saw's centre only where big saws are
         big_saw = bool(level_mts & BIG_SAW_PARTS)
         saw_mts = {m: t for m, t in SAW_METATILES.items() if m != SAW_CENTER_MT or big_saw}
-        # BLOCKS_B2: only the slots the level's metatiles show (DMG slots are scarce)
-        b2 = {t for m in level_mts for t in sheet_mt[m]} & set(BLOCKS_B2_SLOTS)
-        # DMG: block set B too (the quarters a saw tile replaces show no sheet tile)
-        dmg_b = {sheet_mt[m][q] for m in level_mts for q in range(4)
-                 if m not in saw_mts or saw_mts[m][q] is None} & set(BLOCKS_B_SLOTS)
-
-        # CGB
-        # bank bit 7: never load mirrored (CGB mirrors saws with the X flip attribute)
-        loads = [(0x81, SAW_VRAM_BASE, SAW_TILES, first["SAWS_0"]),
-                 (0, BLACK_FILL_SLOT, 1, first["BLACK_FILL"])]
-        overrides = []
-        if sets.get("blocks") == "B":
-            loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B_SLOTS, first["BLOCKS_B_CGB"])]
-            loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B2_SLOTS, first["BLOCKS_B2_CGB"], b2)]
-        if sets.get("spikes") == "B":
-            loads += [(0, d, n, s) for d, n, s in runs(SPIKES_B_SLOTS, first["SPIKES_B_CGB"])]
-            overrides += SPIKES_B_OVERRIDES
-        if sets.get("spikes") == "C":
-            loads += [(0, d, n, s) for d, n, s in runs(SPIKES_C_SLOTS, first["SPIKES_C"])]
-        cgb = stream(loads, [], [])
-        cgb_mt = level_table([], overrides)
-        cgb_loads = loads
-
-        # DMG
-        loads = []
-        if sets.get("blocks") == "B":
-            loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B_SLOTS, first["BLOCKS_B_DMG"], dmg_b)]
-            loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B2_SLOTS, first["BLOCKS_B2_DMG"], b2)]
-        overrides = []
-        if sets.get("spikes") == "B":
-            loads += [(0, d, n, s) for d, n, s in runs(SPIKES_B_SLOTS, first["SPIKES_B_CGB"])]
-            overrides += SPIKES_B_OVERRIDES
-        if sets.get("spikes") == "C":
-            loads += [(0, d, n, s) for d, n, s in runs(SPIKES_C_SLOTS, first["SPIKES_C"])]
-        used_t = set(DMG_RESERVED_TILES)
-        # slots that hold a loaded tile set B must not be handed out as free slots
-        if sets.get("blocks") == "B":
-            used_t.update(dmg_b)
-            used_t.update(b2)
-        if sets.get("spikes") == "B":
-            used_t.update(SPIKES_B_SLOTS)
-        if sets.get("spikes") == "C":
-            used_t.update(SPIKES_C_SLOTS)
-        saw_k = set()
-        for m in level_mts:
-            for q in range(4):
-                st = saw_mts[m][q] if m in saw_mts else None
-                if st is not None:
-                    saw_k.add(st)
-                else:
-                    used_t.add(sheet_mt[m][q])
-        high = sorted(t for t in used_t if t >= DMG_BG_SLOTS)
-        free = [s for s in range(DMG_BG_SLOTS) if s not in used_t]
-        if len(high) > len(free):
-            raise SystemExit("%s: needs %d free DMG BG slots, has %d" % (name, len(high), len(free)))
-        moves = list(zip(free, high))
+        mts = sorted(level_mts | {0})
         mirror = has_mirror_portal(name)
-        # fake spike tiles (their sources stay: they are in used_t). A level without room for
-        # them and its saws keeps fake spikes looking like real ones.
-        fake_mts = [m for m in FAKE_SPIKE_MTS if m in level_mts]
-        fake_src = sorted({t for m in fake_mts for t in sheet_mt[m] if t != BLANK_TILE})
-        assert all(t < DMG_BG_SLOTS for t in fake_src)
-        room = len(free) - len(high) + (len(DMG_SHARED_SLOTS + ([] if mirror else DMG_MIRROR_SLOTS)) if saw_k else 0)
-        if fake_src and len(fake_src) + len(saw_k) > room:
-            print("DMG %-20s no room for its %d fake spike tiles: they look like real spikes" % (name, len(fake_src)))
-            fake_mts, fake_src = [], []
-        fake_slot = dict(zip(fake_src, free[len(high):]))
-        fakes = [(d, s_) for s_, d in sorted(fake_slot.items())]
-        overrides += [(m, q, fake_slot[sheet_mt[m][q]]) for m in fake_mts for q in range(4)
-                      if sheet_mt[m][q] != BLANK_TILE]
-        saw_free = free[len(high) + len(fake_src):]
-        if len(saw_k) > len(saw_free):
-            saw_free += DMG_SHARED_SLOTS + ([] if mirror else DMG_MIRROR_SLOTS)
-        if len(saw_k) > len(saw_free):
-            raise SystemExit("%s: needs %d free DMG BG slots, has %d" % (name, len(high) + len(saw_k), len(free) + len(saw_free) - len(free[len(high):])))
-        saw_slot = dict(zip(sorted(saw_k), saw_free))
-        for k_ in sorted(saw_slot):
-            loads.append((0, saw_slot[k_], 1, first["SAWS_0"] + k_))
-        overrides += [(m, q, saw_slot[saw_mts[m][q]]) for m in sorted(level_mts) if m in saw_mts
-                      for q in range(4) if saw_mts[m][q] is not None]
-        dmg = stream(loads, moves, fakes)
-        dmg_mt = level_table(moves, overrides)
-        LAYOUT[name] = dict(cgb_loads=cgb_loads, dmg_loads=loads, moves=moves, fakes=fakes,
-                            cgb_mt=cgb_mt, dmg_mt=dmg_mt, saw_mts=saw_mts, sets=sets,
-                            mts=level_mts)
-        if mirror and (moves or fakes or any(d < len(base) for _, d, _, _ in loads)):
-            sheets[name] = bake(loads, moves, fakes, False) + bake(loads, moves, fakes, True)
-            # the loads the sheet does not hold (saws in sprite slots): a mirror portal still
-            # loads these one by one
-            sheet_rest[name] = [v for _, d, n, f in loads if d + n > len(base) for v in (d, n, f)]
-        streams.append((lv, name, cgb, dmg, big_saw, any(m in saw_mts for m in level_mts), cgb_mt, dmg_mt))
-        if moves or saw_slot or fakes:
-            shared = sum(1 for s in saw_slot.values() if s >= DMG_BG_SLOTS)
-            print("DMG %-20s %d tiles moved above slot %d, %d fake spike tiles, %d saw tiles (%d in sprite tiles), %d free slots left"
-                  % (name, len(moves), DMG_BG_SLOTS, len(fakes), len(saw_slot), shared, len(saw_free) - len(saw_k)))
 
-    # baked DMG sheets: one file each, packed into free banks from the top down (the #pragma bank
-    # numbers here are real banks; tools/build_levels.py allocates the level maps from bank 30 up)
-    gfx = ROOT / "src" / "graphics"
-    for old in list(out_dir.glob("bg_sheet_*.bin")) + list(gfx.glob("bg_sheet_*.c")):
-        if old.stem[len("bg_sheet_"):] not in sheets:
-            old.unlink()
-    used = set()
+        # quarters: (metatile, quarter) -> tile data, or ("saw", saw tile)
+        def quarters(dmg):
+            q = {}
+            for m in mts:
+                art = cat.dmg_art(objs[m]) if dmg else cat.art(objs[m])
+                for i in range(4):
+                    saw = saw_mts.get(m, (None,) * 4)[i]
+                    q[(m, i)] = ("saw", saw) if saw is not None else gb_bytes(art[i])
+            return q
+
+        # CGB: saw quarters are drawn from VRAM bank 1 (the table entry is not used)
+        cq = quarters(False)
+        cslot = allocate([d for d in cq.values() if d[0] != "saw"], CGB_SLOTS, "%s (CGB)" % name)
+        cgb_sheet = [bytes(16)] * SHEET_TILES
+        for d, s in cslot.items():
+            cgb_sheet[s] = d
+        cgb_mt = bytearray([BLANK_TILE] * 1024)
+        for (m, i), d in cq.items():
+            cgb_mt[m * 4 + i] = BLANK_TILE if d[0] == "saw" else cslot[d]
+        cgb_loads = [(0x81, SAW_VRAM_BASE, SAW_TILES, first["SAWS_0"])]
+
+        # DMG: saw tiles after the level's own tiles, then in the shared sprite slots
+        dq = quarters(True)
+        dslot = allocate([d for d in dq.values() if d[0] != "saw"], DMG_SLOTS, "%s (DMG)" % name)
+        used = set(dslot.values())
+        saw_k = sorted({d[1] for d in dq.values() if d[0] == "saw"})
+        saw_free = [s for s in DMG_SLOTS if s not in used] + DMG_SHARED_SLOTS + ([] if mirror else DMG_MIRROR_SLOTS)
+        if len(saw_k) > len(saw_free):
+            raise SystemExit("%s (DMG): no room for its %d saw tiles" % (name, len(saw_k)))
+        saw_slot = dict(zip(saw_k, saw_free))
+        dmg_sheet = [bytes(16)] * SHEET_TILES
+        for d, s in dslot.items():
+            dmg_sheet[s] = d
+        dmg_rev = [mirrored_bytes(d) for d in dmg_sheet]
+        for s, slot in saw_slot.items():
+            if slot < SHEET_TILES:
+                dmg_sheet[slot], dmg_rev[slot] = saw_extra(s, False), saw_extra(s, True)
+        dmg_mt = bytearray([BLANK_TILE] * 1024)
+        for (m, i), d in dq.items():
+            dmg_mt[m * 4 + i] = saw_slot[d[1]] if d[0] == "saw" else dslot[d]
+        dmg_loads = [(0, saw_slot[s], 1, first["SAWS_0"] + s) for s in saw_k]
+        rest = [v for _, d, n, f in dmg_loads if d >= SHEET_TILES for v in (d, n, f)]
+
+        col = bytearray(256)
+        pal = bytearray(256)
+        for m in mts:
+            col[m] = cat.objects[objs[m]]["collision"]
+            pal[m] = cat.objects[objs[m]]["palette"]
+        levels.append(dict(lv=lv, name=name, cgb=stream(cgb_loads), dmg=stream(dmg_loads),
+                           big_saw=big_saw, saws=any(m in saw_mts for m in level_mts),
+                           cgb_mt=bytes(cgb_mt), dmg_mt=bytes(dmg_mt), col=bytes(col), pal=bytes(pal),
+                           cgb_sheet=b"".join(cgb_sheet), dmg_sheet=b"".join(dmg_sheet + dmg_rev),
+                           rest=rest))
+        shared = sum(1 for s in saw_slot.values() if s >= SHEET_TILES)
+        print("%-20s CGB %3d/%d tiles   DMG %3d/%d tiles + %d saw tiles (%d in sprite tiles)"
+              % (name, len(set(cslot.values()) - {BLANK_TILE}), len(CGB_SLOTS),
+                 len(used - {BLANK_TILE}), len(DMG_SLOTS), len(saw_k), shared))
+
+    # sheets: one file per level (CGB, then DMG normal + mirrored), packed into free banks from the
+    # top down (the #pragma bank numbers here are real banks; tools/build_levels.py allocates the
+    # level maps from bank 30 up)
+    for old in list(out_dir.glob("bg_sheet_*.bin")) + list(gfx.glob("bg_sheet_*.c")) + list(gfx.glob("bg_level_mt_*.c")):
+        old.unlink()
+    used_banks = set()
     for f in (ROOT / "src").rglob("*.c"):
-        if f.parent == gfx and f.name.startswith("bg_sheet_"):
-            continue
         m = re.search(r'^#pragma\s+bank\s+(\d+)', f.read_text(errors="ignore"), re.M)
         if m:
-            used.add(int(m.group(1)))
-    bank, room = None, 0
-    for name, data in sheets.items():
-        if len(data) > room:
-            bank = max(b for b in range(2, 255) if b not in used)
-            used.add(bank)
-            room = 16384
-        room -= len(data)
-        (out_dir / ("bg_sheet_%s.bin" % name)).write_bytes(data)
+            used_banks.add(int(m.group(1)))
+    # ("#pragma bank 255" is not auto-banking here: those files all go to bank 255)
+    space = {"bank": None, "room": 0}
+
+    def bank_for(size):
+        """a real bank with room for size bytes: the current one, else the highest free one"""
+        if size > space["room"]:
+            space["bank"] = max(b for b in range(2, 255) if b not in used_banks)
+            used_banks.add(space["bank"])
+            space["room"] = 16384
+        space["room"] -= size
+        return space["bank"]
+    for L_ in levels:
+        name = L_["name"]
+        bank = bank_for(len(L_["cgb_sheet"]) + len(L_["dmg_sheet"]))
+        (out_dir / ("bg_sheet_%s_cgb.bin" % name)).write_bytes(L_["cgb_sheet"])
+        (out_dir / ("bg_sheet_%s_dmg.bin" % name)).write_bytes(L_["dmg_sheet"])
         (gfx / ("bg_sheet_%s.c" % name)).write_text("\n".join([
             "/* Generated by tools/build_bg_tiles.py - do not edit */",
             "#pragma bank %d" % bank, "#include <gbdk/platform.h>", "#include <gbdk/incbin.h>", "",
-            "INCBIN(bg_sheet_%s, \"levels/chr_data/bg_sheet_%s.bin\")" % (name, name), ""]), encoding="utf-8")
-        print("DMG %-20s baked sheet (mirror portals), bank %d" % (name, bank))
+            "BANKREF(bg_sheet_%s)" % name,
+            "INCBIN(bg_sheet_%s_cgb, \"levels/chr_data/bg_sheet_%s_cgb.bin\")" % (name, name),
+            "INCBIN(bg_sheet_%s_dmg, \"levels/chr_data/bg_sheet_%s_dmg.bin\")" % (name, name), ""]),
+            encoding="utf-8")
+        L_["bank"] = bank
 
     # header
     idx = [0] * 256
@@ -439,7 +347,7 @@ def main():
         idx[m] = i + 1
         saw_rows.append("    { %s }, /* metatile %d */" % (", ".join(
             "0xFF" if t is None else "0x%02X" % (SAW_VRAM_BASE + t) for t in tl), m))
-    L = ["/* Generated by tools/build_bg_tiles.py from levels/chr_data/bg_tiles.png - do not edit */",
+    H = ["/* Generated by tools/build_bg_tiles.py - do not edit */",
          "#ifndef BG_LEVEL_TABLES_H", "#define BG_LEVEL_TABLES_H", "",
          "#define SAW_VRAM_BASE %d" % SAW_VRAM_BASE,
          "#define SAW_MT_COUNT %d" % len(SAW_METATILES), "",
@@ -447,10 +355,10 @@ def main():
          "// the 4 tiles are in VRAM bank 1 (0xFF = keep the sheet tile)",
          "static const uint8_t saw_mt_index[256] = {"]
     for r in range(0, 256, 16):
-        L.append("    " + ", ".join(str(v) for v in idx[r:r + 16]) + ",")
-    L += ["};", "static const uint8_t saw_mt_tiles[SAW_MT_COUNT][4] = {"] + saw_rows + ["};", "",
-          "// Per level load lists: in bg_level_lists.c (their own bank: they are only read when a",
-          "// level loads, through scratch_buf). Entry 2 * level is the CGB list, 2 * level + 1 the DMG one.",
+        H.append("    " + ", ".join(str(v) for v in idx[r:r + 16]) + ",")
+    H += ["};", "static const uint8_t saw_mt_tiles[SAW_MT_COUNT][4] = {"] + saw_rows + ["};", "",
+          "// Per level load lists and the pointers to its tables and sheets: in bg_level_lists.c (their",
+          "// own bank: only read when a level loads). Entry 2 * level is the CGB one, 2 * level + 1 the DMG one.",
           "#include <gbdk/platform.h>",
           "BANKREF_EXTERN(bg_level_lists)",
           "extern const uint8_t * const bg_level_lists[];",
@@ -458,7 +366,8 @@ def main():
           "extern const uint8_t * const bg_level_mt[];",
           "extern const uint8_t * const bg_level_col[];",
           "extern const uint8_t * const bg_level_pal[];",
-          "#define BG_LEVEL_COUNT %d" % len(streams),
+          "extern const uint8_t * const bg_level_sheet[];",
+          "#define BG_LEVEL_COUNT %d" % len(levels),
           "#define SAW_CENTER_MT %d" % SAW_CENTER_MT,
           "// Saw animation: frame f of the saw tiles is bg_extra_tiles tile saw_frame_first[f] + 0..SAW_TILES-1",
           "// (CGB streams the 3 frames from saw_anim_tiles.bin: SAW_TILES tiles of 16 bytes per frame)",
@@ -467,40 +376,31 @@ def main():
           "static const uint8_t saw_frame_first[SAW_ANIM_FRAMES] = { %s };" % ", ".join(
               str(first["SAWS_%d" % f]) for f in range(SAW_FRAMES)),
           "// 1 = the level has saws (animate them)",
-          "static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { %s };" % ", ".join(str(int(s[5])) for s in streams),
+          "static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { %s };" % ", ".join(str(int(L_["saws"])) for L_ in levels),
           "// 1 = the level has big saws, so metatile SAW_CENTER_MT is their centre (CGB)",
-          "static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { %s };" % ", ".join(str(int(s[4])) for s in streams),
-          "// DMG baked sheets (levels with mirror portals): BG_BASE_TILE_COUNT tiles normal, then mirrored;",
-          "// bank 0 = none (the base sheet, then the load list)"]
-    for name in sheets:
-        L += ["BANKREF_EXTERN(bg_sheet_%s)" % name, "extern const uint8_t bg_sheet_%s[];" % name]
-    for name in sheets:
-        r = sheet_rest[name]
-        L.append("static const uint8_t bg_sheet_rest_%s[] = { %s };" % (name, ", ".join(map(str, [len(r) // 3] + r))))
-    L += ["// and the extra tiles outside the sheet: n, n x (slot, count, first bg_extra_tiles tile)",
+          "static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { %s };" % ", ".join(str(int(L_["big_saw"])) for L_ in levels)]
+    for L_ in levels:
+        r = L_["rest"]
+        if r:
+            H.append("static const uint8_t bg_sheet_rest_%s[] = { %s };" % (L_["name"], ", ".join(map(str, [len(r) // 3] + r))))
+    H += ["static const uint8_t bg_sheet_rest_none[] = { 0 };",
+          "// DMG: the level's tiles outside its sheet (saws in sprite tiles), loaded again after a mirror",
+          "// portal: n, n x (slot, count, first bg_extra_tiles tile)",
           "static const uint8_t * const bg_dmg_sheet_rest[BG_LEVEL_COUNT] = { %s };" % ", ".join(
-              ("bg_sheet_rest_%s" % s[1]) if s[1] in sheets else "0" for s in streams)]
-    L += ["static const uint8_t * const bg_dmg_sheet[BG_LEVEL_COUNT] = { %s };" % ", ".join(
-              ("bg_sheet_%s" % s[1]) if s[1] in sheets else "0" for s in streams),
-          "static const uint8_t bg_dmg_sheet_bank[BG_LEVEL_COUNT] = { %s };" % ", ".join(
-              ("BANK(bg_sheet_%s)" % s[1]) if s[1] in sheets else "0" for s in streams),
-          "", "#endif", ""]
-    (ROOT / "src" / "graphics" / "bg_level_tables.h").write_text("\n".join(L), encoding="utf-8")
+              ("bg_sheet_rest_%s" % L_["name"]) if L_["rest"] else "bg_sheet_rest_none" for L_ in levels)]
 
-    C = ["/* Generated by tools/build_bg_tiles.py from levels/chr_data/bg_tiles.png - do not edit */",
+    C = ["/* Generated by tools/build_bg_tiles.py - do not edit */",
          "#pragma bank 255", "#include <gbdk/platform.h>", "#include <stdint.h>", "",
          "BANKREF(bg_level_lists)", "",
          "// Per level load lists:",
-         "//   n, n x (VRAM bank (bit 7: never mirrored), slot, count, first bg_extra_tiles tile)",
-         "//   n, n x (slot, sheet tile)   sheet tiles moved to another slot (DMG)",
-         "//   n, n x (slot, sheet tile)   fake spike tiles: the sheet tile, colour 3 -> 2 (DMG)"]
-    for lv, name, cgb, dmg, *_ in streams:
-        C.append("static const uint8_t bg_cgb_%s[] = { %s };" % (name, ", ".join(map(str, cgb))))
-        C.append("static const uint8_t bg_dmg_%s[] = { %s };" % (name, ", ".join(map(str, dmg))))
+         "//   n, n x (VRAM bank (bit 7: never mirrored), slot, count, first bg_extra_tiles tile)"]
+    for L_ in levels:
+        C.append("static const uint8_t bg_cgb_%s[] = { %s };" % (L_["name"], ", ".join(map(str, L_["cgb"]))))
+        C.append("static const uint8_t bg_dmg_%s[] = { %s };" % (L_["name"], ", ".join(map(str, L_["dmg"]))))
     C += ["", "const uint8_t * const bg_level_lists[] = {"]
-    C += ["    bg_cgb_%s, bg_dmg_%s," % (st[1], st[1]) for st in streams]
+    C += ["    bg_cgb_%s, bg_dmg_%s," % (L_["name"], L_["name"]) for L_ in levels]
     C += ["};", "const uint16_t bg_level_list_len[] = {"]
-    C += ["    %d, %d," % (len(st[2]), len(st[3])) for st in streams]
+    C += ["    %d, %d," % (len(L_["cgb"]), len(L_["dmg"])) for L_ in levels]
     C += ["};", ""]
 
     # Per level tables (bg_level_mt_*.c, deduplicated): the metatile table (256 x 4 tiles) per
@@ -513,8 +413,8 @@ def main():
             blob_of[data] = len(blobs)
             blobs.append(data)
         return blob_of[data]
-    col_k, pal_k = blob(bytes(mt_col)), blob(bytes(mt_pal))
-    mt_k = [(blob(st[6]), blob(st[7])) for st in streams]
+    for L_ in levels:
+        L_["k"] = (blob(L_["cgb_mt"]), blob(L_["dmg_mt"]), blob(L_["col"]), blob(L_["pal"]))
     files, size = [[]], 0
     for b_, data in enumerate(blobs):
         if size + len(data) > 16000:
@@ -523,11 +423,9 @@ def main():
         files[-1].append(b_)
         size += len(data)
     file_of = {b_: f for f, bs in enumerate(files) for b_ in bs}
-    for old in gfx.glob("bg_level_mt_*.c"):
-        old.unlink()
     for f, bs in enumerate(files):
         F = ["/* Generated by tools/build_bg_tiles.py - do not edit */",
-             "#pragma bank 255", "#include <gbdk/platform.h>", "#include <stdint.h>", "",
+             "#pragma bank %d" % bank_for(16384), "#include <gbdk/platform.h>", "#include <stdint.h>", "",
              "BANKREF(bg_level_mt_%d)" % f, ""]
         for b_ in bs:
             F.append("const uint8_t bg_level_blob_%d[%d] = {" % (b_, len(blobs[b_])))
@@ -540,27 +438,36 @@ def main():
         return "bg_level_blob_%d" % b_, "BANK(bg_level_mt_%d)" % file_of[b_]
     C += ["// Per level tables (bg_level_mt_*.c): entry 2 * level is the CGB metatile table, 2 * level + 1",
           "// the DMG one; then per level its collision and CGB palette tables"]
-    C += ["BANKREF_EXTERN(bg_level_mt_%d)" % f for f in range(len(files))]
     C += ["extern const uint8_t bg_level_blob_%d[];" % b_ for b_ in range(len(blobs))]
-    C += ["const uint8_t * const bg_level_mt[] = { %s };" % ", ".join(ref(b_)[0] for pair in mt_k for b_ in pair),
-          "const uint8_t * const bg_level_col[] = { %s };" % ", ".join(ref(col_k)[0] for _ in streams),
-          "const uint8_t * const bg_level_pal[] = { %s };" % ", ".join(ref(pal_k)[0] for _ in streams), ""]
-    # their banks: in bg_level_tables.h (a BANK() initializer has to be static there)
-    L[L.index("#endif") - 1:L.index("#endif") - 1] = (
-        ["// banks of bg_level_mt / bg_level_col / bg_level_pal (bg_level_lists.c), entry k at [k + 1]:",
-         "// SDCC only takes BANK() in an initializer whose first element is a plain constant"] +
-        ["BANKREF_EXTERN(bg_level_mt_%d)" % f for f in range(len(files))] +
-        ["static const uint8_t bg_level_mt_bank[1 + 2 * BG_LEVEL_COUNT] = { 0, %s };" % ", ".join(ref(b_)[1] for pair in mt_k for b_ in pair),
-         "static const uint8_t bg_level_col_bank[1 + BG_LEVEL_COUNT] = { 0, %s };" % ", ".join(ref(col_k)[1] for _ in streams),
-         "static const uint8_t bg_level_pal_bank[1 + BG_LEVEL_COUNT] = { 0, %s };" % ", ".join(ref(pal_k)[1] for _ in streams)])
-    (ROOT / "src" / "graphics" / "bg_level_tables.h").write_text("\n".join(L), encoding="utf-8")
-    (ROOT / "src" / "graphics" / "bg_level_lists.c").write_text("\n".join(C), encoding="utf-8")
+    C += ["const uint8_t * const bg_level_mt[] = { %s };" % ", ".join(ref(L_["k"][p])[0] for L_ in levels for p in (0, 1)),
+          "const uint8_t * const bg_level_col[] = { %s };" % ", ".join(ref(L_["k"][2])[0] for L_ in levels),
+          "const uint8_t * const bg_level_pal[] = { %s };" % ", ".join(ref(L_["k"][3])[0] for L_ in levels), ""]
+    C += ["// Per level sheets (bg_sheet_<level>.c): entry 2 * level is the CGB sheet, 2 * level + 1 the",
+          "// DMG one (BG_BASE_TILE_COUNT tiles normal, then mirrored)"]
+    C += ["extern const uint8_t bg_sheet_%s_cgb[], bg_sheet_%s_dmg[];" % (L_["name"], L_["name"]) for L_ in levels]
+    C += ["const uint8_t * const bg_level_sheet[] = { %s };" % ", ".join(
+        "bg_sheet_%s_cgb, bg_sheet_%s_dmg" % (L_["name"], L_["name"]) for L_ in levels), ""]
+    # the banks: here in the header (SDCC only takes BANK() in an initializer whose first element
+    # is a plain constant, and only in a static one: entry k at [k + 1])
+    H += ["// banks of bg_level_mt / bg_level_col / bg_level_pal / bg_level_sheet (bg_level_lists.c), entry k",
+          "// at [k + 1]: SDCC only takes BANK() in an initializer whose first element is a plain constant"]
+    H += ["BANKREF_EXTERN(bg_level_mt_%d)" % f for f in range(len(files))]
+    H += ["BANKREF_EXTERN(bg_sheet_%s)" % L_["name"] for L_ in levels]
+    H += ["static const uint8_t bg_level_mt_bank[1 + 2 * BG_LEVEL_COUNT] = { 0, %s };" % ", ".join(
+              ref(L_["k"][p])[1] for L_ in levels for p in (0, 1)),
+          "static const uint8_t bg_level_col_bank[1 + BG_LEVEL_COUNT] = { 0, %s };" % ", ".join(ref(L_["k"][2])[1] for L_ in levels),
+          "static const uint8_t bg_level_pal_bank[1 + BG_LEVEL_COUNT] = { 0, %s };" % ", ".join(ref(L_["k"][3])[1] for L_ in levels),
+          "static const uint8_t bg_level_sheet_bank[1 + 2 * BG_LEVEL_COUNT] = { 0, %s };" % ", ".join(
+              "BANK(bg_sheet_%s), BANK(bg_sheet_%s)" % (L_["name"], L_["name"]) for L_ in levels),
+          "", "#endif", ""]
+    (gfx / "bg_level_tables.h").write_text("\n".join(H), encoding="utf-8")
+    (gfx / "bg_level_lists.c").write_text("\n".join(C), encoding="utf-8")
     (ROOT / "include" / "bg_tiles.h").write_text("\n".join([
         "/* Generated by tools/build_bg_tiles.py - do not edit */",
         "#ifndef BG_TILES_H", "#define BG_TILES_H", "",
-        "// Tiles in levels/chr_data/bg_base_tiles.bin (VRAM tiles 0..BG_BASE_TILE_COUNT-1)",
-        "#define BG_BASE_TILE_COUNT %d" % len(section["BASE"]), "", "#endif", ""]), encoding="utf-8")
-    print("bg_tiles.png: %d base tiles, %d extra tiles, %d levels" % (len(section["BASE"]), k, len(streams)))
+        "// Tiles in a level's sheet (VRAM tiles 0..BG_BASE_TILE_COUNT-1)",
+        "#define BG_BASE_TILE_COUNT %d" % SHEET_TILES, "", "#endif", ""]), encoding="utf-8")
+    print("%d levels, %d table blobs, %d extra tiles" % (len(levels), len(blobs), n_extra))
 
 
 if __name__ == "__main__":

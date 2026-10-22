@@ -1,6 +1,8 @@
-"""One-time generator of the object catalog from today's Famidash based data.
+"""One-time generator of the object catalog from the Famidash based data (run 2026-10-22).
 
-    python tools/make_object_catalog.py
+It needs tools/build_bg_tiles.py as it was before the catalog took over (commit 8c739e1: the
+LAYOUT it recorded per level); kept for reference. levels/objects/ is now edited in Tiled and
+image editors, not regenerated.
 
 Every object a level can show (a Famidash metatile as it looks in that level: its CGB art,
 DMG art, CGB palette and collision) becomes one tile of a Tiled tileset:

@@ -2,7 +2,7 @@
 #ifndef BG_TILES_H
 #define BG_TILES_H
 
-// Tiles in levels/chr_data/bg_base_tiles.bin (VRAM tiles 0..BG_BASE_TILE_COUNT-1)
+// Tiles in a level's sheet (VRAM tiles 0..BG_BASE_TILE_COUNT-1)
 #define BG_BASE_TILE_COUNT 160
 
 #endif

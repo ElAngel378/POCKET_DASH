@@ -159,12 +159,13 @@ def export_binary_map(tmx_path, out_bin_path):
     raw_tiles = [int(x.strip()) for x in csv_text.split(',') if x.strip()]
 
     # A level using the object catalog (levels/objects/objects.tsx): a cell's map byte is its
-    # object's id in the level, for now its famidash_id (tools/objects_catalog.py)
+    # object's id in the level (tools/objects_catalog.py assign_level_ids)
     to_id = lambda tid: tid - 1
-    if any('objects.tsx' in (ts.get('source') or '') for ts in root.findall('tileset')):
-        from objects_catalog import load_catalog
-        objects = load_catalog().objects
-        to_id = lambda tid: objects[(tid & 0x0FFFFFFF) - 1]['famidash_id']
+    from objects_catalog import load_catalog, tmx_level_objects, assign_level_ids
+    tids = tmx_level_objects(tmx_path)
+    if tids is not None:
+        ids = assign_level_ids(load_catalog(), tids)
+        to_id = lambda tid: ids[(tid & 0x0FFFFFFF) - 1]
 
     grid = []
     for y in range(height):
