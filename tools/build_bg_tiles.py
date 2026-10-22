@@ -166,6 +166,29 @@ def mirrored_bytes(data):
     return bytes(rev(b) for b in data)
 
 
+def vflipped_bytes(data):
+    """2bpp tile data mirrored top / bottom"""
+    return b"".join(data[r * 2:r * 2 + 2] for r in range(7, -1, -1))
+
+
+# CGB attribute flip bits, as the flip table stores them per quarter (2 bits: X, Y)
+FLIP_X, FLIP_Y = 1, 2
+
+
+def canonical(data):
+    """(the tile data a CGB sheet holds for data, its flips: data is that tile shown with them):
+    one tile for all 4 flipped copies"""
+    h = mirrored_bytes(data)
+    v = vflipped_bytes(data)
+    hv = vflipped_bytes(h)
+    best = min(data, h, v, hv)
+    return best, (0 if best == data else FLIP_X if best == h else FLIP_Y if best == v else FLIP_X | FLIP_Y)
+
+
+# Ground look metatiles: the engine draws them from the ground strip, not from their tiles (no flips)
+GROUND_LOOK_MTS = {1, 2, 5, 6, 136, 137}
+
+
 def level_objects(name, cat):
     """level id -> catalog object of the level (its TMX's map layer, tools/objects_catalog.py)"""
     tids = tmx_level_objects(ROOT / "levels" / "chr_data" / "tmx" / ("%s.tmx" % name))
@@ -268,8 +291,15 @@ def main():
                     q[(m, i)] = ("saw", saw) if saw is not None else gb_bytes(art[i])
             return q
 
-        # CGB: saw quarters are drawn from VRAM bank 1 (the table entry is not used)
+        # CGB: saw quarters are drawn from VRAM bank 1 (the table entry is not used). A tile and its
+        # flipped copies are one sheet tile: the quarter's flips (attributes) are in the level's
+        # flip table, 2 bits per quarter (bits 2q, 2q + 1: X, Y), 1 byte per metatile
         cq = quarters(False)
+        cflip = bytearray(256)
+        for (m, i), d in list(cq.items()):
+            if d[0] != "saw" and m not in GROUND_LOOK_MTS:
+                cq[(m, i)], f = canonical(d)
+                cflip[m] |= f << (2 * i)
         cslot = allocate([d for d in cq.values() if d[0] != "saw"], CGB_SLOTS, "%s (CGB)" % name)
         cgb_sheet = [bytes(16)] * SHEET_TILES
         for d, s in cslot.items():
@@ -309,7 +339,7 @@ def main():
         levels.append(dict(lv=lv, name=name, cgb=stream(cgb_loads), dmg=stream(dmg_loads),
                            big_saw=big_saw, saws=any(m in saw_mts for m in level_mts),
                            saw_set=int(any(cat.objects[objs[m]]["name"].startswith("1.6_SAW") for m in mts)),
-                           cgb_mt=bytes(cgb_mt), dmg_mt=bytes(dmg_mt), col=bytes(col), pal=bytes(pal),
+                           cgb_mt=bytes(cgb_mt), dmg_mt=bytes(dmg_mt), col=bytes(col), pal=bytes(pal), flip=bytes(cflip),
                            cgb_sheet=b"".join(cgb_sheet), dmg_sheet=b"".join(dmg_sheet + dmg_rev),
                            rest=rest))
         shared = sum(1 for s in saw_slot.values() if s >= SHEET_TILES)
@@ -378,6 +408,7 @@ def main():
           "extern const uint8_t * const bg_level_mt[];",
           "extern const uint8_t * const bg_level_col[];",
           "extern const uint8_t * const bg_level_pal[];",
+          "extern const uint8_t * const bg_level_flip[];",
           "extern const uint8_t * const bg_level_sheet[];",
           "#define BG_LEVEL_COUNT %d" % len(levels),
           "#define SAW_CENTER_MT %d" % SAW_CENTER_MT,
@@ -428,7 +459,7 @@ def main():
             blobs.append(data)
         return blob_of[data]
     for L_ in levels:
-        L_["k"] = (blob(L_["cgb_mt"]), blob(L_["dmg_mt"]), blob(L_["col"]), blob(L_["pal"]))
+        L_["k"] = (blob(L_["cgb_mt"]), blob(L_["dmg_mt"]), blob(L_["col"]), blob(L_["pal"]), blob(L_["flip"]))
     files, size = [[]], 0
     for b_, data in enumerate(blobs):
         if size + len(data) > 16000:
@@ -455,7 +486,9 @@ def main():
     C += ["extern const uint8_t bg_level_blob_%d[];" % b_ for b_ in range(len(blobs))]
     C += ["const uint8_t * const bg_level_mt[] = { %s };" % ", ".join(ref(L_["k"][p])[0] for L_ in levels for p in (0, 1)),
           "const uint8_t * const bg_level_col[] = { %s };" % ", ".join(ref(L_["k"][2])[0] for L_ in levels),
-          "const uint8_t * const bg_level_pal[] = { %s };" % ", ".join(ref(L_["k"][3])[0] for L_ in levels), ""]
+          "const uint8_t * const bg_level_pal[] = { %s };" % ", ".join(ref(L_["k"][3])[0] for L_ in levels),
+          "// CGB: per metatile the flips of its 4 quarters (2 bits each: X, Y), see build_mt_rows",
+          "const uint8_t * const bg_level_flip[] = { %s };" % ", ".join(ref(L_["k"][4])[0] for L_ in levels), ""]
     C += ["// Per level sheets (bg_sheet_<level>.c): entry 2 * level is the CGB sheet, 2 * level + 1 the",
           "// DMG one (BG_BASE_TILE_COUNT tiles normal, then mirrored)"]
     C += ["extern const uint8_t bg_sheet_%s_cgb[], bg_sheet_%s_dmg[];" % (L_["name"], L_["name"]) for L_ in levels]
@@ -471,6 +504,7 @@ def main():
               ref(L_["k"][p])[1] for L_ in levels for p in (0, 1)),
           "static const uint8_t bg_level_col_bank[1 + BG_LEVEL_COUNT] = { 0, %s };" % ", ".join(ref(L_["k"][2])[1] for L_ in levels),
           "static const uint8_t bg_level_pal_bank[1 + BG_LEVEL_COUNT] = { 0, %s };" % ", ".join(ref(L_["k"][3])[1] for L_ in levels),
+          "static const uint8_t bg_level_flip_bank[1 + BG_LEVEL_COUNT] = { 0, %s };" % ", ".join(ref(L_["k"][4])[1] for L_ in levels),
           "static const uint8_t bg_level_sheet_bank[1 + 2 * BG_LEVEL_COUNT] = { 0, %s };" % ", ".join(
               "BANK(bg_sheet_%s), BANK(bg_sheet_%s)" % (L_["name"], L_["name"]) for L_ in levels),
           "", "#endif", ""]

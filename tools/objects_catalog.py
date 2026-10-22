@@ -161,7 +161,10 @@ def write_preview():
             if col in cols_:
                 for x in range(16):
                     px[ox + x, oy + edge] = ONE_SIDED_MARK
-    out.save(PREVIEW)
+    try:
+        out.save(PREVIEW)
+    except OSError as e:   # open in another program (Tiled): the preview just stays as it was
+        print("warning: could not write %s (%s)" % (PREVIEW.name, e))
     tsx = TSX.read_text(encoding="utf-8")
     new = re.sub(r'tilecount="\d+"', 'tilecount="%d"' % (cols * rows), tsx, count=1)
     new = re.sub(r'<image source="[^"]*" width="\d+" height="\d+"/>',
@@ -199,4 +202,7 @@ def write_sprite_preview():
         img.paste(cell, (ox, oy))
         draw.line((ox + 2, oy + 2, ox + 13, oy + 13), fill=(255, 40, 40, 255))
         draw.line((ox + 13, oy + 2, ox + 2, oy + 13), fill=(255, 40, 40, 255))
-    img.save(SPRITES_PREVIEW)
+    try:
+        img.save(SPRITES_PREVIEW)
+    except OSError as e:
+        print("warning: could not write %s (%s)" % (SPRITES_PREVIEW.name, e))

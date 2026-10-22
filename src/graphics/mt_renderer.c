@@ -254,6 +254,38 @@ static void level_table(uint8_t *dst, const uint8_t * const *ptrs, const uint8_t
     fur_copy_banked(dst, src, size, banks[k + 1u]);
 }
 
+// CGB: the level's flip table (tools/build_bg_tiles.py bg_level_flip): per metatile the X / Y
+// flips of its 4 quarters, 2 bits each (bits 2q, 2q + 1). A sheet tile is shown flipped where the
+// level uses a flipped copy of it. It lives in scratch_buf while a level is played (nothing else
+// uses it then; level loading does, so apply_level_bg_tiles loads it last).
+#define mt_flips scratch_buf
+static uint8_t mt_has_flips;           // the level has flipped quarters
+
+static void load_flips(uint8_t level) {
+    level_table(mt_flips, bg_level_flip, bg_level_flip_bank, level, 256);
+    uint8_t n = 0, any = 0;
+    do { any |= mt_flips[n]; } while (++n);
+    mt_has_flips = any;
+}
+
+// The flips of metatile id's quarters in the order its tiles are drawn (mirrored view: the left
+// and right quarters swapped), as attribute bits 0x20 (X) / 0x40 (Y) for quarters 0..3 in turn
+static uint8_t flips_of(uint8_t id, uint8_t reversed) {
+    uint8_t m = mt_flips[id];
+    if (reversed && m) m = (uint8_t)(((m & 0x33u) << 2) | ((m & 0xCCu) >> 2));
+    return m;
+}
+
+// Applies the flips to 4 quarters' attributes, which are a apart (1 or 16): the parallax ones
+// (0x0B, the transparent tile) are never flipped
+static void apply_flips(uint8_t *attr, uint8_t m, uint8_t step2) {
+    for (uint8_t q = 0; q < 4; q++) {
+        uint8_t *a = attr + ((q & 1u) ? 1u : 0u) + ((q & 2u) ? step2 : 0u);
+        if (*a != 0x0B) *a ^= (uint8_t)((m & 3u) << 5);
+        m >>= 2;
+    }
+}
+
 static void bm_info_build(uint8_t level);
 
 // Called after load_level_bg_sheet (display off). level: game_levels index.
@@ -296,6 +328,7 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
                 }
             }
         }
+        if (cgb) load_flips(level);   // scratch_buf: menus may have used it
         return;
     }
     ll_open(level, !cgb);
@@ -339,6 +372,9 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     // CGB: the saws just loaded from bg_extra_tiles are the DMG version (outlined); stream
     // frame 0 of the CGB art (saw_anim_tiles) right away
     if (cgb && saw_on) saw_pos = 0;
+    // after the load list (ll_open reads it through scratch_buf)
+    mt_has_flips = 0;
+    if (cgb) load_flips(level);
     // The level's tables only depend on the level: a mirror portal or a respawn keeps them
     if (mt_ram_level == level) return;
     mt_ram_level = level;
@@ -722,6 +758,12 @@ static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, ui
     }
     bm_saw = 0;
     build_rows_cgb_asm();
+    if (mt_has_flips) {
+        for (uint8_t r = r_start; r < r_end; r++) {
+            uint8_t m = flips_of(ids[r], reversed);
+            if (m) apply_flips(out + BKG_MT_H * 4 + (r << 2), m, 2);
+        }
+    }
 
     // The ground row (below the map) shows the ground strip
     uint8_t gr = (uint8_t)(GROUND_ROW & 15u);
@@ -1105,6 +1147,12 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
     rt_r0 = r0;
     rt_pf = (reversed && mt_cgb_flip) ? 0x20 : 0;
     row_tiles_cgb();
+    if (mt_has_flips) {
+        for (uint8_t i = 0; i < n; i++) {
+            uint8_t m = flips_of(rt_ids[i], reversed);
+            if (m) apply_flips(&row_attrs[0][i << 1], m, sizeof(row_attrs[0]));
+        }
+    }
     // saw parts and the ground look metatiles: from the plain tiles just built
     for (uint8_t i = 0; i < n; i++) {
         uint8_t mt_id = rt_ids[i];

@@ -43,8 +43,8 @@ COLLISION = {
     "COL_EA_CORNER_INSIDE_SLAB_TOP_LEFT": COL_BOX_BASE + 16, "COL_EA_CORNER_INSIDE_SLAB_TOP_RIGHT": COL_BOX_BASE + 17,
     "COL_EA_CORNER_INSIDE_SLAB_BOTTOM_LEFT": COL_BOX_BASE + 18, "COL_EA_CORNER_INSIDE_SLAB_BOTTOM_RIGHT": COL_BOX_BASE + 19,
 }
-# The Electroman ball rails (1.6_EA_*): no art of ours yet, GDA's art converted to 4 colours as a
-# placeholder (outline white -> 3, its light blues -> 1, its dark blues -> 2, background -> 0)
+# The Electroman ball rails (1.6_EA_*): GDA's art converted to 4 colours
+# (outline white -> 3, its light blues -> 1, its dark blues -> 2, background -> 0)
 RAILS = re.compile(r"1\.6_EA_\w+")
 # Pieces of 1_6 objects.chr GDA has outside its 1.6 set: (GDA name, piece, h flip, v flip, collision)
 COL_BREAKABLE = 0x16
@@ -162,7 +162,7 @@ def main():
         new.append((name, col, flip(ours[k], h, v), "%s%s%s" % (k, " H" if h else "", " V" if v else "")))
     for name, tiles, col in gda_metatiles():
         if RAILS.fullmatch(name) and col in COLLISION:
-            new.append((name, COLLISION[col], gda_rail_art(tiles, chr_, pal), "GDA art (placeholder)"))
+            new.append((name, COLLISION[col], gda_rail_art(tiles, chr_, pal), "GDA art"))
     new = [n for n in new if n[0] not in have]
     if not new:
         raise SystemExit("nothing new to add")
