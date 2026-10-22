@@ -17,6 +17,8 @@
 
 static uint8_t _prev_map_bank;
 
+uint8_t level_mt_col[256];   // collision.h
+
 void col_at_begin(uint8_t map_bank) {
     if (_current_bank == map_bank) {
         _prev_map_bank = 0xFF;
@@ -49,7 +51,7 @@ uint8_t col_at_raw(
 
 uint8_t col_at_raw_cached(const uint8_t *col_ptr, uint16_t world_py) {
     uint8_t py8 = (uint8_t)world_py;
-    uint8_t col = famidash_metatile_collision[col_ptr[py8 >> 4]];
+    uint8_t col = level_mt_col[col_ptr[py8 >> 4]];
     uint8_t inner_y = py8 & 0x0F;
 
     if (col == COL_TOP) {

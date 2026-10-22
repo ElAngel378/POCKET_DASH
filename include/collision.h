@@ -55,9 +55,11 @@
 
 #define IS_PASSTHROUGH(col) ((col) == COL_NONE)
 
-extern const uint8_t famidash_metatile_collision[256];
+// The level's collision type per metatile (its own table: tools/build_bg_tiles.py bg_level_col,
+// copied here by apply_level_bg_tiles)
+extern uint8_t level_mt_col[256];
 
-#define col_of(tile_id) (famidash_metatile_collision[(tile_id)])
+#define col_of(tile_id) (level_mt_col[(tile_id)])
 
 struct hUGESong_t;
 

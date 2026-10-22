@@ -50,6 +50,9 @@ static const uint8_t saw_mt_tiles[SAW_MT_COUNT][4] = {
 BANKREF_EXTERN(bg_level_lists)
 extern const uint8_t * const bg_level_lists[];
 extern const uint16_t bg_level_list_len[];
+extern const uint8_t * const bg_level_mt[];
+extern const uint8_t * const bg_level_col[];
+extern const uint8_t * const bg_level_pal[];
 #define BG_LEVEL_COUNT 22
 #define SAW_CENTER_MT 120
 // Saw animation: frame f of the saw tiles is bg_extra_tiles tile saw_frame_first[f] + 0..SAW_TILES-1
@@ -76,5 +79,11 @@ static const uint8_t bg_sheet_rest_clutterfunk[] = { 3, 224, 1, 50, 225, 1, 51, 
 static const uint8_t * const bg_dmg_sheet_rest[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, bg_sheet_rest_timemachine, bg_sheet_rest_cycles, 0, bg_sheet_rest_clutterfunk, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 static const uint8_t * const bg_dmg_sheet[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, bg_sheet_timemachine, bg_sheet_cycles, 0, bg_sheet_clutterfunk, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 static const uint8_t bg_dmg_sheet_bank[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, BANK(bg_sheet_timemachine), BANK(bg_sheet_cycles), 0, BANK(bg_sheet_clutterfunk), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+// banks of bg_level_mt / bg_level_col / bg_level_pal (bg_level_lists.c), entry k at [k + 1]:
+// SDCC only takes BANK() in an initializer whose first element is a plain constant
+BANKREF_EXTERN(bg_level_mt_0)
+static const uint8_t bg_level_mt_bank[1 + 2 * BG_LEVEL_COUNT] = { 0, BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0) };
+static const uint8_t bg_level_col_bank[1 + BG_LEVEL_COUNT] = { 0, BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0) };
+static const uint8_t bg_level_pal_bank[1 + BG_LEVEL_COUNT] = { 0, BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0), BANK(bg_level_mt_0) };
 
 #endif

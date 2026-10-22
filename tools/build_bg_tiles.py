@@ -205,6 +205,11 @@ def runs(slots, first_src, only=None):
     return out
 
 
+# Per level layout, filled by main() for other tools (tools/make_object_catalog.py): level name ->
+# its loads, moves, fake spike tiles and final metatile tables; "_" -> the shared tile data
+LAYOUT = {}
+
+
 def main():
     all_tiles = read_png()
     section = {}
@@ -246,11 +251,28 @@ def main():
     a = src.index("const uint8_t metatiles[FAMIDASH_NUM_METATILES][4]")
     sheet_mt = [list(map(int, m)) for m in re.findall(r'\{ (\d+), (\d+), (\d+), (\d+) \}', src[a:src.index("};", a)])]
 
-    def stream(loads, moves, fakes, overrides):
+    def table(name):
+        a = src.index(name)
+        return list(map(int, re.findall(r'\d+', src[src.index("{", a):src.index("};", a)])))
+    mt_col = table("famidash_metatile_collision[FAMIDASH_NUM_METATILES]")
+    mt_pal = table("famidash_metatile_palettes[FAMIDASH_NUM_METATILES]")
+    assert len(sheet_mt) == len(mt_col) == len(mt_pal) == 256
+
+    def level_table(moves, overrides):
+        """The level's metatile table as apply_level_bg_tiles loads it: the sheet tiles, moved
+        ones at their new slot, then the overrides"""
+        xlat = list(range(256))
+        for dst, src_ in moves:
+            xlat[src_] = dst
+        t = [[xlat[q] for q in m] for m in sheet_mt]
+        for m, q, tile in overrides:
+            t[m][q] = tile
+        return bytes(v for m in t for v in m)
+
+    def stream(loads, moves, fakes):
         data = [len(loads)] + [v for l in loads for v in l]
         data += [len(moves)] + [v for m in moves for v in m]
         data += [len(fakes)] + [v for f in fakes for v in f]
-        data += [len(overrides)] + [v for o in overrides for v in o]
         return data
 
     def has_mirror_portal(name):
@@ -259,6 +281,8 @@ def main():
 
     base = [gb_bytes(t) for t in section["BASE"]]
     base_rev = [gb_bytes(mirrored(t)) for t in section["BASE"]]
+    LAYOUT["_"] = dict(base=base, extra=extra, first=first, section=section, cgb_saws=cgb_saws,
+                       sheet_mt=sheet_mt, mt_col=mt_col, mt_pal=mt_pal)
 
     def bake(loads, moves, fakes, rev):
         """The DMG sheet (slots 0..159) after apply_level_bg_tiles: BASE, the loads, the moves,
@@ -304,7 +328,9 @@ def main():
             overrides += SPIKES_B_OVERRIDES
         if sets.get("spikes") == "C":
             loads += [(0, d, n, s) for d, n, s in runs(SPIKES_C_SLOTS, first["SPIKES_C"])]
-        cgb = stream(loads, [], [], overrides)
+        cgb = stream(loads, [], [])
+        cgb_mt = level_table([], overrides)
+        cgb_loads = loads
 
         # DMG
         loads = []
@@ -363,13 +389,17 @@ def main():
             loads.append((0, saw_slot[k_], 1, first["SAWS_0"] + k_))
         overrides += [(m, q, saw_slot[saw_mts[m][q]]) for m in sorted(level_mts) if m in saw_mts
                       for q in range(4) if saw_mts[m][q] is not None]
-        dmg = stream(loads, moves, fakes, overrides)
+        dmg = stream(loads, moves, fakes)
+        dmg_mt = level_table(moves, overrides)
+        LAYOUT[name] = dict(cgb_loads=cgb_loads, dmg_loads=loads, moves=moves, fakes=fakes,
+                            cgb_mt=cgb_mt, dmg_mt=dmg_mt, saw_mts=saw_mts, sets=sets,
+                            mts=level_mts)
         if mirror and (moves or fakes or any(d < len(base) for _, d, _, _ in loads)):
             sheets[name] = bake(loads, moves, fakes, False) + bake(loads, moves, fakes, True)
             # the loads the sheet does not hold (saws in sprite slots): a mirror portal still
             # loads these one by one
             sheet_rest[name] = [v for _, d, n, f in loads if d + n > len(base) for v in (d, n, f)]
-        streams.append((lv, name, cgb, dmg, big_saw, any(m in saw_mts for m in level_mts)))
+        streams.append((lv, name, cgb, dmg, big_saw, any(m in saw_mts for m in level_mts), cgb_mt, dmg_mt))
         if moves or saw_slot or fakes:
             shared = sum(1 for s in saw_slot.values() if s >= DMG_BG_SLOTS)
             print("DMG %-20s %d tiles moved above slot %d, %d fake spike tiles, %d saw tiles (%d in sprite tiles), %d free slots left"
@@ -425,6 +455,9 @@ def main():
           "BANKREF_EXTERN(bg_level_lists)",
           "extern const uint8_t * const bg_level_lists[];",
           "extern const uint16_t bg_level_list_len[];",
+          "extern const uint8_t * const bg_level_mt[];",
+          "extern const uint8_t * const bg_level_col[];",
+          "extern const uint8_t * const bg_level_pal[];",
           "#define BG_LEVEL_COUNT %d" % len(streams),
           "#define SAW_CENTER_MT %d" % SAW_CENTER_MT,
           "// Saw animation: frame f of the saw tiles is bg_extra_tiles tile saw_frame_first[f] + 0..SAW_TILES-1",
@@ -460,9 +493,8 @@ def main():
          "// Per level load lists:",
          "//   n, n x (VRAM bank (bit 7: never mirrored), slot, count, first bg_extra_tiles tile)",
          "//   n, n x (slot, sheet tile)   sheet tiles moved to another slot (DMG)",
-         "//   n, n x (slot, sheet tile)   fake spike tiles: the sheet tile, colour 3 -> 2 (DMG)",
-         "//   n, n x (metatile, quarter, tile)"]
-    for lv, name, cgb, dmg, _, _ in streams:
+         "//   n, n x (slot, sheet tile)   fake spike tiles: the sheet tile, colour 3 -> 2 (DMG)"]
+    for lv, name, cgb, dmg, *_ in streams:
         C.append("static const uint8_t bg_cgb_%s[] = { %s };" % (name, ", ".join(map(str, cgb))))
         C.append("static const uint8_t bg_dmg_%s[] = { %s };" % (name, ", ".join(map(str, dmg))))
     C += ["", "const uint8_t * const bg_level_lists[] = {"]
@@ -470,6 +502,58 @@ def main():
     C += ["};", "const uint16_t bg_level_list_len[] = {"]
     C += ["    %d, %d," % (len(st[2]), len(st[3])) for st in streams]
     C += ["};", ""]
+
+    # Per level tables (bg_level_mt_*.c, deduplicated): the metatile table (256 x 4 tiles) per
+    # platform, the collision table and the CGB palette table. apply_level_bg_tiles copies them to
+    # RAM: the engine has no global metatile tables.
+    blobs, blob_of = [], {}
+
+    def blob(data):
+        if data not in blob_of:
+            blob_of[data] = len(blobs)
+            blobs.append(data)
+        return blob_of[data]
+    col_k, pal_k = blob(bytes(mt_col)), blob(bytes(mt_pal))
+    mt_k = [(blob(st[6]), blob(st[7])) for st in streams]
+    files, size = [[]], 0
+    for b_, data in enumerate(blobs):
+        if size + len(data) > 16000:
+            files.append([])
+            size = 0
+        files[-1].append(b_)
+        size += len(data)
+    file_of = {b_: f for f, bs in enumerate(files) for b_ in bs}
+    for old in gfx.glob("bg_level_mt_*.c"):
+        old.unlink()
+    for f, bs in enumerate(files):
+        F = ["/* Generated by tools/build_bg_tiles.py - do not edit */",
+             "#pragma bank 255", "#include <gbdk/platform.h>", "#include <stdint.h>", "",
+             "BANKREF(bg_level_mt_%d)" % f, ""]
+        for b_ in bs:
+            F.append("const uint8_t bg_level_blob_%d[%d] = {" % (b_, len(blobs[b_])))
+            for r in range(0, len(blobs[b_]), 32):
+                F.append("    " + ", ".join(str(v) for v in blobs[b_][r:r + 32]) + ",")
+            F.append("};")
+        (gfx / ("bg_level_mt_%d.c" % f)).write_text("\n".join(F + [""]), encoding="utf-8")
+
+    def ref(b_):
+        return "bg_level_blob_%d" % b_, "BANK(bg_level_mt_%d)" % file_of[b_]
+    C += ["// Per level tables (bg_level_mt_*.c): entry 2 * level is the CGB metatile table, 2 * level + 1",
+          "// the DMG one; then per level its collision and CGB palette tables"]
+    C += ["BANKREF_EXTERN(bg_level_mt_%d)" % f for f in range(len(files))]
+    C += ["extern const uint8_t bg_level_blob_%d[];" % b_ for b_ in range(len(blobs))]
+    C += ["const uint8_t * const bg_level_mt[] = { %s };" % ", ".join(ref(b_)[0] for pair in mt_k for b_ in pair),
+          "const uint8_t * const bg_level_col[] = { %s };" % ", ".join(ref(col_k)[0] for _ in streams),
+          "const uint8_t * const bg_level_pal[] = { %s };" % ", ".join(ref(pal_k)[0] for _ in streams), ""]
+    # their banks: in bg_level_tables.h (a BANK() initializer has to be static there)
+    L[L.index("#endif") - 1:L.index("#endif") - 1] = (
+        ["// banks of bg_level_mt / bg_level_col / bg_level_pal (bg_level_lists.c), entry k at [k + 1]:",
+         "// SDCC only takes BANK() in an initializer whose first element is a plain constant"] +
+        ["BANKREF_EXTERN(bg_level_mt_%d)" % f for f in range(len(files))] +
+        ["static const uint8_t bg_level_mt_bank[1 + 2 * BG_LEVEL_COUNT] = { 0, %s };" % ", ".join(ref(b_)[1] for pair in mt_k for b_ in pair),
+         "static const uint8_t bg_level_col_bank[1 + BG_LEVEL_COUNT] = { 0, %s };" % ", ".join(ref(col_k)[1] for _ in streams),
+         "static const uint8_t bg_level_pal_bank[1 + BG_LEVEL_COUNT] = { 0, %s };" % ", ".join(ref(pal_k)[1] for _ in streams)])
+    (ROOT / "src" / "graphics" / "bg_level_tables.h").write_text("\n".join(L), encoding="utf-8")
     (ROOT / "src" / "graphics" / "bg_level_lists.c").write_text("\n".join(C), encoding="utf-8")
     (ROOT / "include" / "bg_tiles.h").write_text("\n".join([
         "/* Generated by tools/build_bg_tiles.py - do not edit */",

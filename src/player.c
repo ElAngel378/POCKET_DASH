@@ -74,7 +74,7 @@ static inline uint8_t inline_col_at(const uint8_t* col_ptr, int16_t y, uint8_t x
         return (y < 0) ? COL_NONE : COL_ALL;
     }
     uint8_t py8 = (uint8_t)y;
-    uint8_t col = famidash_metatile_collision[col_ptr[py8 >> 4]];
+    uint8_t col = level_mt_col[col_ptr[py8 >> 4]];
     // Fast path for the common cases (air, plain spikes, solid blocks)
     if (col < COL_TOP || col == COL_ALL) return col;
     return col_at_partial(col, py8 & 0x0F, xin);
@@ -112,7 +112,7 @@ static uint8_t spike_at(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
     if ((uint16_t)y & 0xFF00) return 0;
     uint8_t py8 = (uint8_t)y;
     uint8_t mt = col_ptr[py8 >> 4];
-    uint8_t col = famidash_metatile_collision[mt];
+    uint8_t col = level_mt_col[mt];
     uint8_t iy = py8 & 0x0F;
     // Pit spikes and background spikes are a row of spikes across the whole metatile: they
     // kill at any x (Famidash: x 5..7 only, so touching them for a frame often did nothing)
@@ -418,10 +418,10 @@ uint8_t player_update(
         int16_t sy1 = (int16_t)py + (mini ? 10 : 14);
         if (!(((uint16_t)sy0 | (uint16_t)sy1) & 0xFF00)) {
             uint8_t r0 = (uint8_t)sy0 >> 4, r1 = (uint8_t)sy1 >> 4;
-            uint8_t k0 = famidash_metatile_collision[c0[r0]];
-            uint8_t k1 = famidash_metatile_collision[c0[r1]];
-            uint8_t k2 = famidash_metatile_collision[c1[r0]];
-            uint8_t k3 = famidash_metatile_collision[c1[r1]];
+            uint8_t k0 = level_mt_col[c0[r0]];
+            uint8_t k1 = level_mt_col[c0[r1]];
+            uint8_t k2 = level_mt_col[c1[r0]];
+            uint8_t k3 = level_mt_col[c1[r1]];
             spike_near = IS_SPIKE_COL(k0) || IS_SPIKE_COL(k1) || IS_SPIKE_COL(k2) || IS_SPIKE_COL(k3);
         }
     }

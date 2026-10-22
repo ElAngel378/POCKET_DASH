@@ -40,6 +40,39 @@ and one ~1000 tile tileset that is always loaded. The GBA has the VRAM for that;
 First milestone: the new pipeline builds every existing level identically (no visual change).
 Only then add the 1.6 art, Clubstep first (the most 1.6 objects), then Electroman Adventures.
 
+## Work stages (branch object-catalog)
+
+### Stage A: per-level tables in the engine (no visual change) - done 2026-10-22
+
+- tools/build_bg_tiles.py bakes every level's final metatile table per platform (DMG tile moves
+  and the saw / spike set / fake spike tile substitutions applied) into src/graphics/
+  bg_level_mt_*.c, deduplicated, plus the collision and CGB palette tables. Pointers per level in
+  bg_level_lists.c, banks in bg_level_tables.h.
+- apply_level_bg_tiles copies the level's metatile table to mt_ram, its collision table to
+  level_mt_col (RAM, replaces mt_xlat: no RAM growth) and builds bm_info from its palette table.
+  The runtime metatile overrides and mt_xlat are gone; the global tables are no longer compiled
+  (bank 0 freed ~1.5 KB). include/famidash_metatiles_dmg.c stays as the tool's input.
+- Engine code still knows some metatile ids (saw parts 0x00..0x0B / 0x74..0x7F / 120, ground
+  looks 1, 2, 5, 6, 136, 137, pit spikes 12, 24): stage B keeps those objects on those ids.
+
+### Stage B: the object catalog (no visual change)
+
+- levels/objects/objects.tsx + objects.png: a Tiled tileset, one 16x16 tile per object, 4 grey
+  levels = colour indices (like bg_tiles.png). Per-tile properties: name, collision, CGB palette,
+  dmg_art (an extra DMG-only tile of the tileset, e.g. outlined saws, set B blocks), dmg_fallback
+  (another object), fixed_id (the engine ids above), saw_part (animated saw objects).
+- Generated once from today's data: every distinct (Famidash metatile, its art in a level) is
+  an object; set B / C levels get their own objects for the same Famidash id.
+- TMX: `<tileset firstgid="1" source="../../objects/objects.tsx"/>`, sprites tileset after the
+  catalog. A one-time converter rewrites the existing TMXs (Famidash gid + the level's sets ->
+  catalog gid).
+- Per-level build: the level's objects get local ids (fixed_id ones first; keeping today's ids
+  where possible keeps the maps byte-identical), their 8x8 tiles are cut from the art, a fully
+  transparent quarter becomes the reserved blank tile 12, duplicates (and, on CGB, flipped
+  copies) are merged, VRAM slots are allocated, and the level's tables + tile loads are written.
+  This replaces the fixed 160-tile sheet + LEVEL_SETS loads.
+- Check: tools/visual_regression.py, every level, DMG and CGB, identical frames.
+
 ## Limits per level (two separate ones)
 
 - Object kinds (metatiles: 16x16 pieces; every orientation, edge and corner variant counts, and on

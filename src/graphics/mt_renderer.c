@@ -22,14 +22,12 @@ BANKREF_EXTERN(saw_anim)
 static uint8_t mt_saws;
 static uint8_t mt_big_saws;   // the level has big saws: SAW_CENTER_MT is their centre
 
-// Metatile tables the renderer uses: the ROM tables, or a per-level copy in WRAM when
-// the level moves sheet tiles or overrides metatile tiles.
-// The metatile tables the renderer reads: mt_ram (built per level by apply_level_bg_tiles), the
-// mirrored one (mt_tab_rev) has each metatile's tiles swapped left / right
-static const uint8_t (*mt_tab)[4] = metatiles;
-static const uint8_t (*mt_tab_rev)[4] = metatiles;
+// The metatile tables the renderer reads: mt_ram, the level's own table (tools/build_bg_tiles.py:
+// bg_level_mt, loaded by apply_level_bg_tiles), and the mirrored one (mt_tab_rev) with each
+// metatile's tiles swapped left / right. There are no global metatile tables.
 static uint8_t mt_ram[2][FAMIDASH_NUM_METATILES][4];
-static uint8_t mt_xlat[256];
+static const uint8_t (*mt_tab)[4] = &mt_ram[0][0];
+static const uint8_t (*mt_tab_rev)[4] = &mt_ram[1][0];
 static uint8_t mt_ram_level = 0xFF;   // level mt_ram was built for (it depends on the level only)
 static uint8_t gnd_tab_key = 0xFF;    // strip column | reversed << 3 the ground looks in mt_ram are for
 
@@ -243,9 +241,19 @@ void load_level_bg_sheet(uint8_t level, uint8_t reversed, const uint8_t *tiles, 
     load_bkg_tileset(tiles, count, bank);
 }
 
+// Copies entry k of a per level table to dst: its pointer in bg_level_lists.c, its bank at
+// banks[k + 1] (bg_level_tables.h)
+static void level_table(uint8_t *dst, const uint8_t * const *ptrs, const uint8_t *banks, uint8_t k, uint16_t size) {
+    const uint8_t *src;
+    fur_copy_banked(&src, &ptrs[k], sizeof(src), BANK(bg_level_lists));
+    fur_copy_banked(dst, src, size, banks[k + 1u]);
+}
+
+static void bm_info_build(uint8_t level);
+
 // Called after load_level_bg_sheet (display off). level: game_levels index.
 void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
-    uint8_t n, n_moves, n_over, buf[16];
+    uint8_t n, n_moves, buf[16];
     uint8_t cgb = (_cpu == CGB_TYPE);
     uint8_t display_off = !(LCDC_REG & LCDCF_ON);
     uint8_t baked = mt_sheet_baked;
@@ -254,9 +262,7 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     mt_big_saws = 0;
     saw_on = 0;
     saw_anim_reset();
-    mt_tab = metatiles;
-    mt_tab_rev = metatiles;   // (no level has no tables: tools/build_bg_tiles.py makes them all)
-    if (level >= BG_LEVEL_COUNT) return;
+    if (level >= BG_LEVEL_COUNT) return;   // (tools/build_bg_tiles.py makes tables for every level)
     mt_big_saws = bg_level_big_saws[level];
     saw_on = bg_level_saws[level];
     saw_reversed = reversed;
@@ -281,8 +287,6 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
                 }
             }
         }
-        mt_tab = mt_ram[0];
-        mt_tab_rev = mt_ram[1];
         return;
     }
     ll_open(level, !cgb);
@@ -328,13 +332,8 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     if (cgb && saw_on) saw_pos = 0;
     n_moves = ll_get();
 
-    // Moved sheet tiles (DMG: out of the coin sprite tiles) -> per-level metatile table. The
-    // table only depends on the level, so a mirror portal or a respawn only moves the tiles again.
-    uint8_t rebuild = (mt_ram_level != level);
-    if (rebuild) {
-        n = 0;
-        do { mt_xlat[n] = n; } while (++n);
-    }
+    // Moved sheet tiles (DMG: out of the coin sprite tiles; the level's metatile table already
+    // points at their new slots)
     for (n = n_moves; n; n--) {
         uint8_t dst = ll_get(), src = ll_get();
         if (baked) {
@@ -345,10 +344,9 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
             get_bkg_data(src, 1, buf);
             set_bkg_data(dst, 1, buf);
         }
-        mt_xlat[src] = dst;
     }
-    // DMG fake spike tiles: a sheet tile with colour 3 turned into 2 (CGB: palette 5); the
-    // overrides point the fake spike metatiles at them
+    // DMG fake spike tiles: a sheet tile with colour 3 turned into 2 (CGB: palette 5); the fake
+    // spike metatiles point at them
     for (n = ll_get(); n; n--) {
         uint8_t dst = ll_get(), src = ll_get();
         if (baked) continue;   // in the sheet
@@ -358,20 +356,12 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
         if (display_off) memcpy(BG_TILE_ADDR(dst), buf, 16);
         else set_bkg_data(dst, 1, buf);
     }
-    n_over = ll_get();
-    mt_tab = mt_ram[0];
-    mt_tab_rev = mt_ram[1];
-    if (!rebuild) return;
+    // The level's tables only depend on the level: a mirror portal or a respawn keeps them
+    if (mt_ram_level == level) return;
     mt_ram_level = level;
-    {
-        const uint8_t *s = &metatiles[0][0];
-        uint8_t *d = &mt_ram[0][0][0];
-        for (uint16_t j = 0; j < FAMIDASH_NUM_METATILES * 4u; j++) d[j] = mt_xlat[s[j]];
-    }
-    for (n = n_over; n; n--) {
-        uint8_t m = ll_get(), q = ll_get();
-        mt_ram[0][m][q] = ll_get();
-    }
+    level_table(&mt_ram[0][0][0], bg_level_mt, bg_level_mt_bank, (uint8_t)((level << 1) | !cgb), sizeof(mt_ram[0]));
+    level_table(level_mt_col, bg_level_col, bg_level_col_bank, level, 256);
+    if (cgb) bm_info_build(level);
     n = 0;
     do {
         // reversed table = each metatile's tiles swapped left/right (mirrored sheet)
@@ -503,7 +493,6 @@ static uint8_t bm_pal, bm_r0cur;
 static uint8_t bm_off[4];           // parallax tile = row base + bm_off[tile of the metatile]
 static uint8_t bm_info[256];        // per metatile: attributes | 0x80 if it is drawn as a saw (C fix-up); 0x10 (a bit
                                     // CGB ignores): never X flipped (ground looks)
-static uint8_t bm_info_key = 0xFF;  // (mt_saws, mt_big_saws, ground looks) bm_info was built for
 static uint8_t bm_saw;              // the asm saw a saw metatile
 static uint8_t bm_flip;             // 0x20 (X flip) in CGB flip mirror mode, else 0
 static uint8_t row_r0[16];          // first parallax tile of each VRAM metatile row (for mt_band)
@@ -702,6 +691,18 @@ static void build_rows_dmg_asm(void) __naked {
     __endasm;
 }
 
+// CGB: bm_info from the level's palette table (apply_level_bg_tiles)
+static void bm_info_build(uint8_t level) {
+    if (!gnd_look_init) gnd_look_setup();
+    level_table(bm_info, bg_level_pal, bg_level_pal_bank, level, 256);
+    uint8_t n = 0;
+    do {
+        if (saw_mt_index[n] && mt_saws && (n != SAW_CENTER_MT || mt_big_saws)) bm_info[n] |= 0x80;
+        // like the ground strip: bank 1, palette 4, never X flipped (+ Y flip on the ceiling)
+        if (gnd_look_tab[n]) bm_info[n] = (gnd_look_tab[n] == 1 + GND_EDGE_BOTTOM) ? 0x5C : 0x1C;
+    } while (++n);
+}
+
 // ids: the column's 16 metatile ids (VRAM rows), out: 64 tile bytes then 64 attribute bytes
 static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, uint8_t reversed, uint8_t r_start, uint8_t r_end) {
     bm_src = ids + r_start;
@@ -726,24 +727,9 @@ static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, ui
         row_r0_band = mt_band;
     }
     bm_r0p = row_r0 + r_start;
-    if (!gnd_look_init) gnd_look_setup();
-    // ground looks only with the RAM table (their tiles are written into it below)
-    uint8_t gnd_on = (&mt_tab[0][0] == &mt_ram[0][0][0]);
-    uint8_t key = (uint8_t)((mt_saws << 1) | mt_big_saws | (gnd_on << 2));
-    if (key != bm_info_key) {
-        uint8_t n = 0;
-        do {
-            uint8_t info = famidash_metatile_palettes[n];
-            if (saw_mt_index[n] && mt_saws && (n != SAW_CENTER_MT || mt_big_saws)) info |= 0x80;
-            // like the ground strip: bank 1, palette 4, never X flipped (+ Y flip on the ceiling)
-            if (gnd_on && gnd_look_tab[n]) info = (gnd_look_tab[n] == 1 + GND_EDGE_BOTTOM) ? 0x5C : 0x1C;
-            bm_info[n] = info;
-        } while (++n);
-        bm_info_key = key;
-    }
     // the ground look metatiles' tiles for this strip column (see gnd_look_tab)
     uint8_t gkey = (uint8_t)(tl_x | (reversed << 3));
-    if (gkey != gnd_tab_key && gnd_on) {
+    if (gkey != gnd_tab_key) {
         const uint32_t *g = gnd_col_tiles[tl_x >> 1];
         uint32_t *t = (uint32_t *)mt_ram[reversed ? 1 : 0];
         t[2] = t[6] = g[GND_FILL];
@@ -989,10 +975,10 @@ static void row_tiles_cgb(void) __naked {
         ld      d, a
         ld      a, (de)
         ld      c, a
-        ; rt_pal = famidash_metatile_palettes[id] | rt_pf
-        add     a, #<_famidash_metatile_palettes
+        ; rt_pal = bm_info[id] | rt_pf (saw parts and ground looks are fixed up in C afterwards)
+        add     a, #<_bm_info
         ld      l, a
-        ld      a, #>_famidash_metatile_palettes
+        ld      a, #>_bm_info
         adc     a, #0
         ld      h, a
         ld      a, (_rt_pf)
@@ -1137,11 +1123,10 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
     rt_pf = (reversed && mt_cgb_flip) ? 0x20 : 0;
     row_tiles_cgb();
     // saw parts and the ground look metatiles: from the plain tiles just built
-    uint8_t ram_tab = (&mt_tab[0][0] == &mt_ram[0][0][0]);
     for (uint8_t i = 0; i < n; i++) {
         uint8_t mt_id = rt_ids[i];
         uint8_t si = saw_mt_index[mt_id];
-        uint8_t look = ram_tab ? gnd_look_tab[mt_id] : 0;
+        uint8_t look = gnd_look_tab[mt_id];
         if (!look && !(si && mt_saws && (mt_id != SAW_CENTER_MT || mt_big_saws))) continue;
         uint8_t slot = first + i;
         if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
