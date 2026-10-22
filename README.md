@@ -75,6 +75,12 @@ The game's music is made in [Furnace](https://github.com/tildearrow/furnace) and
 
 How to add songs and how the driver works: **[docs/MUSIC.md](docs/MUSIC.md)**.
 
+## Making levels
+
+Levels are made in [Tiled](https://www.mapeditor.org/), with Pocket Dash's own object and sprite tilesets (1.5 and 1.6 blocks, slabs, saws, breakable blocks, portals, orbs, pads...).
+
+How to make a level, from an empty map to playing it: **[docs/LEVEL_BUILDING_GUIDE.md](docs/LEVEL_BUILDING_GUIDE.md)**. Adding new objects: [levels/objects/README.md](levels/objects/README.md).
+
 ---
 
 # Development Info
