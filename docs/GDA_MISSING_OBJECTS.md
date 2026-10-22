@@ -10,7 +10,7 @@ colour channel copies and orientations together). Converted levels leave them em
 | GLOW | 61 | 5301 | 13 (GDA only) | COL1_GLOW_BOTTOM, COL1_GLOW_CORNER_IN_BOTTOM_LEFT, COL1_GLOW_CORNER_IN_BOTTOM_RIGHT, ... |
 | + | 121 | 5064 | 9 (clutterfunk) | +_CORNER_TL, +_CORNER_TR, +_FILLER, ... |
 | 19_GRAYSCALE | 37 | 3046 | 8 (GDA only) | 19_GRAYSCALE_1_FULLBLOCK, 19_GRAYSCALE_1_FULLBLOCK_H, 19_GRAYSCALE_1_FULLBLOCK_HV, ... |
-| BLK | 73 | 2949 | 21 (clutterfunk) | BLK_22_DOWN_1, BLK_22_DOWN_2, BLK_22_DOWN_UD_1, ... |
+| BLK | 67 | 2824 | 18 (clutterfunk) | BLK_22_DOWN_1, BLK_22_DOWN_2, BLK_22_DOWN_UD_1, ... |
 | 1.7_PENTAGON | 34 | 2215 | 10 (GDA only) | 1.7_COL1_PENTAGON_DECO_BOT, 1.7_COL1_PENTAGON_DECO_CRN_BL, 1.7_COL1_PENTAGON_DECO_CRN_BR, ... |
 | 3DL | 45 | 1959 | 5 (GDA only) | 3DL_BLK_INTERSECT_OUT_HFLIP_RB, 3DL_BLK_SIDE_MID_FULL_RIGHT, 3DL_BLK_SIDE_MID_FULL_UP, ... |
 | 1.7_LINE | 39 | 1871 | 10 (GDA only) | 1.7_COL1_LINE_4, 1.7_COL1_LINE_DWN, 1.7_COL1_LINE_LFT, ... |
@@ -33,12 +33,11 @@ colour channel copies and orientations together). Converted levels leave them em
 | 3DFILL | 50 | 826 | 7 (GDA only) | 3DFILL_BLK_INTERSECT_OUT_HFLIP_RB, 3DFILL_BLK_INTERSECT_OUT_HVFLIP_RT, 3DFILL_BLK_SIDE_MID_FULL_DOWN, ... |
 | MEDIUM | 5 | 784 | 24 (clubstep, clutterfunk, jumper, stereomadness, theoryofeverything, ultimatedestruction) | COL1_MEDIUM_SPIKE_BOTTOM, COL2_MEDIUM_SPIKE_BOTTOM, COL3_MEDIUM_SPIKE_BOTTOM, ... |
 | CHKRED | 77 | 660 | 10 (GDA only) | CHKRED_22_DOWN_1, CHKRED_22_DOWN_2, CHKRED_22_DOWN_UD_1, ... |
-| CHK | 10 | 658 | 29 (baseafterbase, cantletgo, cycles, dryout, jumper, leveleasy, polargeist, stereomadness, timemachine, ultimatedestruction, xstep) | CHK_CORNER_BL, CHK_DB_CRN_LFT, COL1_CHK_CORNER_BL, ... |
 | 66 | 29 | 652 | 5 (GDA only) | COL1_66_DOWN_2, COL1_66_DOWN_UD_2, COL1_66_UP_1, ... |
 | WAVY | 30 | 612 | 11 (clutterfunk, theoryofeverything, xstep) | WAVY_SLAB_END_BOTTOM, WAVY_SLAB_MIDDLE_BOTTOM, WAVY_SLAB_SINGLE_BOTTOM, ... |
-| BRICKS | 47 | 605 | 15 (clubstep, theoryofeverything) | BRICKS_22_DOWN_1, BRICKS_22_DOWN_2, BRICKS_22_DOWN_UD_1, ... |
 | X | 48 | 480 | 6 (GDA only) | COL1_X_22_DOWN_1, COL1_X_22_DOWN_2, COL1_X_22_DOWN_UD_1, ... |
 | 1.7_BRK | 16 | 443 | 5 (GDA only) | 1.7_LBG_BRK_CENTER_H, 1.7_LBG_BRK_CRN_H_BL, 1.7_LBG_BRK_CRN_H_BR, ... |
+| BRICKS | 37 | 425 | 7 (GDA only) | BRICKS_22_DOWN_1, BRICKS_22_DOWN_2, BRICKS_22_DOWN_UD_1, ... |
 | 1.7_WAVY | 8 | 355 | 5 (GDA only) | 1.7_WAVY_LINE_CRN_BL, 1.7_WAVY_LINE_CRN_BR, 1.7_WAVY_LINE_CRN_TL, ... |
 | 1.7_HEXAGON | 3 | 341 | 3 (GDA only) | 1.7_HEXAGON_DECO_BL, 1.7_HEXAGON_DECO_BR, 1.7_HEXAGON_DECO_H |
 | BLACK | 3 | 314 | 2 (GDA only) | BLACK_DOT, BLACK_GLOW_BOTTOM, BLACK_GLOW_TOP |

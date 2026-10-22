@@ -98,8 +98,72 @@ def gda_map(path):
     return w, h, [[pick(l1[y][x], l2[y][x] if l2 else 0) - 1 for x in range(w)] for y in range(h)]
 
 
+# GDA block sets that are our terrain sets (tools/make_terrain_sets.py): their pieces map by the
+# sides their names say are outlined (air there), which the shared levels cannot always decide
+TERRAIN_SETS = {"CHK": "Checkerboard blocks", "BRICKS": "Checkerboard blocks (set B)",
+                "X": "X blocks", "BLK": "Black blocks"}
+PIECE = re.compile(r"(CHK|BRICKS|X|BLK)_(SIDE_(UP|DOWN|LEFT|RIGHT|TOP|BOTTOM)|CORNER_[TB][LR]|INS_CRN_[TB][LR]|"
+                   r"DB_CRN_(TOP|BOT|LFT|RGT)|DB_SIDE_[HV]|FULL|FILLER)")
+
+
+def name_air(name):
+    """The sides a block set piece's name says are air (outlined), as a set of T, B, L, R; DB_SIDE_H
+    gives both readings ("TB" or "LR"): GDA's sets do not agree on it"""
+    rest = name.split("_", 1)[1]
+    side = {"UP": "T", "TOP": "T", "DOWN": "B", "BOTTOM": "B", "BOT": "B", "LEFT": "L", "LFT": "L",
+            "RIGHT": "R", "RGT": "R"}
+    if rest.startswith("SIDE_"):
+        return [{side[rest[5:]]}]
+    if rest.startswith("CORNER_"):
+        return [set(rest[7:])]
+    if rest.startswith("DB_CRN_"):
+        open_side = {"T": "B", "B": "T", "L": "R", "R": "L"}[side[rest[7:]]]
+        return [set("TBLR") - {open_side}]
+    if rest.startswith("DB_SIDE_"):
+        return [{"T", "B"}, {"L", "R"}]
+    return [set("TBLR")] if rest == "FULL" else [set()]
+
+
+def gda_terrains():
+    """{GDA metatile name: wangid} of the pieces of TERRAIN_SETS, read from GDA's art (white = the
+    outline) like tools/make_terrain_sets.py reads ours: GDA's names are not consistent (its black
+    blocks' DB_SIDE_H / V are the other way round from its checkerboards')"""
+    import import_gda_16
+    import make_terrain_sets
+    chr_ = (GDA / "graphics" / "tileset.chr").read_bytes()
+    pal = (GDA / "graphics" / "tileset.pal").read_bytes()
+    out = {}
+    for name, tiles, _ in import_gda_16.gda_metatiles():
+        if not PIECE.fullmatch(name):
+            continue
+        px = import_gda_16.gda_art(tiles, chr_, pal)
+        quarters = [[[px[(q >> 1) * 8 + y][(q & 1) * 8 + x] for x in range(8)] for y in range(8)] for q in range(4)]
+        w = make_terrain_sets.terrain(quarters)
+        air = {k for k, v in zip("TRBL", w[0::2]) if not v}
+        if air in name_air(name):   # the art and the name agree
+            out[name] = w
+    return out
+
+
+def terrain_pieces():
+    """{terrain set name: {wangid: catalog object name}} from objects.tsx"""
+    import make_terrain_sets
+    cat = load_catalog()
+    out = {}
+    for name, _, pattern in make_terrain_sets.STYLES:
+        pieces = {}
+        for i, o in sorted(cat.objects.items()):
+            if re.fullmatch(pattern, o["name"]):
+                w = make_terrain_sets.TERRAIN_OVERRIDES.get(o["name"]) or                     make_terrain_sets.notched(o["name"], make_terrain_sets.terrain(cat.art(i)))
+                pieces.setdefault(w, o["name"])
+        out[name] = pieces
+    return out
+
+
 def learn():
     cat = load_catalog()
+    terrain = terrain_pieces()
+    gda_terrain = gda_terrains()
     names = gda_metatiles()
     mapping = json.loads(MAPPING.read_text()) if MAPPING.exists() else {"manual": [], "objects": {}}
     votes = collections.defaultdict(collections.Counter)
@@ -125,6 +189,8 @@ def learn():
             objects[gname] = mapping["objects"].get(gname)
         elif rule:
             objects[gname] = rule
+        elif gname in gda_terrain and gda_terrain[gname] in terrain[TERRAIN_SETS[gname.split("_")[0]]]:
+            objects[gname] = terrain[TERRAIN_SETS[gname.split("_")[0]]][gda_terrain[gname]]
         elif gname in by_gda:
             objects[gname] = by_gda[gname]
         elif gid in votes:
