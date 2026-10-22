@@ -158,10 +158,18 @@ def export_binary_map(tmx_path, out_bin_path):
     csv_text = data_el.text.strip()
     raw_tiles = [int(x.strip()) for x in csv_text.split(',') if x.strip()]
 
+    # A level using the object catalog (levels/objects/objects.tsx): a cell's map byte is its
+    # object's id in the level, for now its famidash_id (tools/objects_catalog.py)
+    to_id = lambda tid: tid - 1
+    if any('objects.tsx' in (ts.get('source') or '') for ts in root.findall('tileset')):
+        from objects_catalog import load_catalog
+        objects = load_catalog().objects
+        to_id = lambda tid: objects[(tid & 0x0FFFFFFF) - 1]['famidash_id']
+
     grid = []
     for y in range(height):
         row = raw_tiles[y * width : (y + 1) * width]
-        row_0based = [(tid - 1 if tid > 0 else 0) for tid in row]
+        row_0based = [(to_id(tid) if tid > 0 else 0) for tid in row]
         grid.append(row_0based)
 
     # Maps are MAP_ROWS tall, bottom-aligned: shorter maps get empty rows on top, taller ones
