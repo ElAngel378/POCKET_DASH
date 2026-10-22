@@ -36,7 +36,16 @@ COLLISION = {
     "COL_SLAB_MED_LEFT": COL_BOX_BASE + 2, "COL_SLAB_MED_RIGHT": COL_BOX_BASE + 3,
     "COL_SLAB_TINY_TOP": COL_BOX_BASE + 4, "COL_SLAB_TINY_BOTTOM": COL_BOX_BASE + 5,
     "COL_SLAB_TINY_LEFT": COL_BOX_BASE + 6, "COL_SLAB_TINY_RIGHT": COL_BOX_BASE + 7,
+    "COL_EA_SLAB_TOP": COL_BOX_BASE + 8, "COL_EA_SLAB_BOTTOM": COL_BOX_BASE + 9,
+    "COL_EA_SLAB_LEFT": COL_BOX_BASE + 10, "COL_EA_SLAB_RIGHT": COL_BOX_BASE + 11,
+    "COL_EA_CORNER_SLAB_TOP_LEFT": COL_BOX_BASE + 12, "COL_EA_CORNER_SLAB_TOP_RIGHT": COL_BOX_BASE + 13,
+    "COL_EA_CORNER_SLAB_BOTTOM_LEFT": COL_BOX_BASE + 14, "COL_EA_CORNER_SLAB_BOTTOM_RIGHT": COL_BOX_BASE + 15,
+    "COL_EA_CORNER_INSIDE_SLAB_TOP_LEFT": COL_BOX_BASE + 16, "COL_EA_CORNER_INSIDE_SLAB_TOP_RIGHT": COL_BOX_BASE + 17,
+    "COL_EA_CORNER_INSIDE_SLAB_BOTTOM_LEFT": COL_BOX_BASE + 18, "COL_EA_CORNER_INSIDE_SLAB_BOTTOM_RIGHT": COL_BOX_BASE + 19,
 }
+# The Electroman ball rails (1.6_EA_*): no art of ours yet, GDA's art converted to 4 colours as a
+# placeholder (outline white -> 3, its light blues -> 1, its dark blues -> 2, background -> 0)
+RAILS = re.compile(r"1\.6_EA_\w+")
 # Pieces of 1_6 objects.chr GDA has outside its 1.6 set: (GDA name, piece, h flip, v flip, collision)
 COL_BREAKABLE = 0x16
 EXTRA_A = [("OUTLINE_BLOCK", "4.0", 0, 0, COL_ALL),
@@ -82,6 +91,22 @@ def gda_art(tiles, chr_, pal):
                 n = (b[y * 4 + x // 2] >> (4 * (x & 1))) & 15
                 c = tuple(pal[n * 3:n * 3 + 3]) if n else None
                 px[(q >> 1) * 8 + (7 - y if v else y)][(q & 1) * 8 + (7 - x if h else x)] = to_index.get(c, 0)
+    return px
+
+
+def gda_rail_art(tiles, chr_, pal):
+    """A GDA metatile's art in our 4 colours by brightness (the rails: see RAILS)"""
+    px = [[0] * 16 for _ in range(16)]
+    for q, (tid, h, v) in enumerate(tiles):
+        b = chr_[tid * 32:tid * 32 + 32]
+        for y in range(8):
+            for x in range(8):
+                n = (b[y * 4 + x // 2] >> (4 * (x & 1))) & 15
+                if not n:
+                    continue
+                r, g, bl = pal[n * 3:n * 3 + 3]
+                i = 3 if (r, g, bl) == (255, 255, 255) else 1 if r * 3 + g * 6 + bl > 1000 else 2
+                px[(q >> 1) * 8 + (7 - y if v else y)][(q & 1) * 8 + (7 - x if h else x)] = i
     return px
 
 
@@ -135,6 +160,9 @@ def main():
         new.append((name, col, flip(ours_b[k], h, v), "1p6blocks %s%s%s" % (k, " H" if h else "", " V" if v else "")))
     for name, k, h, v, col in EXTRA_A:
         new.append((name, col, flip(ours[k], h, v), "%s%s%s" % (k, " H" if h else "", " V" if v else "")))
+    for name, tiles, col in gda_metatiles():
+        if RAILS.fullmatch(name) and col in COLLISION:
+            new.append((name, COLLISION[col], gda_rail_art(tiles, chr_, pal), "GDA art (placeholder)"))
     new = [n for n in new if n[0] not in have]
     if not new:
         raise SystemExit("nothing new to add")
