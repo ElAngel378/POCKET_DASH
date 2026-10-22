@@ -219,8 +219,17 @@ static uint8_t col_job_step = COL_JOB_STEPS; // == COL_JOB_STEPS: idle
 static uint8_t col_job_slot;
 static uint8_t col_job_issued;  // slice handed to the VBlank handler, not yet acknowledged
 static uint8_t row0_job_issued;
-static uint16_t col_job_col;
+static uint16_t col_job_col;    // column being / last written (columns up to loaded_r are wanted)
 static uint16_t max_scroll_px;
+
+// No column or row job: the ring holds the columns up to loaded_r and the band's rows
+static void stream_jobs_reset(void) {
+    col_job_col = loaded_r;
+    col_job_step = COL_JOB_STEPS;
+    row0_job_pos = 16;
+    col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
+    band_cam_row = 0xFF;
+}
 
 static uint16_t scroll_acc;
 static uint8_t prev_joy;
@@ -515,14 +524,11 @@ static void reload_level_state(uint8_t idx) {
         cam_py = MAP_Y0 + 112u;
     }
     mt_band = band_for_cam(cam_py, BAND_MAX);
-    band_cam_row = 0xFF;
 
     cam_px = 0;
     scroll_acc = 0;
     loaded_r = BKG_MT_W - 1;
-    col_job_step = COL_JOB_STEPS;
-    row0_job_pos = 16;
-    col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
+    stream_jobs_reset();
     target_bg_idx = dmg_start_bg_idx();
     pause_suppress_jump = 0;
     end_anim_state = END_ANIM_INACTIVE;
@@ -1032,22 +1038,13 @@ static void mirror_switch(uint16_t px) {
     mj_active = 0;
     mj_wait = 0;
     loaded_r = RING_COL0(px) + 15u;
-    col_job_step = COL_JOB_STEPS;
-    col_job_issued = 0;
-    bg_cj_pending = 0;
-    row0_job_pos = 16;
-    row0_job_issued = 0;
-    bg_rj_pending = 0;
-    band_cam_row = 0xFF;
+    stream_jobs_reset();
     bg_lcdc_map = (mj_map_hi == 0x9Cu) ? LCDCF_BG9C00 : LCDCF_BG9800;
 }
 
 // Mirror portal: reload the (mirrored) tileset and redraw the visible columns
 static void mirror_reload(uint8_t idx, uint8_t enable_display) {
-    col_job_step = COL_JOB_STEPS;
-    row0_job_pos = 16;
-    col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
-    bg_cj_pending = bg_rj_pending = 0;
+    stream_jobs_reset();
     DISPLAY_OFF;
     bg_map_reset();
     view_rev = player.reversed;
@@ -1097,6 +1094,7 @@ static void mirror_reload(uint8_t idx, uint8_t enable_display) {
     }
 
     loaded_r = (uint16_t)(col_start + 15);
+    col_job_col = loaded_r;
 }
 
 // DMG mirror portal, right after VBlank (so turning the display off does not wait): the
@@ -1124,7 +1122,7 @@ static void mirror_reflect(uint8_t idx) {
     PROF_MARK(18);   // mirror: rest
     view_rev = player.reversed;
     // A column or row job in progress was writing the other orientation: finish it now, whole
-    // (restarting it would delay it, and its last slice could then meet the next column's start)
+    // (restarting it would delay it and the columns waiting behind it)
     bg_cj_pending = bg_rj_pending = 0;
     col_job_issued = row0_job_issued = 0;
     if (col_job_step < COL_JOB_STEPS) {
@@ -1362,11 +1360,8 @@ void play_level(uint8_t idx) BANKED {
     level_top_px = l->map_top;
     level_top_px <<= 4;
     mt_band = band_for_cam(cam_py, BAND_MAX);
-    band_cam_row = 0xFF;
     loaded_r = BKG_MT_W - 1;
-    col_job_step = COL_JOB_STEPS;
-    row0_job_pos = 16;
-    col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
+    stream_jobs_reset();
     max_scroll_px = ((level_map_w - VIEW_MT_W) << 4);
 
     reduce_flash = setting_dmg_gradient ? 0 : 1;
@@ -1870,17 +1865,22 @@ void play_level(uint8_t idx) BANKED {
         // The frame that switches maps issues no map job: it could reach the VBlank handler
         // before the switch does and land in the map going out.
         if (!mj_switched) {
-        if (needs_render) {
-            loaded_r = need_col;
-            col_job_col = need_col;
-            col_job_slot = (uint8_t)(need_col & 15);
-            if (view_rev) col_job_slot = (uint8_t)(-(int8_t)col_job_slot & 15);
-            col_job_step = 0;
-        }
         // VRAM uploads (DMG too): the VBlank handler writes them the moment VBlank starts. Done
         // by this thread after waking up, they could land outside VBlank when the music timer
         // interrupt ran first. A slice the handler has uploaded counts as done.
         if (col_job_issued && !bg_cj_pending) { col_job_issued = 0; col_job_step++; }
+        if (needs_render) loaded_r = need_col;
+        // One column at a time, in order: a column needed while the previous one is still being
+        // written waits for it. Restarting the job left that column half written, and when the
+        // last slice was still unacknowledged its acknowledgement skipped the new job's step 0
+        // (the map fetch): the new ring column showed the previous column. At 2.8 px a frame a
+        // column comes every 5-6 frames, so 1-2 slices put off by late VBlanks were enough.
+        if (col_job_step >= COL_JOB_STEPS && col_job_col < loaded_r) {
+            col_job_col++;
+            col_job_slot = (uint8_t)(col_job_col & 15);
+            if (view_rev) col_job_slot = (uint8_t)(-(int8_t)col_job_slot & 15);
+            col_job_step = 0;
+        }
         if (col_job_step < COL_JOB_STEPS && !col_job_issued) {
             prepare_mt_column_slice(col_job_col, level_map, level_map_bank, view_rev, col_job_step);
             request_mt_column_slice(col_job_slot, col_job_step);
