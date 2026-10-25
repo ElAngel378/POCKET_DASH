@@ -38,8 +38,20 @@ The preview (and the tile count in `objects.tsx`) is remade by `tools/build_bg_t
 | `famidash_id` | int | the Famidash metatile it came from; **-1 for new objects** |
 | `dmg_art` | int | tile id in `objects_dmg.png` of its DMG art, -1 = the same art on DMG |
 
+| `gda_name` | string | objects from Geometry Dash Advance: GDA's metatile name |
+| `gda_collision` | string | objects from GDA: GDA's collision type. `collision` is the closest type our engine has; where they differ (thin Electroman slabs, slopes, breakable bricks) the mechanic is still to come |
+
 Objects with a `famidash_id` keep it as their id in the level: the engine knows some of them
 (saw parts, ground looks, pit spikes). New objects get a free id in each level by themselves.
+
+## GDA objects
+
+Every object is matched to its Geometry Dash Advance object in `gda_ours.json` (BG) and
+`gda_sprites.json` (sprites), by `tools/gda_match.py` and checked by eye (`docs/gda_ours.png`,
+`docs/gda_sprites.png`). The GDA pieces GDA's 1.0-1.6 official levels use that we did not have
+were added by `tools/import_gda_pieces.py` (tiles 283 on, GDA's art as a placeholder; GDA's old
+ground / ceiling pieces and its level end wall left out). `python tools/gda_pieces.py` lists
+what is still missing (`--all`: for any GDA level).
 
 ## Adding an object
 
