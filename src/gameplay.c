@@ -1259,13 +1259,6 @@ static void handle_death(uint8_t idx, uint8_t sprite_x_final, int16_t final_py, 
     }
 }
 
-// Each frame of the death animation (death_effect.c): a crash shows every fading object (GD)
-void fade_death_tick(void) BANKED {
-    fade_reveal = 1;
-    fade_update(loaded_r, level_map, level_map_w, level_map_bank, view_rev,
-                (col_job_step < COL_JOB_STEPS) ? col_job_slot : 0xFFu);
-}
-
 static void update_camera_y(void) {
     uint16_t wy = PLAYER_WORLD_Y();
     uint16_t t;

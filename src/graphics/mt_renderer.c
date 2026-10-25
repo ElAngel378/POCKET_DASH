@@ -173,18 +173,18 @@ static void level_table(uint8_t *dst, const uint8_t * const *ptrs, const uint8_t
 
 static void bm_info_build(uint8_t level);
 
-// Fading objects (tools/make_fading_objects.py), GD 1.6's fading blocks and hazards: they turn
-// transparent near the player and a crash shows them all again. 4 frames by the distance of the
-// cell from the player on screen: 3 full (far) .. 0 invisible (the empty metatile, next to the
-// player). CGB frames 1 / 2: the same tiles in BG palettes 6 / 7 (palette 0 blended towards the
-// sky, famidash_bg.c); DMG: invisible or full. Collision never changes. All the fading cells of a ring
+// Fading objects, GD 1.6's fading blocks and hazards, as Geometry Dash Advance draws them
+// (level_routines.c handle_fading_blocks): 4 frames by the cell's place on the screen, full at the
+// screen edges, fading out towards the middle; never quite gone (GDA's last frame is a faint
+// outline). 3 full, 2 / 1 the same tiles in BG palettes 7 / 6 (palette 0 a half / three quarters of
+// the way to the sky, famidash_bg.c), 0 the empty metatile: only the DMG, which has no faint shade
+// to spare (invisible or full). Collision never changes. All the fading cells of a ring
 // slot are drawn at its frame (fade_drawn_of): the column and row builds use it, and fade_update
 // rewrites a slot's fading cells when its frame on screen changes. RAM is short (the stack): the
 // frames are 2 bits a slot.
 uint8_t fade_first, fade_count;     // the level's fading ids: fade_first .. fade_first + fade_count - 1
 uint8_t fade_scx;                   // the scroll x the frames are worked out for (gameplay.c)
 uint8_t fade_psx;                   // the player's screen x (gameplay.c)
-uint8_t fade_reveal;                // the player crashed: every fading object full
 static uint8_t fade_drawn[4];       // ring slot s: bits 2 (s & 3) .. of byte s >> 2
 static uint16_t fade_unknown;       // ring slots whose cells may be at any frame (built full), a bit each
 static uint16_t fade_any;           // ring slots that may hold a fading cell, a bit each
@@ -195,20 +195,17 @@ uint8_t fade_saws;                  // the level's saws are fading saws (they ke
 #define IS_FADE_CELL(id) (IS_FADE(id) || (fade_saws && saw_mt_index[id] && ((id) != SAW_CENTER_MT || mt_big_saws)))
 // screen x of ring slot s's left edge (240..255: just off the left edge)
 #define FADE_SX(slot) ((uint8_t)((uint8_t)((slot) << 4) - fade_scx))
-// The frame of ring slot s's cells for where they are now: by how far ahead of the player the
-// cell is (both 16 px wide: their left edges' distance). Full from 3.5 blocks ahead, invisible
-// closer than 1.5 (DMG: 2), and behind the player (it is only on screen for 2 more blocks; fading
-// back in there doubled the cells to redraw, and the updater fell behind).
-// Mirror mode: the player is on the right (fade_psx 112), ahead is to the left.
+// GDA's fade_frame_table (its 15 columns of 16 px, 240 px screen; GDA's frame 0 full .. 3 invisible)
+// in our frames, by column
+static const uint8_t fade_by_col[16] = { 3, 3, 2, 2, 1, 1, 0, 0, 0, 0, 1, 1, 2, 3, 3, 2 };
+// The frame of ring slot s's cells for where they are now: GDA's column of the slot's left edge
+// (our 160 px screen spread over GDA's 240)
 static uint8_t fade_frame_of(uint8_t slot) {
-    if (fade_reveal) return 3;
     uint8_t sx = FADE_SX(slot);
-    int16_t x = (sx >= 224u) ? (int16_t)sx - 256 : (int16_t)sx;
-    int16_t d = x - (int16_t)fade_psx;
-    if (fade_psx >= 80u) d = -d;
-    if (d < 0) return 0;
-    if (_cpu != CGB_TYPE) return (d < 32) ? 0 : 3;
-    return (d < 24) ? 0 : (d < 40) ? 1 : (d < 56) ? 2 : 3;
+    if (sx >= 224u) return 3;   // just off the left edge: GDA's column 0
+    uint8_t f = fade_by_col[(uint8_t)(((uint16_t)sx * 3u) >> 5) & 15u];
+    if (_cpu != CGB_TYPE) return (f >= 2u) ? 3 : 0;
+    return f ? f : 1;   // GDA's two faintest frames: palette 6 (no palette left for a fourth step)
 }
 
 static uint8_t fade_drawn_of(uint8_t slot) {
@@ -226,7 +223,6 @@ static void fade_set_drawn(uint8_t slot, uint8_t f) {
 void fade_reset_view(void) BANKED {
     memset(fade_drawn, 0xFF, sizeof(fade_drawn));   // frame 3: built full
     fade_unknown = fade_any = 0xFFFF;
-    fade_reveal = 0;
     bg_fj_rows = 0;
 }
 

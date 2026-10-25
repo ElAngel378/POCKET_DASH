@@ -114,18 +114,17 @@ static void shadow_fake_spike_palette(void) {
     shadow_bkg_palettes[23] = 0;
 }
 
-// shadow_bkg_palettes' palettes 6 and 7, for the fading objects' in-between frames (mt_renderer.c):
-// palette 0 a third / two thirds of the way from the sky (its colour 0) to its colours
+// shadow_bkg_palettes' palettes 6 and 7, for the fading objects' faded frames (mt_renderer.c):
+// palette 0 three quarters / half of the way from the sky (its colour 0) to its colours
 extern uint8_t fade_count;   // the level has fading objects (mt_renderer.c)
-static const uint8_t div3[94] = { 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 14, 14, 14, 15, 15, 15, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 20, 20, 20, 21, 21, 21, 22, 22, 22, 23, 23, 23, 24, 24, 24, 25, 25, 25, 26, 26, 26, 27, 27, 27, 28, 28, 28, 29, 29, 29, 30, 30, 30, 31, 31 };
 static void shadow_fade_palettes(void) {
     const uint8_t *s = (const uint8_t *)famidash_bg_palettes;
     uint8_t sr = s[0] & 31u, sg = (uint8_t)((s[0] >> 5) | (s[1] << 3)) & 31u, sb = (s[1] >> 2) & 31u;
     palette_color_t *d = &shadow_bkg_palettes[24];
     for (uint8_t i = 0; i < 4; i++, s += 2, d++) {
         uint8_t r = s[0] & 31u, g = (uint8_t)((s[0] >> 5) | (s[1] << 3)) & 31u, b = (s[1] >> 2) & 31u;
-        d[0] = RGB(div3[sr + sr + r], div3[sg + sg + g], div3[sb + sb + b]);
-        d[4] = RGB(div3[sr + r + r], div3[sg + g + g], div3[sb + b + b]);
+        d[0] = RGB((uint8_t)((sr + sr + sr + r) >> 2), (uint8_t)((sg + sg + sg + g) >> 2), (uint8_t)((sb + sb + sb + b) >> 2));
+        d[4] = RGB((uint8_t)((sr + r) >> 1), (uint8_t)((sg + g) >> 1), (uint8_t)((sb + b) >> 1));
     }
 }
 

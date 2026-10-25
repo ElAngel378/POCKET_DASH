@@ -6,7 +6,6 @@
 #include <gb/cgb.h>
 #include "settings.h"
 #include "hUGEDriver.h"
-#include "collision.h"   // fading objects
 
 // Practice mode: the crash takes the noise channel from the music this long, then the
 // music gets it back (cut before the crash fully decays so the drums come back cleanly)
@@ -253,7 +252,6 @@ uint8_t play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_
             oam_idx++;
         }
 
-        if (fade_count) fade_death_tick();   // the crash shows the fading objects
         wait_vbl_done();
     }
 

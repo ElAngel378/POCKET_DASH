@@ -139,11 +139,10 @@ void ground_below_fill(uint8_t scy) BANKED;   // the row under the ground (level
 extern uint8_t mt_band;
 // Fading objects (mt_renderer.c): the level's fading ids, the scroll x their frames are for
 extern uint8_t fade_first, fade_count;
-extern uint8_t fade_scx, fade_psx, fade_reveal;
+extern uint8_t fade_scx, fade_psx;
 void fade_reset_view(void) BANKED;
 void fade_update(uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t busy_slot) BANKED;
 void fade_band_moved(uint8_t row) BANKED;
-void fade_death_tick(void) BANKED;   // gameplay.c: a frame of the death animation
 
 void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
 

@@ -46,7 +46,10 @@ COLLISION = {
 SKIP = re.compile(r"ENDING_WALL|(GROUND|CEILING)_[1-9A-C]")
 # Pieces whose GDA art is an editor marker: drawn as one colour, or with another piece's art
 SOLID_ART = {"BLK_FILLER": 2}
-ART_OF = {"FADING_BLOCK": "BASIC_BLOCK"}
+ART_OF = {}
+# GDA's fading block is drawn from its own frame tiles (level_routines.c fading_block_frames: a
+# 1 px white outline, hollow), not a metatile
+HOLLOW = {"FADING_BLOCK"}
 
 
 def palette(name):
@@ -66,6 +69,8 @@ def art(mid, name=""):
     rest (fills) 1"""
     if name in SOLID_ART:
         return [[SOLID_ART[name]] * 16 for _ in range(16)]
+    if name in HOLLOW:
+        return [[3 if x in (0, 15) or y in (0, 15) else 0 for x in range(16)] for y in range(16)]
     if name in ART_OF:
         mid = next(i for i, (n, _, _) in enumerate(gda.metatiles()) if n == ART_OF[name])
     img = gda.metatile_image(mid)
