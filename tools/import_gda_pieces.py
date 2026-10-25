@@ -21,6 +21,7 @@ import gda_pieces  # noqa: E402
 from objects_catalog import ART, COLUMNS, TSX, load_catalog, write_preview  # noqa: E402
 
 Q = 0x20   # COL_QUAD_BASE: quadrant types, col_quads[] in src/player.c
+X = 0x40   # COL_BOX_BASE
 # GDA collision -> ours (include/collision.h); missing ones: no collision yet
 COLLISION = {
     "COL_NONE": 0, "COL_FULL": 7, "COL_FLOOR_CEIL": 9,
@@ -33,12 +34,16 @@ COLLISION = {
     "COL_GROUND_WAVY_SPIKE_BOTTOM": 0x10, "COL_GROUND_WAVY_SPIKE_TOP": 0x11,
     "COL_GROUND_WAVY_SPIKE_RIGHT": 1, "COL_GROUND_WAVY_SPIKE_LEFT": 2,
     "COL_SLAB_TOP": 5, "COL_SLAB_BOTTOM": 6, "COL_SLAB_LEFT": Q + 0, "COL_SLAB_RIGHT": Q + 1,
-    # approximations: GDA's Electroman slabs are thinner; corners = one quadrant, inside corners three
-    "COL_EA_SLAB_TOP": 5, "COL_EA_SLAB_BOTTOM": 6, "COL_EA_SLAB_LEFT": Q + 0, "COL_EA_SLAB_RIGHT": Q + 1,
-    "COL_EA_CORNER_SLAB_TOP_LEFT": Q + 2, "COL_EA_CORNER_SLAB_TOP_RIGHT": Q + 3,
-    "COL_EA_CORNER_SLAB_BOTTOM_LEFT": Q + 4, "COL_EA_CORNER_SLAB_BOTTOM_RIGHT": Q + 5,
-    "COL_EA_CORNER_INSIDE_SLAB_TOP_LEFT": Q + 8, "COL_EA_CORNER_INSIDE_SLAB_TOP_RIGHT": Q + 9,
-    "COL_EA_CORNER_INSIDE_SLAB_BOTTOM_LEFT": Q + 10, "COL_EA_CORNER_INSIDE_SLAB_BOTTOM_RIGHT": Q + 11,
+    # box types (include/collision.h COL_BOX_BASE, col_boxes[] in src/player.c): GDA's rectangles
+    "COL_SLAB_MED_TOP": X + 0, "COL_SLAB_MED_BOTTOM": X + 1, "COL_SLAB_MED_LEFT": X + 2, "COL_SLAB_MED_RIGHT": X + 3,
+    "COL_SLAB_TINY_TOP": X + 4, "COL_SLAB_TINY_BOTTOM": X + 5, "COL_SLAB_TINY_LEFT": X + 6, "COL_SLAB_TINY_RIGHT": X + 7,
+    "COL_EA_SLAB_TOP": X + 8, "COL_EA_SLAB_BOTTOM": X + 9, "COL_EA_SLAB_LEFT": X + 10, "COL_EA_SLAB_RIGHT": X + 11,
+    "COL_EA_CORNER_SLAB_TOP_LEFT": X + 12, "COL_EA_CORNER_SLAB_TOP_RIGHT": X + 13,
+    "COL_EA_CORNER_SLAB_BOTTOM_LEFT": X + 14, "COL_EA_CORNER_SLAB_BOTTOM_RIGHT": X + 15,
+    "COL_EA_CORNER_INSIDE_SLAB_TOP_LEFT": X + 16, "COL_EA_CORNER_INSIDE_SLAB_TOP_RIGHT": X + 17,
+    "COL_EA_CORNER_INSIDE_SLAB_BOTTOM_LEFT": X + 18, "COL_EA_CORNER_INSIDE_SLAB_BOTTOM_RIGHT": X + 19,
+    "COL_OUTLINE_TOP": X + 20, "COL_OUTLINE_BOTTOM": X + 21, "COL_OUTLINE_LEFT": X + 22, "COL_OUTLINE_RIGHT": X + 23,
+    "COL_CENTERED_MINI_BLOCK": X + 24,
     "BREAKABLE_BRICK": 7,
 }
 # Not added: GDA's level end wall (our level end is a sprite), and its old ground / ceiling pieces

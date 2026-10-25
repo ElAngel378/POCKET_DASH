@@ -42,8 +42,54 @@ static const uint8_t col_quads[COL_QUAD_COUNT] = {
     0x40, 0x80, 0x10, 0x20, 0xC0, 0x30                                      // half spikes
 };
 
+// Box types (ids COL_BOX_BASE..): solid inside these rectangles of the metatile, as in GDA's
+// col_type_lookup. Per type two rectangles x0, x1, y0, y1 (x0 <= x < x1, y0 <= y < y1); an
+// empty second one has x0 = x1 = 0.
+static const uint8_t col_boxes[COL_BOX_COUNT][8] = {
+    { 2, 14,  0,  8,   0,  0, 0,  0 },   // SLAB_MED_TOP
+    { 2, 14,  8, 16,   0,  0, 0,  0 },   // SLAB_MED_BOTTOM
+    { 0,  8,  2, 14,   0,  0, 0,  0 },   // SLAB_MED_LEFT
+    { 8, 16,  2, 14,   0,  0, 0,  0 },   // SLAB_MED_RIGHT
+    { 5, 11,  0,  8,   0,  0, 0,  0 },   // SLAB_TINY_TOP
+    { 5, 11,  8, 16,   0,  0, 0,  0 },   // SLAB_TINY_BOTTOM
+    { 0,  8,  5, 11,   0,  0, 0,  0 },   // SLAB_TINY_LEFT
+    { 8, 16,  5, 11,   0,  0, 0,  0 },   // SLAB_TINY_RIGHT
+    { 0, 16,  0, 10,   0,  0, 0,  0 },   // EA_SLAB_TOP
+    { 0, 16,  6, 16,   0,  0, 0,  0 },   // EA_SLAB_BOTTOM
+    { 0, 10,  0, 16,   0,  0, 0,  0 },   // EA_SLAB_LEFT
+    { 6, 16,  0, 16,   0,  0, 0,  0 },   // EA_SLAB_RIGHT
+    { 0, 10,  0, 10,   0,  0, 0,  0 },   // EA_CORNER_TL
+    { 6, 16,  0, 10,   0,  0, 0,  0 },   // EA_CORNER_TR
+    { 0, 10,  6, 16,   0,  0, 0,  0 },   // EA_CORNER_BL
+    { 6, 16,  6, 16,   0,  0, 0,  0 },   // EA_CORNER_BR
+    { 0, 10,  0, 16,  10, 16, 0, 10 },   // EA_INSIDE_TL
+    { 6, 16,  0, 16,   0,  6, 0, 10 },   // EA_INSIDE_TR
+    { 0, 10,  0, 16,  10, 16, 6, 16 },   // EA_INSIDE_BL
+    { 6, 16,  0, 16,   0,  6, 6, 16 },   // EA_INSIDE_BR
+    { 0, 16,  0,  4,   0,  0, 0,  0 },   // OUTLINE_TOP
+    { 0, 16, 12, 16,   0,  0, 0,  0 },   // OUTLINE_BOTTOM
+    { 0,  4,  0, 16,   0,  0, 0,  0 },   // OUTLINE_LEFT
+    { 12, 16, 0, 16,   0,  0, 0,  0 },   // OUTLINE_RIGHT
+    { 4, 12,  4, 12,   0,  0, 0,  0 },   // CENTERED_MINI
+};
+
+// The rectangle of box type col that contains (xin, iy), or 0
+static const uint8_t *box_at(uint8_t col, uint8_t xin, uint8_t iy) {
+    const uint8_t *b = col_boxes[(uint8_t)(col - COL_BOX_BASE)];
+    if (xin >= b[0] && xin < b[1] && iy >= b[2] && iy < b[3]) return b;
+    b += 4;
+    if (xin >= b[0] && xin < b[1] && iy >= b[2] && iy < b[3]) return b;
+    return 0;
+}
+
+// Top (bottom: 0) or bottom edge, inside the metatile, of the box type solid at (xin, iy)
+static uint8_t box_edge(uint8_t col, uint8_t xin, uint8_t iy, uint8_t bottom) {
+    const uint8_t *b = box_at(col, xin, iy);
+    return bottom ? b[3] : b[2];
+}
+
 // Collision types that depend on where inside the metatile the probe is (half blocks,
-// half spikes, quadrants). Kept out of inline_col_at so its 13 inlined copies in
+// half spikes, quadrants, boxes). Kept out of inline_col_at so its 13 inlined copies in
 // player_update stay small (SDCC compiles the big inlined version very slowly).
 static uint8_t col_at_partial(uint8_t col, uint8_t inner_y, uint8_t xin) {
     if (col == COL_TOP) {
@@ -64,6 +110,8 @@ static uint8_t col_at_partial(uint8_t col, uint8_t inner_y, uint8_t xin) {
         if (m & q) return COL_ALL;
         if (m & (uint8_t)(q << 4)) return COL_DEATH;
         return COL_NONE;
+    } else if ((uint8_t)(col - COL_BOX_BASE) < COL_BOX_COUNT) {
+        return box_at(col, xin, inner_y) ? COL_ALL : COL_NONE;
     }
     return col;
 }
@@ -218,6 +266,8 @@ static uint8_t saw_corner(const uint8_t *col_ptr, int16_t y, uint8_t xin, uint8_
 // off: x offset of the probe point inside the player box
 #define COL_AT(off, y) inline_col_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
 #define SPIKE(off, y) spike_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
+// The metatile's own collision type at a probe point (COL_ALL off the map)
+#define RAW_COL(off, y) (((uint16_t)(y) & 0xFF00) ? COL_ALL : level_mt_col[GET_COL_FAST(off)[(uint8_t)(y) >> 4]])
 
 uint8_t player_update(
         Player* p_arg,
@@ -343,8 +393,12 @@ uint8_t player_update(
         }
         if (IS_SOLID(hit_col)) {
             uint8_t block_top_y = (uint8_t)(foot_y & ~15);
+            uint8_t raw = RAW_COL(hit_off, foot_y);
+            // A box has its top where its rectangle under the probe starts
+            if ((uint8_t)(raw - COL_BOX_BASE) < COL_BOX_COUNT) {
+                block_top_y += box_edge(raw, (uint8_t)(wx + hit_off) & 15u, (uint8_t)foot_y & 15u, 0);
             // A bottom half block / quadrant solid hit in its lower half has its top 8px lower
-            if (hit_col == COL_BOTTOM ||
+            } else if (hit_col == COL_BOTTOM ||
                 ((foot_y & 15) >= 8 && hit_col == COL_ALL && !IS_SOLID(COL_AT(hit_off, foot_y - 8)))) {
                 block_top_y += 8;
             }
@@ -379,8 +433,13 @@ uint8_t player_update(
         }
         if (IS_SOLID(hit_col)) {
             uint8_t block_bottom_y = (uint8_t)((head_y & ~15) + 16);
+            uint8_t raw = RAW_COL(hit_off, head_y);
+            // A box has its bottom where its rectangle above the probe ends
+            if ((uint8_t)(raw - COL_BOX_BASE) < COL_BOX_COUNT) {
+                block_bottom_y = (uint8_t)((head_y & ~15) +
+                                 box_edge(raw, (uint8_t)(wx + hit_off) & 15u, (uint8_t)head_y & 15u, 1));
             // A top half block / quadrant solid hit in its upper half has its bottom 8px higher
-            if (hit_col == COL_TOP ||
+            } else if (hit_col == COL_TOP ||
                 ((head_y & 15) < 8 && hit_col == COL_ALL && !IS_SOLID(COL_AT(hit_off, head_y + 8)))) {
                 block_bottom_y -= 8;
             }

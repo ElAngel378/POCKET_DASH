@@ -35,6 +35,37 @@
 // quadrant of the tile is solid, deadly or empty. See col_quads[] in player.c.
 #define COL_QUAD_BASE  0x20
 #define COL_QUAD_COUNT 26
+// Box types (the 1.6 slabs, hitboxes as in Geometry Dash Advance): solid inside one or two
+// rectangles of the 16x16 metatile. See col_boxes[] in player.c.
+#define COL_BOX_BASE   0x40
+#define COL_BOX_COUNT  25
+#define COL_SLAB_MED_TOP       (COL_BOX_BASE + 0)    // x 2..13, y 0..7
+#define COL_SLAB_MED_BOTTOM    (COL_BOX_BASE + 1)    // x 2..13, y 8..15
+#define COL_SLAB_MED_LEFT      (COL_BOX_BASE + 2)    // x 0..7, y 2..13
+#define COL_SLAB_MED_RIGHT     (COL_BOX_BASE + 3)    // x 8..15, y 2..13
+#define COL_SLAB_TINY_TOP      (COL_BOX_BASE + 4)    // x 5..10, y 0..7
+#define COL_SLAB_TINY_BOTTOM   (COL_BOX_BASE + 5)
+#define COL_SLAB_TINY_LEFT     (COL_BOX_BASE + 6)    // x 0..7, y 5..10
+#define COL_SLAB_TINY_RIGHT    (COL_BOX_BASE + 7)
+#define COL_EA_SLAB_TOP        (COL_BOX_BASE + 8)    // Electroman ball rails: 10 px of 16
+#define COL_EA_SLAB_BOTTOM     (COL_BOX_BASE + 9)
+#define COL_EA_SLAB_LEFT       (COL_BOX_BASE + 10)
+#define COL_EA_SLAB_RIGHT      (COL_BOX_BASE + 11)
+#define COL_EA_CORNER_TL       (COL_BOX_BASE + 12)   // 10x10 in that corner
+#define COL_EA_CORNER_TR       (COL_BOX_BASE + 13)
+#define COL_EA_CORNER_BL       (COL_BOX_BASE + 14)
+#define COL_EA_CORNER_BR       (COL_BOX_BASE + 15)
+#define COL_EA_INSIDE_TL       (COL_BOX_BASE + 16)   // the two rails of an inside corner
+#define COL_EA_INSIDE_TR       (COL_BOX_BASE + 17)
+#define COL_EA_INSIDE_BL       (COL_BOX_BASE + 18)
+#define COL_EA_INSIDE_BR       (COL_BOX_BASE + 19)
+#define COL_OUTLINE_TOP        (COL_BOX_BASE + 20)   // 1.6 outline blocks (hollow: GDA's COL_OUTLINE_*):
+#define COL_OUTLINE_BOTTOM     (COL_BOX_BASE + 21)   // a 4 px strip along the outlined side
+#define COL_OUTLINE_LEFT       (COL_BOX_BASE + 22)
+#define COL_OUTLINE_RIGHT      (COL_BOX_BASE + 23)
+#define COL_CENTERED_MINI      (COL_BOX_BASE + 24)   // x, y 4..11
+// GDA's full slabs are COL_TOP / COL_BOTTOM (top / bottom half) and the quadrant types
+// COL_QUAD_BASE + 0 / + 1 (left / right half)
 // Saws: Famidash's spike types (COL_DEATH, COL_DEATH_TOP / BOTTOM / LEFT / RIGHT, the diagonal
 // spike quadrants), so they kill where Famidash's do, plus a core circle in the middle of each
 // saw that closes the holes in those zones (saw_core_* in player.c)

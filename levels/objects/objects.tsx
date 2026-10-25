@@ -2953,7 +2953,7 @@
  <tile id="311">
   <properties>
    <property name="name" value="1.6_EA_ALIGNER_BL"/>
-   <property name="collision" type="int" value="6"/>
+   <property name="collision" type="int" value="73"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -2964,7 +2964,7 @@
  <tile id="312">
   <properties>
    <property name="name" value="1.6_EA_ALIGNER_TR"/>
-   <property name="collision" type="int" value="5"/>
+   <property name="collision" type="int" value="72"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -2975,7 +2975,7 @@
  <tile id="313">
   <properties>
    <property name="name" value="1.6_EA_CORNER_BL"/>
-   <property name="collision" type="int" value="36"/>
+   <property name="collision" type="int" value="78"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -2986,7 +2986,7 @@
  <tile id="314">
   <properties>
    <property name="name" value="1.6_EA_CORNER_BR"/>
-   <property name="collision" type="int" value="37"/>
+   <property name="collision" type="int" value="79"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -2997,7 +2997,7 @@
  <tile id="315">
   <properties>
    <property name="name" value="1.6_EA_CORNER_TL"/>
-   <property name="collision" type="int" value="34"/>
+   <property name="collision" type="int" value="76"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3008,7 +3008,7 @@
  <tile id="316">
   <properties>
    <property name="name" value="1.6_EA_CORNER_TR"/>
-   <property name="collision" type="int" value="35"/>
+   <property name="collision" type="int" value="77"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3019,7 +3019,7 @@
  <tile id="317">
   <properties>
    <property name="name" value="1.6_EA_INS_CRN_ALT_BL"/>
-   <property name="collision" type="int" value="42"/>
+   <property name="collision" type="int" value="82"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3030,7 +3030,7 @@
  <tile id="318">
   <properties>
    <property name="name" value="1.6_EA_INS_CRN_ALT_BR"/>
-   <property name="collision" type="int" value="43"/>
+   <property name="collision" type="int" value="83"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3041,7 +3041,7 @@
  <tile id="319">
   <properties>
    <property name="name" value="1.6_EA_INS_CRN_ALT_TL"/>
-   <property name="collision" type="int" value="40"/>
+   <property name="collision" type="int" value="80"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3052,7 +3052,7 @@
  <tile id="320">
   <properties>
    <property name="name" value="1.6_EA_INS_CRN_ALT_TR"/>
-   <property name="collision" type="int" value="41"/>
+   <property name="collision" type="int" value="81"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3063,7 +3063,7 @@
  <tile id="321">
   <properties>
    <property name="name" value="1.6_EA_INS_CRN_BL"/>
-   <property name="collision" type="int" value="42"/>
+   <property name="collision" type="int" value="82"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3074,7 +3074,7 @@
  <tile id="322">
   <properties>
    <property name="name" value="1.6_EA_INS_CRN_BR"/>
-   <property name="collision" type="int" value="43"/>
+   <property name="collision" type="int" value="83"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3085,7 +3085,7 @@
  <tile id="323">
   <properties>
    <property name="name" value="1.6_EA_INS_CRN_TL"/>
-   <property name="collision" type="int" value="40"/>
+   <property name="collision" type="int" value="80"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3096,7 +3096,7 @@
  <tile id="324">
   <properties>
    <property name="name" value="1.6_EA_INS_CRN_TR"/>
-   <property name="collision" type="int" value="41"/>
+   <property name="collision" type="int" value="81"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3107,7 +3107,7 @@
  <tile id="325">
   <properties>
    <property name="name" value="1.6_EA_MIDDLE_SLAB"/>
-   <property name="collision" type="int" value="6"/>
+   <property name="collision" type="int" value="73"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3118,7 +3118,7 @@
  <tile id="326">
   <properties>
    <property name="name" value="1.6_EA_MIDDLE_SLAB_UD"/>
-   <property name="collision" type="int" value="5"/>
+   <property name="collision" type="int" value="72"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3129,7 +3129,7 @@
  <tile id="327">
   <properties>
    <property name="name" value="1.6_EA_SLAB"/>
-   <property name="collision" type="int" value="6"/>
+   <property name="collision" type="int" value="73"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3140,7 +3140,7 @@
  <tile id="328">
   <properties>
    <property name="name" value="1.6_EA_SLAB_UD"/>
-   <property name="collision" type="int" value="5"/>
+   <property name="collision" type="int" value="72"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3151,7 +3151,7 @@
  <tile id="329">
   <properties>
    <property name="name" value="1.6_EA_UNALIGNED_SLAB_H_BL"/>
-   <property name="collision" type="int" value="6"/>
+   <property name="collision" type="int" value="73"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3162,7 +3162,7 @@
  <tile id="330">
   <properties>
    <property name="name" value="1.6_EA_UNALIGNED_SLAB_H_BR"/>
-   <property name="collision" type="int" value="6"/>
+   <property name="collision" type="int" value="73"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3173,7 +3173,7 @@
  <tile id="331">
   <properties>
    <property name="name" value="1.6_EA_UNALIGNED_SLAB_H_TL"/>
-   <property name="collision" type="int" value="5"/>
+   <property name="collision" type="int" value="72"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3184,7 +3184,7 @@
  <tile id="332">
   <properties>
    <property name="name" value="1.6_EA_UNALIGNED_SLAB_V_BL"/>
-   <property name="collision" type="int" value="32"/>
+   <property name="collision" type="int" value="74"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3195,7 +3195,7 @@
  <tile id="333">
   <properties>
    <property name="name" value="1.6_EA_UNALIGNED_SLAB_V_BR"/>
-   <property name="collision" type="int" value="33"/>
+   <property name="collision" type="int" value="75"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3206,7 +3206,7 @@
  <tile id="334">
   <properties>
    <property name="name" value="1.6_EA_UNALIGNED_SLAB_V_TL"/>
-   <property name="collision" type="int" value="32"/>
+   <property name="collision" type="int" value="74"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3217,7 +3217,7 @@
  <tile id="335">
   <properties>
    <property name="name" value="1.6_EA_UNALIGNED_SLAB_V_TR"/>
-   <property name="collision" type="int" value="33"/>
+   <property name="collision" type="int" value="75"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
