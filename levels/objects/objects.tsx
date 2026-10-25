@@ -1300,181 +1300,221 @@
  <tile id="144">
   <properties>
    <property name="name" value="44DEG_RIGHT_DOWN"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="97"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="144"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_SLOPE_45_DOWN"/>
+   <property name="gda_collision" value="COL_SLOPE_45_DOWN"/>
   </properties>
  </tile>
  <tile id="145">
   <properties>
    <property name="name" value="45DEG_LEFT_DOWN"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="96"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="145"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_SLOPE_45_UP"/>
+   <property name="gda_collision" value="COL_SLOPE_45_UP"/>
   </properties>
  </tile>
  <tile id="146">
   <properties>
    <property name="name" value="45DEG_RIGHT_UP"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="99"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="146"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_SLOPE_45_DOWN_UD"/>
+   <property name="gda_collision" value="COL_SLOPE_45_DOWN_UD"/>
   </properties>
  </tile>
  <tile id="147">
   <properties>
    <property name="name" value="45DEG_LEFT_UP"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="98"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="147"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_SLOPE_45_UP_UD"/>
+   <property name="gda_collision" value="COL_SLOPE_45_UP_UD"/>
   </properties>
  </tile>
  <tile id="148">
   <properties>
    <property name="name" value="22DEG_RIGHT_DOWN_RIGHT_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="103"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="148"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_22_DOWN_2"/>
+   <property name="gda_collision" value="COL_SLOPE_22_DOWN_2"/>
   </properties>
  </tile>
  <tile id="149">
   <properties>
    <property name="name" value="22DEG_RIGHT_DOWN_LEFT_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="102"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="149"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_22_DOWN_1"/>
+   <property name="gda_collision" value="COL_SLOPE_22_DOWN_1"/>
   </properties>
  </tile>
  <tile id="150">
   <properties>
    <property name="name" value="22DEG_LEFT_DOWN_RIGHT_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="101"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="150"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_22_UP_2"/>
+   <property name="gda_collision" value="COL_SLOPE_22_UP_2"/>
   </properties>
  </tile>
  <tile id="151">
   <properties>
    <property name="name" value="22DEG_LEFT_DOWN_LEFT_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="100"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="151"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_22_UP_1"/>
+   <property name="gda_collision" value="COL_SLOPE_22_UP_1"/>
   </properties>
  </tile>
  <tile id="152">
   <properties>
    <property name="name" value="22DEG_RIGHT_UP_RIGHT_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="107"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="152"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_22_DOWN_UD_2"/>
+   <property name="gda_collision" value="COL_SLOPE_22_DOWN_UD_2"/>
   </properties>
  </tile>
  <tile id="153">
   <properties>
    <property name="name" value="22DEG_RIGHT_UP_LEFT_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="106"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="153"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_22_DOWN_UD_1"/>
+   <property name="gda_collision" value="COL_SLOPE_22_DOWN_UD_1"/>
   </properties>
  </tile>
  <tile id="154">
   <properties>
    <property name="name" value="22DEG_LEFT_UP_RIGHT_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="105"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="154"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_22_UP_UD_2"/>
+   <property name="gda_collision" value="COL_SLOPE_22_UP_UD_2"/>
   </properties>
  </tile>
  <tile id="155">
   <properties>
    <property name="name" value="22DEG_LEFT_UP_LEFT_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="104"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="155"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_22_UP_UD_1"/>
+   <property name="gda_collision" value="COL_SLOPE_22_UP_UD_1"/>
   </properties>
  </tile>
  <tile id="156">
   <properties>
    <property name="name" value="66DEG_RIGHT_DOWN_TOP_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="110"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="156"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_66_DOWN_1"/>
+   <property name="gda_collision" value="COL_SLOPE_66_DOWN_1"/>
   </properties>
  </tile>
  <tile id="157">
   <properties>
    <property name="name" value="66DEG_RIGHT_DOWN_BOTTOM_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="111"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="157"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_66_DOWN_2"/>
+   <property name="gda_collision" value="COL_SLOPE_66_DOWN_2"/>
   </properties>
  </tile>
  <tile id="158">
   <properties>
    <property name="name" value="66DEG_LEFT_DOWN_BOTTOM_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="108"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="158"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_66_UP_1"/>
+   <property name="gda_collision" value="COL_SLOPE_66_UP_1"/>
   </properties>
  </tile>
  <tile id="159">
   <properties>
    <property name="name" value="66DEG_LEFT_DOWN_TOP_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="109"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="159"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_66_UP_2"/>
+   <property name="gda_collision" value="COL_SLOPE_66_UP_2"/>
   </properties>
  </tile>
  <tile id="160">
   <properties>
    <property name="name" value="66DEG_UPSIDEDOWN_RIGHT_UP_TOP_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="114"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="160"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_66_DOWN_UD_1"/>
+   <property name="gda_collision" value="COL_SLOPE_66_DOWN_UD_1"/>
   </properties>
  </tile>
  <tile id="161">
   <properties>
    <property name="name" value="66DEG_UPSIDEDOWN_RIGHT_UP_BOTTOM_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="115"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="161"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_66_DOWN_UD_2"/>
+   <property name="gda_collision" value="COL_SLOPE_66_DOWN_UD_2"/>
   </properties>
  </tile>
  <tile id="162">
   <properties>
    <property name="name" value="66DEG_UPSIDEDOWN_LEFT_UP_BOTTOM_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="112"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="162"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_66_UP_UD_1"/>
+   <property name="gda_collision" value="COL_SLOPE_66_UP_UD_1"/>
   </properties>
  </tile>
  <tile id="163">
   <properties>
    <property name="name" value="66DEG_UPSIDEDOWN_LEFT_UP_TOP_HALF"/>
-   <property name="collision" type="int" value="128"/>
+   <property name="collision" type="int" value="113"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="163"/>
    <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="COL1_66_UP_UD_2"/>
+   <property name="gda_collision" value="COL_SLOPE_66_UP_UD_2"/>
   </properties>
  </tile>
  <tile id="164">
@@ -3844,7 +3884,7 @@
  <tile id="392">
   <properties>
    <property name="name" value="BRICKS_66_DOWN_UD_1"/>
-   <property name="collision" type="int" value="0"/>
+   <property name="collision" type="int" value="114"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3855,7 +3895,7 @@
  <tile id="393">
   <properties>
    <property name="name" value="BRICKS_66_DOWN_UD_2"/>
-   <property name="collision" type="int" value="0"/>
+   <property name="collision" type="int" value="115"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -3866,7 +3906,7 @@
  <tile id="394">
   <properties>
    <property name="name" value="BRICKS_66_UP_UD_2"/>
-   <property name="collision" type="int" value="0"/>
+   <property name="collision" type="int" value="113"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>
@@ -4020,7 +4060,7 @@
  <tile id="408">
   <properties>
    <property name="name" value="CHKRED_22_UP_UD_2"/>
-   <property name="collision" type="int" value="0"/>
+   <property name="collision" type="int" value="105"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>

@@ -28,6 +28,7 @@ void player_init(Player* p, uint16_t start_x, int16_t start_y) BANKED {
     p->touching_orb = 0;
     p->level_complete = 0;
     p->mini = 0;
+    p->on_slope = 0;
     p->sp_idx = 0;
     p->ufo_orbed = 0;
 }
@@ -88,8 +89,31 @@ static uint8_t box_edge(uint8_t col, uint8_t xin, uint8_t iy, uint8_t bottom) {
     return bottom ? b[3] : b[2];
 }
 
+// Slopes (COL_SLOPE_BASE..): the line y = c + k x / 2 (clamped to the metatile, 0..16), solid below
+// it (above: the _UD ones), as GDA draws them (metatiles.c COL1_SLOPE_*, COL1_22_*, COL1_66_*: the
+// same pixels, the 22 degree ones within half a pixel);
+// vy: the speed (8.8, per frame at the scroll speed, gameplay.c SCROLL_SPEED_FP 714) of a cube
+// walking up it (0: it goes down)
+typedef struct { int8_t c, k; uint8_t ud; int16_t vy; } SlopeLine;
+static const SlopeLine slope_lines[COL_SLOPE_COUNT] = {
+    { 15, -2, 0, -714 }, { 0, 2, 0, 0 }, { 1, 2, 1, 0 }, { 16, -2, 1, 0 },             // 45: UP, DOWN, UP_UD, DOWN_UD
+    { 15, -1, 0, -357 }, { 7, -1, 0, -357 }, { 0, 1, 0, 0 }, { 8, 1, 0, 0 },          // 22: UP_1, UP_2, DOWN_1, DOWN_2
+    { 1, 1, 1, 0 }, { 9, 1, 1, 0 }, { 16, -1, 1, 0 }, { 8, -1, 1, 0 },                // 22: UP_UD_1, _2, DOWN_UD_1, _2
+    { 30, -4, 0, -1428 }, { 14, -4, 0, -1428 }, { -16, 4, 0, 0 }, { 0, 4, 0, 0 },     // 66: UP_1, UP_2, DOWN_1, DOWN_2
+    { -14, 4, 1, 0 }, { 2, 4, 1, 0 }, { 32, -4, 1, 0 }, { 16, -4, 1, 0 },             // 66: UP_UD_1, _2, DOWN_UD_1, _2
+};
+
+// The line's height (0 top .. 16 bottom) of slope type col at x xin of the metatile
+static uint8_t slope_h(uint8_t col, uint8_t xin) {
+    const SlopeLine *l = &slope_lines[(uint8_t)(col - COL_SLOPE_BASE)];
+    int16_t h = (int16_t)l->c + (((int16_t)l->k * (int16_t)xin) >> 1);
+    if (h < 0) return 0;
+    if (h > 16) return 16;
+    return (uint8_t)h;
+}
+
 // Collision types that depend on where inside the metatile the probe is (half blocks,
-// half spikes, quadrants, boxes). Kept out of inline_col_at so its 13 inlined copies in
+// half spikes, quadrants, boxes, slopes). Kept out of inline_col_at so its 13 inlined copies in
 // player_update stay small (SDCC compiles the big inlined version very slowly).
 static uint8_t col_at_partial(uint8_t col, uint8_t inner_y, uint8_t xin) {
     if (col == COL_TOP) {
@@ -112,6 +136,10 @@ static uint8_t col_at_partial(uint8_t col, uint8_t inner_y, uint8_t xin) {
         return COL_NONE;
     } else if ((uint8_t)(col - COL_BOX_BASE) < COL_BOX_COUNT) {
         return box_at(col, xin, inner_y) ? COL_ALL : COL_NONE;
+    } else if (IS_SLOPE(col)) {
+        uint8_t h = slope_h(col, xin);
+        uint8_t below = (inner_y >= h);
+        return (below != slope_lines[(uint8_t)(col - COL_SLOPE_BASE)].ud) ? COL_ALL : COL_NONE;
     }
     return col;
 }
@@ -263,6 +291,13 @@ static uint8_t saw_corner(const uint8_t *col_ptr, int16_t y, uint8_t xin, uint8_
     return (uint16_t)(saw_sq[dx] + saw_sq[dy]) < saw_sq[rad];   // dx, dy < rad <= 15
 }
 
+// Not inlined (the slope code's probes): inline_col_at's body once
+static uint8_t probe_col(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
+    return inline_col_at(col_ptr, y, xin);
+}
+// A non-slope solid at probe offset off, height y (the slope code)
+#define FLAT_AT(off, y) (IS_SOLID(probe_col(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)) && !IS_SLOPE(RAW_COL(off, y)))
+
 // off: x offset of the probe point inside the player box
 #define COL_AT(off, y) inline_col_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
 #define SPIKE(off, y) spike_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
@@ -378,8 +413,55 @@ uint8_t player_update(
 
     p->on_ground = 0;
 
+    // Floor slopes (normal gravity): the feet stand on the highest slope line under the 3 foot
+    // probes, in the metatile of the feet or the one above it (and, standing on a slope already,
+    // up to 8 px below: down a slope). Up to 8 px up (a slope's tall side is a wall). A cube going
+    // up a slope moves up at the slope's speed and keeps it off its top (GD's slope launch).
+    uint8_t was_on_slope = p->on_slope;
+    p->on_slope = 0;
+    if (!p->gravity_flipped && (p->vel_y.w >= 0 || was_on_slope)) {
+        int16_t foot_y = py + box_bot;
+        int16_t best = 0x7FFF;
+        int16_t best_vy = 0;
+        for (uint8_t k = 0; k < 3u; k++) {
+            uint8_t off = (k == 0) ? 0 : (k == 1) ? (uint8_t)(box_r >> 1) : box_r;
+            for (uint8_t d = 0; d < 3u; d++) {
+                int16_t yy = (d == 0) ? foot_y - 1 : (d == 1) ? foot_y : foot_y + 8;
+                if (d == 2 && !was_on_slope) break;
+                uint8_t raw = RAW_COL(off, yy);
+                if (!IS_SLOPE(raw)) continue;
+                const SlopeLine *l = &slope_lines[(uint8_t)(raw - COL_SLOPE_BASE)];
+                if (l->ud) continue;
+                uint8_t h = slope_h(raw, (uint8_t)(wx + off) & 15u);
+                if (h >= 16u) continue;   // nothing of the slope in this column of the metatile
+                int16_t sy = (int16_t)(yy & ~15) + h;
+                if (sy < best) { best = sy; best_vy = l->vy; }
+            }
+        }
+        // A foot on flat ground right under the feet (the top of a slope onto blocks), and no
+        // slope line above them: the ground holds the cube (the floor code below), no launch
+        // (standing on a slope: as far down as it would follow the slope)
+        if (best >= foot_y) {
+            for (int16_t fy = foot_y + 1; fy <= foot_y + (was_on_slope ? 8 : 1); fy += 7) {
+                if (FLAT_AT(0, fy) || FLAT_AT(box_r >> 1, fy) || FLAT_AT(box_r, fy)) {
+                    best = 0x7FFF;
+                    if (p->vel_y.w < 0) p->vel_y.w = 0;
+                    break;
+                }
+            }
+        }
+        if (best >= foot_y - 8 && best <= foot_y + (was_on_slope ? 8 : 0)) {
+            p->world_y.b.h = (uint8_t)(best - box_bot);
+            p->world_y.b.l = 0;
+            p->vel_y.w = best_vy;
+            p->on_ground = 1;
+            p->orb_buffered = 0;
+            p->on_slope = 1;
+        }
+    }
+
     // Floor collision
-    if (p->vel_y.w >= 0) {
+    if (p->vel_y.w >= 0 && !p->on_slope) {
         int16_t foot_y = py + box_bot;
         uint8_t hit_off = 0;
         uint8_t hit_col = COL_AT(0, foot_y);
@@ -434,8 +516,11 @@ uint8_t player_update(
         if (IS_SOLID(hit_col)) {
             uint8_t block_bottom_y = (uint8_t)((head_y & ~15) + 16);
             uint8_t raw = RAW_COL(hit_off, head_y);
+            // A ceiling slope: its line above the probe
+            if (IS_SLOPE(raw)) {
+                block_bottom_y = (uint8_t)((head_y & ~15) + slope_h(raw, (uint8_t)(wx + hit_off) & 15u));
             // A box has its bottom where its rectangle above the probe ends
-            if ((uint8_t)(raw - COL_BOX_BASE) < COL_BOX_COUNT) {
+            } else if ((uint8_t)(raw - COL_BOX_BASE) < COL_BOX_COUNT) {
                 block_bottom_y = (uint8_t)((head_y & ~15) +
                                  box_edge(raw, (uint8_t)(wx + hit_off) & 15u, (uint8_t)head_y & 15u, 1));
             // A top half block / quadrant solid hit in its upper half has its bottom 8px higher

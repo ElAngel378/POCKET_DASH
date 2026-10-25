@@ -64,6 +64,12 @@
 #define COL_OUTLINE_LEFT       (COL_BOX_BASE + 22)
 #define COL_OUTLINE_RIGHT      (COL_BOX_BASE + 23)
 #define COL_CENTERED_MINI      (COL_BOX_BASE + 24)   // x, y 4..11
+// Slopes (GDA's COL_SLOPE_*, in its order): solid below a line through the metatile (the _UD ones:
+// above it), see slope_lines[] in player.c. 45 degrees in one metatile, 22 over two side by side
+// (_1 left, _2 right), 66 over two stacked (_1 upper, _2 lower).
+#define COL_SLOPE_BASE  0x60
+#define COL_SLOPE_COUNT 20
+#define IS_SLOPE(col) ((uint8_t)((col) - COL_SLOPE_BASE) < COL_SLOPE_COUNT)
 // GDA's full slabs are COL_TOP / COL_BOTTOM (top / bottom half) and the quadrant types
 // COL_QUAD_BASE + 0 / + 1 (left / right half)
 // Saws: Famidash's spike types (COL_DEATH, COL_DEATH_TOP / BOTTOM / LEFT / RIGHT, the diagonal

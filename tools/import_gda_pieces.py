@@ -22,6 +22,7 @@ from objects_catalog import ART, COLUMNS, TSX, load_catalog, write_preview  # no
 
 Q = 0x20   # COL_QUAD_BASE: quadrant types, col_quads[] in src/player.c
 X = 0x40   # COL_BOX_BASE
+S = 0x60   # COL_SLOPE_BASE
 # GDA collision -> ours (include/collision.h); missing ones: no collision yet
 COLLISION = {
     "COL_NONE": 0, "COL_FULL": 7, "COL_FLOOR_CEIL": 9,
@@ -44,6 +45,8 @@ COLLISION = {
     "COL_EA_CORNER_INSIDE_SLAB_BOTTOM_LEFT": X + 18, "COL_EA_CORNER_INSIDE_SLAB_BOTTOM_RIGHT": X + 19,
     "COL_OUTLINE_TOP": X + 20, "COL_OUTLINE_BOTTOM": X + 21, "COL_OUTLINE_LEFT": X + 22, "COL_OUTLINE_RIGHT": X + 23,
     "COL_CENTERED_MINI_BLOCK": X + 24,
+    # slopes (include/collision.h COL_SLOPE_BASE, slope_lines[] in src/player.c), in GDA's order
+    **{"COL_" + n: S + i for i, n in enumerate(['SLOPE_45_UP', 'SLOPE_45_DOWN', 'SLOPE_45_UP_UD', 'SLOPE_45_DOWN_UD', 'SLOPE_22_UP_1', 'SLOPE_22_UP_2', 'SLOPE_22_DOWN_1', 'SLOPE_22_DOWN_2', 'SLOPE_22_UP_UD_1', 'SLOPE_22_UP_UD_2', 'SLOPE_22_DOWN_UD_1', 'SLOPE_22_DOWN_UD_2', 'SLOPE_66_UP_1', 'SLOPE_66_UP_2', 'SLOPE_66_DOWN_1', 'SLOPE_66_DOWN_2', 'SLOPE_66_UP_UD_1', 'SLOPE_66_UP_UD_2', 'SLOPE_66_DOWN_UD_1', 'SLOPE_66_DOWN_UD_2'])},
     "BREAKABLE_BRICK": 7,
 }
 # Not added: GDA's level end wall (our level end is a sprite), and its old ground / ceiling pieces
