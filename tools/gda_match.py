@@ -235,5 +235,144 @@ def review():
     print(img.size)
 
 
+# Famidash's sprite object ids (famidash-main LEVELS/include/lvlset_A/objdefines.h); our SP layer uses them
+FAMIDASH_SPRITES = {
+    0x00: "CUBE_MODE", 0x01: "SHIP_MODE", 0x02: "BALL_MODE", 0x03: "UFO_MODE", 0x04: "ROBOT_MODE",
+    0x05: "BLUE_ORB", 0x06: "PINK_ORB", 0x07: "COIN1", 0x08: "GRAVITY_DOWN_PORTAL", 0x09: "GRAVITY_UP_PORTAL",
+    0x0A: "YELLOW_PAD_DOWN", 0x0B: "YELLOW_ORB", 0x0C: "YELLOW_PAD_UP", 0x0D: "GRAVITY_PAD_DOWN",
+    0x0E: "GRAVITY_PAD_UP", 0x0F: "LEVEL_END_TRIGGER", 0x10: "GRAVITY_DOWN_UPWARDS_PORTAL",
+    0x11: "GRAVITY_DOWN_DOWNWARDS_PORTAL", 0x12: "GRAVITY_UP_UPWARDS_PORTAL", 0x13: "GRAVITY_UP_DOWNWARDS_PORTAL",
+    0x14: "SPEED_05_PORTAL", 0x15: "SPEED_10_PORTAL", 0x16: "SPEED_20_PORTAL", 0x17: "SPIDER_MODE",
+    0x18: "MINI_PORTAL", 0x19: "GROWTH_PORTAL", 0x1A: "COIN2", 0x1B: "COIN3", 0x1F: "YELLOW_ORB_BIGGER",
+    0x20: "SPEED_30_PORTAL", 0x21: "SPEED_40_PORTAL", 0x22: "DUAL_PORTAL", 0x23: "SINGLE_PORTAL",
+    0x24: "WAVE_MODE", 0x25: "PINK_PAD_DOWN", 0x26: "PINK_PAD_UP", 0x27: "GREEN_ORB", 0x28: "RED_ORB",
+    0x29: "YELLOW_ORB_SMALLER", 0x2A: "LONG_LIGHT", 0x2B: "MEDIUM_LIGHT", 0x2C: "SHORT_LIGHT", 0x2D: "CHAIN",
+    0x2E: "BG_SPIKE_GROUP1", 0x2F: "BG_SPIKE_GROUP2", 0x30: "BG_SPIKE_GROUP3", 0x31: "BG_SPIKE_GROUP4",
+    0x32: "BIG_DIAMOND", 0x33: "RIGHT_HALF_DIAMOND", 0x34: "QUESTION_MARK", 0x35: "EXCLAMATION_MARK",
+    0x36: "RIGHT_ARROW", 0x37: "BIG_X", 0x38: "SHORT_LIGHT_RIGHT", 0x39: "SHORT_LIGHT_LEFT",
+    0x3A: "LONG_LIGHT_U", 0x3B: "MEDIUM_LIGHT_U", 0x3C: "SHORT_LIGHT_U", 0x3D: "CHAIN_U",
+    0x3E: "MEDIUM_LIGHT_RIGHT", 0x3F: "MEDIUM_LIGHT_LEFT", 0x40: "LONG_LIGHT_RIGHT", 0x41: "LONG_LIGHT_LEFT",
+    0x42: "SHORT_LIGHT_U_8_PIXELS", 0x43: "CHAIN_U_8_PIXELS", 0x44: "BLACK_ORB", 0x45: "DASH_ORB",
+    0x46: "DASH_GRAVITY_ORB", 0x49: "PULSE_ORB", 0x4A: "MUSIC_NOTE", 0x52: "RED_PAD_DOWN", 0x53: "RED_PAD_UP",
+    0x79: "SKULL_ORB", 0x7E: "SUPER_RANDOM_PORTAL", 0xF2: "PLAYER_TRAILS_ON", 0xF3: "PLAYER_TRAILS_OFF",
+    0xFD: "GRAVITY_PAD_DOWN_INVISIBLE", 0xFE: "GRAVITY_PAD_UP_INVISIBLE",
+}
+
+
+def famidash_sprite_name(i):
+    if i in (121, 126):
+        return {121: "MIRROR_EXIT (ours)", 126: "MIRROR_PORTAL (ours)"}[i]
+    if 128 <= i <= 175:
+        return "BG_COLOR_TRIGGER_%d" % (i - 128)
+    if 176 <= i <= 191:
+        return "OUTLINE_COLOR_TRIGGER_%d" % (i - 176)
+    if 192 <= i <= 239:
+        return "GROUND_COLOR_TRIGGER_%d" % (i - 192)
+    return FAMIDASH_SPRITES.get(i, "UNKNOWN_%d" % i)
+
+
+def our_sprites(name):
+    """our SP layer -> (w, h, [(sprite id, cell x, cell y)])"""
+    root = ET.parse(OUR_TMX / (name + ".tmx")).getroot()
+    w, h = int(root.get("width")), int(root.get("height"))
+    for layer in root.findall("layer"):
+        if layer.get("name") == "SP":
+            v = [int(x) & 0x0FFFFFFF for x in layer.find("data").text.replace("\n", "").split(",") if x.strip()]
+            return w, h, [(g - 4097, i % w, i // w) for i, g in enumerate(v) if g >= 4097]
+    return w, h, []
+
+
+def sprite_votes():
+    """{our sprite id: Counter(GDA label)}: the GDA sprite objects nearest each of our sprites (same
+    level line-up as the BG). Colour triggers vote with their GDA channel."""
+    mt_names = [n for n, _, _ in gda.metatiles()]
+    sp_names = gda.sprite_types()
+    v = collections.defaultdict(collections.Counter)
+    for gname, oname in SHARED.items():
+        gw, gh, gc = gda_cells(gname, mt_names, sp_names)
+        ow, oh, om = our_level(oname)
+        dy = oh - gh
+
+        def agree(dx):
+            return sum(1 for y in range(max(0, -dy), gh) if 0 <= y + dy < oh
+                       for x in range(0, gw, 3) if 0 <= x + dx < ow and gc[y][x] and om[y + dy][x + dx] > 1)
+        dx = max(range(-8, 9), key=agree)
+        _, _, layers, objs = gda.read_level(gname)
+        _, _, ours = our_sprites(oname)
+        for sid, x, y in ours:
+            gx, gy = (x - dx) * 16 + 8, (y - dy) * 16 + 8
+            best = None
+            trigger = 128 <= sid < 240
+            for o in objs:
+                g = o["gid"]
+                if g < gda.SPRITE_GID or trigger != (g == gda.SPRITE_GID + 3):
+                    continue
+                cx, cy = o["x"] + o["w"] / 2, o["y"] + o["h"] / 2
+                # GDA keeps its colour triggers in rows above the level: those by x only
+                d = abs(cx - gx) + (0 if trigger else abs(cy - gy))
+                if d <= 40 and (best is None or d < best[0]):
+                    best = (d, o)
+            if best is None:
+                v[sid]["(none near)"] += 1
+                continue
+            o = best[1]
+            name = sp_names[o["gid"] - gda.SPRITE_GID]
+            if name == "COL_TRIGGER":
+                name += "[%s]" % o["props"].get("Channel", "?")
+            flips = "".join(f for f, k in (("H", "hflip"), ("V", "vflip")) if o["props"].get(k) == "true")
+            v[sid][name + ("/" + flips if flips else "")] += 1
+    return v
+
+
+def sprite_report():
+    v = sprite_votes()
+    lines = ["# Our sprite objects in GDA", "",
+             "Made by `python tools/gda_match.py --sprites`: every Famidash sprite id our levels use, and the",
+             "GDA sprite object nearest it in the shared levels (/H /V: flipped; COL_TRIGGER[channel]).", "",
+             "| id | ours (Famidash) | placed | GDA nearest (share) |", "|---|---|---|---|"]
+    for sid in sorted(v):
+        c = v[sid]
+        total = sum(c.values())
+        g = ", ".join("%s (%d%%)" % (k, 100 * n // total) for k, n in c.most_common(3))
+        lines.append("| %d | %s | %d | %s |" % (sid, famidash_sprite_name(sid), total, g))
+    (ROOT / "docs" / "GDA_SPRITE_MATCH.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print("\n".join(lines[6:]))
+
+
+def sprite_review():
+    """docs/gda_sprites.png: each Famidash sprite id our levels use (its icon from
+    levels/chr_data/graphics/sprites.png) next to its GDA sprite (levels/objects/gda_sprites.json);
+    the colour triggers once per kind"""
+    import json
+    ours = json.loads((ROOT / "levels" / "objects" / "gda_sprites.json").read_text())
+    fam = Image.open(ROOT / "levels" / "chr_data" / "graphics" / "sprites.png").convert("RGBA")
+    sp_index = {n: i for i, n in enumerate(gda.sprite_types())}
+    colours = {"same": (90, 200, 90), "close": (240, 130, 60), "none": (240, 70, 70)}
+    rows = [(int(k), m) for k, m in ours.items() if not (128 < int(k) < 176 or 176 < int(k) < 192 or 192 < int(k) < 240)]
+
+    def big(t):
+        b = Image.new("RGBA", (16, 16), (190, 190, 200, 255))
+        b.alpha_composite(t)
+        return b.resize((64, 64), Image.NEAREST)
+
+    per_col = 16
+    img = Image.new("RGBA", (((len(rows) + per_col - 1) // per_col) * 420, per_col * 74), (34, 34, 42, 255))
+    d = ImageDraw.Draw(img)
+    for k, (i, m) in enumerate(rows):
+        x, y = (k // per_col) * 420, (k % per_col) * 74
+        img.paste(big(fam.crop(((i % 16) * 16, (i // 16) * 16, (i % 16) * 16 + 16, (i // 16) * 16 + 16))), (x + 4, y + 4))
+        if m["gda"]:
+            img.paste(big(gda.sprite_image(sp_index[m["gda"][3:]])), (x + 72, y + 4))
+        d.rectangle((x + 142, y + 12, x + 148, y + 18), fill=colours[m["match"]])
+        label = m["ours"] if not 128 <= i < 240 else m["ours"].rsplit("_", 1)[0] + " (all)"
+        d.text((x + 154, y + 10), "%d %s" % (i, label[:32]), fill=(240, 240, 240))
+        d.text((x + 142, y + 26), (m["gda"] or "-")[:40], fill=(160, 200, 255))
+        note = m.get("note", "")
+        d.text((x + 142, y + 42), note[:40], fill=(170, 170, 170))
+        d.text((x + 142, y + 56), note[40:80], fill=(170, 170, 170))
+    img.save(ROOT / "docs" / "gda_sprites.png")
+    print(img.size)
+
+
 if __name__ == "__main__":
-    review() if sys.argv[1:] == ["--review"] else main()
+    {"--review": review, "--sprites": sprite_report, "--sprite-review": sprite_review}.get((sys.argv[1:] or [""])[0], main)()

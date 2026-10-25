@@ -1,0 +1,995 @@
+{
+ "0": {
+  "ours": "CUBE_MODE",
+  "gda": "SP:CUBE_PORTAL",
+  "match": "same"
+ },
+ "1": {
+  "ours": "SHIP_MODE",
+  "gda": "SP:SHIP_PORTAL",
+  "match": "same"
+ },
+ "2": {
+  "ours": "BALL_MODE",
+  "gda": "SP:BALL_PORTAL",
+  "match": "same"
+ },
+ "3": {
+  "ours": "UFO_MODE",
+  "gda": "SP:UFO_PORTAL",
+  "match": "same"
+ },
+ "5": {
+  "ours": "BLUE_ORB",
+  "gda": "SP:BLUE_ORB",
+  "match": "same"
+ },
+ "6": {
+  "ours": "PINK_ORB",
+  "gda": "SP:PINK_ORB",
+  "match": "same"
+ },
+ "7": {
+  "ours": "COIN1",
+  "gda": "SP:COIN",
+  "match": "same",
+  "note": "coin 1"
+ },
+ "26": {
+  "ours": "COIN2",
+  "gda": "SP:COIN",
+  "match": "same",
+  "note": "coin 2"
+ },
+ "27": {
+  "ours": "COIN3",
+  "gda": "SP:COIN",
+  "match": "same",
+  "note": "coin 3"
+ },
+ "8": {
+  "ours": "GRAVITY_DOWN_PORTAL",
+  "gda": "SP:BLUE_GRAVITY_PORTAL",
+  "match": "same"
+ },
+ "9": {
+  "ours": "GRAVITY_UP_PORTAL",
+  "gda": "SP:YELLOW_GRAVITY_PORTAL",
+  "match": "same"
+ },
+ "10": {
+  "ours": "YELLOW_PAD_DOWN",
+  "gda": "SP:YELLOW_PAD",
+  "match": "same"
+ },
+ "11": {
+  "ours": "YELLOW_ORB",
+  "gda": "SP:YELLOW_ORB",
+  "match": "same"
+ },
+ "12": {
+  "ours": "YELLOW_PAD_UP",
+  "gda": "SP:YELLOW_PAD",
+  "match": "same",
+  "note": "upside down (vflip)"
+ },
+ "13": {
+  "ours": "GRAVITY_PAD_DOWN",
+  "gda": "SP:BLUE_PAD",
+  "match": "same"
+ },
+ "14": {
+  "ours": "GRAVITY_PAD_UP",
+  "gda": "SP:BLUE_PAD",
+  "match": "same",
+  "note": "upside down (vflip)"
+ },
+ "15": {
+  "ours": "LEVEL_END_TRIGGER",
+  "gda": null,
+  "match": "none",
+  "note": "GDA ends a level with its ENDING_WALL metatile, no sprite"
+ },
+ "16": {
+  "ours": "GRAVITY_DOWN_UPWARDS_PORTAL",
+  "gda": "SP:BLUE_GRAVITY_PORTAL",
+  "match": "same",
+  "note": "turned on its side (rotation), facing up"
+ },
+ "17": {
+  "ours": "GRAVITY_DOWN_DOWNWARDS_PORTAL",
+  "gda": "SP:BLUE_GRAVITY_PORTAL",
+  "match": "same",
+  "note": "turned on its side (rotation), facing down"
+ },
+ "18": {
+  "ours": "GRAVITY_UP_UPWARDS_PORTAL",
+  "gda": "SP:YELLOW_GRAVITY_PORTAL",
+  "match": "same",
+  "note": "turned on its side (rotation), facing up"
+ },
+ "19": {
+  "ours": "GRAVITY_UP_DOWNWARDS_PORTAL",
+  "gda": "SP:YELLOW_GRAVITY_PORTAL",
+  "match": "same",
+  "note": "turned on its side (rotation), facing down"
+ },
+ "24": {
+  "ours": "MINI_PORTAL",
+  "gda": "SP:MINI_PORTAL",
+  "match": "same"
+ },
+ "25": {
+  "ours": "GROWTH_PORTAL",
+  "gda": "SP:BIG_PORTAL",
+  "match": "same"
+ },
+ "37": {
+  "ours": "PINK_PAD_DOWN",
+  "gda": "SP:PINK_PAD",
+  "match": "same"
+ },
+ "38": {
+  "ours": "PINK_PAD_UP",
+  "gda": "SP:PINK_PAD",
+  "match": "same",
+  "note": "upside down (vflip)"
+ },
+ "42": {
+  "ours": "LONG_LIGHT",
+  "gda": "SP:LARGE_PULSING_CIRCLE",
+  "match": "same",
+  "note": "GDA's name; its art is the long light"
+ },
+ "43": {
+  "ours": "MEDIUM_LIGHT",
+  "gda": "SP:MEDIUM_PULSING_CIRCLE",
+  "match": "same",
+  "note": "GDA's name; its art is the medium light"
+ },
+ "44": {
+  "ours": "SHORT_LIGHT",
+  "gda": "SP:SMALL_PULSING_CIRCLE",
+  "match": "same",
+  "note": "GDA's name; its art is the short light"
+ },
+ "45": {
+  "ours": "CHAIN",
+  "gda": "SP:BG_CHAINS",
+  "match": "same"
+ },
+ "46": {
+  "ours": "BG_SPIKE_GROUP1",
+  "gda": "SP:BIG_BG_SPIKES",
+  "match": "same",
+  "note": "GDA also has MEDIUM_BG_SPIKES for smaller groups"
+ },
+ "47": {
+  "ours": "BG_SPIKE_GROUP2",
+  "gda": "SP:BIG_BG_SPIKES",
+  "match": "same",
+  "note": "upside down (vflip)"
+ },
+ "48": {
+  "ours": "BG_SPIKE_GROUP3",
+  "gda": "SP:TINY_BG_SPIKES",
+  "match": "same",
+  "note": "GDA also has SMALL_BG_SPIKES"
+ },
+ "49": {
+  "ours": "BG_SPIKE_GROUP4",
+  "gda": "SP:TINY_BG_SPIKES",
+  "match": "same",
+  "note": "upside down (vflip)"
+ },
+ "50": {
+  "ours": "BIG_DIAMOND",
+  "gda": "SP:PULSING_DIAMOND",
+  "match": "same"
+ },
+ "51": {
+  "ours": "RIGHT_HALF_DIAMOND",
+  "gda": "SP:PULSING_ARROW",
+  "match": "close",
+  "note": "Famidash's is a half diamond (triangle), GDA's an arrow; GDA uses the arrow there"
+ },
+ "52": {
+  "ours": "QUESTION_MARK",
+  "gda": "SP:PULSING_INTERROGATION",
+  "match": "same"
+ },
+ "53": {
+  "ours": "EXCLAMATION_MARK",
+  "gda": "SP:PULSING_EXCLAMATION",
+  "match": "same"
+ },
+ "54": {
+  "ours": "RIGHT_ARROW",
+  "gda": "SP:PULSING_STAR",
+  "match": "same",
+  "note": "Famidash calls it RIGHT_ARROW but draws a star"
+ },
+ "55": {
+  "ours": "BIG_X",
+  "gda": "SP:PULSING_X",
+  "match": "same"
+ },
+ "56": {
+  "ours": "SHORT_LIGHT_RIGHT",
+  "gda": "SP:SMALL_PULSING_CIRCLE",
+  "match": "same",
+  "note": "short light turned right (rotation)"
+ },
+ "57": {
+  "ours": "SHORT_LIGHT_LEFT",
+  "gda": "SP:SMALL_PULSING_CIRCLE",
+  "match": "same",
+  "note": "short light turned left (rotation)"
+ },
+ "58": {
+  "ours": "LONG_LIGHT_U",
+  "gda": "SP:LARGE_PULSING_CIRCLE",
+  "match": "same",
+  "note": "upside down (vflip)"
+ },
+ "59": {
+  "ours": "MEDIUM_LIGHT_U",
+  "gda": "SP:MEDIUM_PULSING_CIRCLE",
+  "match": "same",
+  "note": "upside down (vflip)"
+ },
+ "60": {
+  "ours": "SHORT_LIGHT_U",
+  "gda": "SP:SMALL_PULSING_CIRCLE",
+  "match": "same",
+  "note": "upside down (vflip)"
+ },
+ "61": {
+  "ours": "CHAIN_U",
+  "gda": "SP:BG_CHAINS",
+  "match": "same",
+  "note": "upside down (vflip)"
+ },
+ "62": {
+  "ours": "MEDIUM_LIGHT_RIGHT",
+  "gda": "SP:MEDIUM_PULSING_CIRCLE",
+  "match": "same",
+  "note": "medium light turned right (rotation)"
+ },
+ "63": {
+  "ours": "MEDIUM_LIGHT_LEFT",
+  "gda": "SP:MEDIUM_PULSING_CIRCLE",
+  "match": "same",
+  "note": "medium light turned left (rotation)"
+ },
+ "73": {
+  "ours": "PULSE_ORB",
+  "gda": "SP:PULSING_CIRCLE",
+  "match": "same",
+  "note": "the pulsing ball (Xstep's wavy platforms, Clubstep's eyes)"
+ },
+ "74": {
+  "ours": "MUSIC_NOTE",
+  "gda": "SP:PULSING_NOTE",
+  "match": "same"
+ },
+ "82": {
+  "ours": "RED_PAD_DOWN",
+  "gda": "SP:RED_PAD",
+  "match": "same"
+ },
+ "83": {
+  "ours": "RED_PAD_UP",
+  "gda": "SP:RED_PAD",
+  "match": "same",
+  "note": "upside down (vflip)"
+ },
+ "121": {
+  "ours": "MIRROR_EXIT (ours)",
+  "gda": "SP:BLUE_MIRROR_PORTAL",
+  "match": "same",
+  "note": "mirror off"
+ },
+ "126": {
+  "ours": "MIRROR_PORTAL (ours)",
+  "gda": "SP:ORANGE_MIRROR_PORTAL",
+  "match": "same",
+  "note": "mirror on"
+ },
+ "128": {
+  "ours": "BG_COLOR_TRIGGER_0",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 0"
+ },
+ "129": {
+  "ours": "BG_COLOR_TRIGGER_1",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 1"
+ },
+ "130": {
+  "ours": "BG_COLOR_TRIGGER_2",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 2"
+ },
+ "131": {
+  "ours": "BG_COLOR_TRIGGER_3",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 3"
+ },
+ "132": {
+  "ours": "BG_COLOR_TRIGGER_4",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 4"
+ },
+ "133": {
+  "ours": "BG_COLOR_TRIGGER_5",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 5"
+ },
+ "134": {
+  "ours": "BG_COLOR_TRIGGER_6",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 6"
+ },
+ "135": {
+  "ours": "BG_COLOR_TRIGGER_7",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 7"
+ },
+ "136": {
+  "ours": "BG_COLOR_TRIGGER_8",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 8"
+ },
+ "137": {
+  "ours": "BG_COLOR_TRIGGER_9",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 9"
+ },
+ "138": {
+  "ours": "BG_COLOR_TRIGGER_10",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 10"
+ },
+ "139": {
+  "ours": "BG_COLOR_TRIGGER_11",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 11"
+ },
+ "140": {
+  "ours": "BG_COLOR_TRIGGER_12",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 12"
+ },
+ "141": {
+  "ours": "BG_COLOR_TRIGGER_13",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 13"
+ },
+ "142": {
+  "ours": "BG_COLOR_TRIGGER_14",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 14"
+ },
+ "143": {
+  "ours": "BG_COLOR_TRIGGER_15",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 15"
+ },
+ "144": {
+  "ours": "BG_COLOR_TRIGGER_16",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 16"
+ },
+ "145": {
+  "ours": "BG_COLOR_TRIGGER_17",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 17"
+ },
+ "146": {
+  "ours": "BG_COLOR_TRIGGER_18",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 18"
+ },
+ "147": {
+  "ours": "BG_COLOR_TRIGGER_19",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 19"
+ },
+ "148": {
+  "ours": "BG_COLOR_TRIGGER_20",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 20"
+ },
+ "149": {
+  "ours": "BG_COLOR_TRIGGER_21",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 21"
+ },
+ "150": {
+  "ours": "BG_COLOR_TRIGGER_22",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 22"
+ },
+ "151": {
+  "ours": "BG_COLOR_TRIGGER_23",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 23"
+ },
+ "152": {
+  "ours": "BG_COLOR_TRIGGER_24",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 24"
+ },
+ "153": {
+  "ours": "BG_COLOR_TRIGGER_25",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 25"
+ },
+ "154": {
+  "ours": "BG_COLOR_TRIGGER_26",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 26"
+ },
+ "155": {
+  "ours": "BG_COLOR_TRIGGER_27",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 27"
+ },
+ "156": {
+  "ours": "BG_COLOR_TRIGGER_28",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 28"
+ },
+ "157": {
+  "ours": "BG_COLOR_TRIGGER_29",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 29"
+ },
+ "158": {
+  "ours": "BG_COLOR_TRIGGER_30",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 30"
+ },
+ "159": {
+  "ours": "BG_COLOR_TRIGGER_31",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 31"
+ },
+ "160": {
+  "ours": "BG_COLOR_TRIGGER_32",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 32"
+ },
+ "161": {
+  "ours": "BG_COLOR_TRIGGER_33",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 33"
+ },
+ "162": {
+  "ours": "BG_COLOR_TRIGGER_34",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 34"
+ },
+ "163": {
+  "ours": "BG_COLOR_TRIGGER_35",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 35"
+ },
+ "164": {
+  "ours": "BG_COLOR_TRIGGER_36",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 36"
+ },
+ "165": {
+  "ours": "BG_COLOR_TRIGGER_37",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 37"
+ },
+ "166": {
+  "ours": "BG_COLOR_TRIGGER_38",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 38"
+ },
+ "167": {
+  "ours": "BG_COLOR_TRIGGER_39",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 39"
+ },
+ "168": {
+  "ours": "BG_COLOR_TRIGGER_40",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 40"
+ },
+ "169": {
+  "ours": "BG_COLOR_TRIGGER_41",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 41"
+ },
+ "170": {
+  "ours": "BG_COLOR_TRIGGER_42",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 42"
+ },
+ "171": {
+  "ours": "BG_COLOR_TRIGGER_43",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 43"
+ },
+ "172": {
+  "ours": "BG_COLOR_TRIGGER_44",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 44"
+ },
+ "173": {
+  "ours": "BG_COLOR_TRIGGER_45",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 45"
+ },
+ "174": {
+  "ours": "BG_COLOR_TRIGGER_46",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 46"
+ },
+ "175": {
+  "ours": "BG_COLOR_TRIGGER_47",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel BG, Famidash background colour 47"
+ },
+ "176": {
+  "ours": "OUTLINE_COLOR_TRIGGER_0",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 0"
+ },
+ "177": {
+  "ours": "OUTLINE_COLOR_TRIGGER_1",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 1"
+ },
+ "178": {
+  "ours": "OUTLINE_COLOR_TRIGGER_2",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 2"
+ },
+ "179": {
+  "ours": "OUTLINE_COLOR_TRIGGER_3",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 3"
+ },
+ "180": {
+  "ours": "OUTLINE_COLOR_TRIGGER_4",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 4"
+ },
+ "181": {
+  "ours": "OUTLINE_COLOR_TRIGGER_5",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 5"
+ },
+ "182": {
+  "ours": "OUTLINE_COLOR_TRIGGER_6",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 6"
+ },
+ "183": {
+  "ours": "OUTLINE_COLOR_TRIGGER_7",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 7"
+ },
+ "184": {
+  "ours": "OUTLINE_COLOR_TRIGGER_8",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 8"
+ },
+ "185": {
+  "ours": "OUTLINE_COLOR_TRIGGER_9",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 9"
+ },
+ "186": {
+  "ours": "OUTLINE_COLOR_TRIGGER_10",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 10"
+ },
+ "187": {
+  "ours": "OUTLINE_COLOR_TRIGGER_11",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 11"
+ },
+ "188": {
+  "ours": "OUTLINE_COLOR_TRIGGER_12",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 12"
+ },
+ "189": {
+  "ours": "OUTLINE_COLOR_TRIGGER_13",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 13"
+ },
+ "190": {
+  "ours": "OUTLINE_COLOR_TRIGGER_14",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 14"
+ },
+ "191": {
+  "ours": "OUTLINE_COLOR_TRIGGER_15",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel OBJ, Famidash block outline colour 15"
+ },
+ "192": {
+  "ours": "GROUND_COLOR_TRIGGER_0",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 0"
+ },
+ "193": {
+  "ours": "GROUND_COLOR_TRIGGER_1",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 1"
+ },
+ "194": {
+  "ours": "GROUND_COLOR_TRIGGER_2",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 2"
+ },
+ "195": {
+  "ours": "GROUND_COLOR_TRIGGER_3",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 3"
+ },
+ "196": {
+  "ours": "GROUND_COLOR_TRIGGER_4",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 4"
+ },
+ "197": {
+  "ours": "GROUND_COLOR_TRIGGER_5",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 5"
+ },
+ "198": {
+  "ours": "GROUND_COLOR_TRIGGER_6",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 6"
+ },
+ "199": {
+  "ours": "GROUND_COLOR_TRIGGER_7",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 7"
+ },
+ "200": {
+  "ours": "GROUND_COLOR_TRIGGER_8",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 8"
+ },
+ "201": {
+  "ours": "GROUND_COLOR_TRIGGER_9",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 9"
+ },
+ "202": {
+  "ours": "GROUND_COLOR_TRIGGER_10",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 10"
+ },
+ "203": {
+  "ours": "GROUND_COLOR_TRIGGER_11",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 11"
+ },
+ "204": {
+  "ours": "GROUND_COLOR_TRIGGER_12",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 12"
+ },
+ "205": {
+  "ours": "GROUND_COLOR_TRIGGER_13",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 13"
+ },
+ "206": {
+  "ours": "GROUND_COLOR_TRIGGER_14",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 14"
+ },
+ "207": {
+  "ours": "GROUND_COLOR_TRIGGER_15",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 15"
+ },
+ "208": {
+  "ours": "GROUND_COLOR_TRIGGER_16",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 16"
+ },
+ "209": {
+  "ours": "GROUND_COLOR_TRIGGER_17",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 17"
+ },
+ "210": {
+  "ours": "GROUND_COLOR_TRIGGER_18",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 18"
+ },
+ "211": {
+  "ours": "GROUND_COLOR_TRIGGER_19",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 19"
+ },
+ "212": {
+  "ours": "GROUND_COLOR_TRIGGER_20",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 20"
+ },
+ "213": {
+  "ours": "GROUND_COLOR_TRIGGER_21",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 21"
+ },
+ "214": {
+  "ours": "GROUND_COLOR_TRIGGER_22",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 22"
+ },
+ "215": {
+  "ours": "GROUND_COLOR_TRIGGER_23",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 23"
+ },
+ "216": {
+  "ours": "GROUND_COLOR_TRIGGER_24",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 24"
+ },
+ "217": {
+  "ours": "GROUND_COLOR_TRIGGER_25",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 25"
+ },
+ "218": {
+  "ours": "GROUND_COLOR_TRIGGER_26",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 26"
+ },
+ "219": {
+  "ours": "GROUND_COLOR_TRIGGER_27",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 27"
+ },
+ "220": {
+  "ours": "GROUND_COLOR_TRIGGER_28",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 28"
+ },
+ "221": {
+  "ours": "GROUND_COLOR_TRIGGER_29",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 29"
+ },
+ "222": {
+  "ours": "GROUND_COLOR_TRIGGER_30",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 30"
+ },
+ "223": {
+  "ours": "GROUND_COLOR_TRIGGER_31",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 31"
+ },
+ "224": {
+  "ours": "GROUND_COLOR_TRIGGER_32",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 32"
+ },
+ "225": {
+  "ours": "GROUND_COLOR_TRIGGER_33",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 33"
+ },
+ "226": {
+  "ours": "GROUND_COLOR_TRIGGER_34",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 34"
+ },
+ "227": {
+  "ours": "GROUND_COLOR_TRIGGER_35",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 35"
+ },
+ "228": {
+  "ours": "GROUND_COLOR_TRIGGER_36",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 36"
+ },
+ "229": {
+  "ours": "GROUND_COLOR_TRIGGER_37",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 37"
+ },
+ "230": {
+  "ours": "GROUND_COLOR_TRIGGER_38",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 38"
+ },
+ "231": {
+  "ours": "GROUND_COLOR_TRIGGER_39",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 39"
+ },
+ "232": {
+  "ours": "GROUND_COLOR_TRIGGER_40",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 40"
+ },
+ "233": {
+  "ours": "GROUND_COLOR_TRIGGER_41",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 41"
+ },
+ "234": {
+  "ours": "GROUND_COLOR_TRIGGER_42",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 42"
+ },
+ "235": {
+  "ours": "GROUND_COLOR_TRIGGER_43",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 43"
+ },
+ "236": {
+  "ours": "GROUND_COLOR_TRIGGER_44",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 44"
+ },
+ "237": {
+  "ours": "GROUND_COLOR_TRIGGER_45",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 45"
+ },
+ "238": {
+  "ours": "GROUND_COLOR_TRIGGER_46",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 46"
+ },
+ "239": {
+  "ours": "GROUND_COLOR_TRIGGER_47",
+  "gda": "SP:COL_TRIGGER",
+  "match": "same",
+  "note": "channel GROUND, Famidash ground colour 47"
+ },
+ "242": {
+  "ours": "PLAYER_TRAILS_ON",
+  "gda": null,
+  "match": "none",
+  "note": "Famidash player trails on; our engine ignores it"
+ },
+ "243": {
+  "ours": "PLAYER_TRAILS_OFF",
+  "gda": null,
+  "match": "none",
+  "note": "Famidash player trails off; our engine ignores it"
+ },
+ "253": {
+  "ours": "GRAVITY_PAD_DOWN_INVISIBLE",
+  "gda": "SP:BLUE_PAD",
+  "match": "close",
+  "note": "invisible: GDA has no invisible pad"
+ },
+ "254": {
+  "ours": "GRAVITY_PAD_UP_INVISIBLE",
+  "gda": "SP:BLUE_PAD",
+  "match": "close",
+  "note": "invisible, upside down: GDA has no invisible pad"
+ }
+}

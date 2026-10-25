@@ -1,0 +1,147 @@
+# Our sprite objects in GDA
+
+Made by `python tools/gda_match.py --sprites`: every Famidash sprite id our levels use, and the
+GDA sprite object nearest it in the shared levels (/H /V: flipped; COL_TRIGGER[channel]).
+
+| id | ours (Famidash) | placed | GDA nearest (share) |
+|---|---|---|---|
+| 0 | CUBE_MODE | 27 | CUBE_PORTAL (66%), (none near) (22%), BLUE_MIRROR_PORTAL (3%) |
+| 1 | SHIP_MODE | 33 | SHIP_PORTAL (72%), (none near) (21%), SMALL_PULSING_CIRCLE/V (3%) |
+| 2 | BALL_MODE | 10 | BALL_PORTAL (70%), (none near) (30%) |
+| 3 | UFO_MODE | 6 | UFO_PORTAL (83%), MEDIUM_CLOUD (16%) |
+| 5 | BLUE_ORB | 114 | BLUE_ORB (93%), (none near) (3%), BG_CHAINS (1%) |
+| 6 | PINK_ORB | 38 | PINK_ORB (55%), PULSING_CIRCLE (42%), MED_CIRCUNFERENCE_SAW_DECO (2%) |
+| 7 | COIN1 | 15 | COIN (66%), (none near) (26%), BG_CHAINS (6%) |
+| 8 | GRAVITY_DOWN_PORTAL | 49 | BLUE_GRAVITY_PORTAL (55%), (none near) (26%), SPIKE_V/V (4%) |
+| 9 | GRAVITY_UP_PORTAL | 46 | YELLOW_GRAVITY_PORTAL (63%), (none near) (26%), MEDIUM_PULSING_CIRCLE (4%) |
+| 10 | YELLOW_PAD_DOWN | 147 | YELLOW_PAD (65%), (none near) (21%), SPIKE_V (2%) |
+| 11 | YELLOW_ORB | 234 | YELLOW_ORB (73%), (none near) (21%), PULSING_CIRCLE (3%) |
+| 12 | YELLOW_PAD_UP | 19 | YELLOW_PAD/V (52%), (none near) (42%), MEDIUM_SPIKE_V/V (5%) |
+| 13 | GRAVITY_PAD_DOWN | 31 | BLUE_PAD (90%), BIG_BG_SPIKES (3%), MEDIUM_BG_SPIKES (3%) |
+| 14 | GRAVITY_PAD_UP | 31 | BLUE_PAD/V (80%), BG_CHAINS (6%), SMALL_SAW_DECO (3%) |
+| 15 | LEVEL_END_TRIGGER | 20 | (none near) (100%) |
+| 16 | GRAVITY_DOWN_UPWARDS_PORTAL | 21 | BLUE_GRAVITY_PORTAL (61%), (none near) (19%), BIG_CIRCUNFERENCE_SAW_DECO (9%) |
+| 17 | GRAVITY_DOWN_DOWNWARDS_PORTAL | 3 | BLUE_GRAVITY_PORTAL (66%), PULSING_STAR (33%) |
+| 18 | GRAVITY_UP_UPWARDS_PORTAL | 2 | YELLOW_GRAVITY_PORTAL (100%) |
+| 19 | GRAVITY_UP_DOWNWARDS_PORTAL | 21 | YELLOW_GRAVITY_PORTAL (61%), (none near) (19%), SMALL_BG_CLOUDS (4%) |
+| 24 | MINI_PORTAL | 16 | MINI_PORTAL (68%), MEDIUM_SAW (6%), (none near) (6%) |
+| 25 | GROWTH_PORTAL | 13 | BIG_PORTAL (76%), MEDIUM_SPIKE_V/V (7%), BIG_CIRCUNFERENCE_SAW_DECO (7%) |
+| 26 | COIN2 | 15 | COIN (53%), (none near) (26%), YELLOW_GRAVITY_PORTAL (6%) |
+| 27 | COIN3 | 15 | COIN (66%), (none near) (20%), BIG_BG_SPIKES (6%) |
+| 37 | PINK_PAD_DOWN | 16 | PINK_PAD (93%), MEDIUM_PULSING_CIRCLE (6%) |
+| 38 | PINK_PAD_UP | 5 | PINK_PAD/V (80%), (none near) (20%) |
+| 42 | LONG_LIGHT | 57 | LARGE_PULSING_CIRCLE (80%), (none near) (15%), SPIKE_V (1%) |
+| 43 | MEDIUM_LIGHT | 372 | MEDIUM_PULSING_CIRCLE (72%), (none near) (22%), YELLOW_PAD (3%) |
+| 44 | SHORT_LIGHT | 209 | SMALL_PULSING_CIRCLE (70%), (none near) (19%), MEDIUM_PULSING_CIRCLE (3%) |
+| 45 | CHAIN | 809 | BG_CHAINS (60%), (none near) (24%), BIG_WIDE_BG_CHAINS (6%) |
+| 46 | BG_SPIKE_GROUP1 | 427 | BIG_BG_SPIKES (32%), (none near) (32%), MEDIUM_BG_SPIKES (26%) |
+| 47 | BG_SPIKE_GROUP2 | 104 | (none near) (58%), BIG_BG_SPIKES/V (22%), MEDIUM_BG_SPIKES/V (15%) |
+| 48 | BG_SPIKE_GROUP3 | 180 | TINY_BG_SPIKES (46%), (none near) (16%), SMALL_BG_SPIKES (15%) |
+| 49 | BG_SPIKE_GROUP4 | 16 | TINY_BG_SPIKES/V (43%), (none near) (43%), MEDIUM_BG_SPIKES/V (6%) |
+| 50 | BIG_DIAMOND | 95 | PULSING_CIRCLE (29%), PULSING_CIRCUNFERENCE (26%), PULSING_DIAMOND (20%) |
+| 51 | RIGHT_HALF_DIAMOND | 10 | PULSING_ARROW (80%), SMALL_BG_CLOUDS/V (10%), BUSH_DECO_5 (10%) |
+| 52 | QUESTION_MARK | 1 | BIG_CIRCUNFERENCE_SAW_DECO (100%) |
+| 53 | EXCLAMATION_MARK | 9 | PULSING_EXCLAMATION (77%), GROUND_BUSH_SPIKE_2_V/V (11%), BUSH_DECO_5 (11%) |
+| 54 | RIGHT_ARROW | 269 | PULSING_STAR (91%), BIG_CLOUD (1%), MEDIUM_CLOUD (1%) |
+| 55 | BIG_X | 4 | PULSING_X (75%), PULSING_CIRCUNFERENCE (25%) |
+| 56 | SHORT_LIGHT_RIGHT | 46 | SMALL_PULSING_CIRCLE (67%), (none near) (8%), SMALL_BG_SPIKES (8%) |
+| 57 | SHORT_LIGHT_LEFT | 44 | SMALL_PULSING_CIRCLE (59%), (none near) (18%), SMALL_BG_SPIKES (9%) |
+| 58 | LONG_LIGHT_U | 6 | LARGE_PULSING_CIRCLE/V (66%), (none near) (33%) |
+| 59 | MEDIUM_LIGHT_U | 79 | MEDIUM_PULSING_CIRCLE/V (68%), (none near) (24%), BLUE_PAD/V (3%) |
+| 60 | SHORT_LIGHT_U | 149 | SMALL_PULSING_CIRCLE/V (67%), (none near) (18%), DIAMOND_BG_CHAINS (4%) |
+| 61 | CHAIN_U | 207 | BG_CHAINS/V (67%), (none near) (9%), DIAMOND_BG_CHAINS/V (4%) |
+| 62 | MEDIUM_LIGHT_RIGHT | 19 | MEDIUM_BG_SQUARES (52%), (none near) (21%), MEDIUM_PULSING_CIRCLE (21%) |
+| 63 | MEDIUM_LIGHT_LEFT | 31 | MEDIUM_BG_SQUARES (32%), MEDIUM_PULSING_CIRCLE (29%), (none near) (19%) |
+| 73 | PULSE_ORB | 47 | MEDIUM_SAW_DECO (38%), BIG_OUTLINE_SAW (23%), PULSING_SQUARE (17%) |
+| 74 | MUSIC_NOTE | 11 | PULSING_NOTE (100%) |
+| 121 | MIRROR_EXIT (ours) | 5 | BLUE_MIRROR_PORTAL (40%), (none near) (40%), YELLOW_PAD/V (20%) |
+| 126 | MIRROR_PORTAL (ours) | 6 | (none near) (66%), ORANGE_MIRROR_PORTAL (33%) |
+| 129 | BG_COLOR_TRIGGER_1 | 26 | COL_TRIGGER[BG] (50%), (none near) (50%) |
+| 130 | BG_COLOR_TRIGGER_2 | 13 | (none near) (69%), COL_TRIGGER[BG] (30%) |
+| 131 | BG_COLOR_TRIGGER_3 | 43 | COL_TRIGGER[BG] (53%), (none near) (44%), COL_TRIGGER[GROUND] (2%) |
+| 132 | BG_COLOR_TRIGGER_4 | 45 | (none near) (53%), COL_TRIGGER[BG] (46%) |
+| 133 | BG_COLOR_TRIGGER_5 | 37 | COL_TRIGGER[BG] (56%), (none near) (43%) |
+| 134 | BG_COLOR_TRIGGER_6 | 12 | (none near) (75%), COL_TRIGGER[BG] (25%) |
+| 135 | BG_COLOR_TRIGGER_7 | 1 | (none near) (100%) |
+| 137 | BG_COLOR_TRIGGER_9 | 1 | (none near) (100%) |
+| 138 | BG_COLOR_TRIGGER_10 | 2 | (none near) (100%) |
+| 139 | BG_COLOR_TRIGGER_11 | 2 | (none near) (50%), COL_TRIGGER[BG] (50%) |
+| 140 | BG_COLOR_TRIGGER_12 | 2 | (none near) (100%) |
+| 143 | BG_COLOR_TRIGGER_15 | 26 | (none near) (76%), COL_TRIGGER[BG] (23%) |
+| 144 | BG_COLOR_TRIGGER_16 | 2 | (none near) (100%) |
+| 145 | BG_COLOR_TRIGGER_17 | 36 | (none near) (55%), COL_TRIGGER[BG] (44%) |
+| 146 | BG_COLOR_TRIGGER_18 | 21 | (none near) (80%), COL_TRIGGER[BG] (19%) |
+| 147 | BG_COLOR_TRIGGER_19 | 61 | (none near) (62%), COL_TRIGGER[BG] (37%) |
+| 148 | BG_COLOR_TRIGGER_20 | 82 | (none near) (54%), COL_TRIGGER[BG] (45%) |
+| 149 | BG_COLOR_TRIGGER_21 | 67 | COL_TRIGGER[BG] (52%), (none near) (47%) |
+| 150 | BG_COLOR_TRIGGER_22 | 26 | (none near) (88%), COL_TRIGGER[BG] (7%), COL_TRIGGER[OBJ] (3%) |
+| 151 | BG_COLOR_TRIGGER_23 | 10 | (none near) (60%), COL_TRIGGER[BG] (30%), COL_TRIGGER[OBJ] (10%) |
+| 152 | BG_COLOR_TRIGGER_24 | 7 | (none near) (85%), COL_TRIGGER[BG] (14%) |
+| 153 | BG_COLOR_TRIGGER_25 | 4 | (none near) (75%), COL_TRIGGER[BG] (25%) |
+| 154 | BG_COLOR_TRIGGER_26 | 7 | (none near) (71%), COL_TRIGGER[BG] (28%) |
+| 155 | BG_COLOR_TRIGGER_27 | 4 | (none near) (75%), COL_TRIGGER[BG] (25%) |
+| 156 | BG_COLOR_TRIGGER_28 | 18 | COL_TRIGGER[BG] (55%), (none near) (44%) |
+| 161 | BG_COLOR_TRIGGER_33 | 12 | (none near) (75%), COL_TRIGGER[BG] (25%) |
+| 162 | BG_COLOR_TRIGGER_34 | 2 | COL_TRIGGER[BG] (50%), (none near) (50%) |
+| 163 | BG_COLOR_TRIGGER_35 | 6 | (none near) (66%), COL_TRIGGER[BG] (33%) |
+| 164 | BG_COLOR_TRIGGER_36 | 21 | COL_TRIGGER[BG] (52%), (none near) (42%), COL_TRIGGER[OBJ] (4%) |
+| 165 | BG_COLOR_TRIGGER_37 | 23 | COL_TRIGGER[BG] (47%), (none near) (39%), COL_TRIGGER[OBJ] (13%) |
+| 166 | BG_COLOR_TRIGGER_38 | 8 | COL_TRIGGER[BG] (87%), (none near) (12%) |
+| 167 | BG_COLOR_TRIGGER_39 | 16 | (none near) (50%), COL_TRIGGER[BG] (43%), COL_TRIGGER[OBJ] (6%) |
+| 168 | BG_COLOR_TRIGGER_40 | 22 | (none near) (59%), COL_TRIGGER[BG] (40%) |
+| 169 | BG_COLOR_TRIGGER_41 | 15 | (none near) (80%), COL_TRIGGER[BG] (20%) |
+| 170 | BG_COLOR_TRIGGER_42 | 32 | (none near) (75%), COL_TRIGGER[BG] (25%) |
+| 171 | BG_COLOR_TRIGGER_43 | 17 | (none near) (76%), COL_TRIGGER[GROUND] (11%), COL_TRIGGER[BG] (11%) |
+| 172 | BG_COLOR_TRIGGER_44 | 20 | (none near) (50%), COL_TRIGGER[BG] (45%), COL_TRIGGER[GROUND] (5%) |
+| 176 | OUTLINE_COLOR_TRIGGER_0 | 10 | (none near) (100%) |
+| 177 | OUTLINE_COLOR_TRIGGER_1 | 2 | COL_TRIGGER[BG] (50%), (none near) (50%) |
+| 178 | OUTLINE_COLOR_TRIGGER_2 | 4 | (none near) (75%), COL_TRIGGER[GROUND] (25%) |
+| 179 | OUTLINE_COLOR_TRIGGER_3 | 3 | COL_TRIGGER[BG] (100%) |
+| 180 | OUTLINE_COLOR_TRIGGER_4 | 4 | COL_TRIGGER[BG] (50%), (none near) (50%) |
+| 181 | OUTLINE_COLOR_TRIGGER_5 | 4 | COL_TRIGGER[BG] (75%), COL_TRIGGER[OBJ] (25%) |
+| 182 | OUTLINE_COLOR_TRIGGER_6 | 5 | COL_TRIGGER[BG] (60%), (none near) (20%), COL_TRIGGER[OBJ] (20%) |
+| 183 | OUTLINE_COLOR_TRIGGER_7 | 4 | COL_TRIGGER[BG] (75%), (none near) (25%) |
+| 184 | OUTLINE_COLOR_TRIGGER_8 | 8 | COL_TRIGGER[BG] (62%), COL_TRIGGER[OBJ] (25%), (none near) (12%) |
+| 185 | OUTLINE_COLOR_TRIGGER_9 | 2 | COL_TRIGGER[BG] (100%) |
+| 186 | OUTLINE_COLOR_TRIGGER_10 | 5 | COL_TRIGGER[BG] (60%), COL_TRIGGER[GROUND] (20%), (none near) (20%) |
+| 188 | OUTLINE_COLOR_TRIGGER_12 | 3 | COL_TRIGGER[BG] (100%) |
+| 189 | OUTLINE_COLOR_TRIGGER_13 | 1 | COL_TRIGGER[BG] (100%) |
+| 191 | OUTLINE_COLOR_TRIGGER_15 | 1 | (none near) (100%) |
+| 192 | GROUND_COLOR_TRIGGER_0 | 2 | (none near) (100%) |
+| 193 | GROUND_COLOR_TRIGGER_1 | 10 | (none near) (80%), COL_TRIGGER[BG] (20%) |
+| 194 | GROUND_COLOR_TRIGGER_2 | 6 | (none near) (83%), COL_TRIGGER[BG] (16%) |
+| 195 | GROUND_COLOR_TRIGGER_3 | 15 | (none near) (80%), COL_TRIGGER[BG] (13%), COL_TRIGGER[GROUND] (6%) |
+| 196 | GROUND_COLOR_TRIGGER_4 | 21 | (none near) (100%) |
+| 197 | GROUND_COLOR_TRIGGER_5 | 9 | (none near) (100%) |
+| 198 | GROUND_COLOR_TRIGGER_6 | 9 | (none near) (100%) |
+| 200 | GROUND_COLOR_TRIGGER_8 | 5 | (none near) (100%) |
+| 201 | GROUND_COLOR_TRIGGER_9 | 2 | (none near) (100%) |
+| 203 | GROUND_COLOR_TRIGGER_11 | 2 | COL_TRIGGER[BG] (50%), (none near) (50%) |
+| 204 | GROUND_COLOR_TRIGGER_12 | 1 | COL_TRIGGER[BG] (100%) |
+| 207 | GROUND_COLOR_TRIGGER_15 | 32 | (none near) (75%), COL_TRIGGER[BG] (25%) |
+| 209 | GROUND_COLOR_TRIGGER_17 | 10 | (none near) (60%), COL_TRIGGER[BG] (40%) |
+| 210 | GROUND_COLOR_TRIGGER_18 | 6 | (none near) (100%) |
+| 211 | GROUND_COLOR_TRIGGER_19 | 15 | (none near) (86%), COL_TRIGGER[BG] (13%) |
+| 212 | GROUND_COLOR_TRIGGER_20 | 12 | (none near) (83%), COL_TRIGGER[BG] (16%) |
+| 213 | GROUND_COLOR_TRIGGER_21 | 10 | (none near) (80%), COL_TRIGGER[BG] (20%) |
+| 214 | GROUND_COLOR_TRIGGER_22 | 4 | (none near) (100%) |
+| 215 | GROUND_COLOR_TRIGGER_23 | 2 | (none near) (100%) |
+| 216 | GROUND_COLOR_TRIGGER_24 | 2 | (none near) (50%), COL_TRIGGER[BG] (50%) |
+| 217 | GROUND_COLOR_TRIGGER_25 | 4 | (none near) (100%) |
+| 218 | GROUND_COLOR_TRIGGER_26 | 7 | (none near) (100%) |
+| 219 | GROUND_COLOR_TRIGGER_27 | 10 | (none near) (90%), COL_TRIGGER[BG] (10%) |
+| 220 | GROUND_COLOR_TRIGGER_28 | 6 | (none near) (100%) |
+| 225 | GROUND_COLOR_TRIGGER_33 | 1 | (none near) (100%) |
+| 227 | GROUND_COLOR_TRIGGER_35 | 2 | (none near) (100%) |
+| 228 | GROUND_COLOR_TRIGGER_36 | 2 | (none near) (50%), COL_TRIGGER[BG] (50%) |
+| 229 | GROUND_COLOR_TRIGGER_37 | 1 | (none near) (100%) |
+| 231 | GROUND_COLOR_TRIGGER_39 | 3 | (none near) (100%) |
+| 232 | GROUND_COLOR_TRIGGER_40 | 3 | (none near) (66%), COL_TRIGGER[BG] (33%) |
+| 233 | GROUND_COLOR_TRIGGER_41 | 2 | (none near) (100%) |
+| 234 | GROUND_COLOR_TRIGGER_42 | 3 | (none near) (66%), COL_TRIGGER[BG] (33%) |
+| 235 | GROUND_COLOR_TRIGGER_43 | 4 | (none near) (50%), COL_TRIGGER[GROUND] (25%), COL_TRIGGER[BG] (25%) |
+| 236 | GROUND_COLOR_TRIGGER_44 | 2 | (none near) (100%) |
+| 242 | PLAYER_TRAILS_ON | 12 | (none near) (33%), DIAMOND_BG_CHAINS (16%), BIG_SAW_DECO (8%) |
+| 243 | PLAYER_TRAILS_OFF | 8 | (none near) (62%), PULSING_DIAMOND (12%), BIG_WIDE_BG_CHAINS/V (12%) |
+| 253 | GRAVITY_PAD_DOWN_INVISIBLE | 37 | BLUE_PAD (91%), MED_CIRCUNFERENCE_SAW_DECO (5%), BLUE_PAD/V (2%) |
+| 254 | GRAVITY_PAD_UP_INVISIBLE | 34 | BLUE_PAD/V (82%), MED_CIRCUNFERENCE_SAW_DECO (8%), DIAMOND_BG_CHAINS (8%) |
