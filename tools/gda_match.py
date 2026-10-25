@@ -189,6 +189,17 @@ def main():
 
 
 
+def parse_label(label):
+    """"MT:A & B & SP:C" -> [("MT", "A"), ("MT", "B"), ("SP", "C")]: each part keeps the kind
+    before it (MT metatile, SP sprite object, SPMT metatile placed as a sprite), first one drawn on top"""
+    out, kind = [], None
+    for part in label.split(" & "):
+        if ":" in part:
+            kind, part = part.split(":", 1)
+        out.append((kind, part))
+    return out
+
+
 def review():
     """docs/gda_ours.png: each of our objects next to its GDA object (levels/objects/gda_ours.json)"""
     import json
@@ -212,11 +223,7 @@ def review():
         img.paste(o, (x0 + 2, y0 + 2), o)
         icon = Image.new("RGBA", (16, 16))
         if m["gda"]:
-            kind, rest = m["gda"].split(":", 1)
-            for part in reversed(rest.split(" & ")):
-                k2 = kind
-                if part.startswith("MT:"):
-                    k2, part = "MT", part[3:]
+            for k2, part in reversed(parse_label(m["gda"])):
                 t = gda.sprite_image(sp_index[part]) if k2 == "SP" else gda.metatile_image(mt_index[part])
                 icon.paste(t, (0, 0), t)
         img.paste(icon, (x0 + 20, y0 + 2), icon)

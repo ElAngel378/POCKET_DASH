@@ -57,20 +57,24 @@
   "note": "bottom right quarter"
  },
  "BOTTOM_BACKGROUND_SPIKES": {
-  "gda": "MT:GROUND_SPIKE_BOTTOM",
-  "match": "same"
+  "gda": "MT:GROUND_SPIKE_BOTTOM & SP:MEDIUM_BG_SPIKES",
+  "match": "combo",
+  "note": "deadly pit spikes drawn as the background spike bushes; GDA puts its BG spikes sprite behind the pit spikes"
  },
  "TOP_BACKGROUND_SPIKES": {
-  "gda": "MT:GROUND_SPIKE_TOP",
-  "match": "same"
+  "gda": "MT:GROUND_SPIKE_TOP & SP:MEDIUM_BG_SPIKES",
+  "match": "combo",
+  "note": "upside down; BG spikes sprite flipped"
  },
  "HALF_LEFT_SPIKE_BACKGROUND": {
-  "gda": "MT:SMALL_SPIKE_LEFT",
-  "match": "same"
+  "gda": "MT:GROUND_SPIKE_LEFT",
+  "match": "same",
+  "note": "pit spikes on a wall, background palette"
  },
  "HALF_RIGHT_SPIKE_BACKGROUND": {
-  "gda": "MT:SMALL_SPIKE_RIGHT",
-  "match": "same"
+  "gda": "MT:GROUND_SPIKE_RIGHT",
+  "match": "same",
+  "note": "pit spikes on a wall, background palette"
  },
  "BLOCK": {
   "gda": "MT:BASIC_BLOCK",
@@ -85,14 +89,14 @@
   "match": "same"
  },
  "HALF_SPIKE_BACKGROUND": {
-  "gda": "MT:SMALL_SPIKE_BOTTOM",
-  "match": "same",
-  "note": "background copy (no collision)"
+  "gda": "MT:SMALL_SPIKE_BOTTOM & GROUND_SPIKE_BOTTOM",
+  "match": "combo",
+  "note": "small spike in front of pit spikes"
  },
  "HALF_SPIKE_BACKGROUND_TOP": {
-  "gda": "MT:SMALL_SPIKE_TOP",
-  "match": "same",
-  "note": "background copy (no collision)"
+  "gda": "MT:SMALL_SPIKE_TOP & GROUND_SPIKE_TOP",
+  "match": "combo",
+  "note": "small spike in front of pit spikes"
  },
  "PLATFORM_SPIKE": {
   "gda": "MT:SLAB_UP & SMALL_SPIKE_BOTTOM",
@@ -236,28 +240,28 @@
   "note": "upside-down pad's outline"
  },
  "HALF_SLAB_DOWN_SPIKE": {
-  "gda": "MT:SLAB_UP & SMALL_SPIKE_TOP",
-  "match": "combo"
+  "gda": "MT:SLAB_UP & SPMT:SMALL_SPIKE_TOP",
+  "match": "offset",
+  "note": "slab, and a small spike hanging under it (GDA: the small spike 8 px down, as a sprite)"
  },
  "DOUBLE_WAVY_PLATFORM_LEFT": {
-  "gda": "MT:WAVY_SLAB_START_TOP",
-  "match": "close",
-  "note": "wavy both sides; GDA's is wavy below only"
+  "gda": "MT:WAVY_SLAB_START_TOP & WAVY_SLAB_START_BOTTOM",
+  "match": "combo",
+  "note": "wavy on both sides: GDA stacks the two wavy slabs"
  },
  "DOUBLE_WAVY_PLATFORM_MIDDLE": {
-  "gda": "MT:WAVY_SLAB_MIDDLE_TOP",
-  "match": "close",
-  "note": "wavy both sides"
+  "gda": "MT:WAVY_SLAB_MIDDLE_TOP & WAVY_SLAB_MIDDLE_BOTTOM",
+  "match": "combo",
+  "note": "wavy on both sides: GDA stacks the two wavy slabs"
  },
  "DOUBLE_WAVY_PLATFORM_RIGHT": {
-  "gda": "MT:WAVY_SLAB_END_TOP",
-  "match": "close",
-  "note": "wavy both sides"
+  "gda": "MT:WAVY_SLAB_END_TOP & WAVY_SLAB_END_BOTTOM",
+  "match": "combo",
+  "note": "wavy on both sides: GDA stacks the two wavy slabs"
  },
  "XSTEP_SPECIAL": {
-  "gda": "MT:GROUND_WAVY_SPIKE_BOTTOM",
-  "match": "close",
-  "note": "Xstep's ground wavy spikes, full bottom"
+  "gda": "MT:GROUND_WAVY_SPIKE_BOTTOM & CHK_FILLER",
+  "match": "combo"
  },
  "GRAVEL_LEFT_TOP_WAVY_BOTTOM": {
   "gda": "MT:WAVY_SLAB_START_TOP & GROUND_WAVY_SPIKE_BOTTOM",
@@ -464,7 +468,7 @@
   "match": "same"
  },
  "BLACK_NONE": {
-  "gda": "MT:BLK_FILLER",
+  "gda": "MT:BLK_FILLER_NO_COLL",
   "match": "same"
  },
  "BLACK_TOP_LEFT_RIGHT": {
@@ -534,8 +538,9 @@
   "note": "a sprite in GDA"
  },
  "CHIPPED_BLOCK": {
-  "gda": "MT:+_FULL",
-  "match": "same"
+  "gda": "MT:+_DB_SIDE_V",
+  "match": "close",
+  "note": "GDA's Clutterfunk has its + blocks there (outlined left and right)"
  },
  "SMALL_SAW_TOP_HALF": {
   "gda": "SP:SMALL_SAW",
@@ -543,14 +548,14 @@
   "note": "top half of the saw (saw 8 px down)"
  },
  "CLOUD_TOP_UP": {
-  "gda": "SP:BIG_BG_CLOUDS",
+  "gda": "SP:BIG_CLOUD",
   "match": "part",
-  "note": "background cloud decoration"
+  "note": "top of the green cloud decoration"
  },
  "CLOUD_TOP_DOWN": {
-  "gda": "SP:BIG_BG_CLOUDS",
+  "gda": "SP:BIG_CLOUD",
   "match": "part",
-  "note": "background cloud decoration"
+  "note": "the green cloud decoration, upside down"
  },
  "WAVYPIT_BOTTOM_SPIKEPIT_TOP": {
   "gda": "MT:GROUND_SPIKE_TOP & GROUND_WAVY_SPIKE_BOTTOM",
@@ -561,24 +566,24 @@
   "match": "combo"
  },
  "CLOUD_LEFT": {
-  "gda": "SP:BIG_BG_CLOUDS & MT:GROUND_WAVY_SPIKE_BOTTOM",
-  "match": "part",
-  "note": "cloud over wavy spikes"
+  "gda": "SP:MEDIUM_BG_SPIKES & MT:GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "combo",
+  "note": "background spike bushes over wavy pit spikes (left)"
  },
  "CLOUD_LEFT_TOP": {
-  "gda": "SP:BIG_BG_CLOUDS & MT:GROUND_WAVY_SPIKE_TOP",
-  "match": "part",
-  "note": "cloud under ceiling wavy spikes"
+  "gda": "SP:MEDIUM_BG_SPIKES & MT:GROUND_WAVY_SPIKE_TOP",
+  "match": "combo",
+  "note": "upside down"
  },
  "CLOUD_RIGHT": {
-  "gda": "SP:BIG_BG_CLOUDS & MT:GROUND_WAVY_SPIKE_BOTTOM",
-  "match": "part",
-  "note": "cloud over wavy spikes"
+  "gda": "SP:MEDIUM_BG_SPIKES & MT:GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "combo",
+  "note": "background spike bushes over wavy pit spikes (right)"
  },
  "CLOUD_RIGHT_TOP": {
-  "gda": "SP:BIG_BG_CLOUDS & MT:GROUND_WAVY_SPIKE_TOP",
-  "match": "part",
-  "note": "cloud under ceiling wavy spikes"
+  "gda": "SP:MEDIUM_BG_SPIKES & MT:GROUND_WAVY_SPIKE_TOP",
+  "match": "combo",
+  "note": "upside down"
  },
  "GROUND_EDGE_TOP": {
   "gda": "MT:GROUND_D",
@@ -591,24 +596,24 @@
   "note": "ground look piece"
  },
  "CHIPPED_BLOCK_LEFT_HALF_WAVYPIT": {
-  "gda": "SPMT:+_FULL & MT:GROUND_WAVY_SPIKE_BOTTOM",
+  "gda": "SPMT:+_DB_SIDE_V & MT:GROUND_WAVY_SPIKE_BOTTOM",
   "match": "offset",
   "note": "half block off the grid over wavy spikes"
  },
  "CHIPPED_BLOCK_RIGHT_HALF_WAVYPIT": {
-  "gda": "SPMT:+_FULL & MT:GROUND_WAVY_SPIKE_BOTTOM",
+  "gda": "SPMT:+_DB_SIDE_V & MT:GROUND_WAVY_SPIKE_BOTTOM",
   "match": "offset",
   "note": "half block off the grid over wavy spikes"
  },
  "CHIPPED_BLOCK_LEFT_HALF": {
-  "gda": "SPMT:+_FULL",
+  "gda": "SPMT:+_DB_SIDE_V",
   "match": "offset",
-  "note": "half a block: GDA places it 8 px off the grid"
+  "note": "half a block: the block 8 px off the grid"
  },
  "CHIPPED_BLOCK_RIGHT_HALF": {
-  "gda": "SPMT:+_FULL",
+  "gda": "SPMT:+_DB_SIDE_V",
   "match": "offset",
-  "note": "half a block: GDA places it 8 px off the grid"
+  "note": "half a block: the block 8 px off the grid"
  },
  "DOUBLE_HALF_PAD_UP_OUTLINE": {
   "gda": "SP:YELLOW_PAD",
@@ -616,263 +621,249 @@
   "note": "two pads' halves (two pads 8 px off the grid)"
  },
  "SLOPE_SUPPORT": {
-  "gda": "MT:+_FILLER",
+  "gda": "MT:CHK_FILLER",
   "match": "close",
-  "note": "no art in ours; slope filler"
+  "note": "checkerboard filler art, solid"
  },
  "44DEG_RIGHT_DOWN": {
   "gda": "MT:COL1_SLOPE_45_DOWN",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "45DEG_LEFT_DOWN": {
   "gda": "MT:COL1_SLOPE_45_UP",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "45DEG_RIGHT_UP": {
   "gda": "MT:COL1_SLOPE_45_DOWN_UD",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "45DEG_LEFT_UP": {
   "gda": "MT:COL1_SLOPE_45_UP_UD",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "22DEG_RIGHT_DOWN_RIGHT_HALF": {
   "gda": "MT:COL1_22_DOWN_2",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "22DEG_RIGHT_DOWN_LEFT_HALF": {
   "gda": "MT:COL1_22_DOWN_1",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "22DEG_LEFT_DOWN_RIGHT_HALF": {
   "gda": "MT:COL1_22_UP_2",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "22DEG_LEFT_DOWN_LEFT_HALF": {
   "gda": "MT:COL1_22_UP_1",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "22DEG_RIGHT_UP_RIGHT_HALF": {
   "gda": "MT:COL1_22_DOWN_UD_2",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "22DEG_RIGHT_UP_LEFT_HALF": {
   "gda": "MT:COL1_22_DOWN_UD_1",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "22DEG_LEFT_UP_RIGHT_HALF": {
   "gda": "MT:COL1_22_UP_UD_2",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "22DEG_LEFT_UP_LEFT_HALF": {
   "gda": "MT:COL1_22_UP_UD_1",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "66DEG_RIGHT_DOWN_TOP_HALF": {
   "gda": "MT:COL1_66_DOWN_1",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "66DEG_RIGHT_DOWN_BOTTOM_HALF": {
   "gda": "MT:COL1_66_DOWN_2",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "66DEG_LEFT_DOWN_BOTTOM_HALF": {
   "gda": "MT:COL1_66_UP_1",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "66DEG_LEFT_DOWN_TOP_HALF": {
   "gda": "MT:COL1_66_UP_2",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "66DEG_UPSIDEDOWN_RIGHT_UP_TOP_HALF": {
   "gda": "MT:COL1_66_DOWN_UD_1",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "66DEG_UPSIDEDOWN_RIGHT_UP_BOTTOM_HALF": {
   "gda": "MT:COL1_66_DOWN_UD_2",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "66DEG_UPSIDEDOWN_LEFT_UP_BOTTOM_HALF": {
   "gda": "MT:COL1_66_UP_UD_1",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "66DEG_UPSIDEDOWN_LEFT_UP_TOP_HALF": {
   "gda": "MT:COL1_66_UP_UD_2",
   "match": "close",
-  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+  "note": "no art in ours (Famidash placeholder); by name; GDA has it only as a colour channel piece"
  },
  "SLOPE_SUPPORT_TOP_LEFT": {
-  "gda": "MT:+_CORNER_TL",
-  "match": "close",
-  "note": "no art in ours; by name"
+  "gda": null,
+  "match": "none",
+  "note": "no art in ours (Famidash placeholder); GDA fills under slopes with plain blocks"
  },
  "SLOPE_SUPPORT_TOP_RIGHT": {
-  "gda": "MT:+_CORNER_TR",
-  "match": "close",
-  "note": "no art in ours; by name"
+  "gda": null,
+  "match": "none",
+  "note": "no art in ours (Famidash placeholder); GDA fills under slopes with plain blocks"
  },
  "SLOPE_SUPPORT_BOTTOM_RIGHT": {
-  "gda": "MT:+_CORNER_BR",
-  "match": "close",
-  "note": "no art in ours; by name"
+  "gda": null,
+  "match": "none",
+  "note": "no art in ours (Famidash placeholder); GDA fills under slopes with plain blocks"
  },
  "SLOPE_SUPPORT_BOTTOM_LEFT": {
-  "gda": "MT:+_CORNER_BL",
-  "match": "close",
-  "note": "no art in ours; by name"
+  "gda": null,
+  "match": "none",
+  "note": "no art in ours (Famidash placeholder); GDA fills under slopes with plain blocks"
  },
  "SMALL_BLOCK_BOTTOM_LEFT_TOP_SPIKE": {
-  "gda": "MT:COL1_MINIBLOCK_0010 & COL1_MINI_SPIKE_UP_LT",
+  "gda": "MT:MINIBLOCK_0010 & MINI_SPIKE_UP_LT",
   "match": "combo"
  },
  "SMALL_BLOCK_BOTTOM_RIGHT_TOP_SPIKE": {
-  "gda": "MT:COL1_MINIBLOCK_0001 & COL1_MINI_SPIKE_UP_RT",
+  "gda": "MT:MINIBLOCK_0001 & MINI_SPIKE_UP_RT",
   "match": "combo"
  },
  "SMALL_BLOCK_BOTTOM_BOTH_TOP_SPIKE_LEFT": {
-  "gda": "MT:COL1_MINIBLOCK_0011 & COL1_MINI_SPIKE_UP_LT",
+  "gda": "MT:MINIBLOCK_0011 & MINI_SPIKE_UP_LT",
   "match": "combo"
  },
  "SMALL_BLOCK_BOTTOM_BOTH_TOP_SPIKE_RIGHT": {
-  "gda": "MT:COL1_MINIBLOCK_0011 & COL1_MINI_SPIKE_UP_RT",
+  "gda": "MT:MINIBLOCK_0011 & MINI_SPIKE_UP_RT",
   "match": "combo"
  },
  "SMALL_BLOCK_BOTTOM_BOTH_TOP_SPIKES_BOTH": {
-  "gda": "MT:COL1_MINIBLOCK_0011 & COL1_MINI_SPIKE_UP_LT_RT",
+  "gda": "MT:MINIBLOCK_0011 & MINI_SPIKE_UP_LT_RT",
   "match": "combo"
  },
  "SMALL_SPIKE_LEFT": {
-  "gda": "MT:COL1_MINI_SPIKE_UP_LB",
+  "gda": "MT:MINI_SPIKE_UP_LB",
   "match": "same"
  },
  "SMALL_SPIKE_RIGHT": {
-  "gda": "MT:COL1_MINI_SPIKE_UP_RB",
+  "gda": "MT:MINI_SPIKE_UP_RB",
   "match": "same"
  },
  "SMALL_SPIKE_BOTH": {
-  "gda": "MT:COL1_MINI_SPIKE_UP_LB_RB",
+  "gda": "MT:MINI_SPIKE_UP_LB_RB",
   "match": "same"
  },
  "SMALL_BLOCK_TOP_LEFT": {
-  "gda": "MT:COL1_MINIBLOCK_1000",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_1000",
+  "match": "same"
  },
  "SMALL_BLOCK_TOP_RIGHT": {
-  "gda": "MT:COL1_MINIBLOCK_0100",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_0100",
+  "match": "same"
  },
  "SMALL_BLOCK_BOTTOM_LEFT": {
-  "gda": "MT:COL1_MINIBLOCK_0010",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_0010",
+  "match": "same"
  },
  "SMALL_BLOCK_BOTTOM_RIGHT": {
-  "gda": "MT:COL1_MINIBLOCK_0001",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_0001",
+  "match": "same"
  },
  "SMALL_BLOCK_TOP_BOTH": {
-  "gda": "MT:COL1_MINIBLOCK_1100",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_1100",
+  "match": "same"
  },
  "SMALL_BLOCK_BOTTOM_BOTH": {
-  "gda": "MT:COL1_MINIBLOCK_0011",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_0011",
+  "match": "same"
  },
  "SMALL_BLOCK_LEFT_BOTH": {
-  "gda": "MT:COL1_MINIBLOCK_1010",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_1010",
+  "match": "same"
  },
  "SMALL_BLOCK_RIGHT_BOTH": {
-  "gda": "MT:COL1_MINIBLOCK_0101",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_0101",
+  "match": "same"
  },
  "SMALL_BLOCK_TOP_LEFT_3": {
-  "gda": "MT:COL1_MINIBLOCK_1110",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_1110",
+  "match": "same"
  },
  "SMALL_BLOCK_TOP_RIGHT_3": {
-  "gda": "MT:COL1_MINIBLOCK_1101",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_1101",
+  "match": "same"
  },
  "SMALL_BLOCK_BOTTOM_LEFT_3": {
-  "gda": "MT:COL1_MINIBLOCK_1011",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_1011",
+  "match": "same"
  },
  "SMALL_BLOCK_BOTTOM_RIGHT_3": {
-  "gda": "MT:COL1_MINIBLOCK_0111",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_0111",
+  "match": "same"
  },
  "SMALL_BLOCK_TOP_LEFT_BOTTOM_RIGHT": {
-  "gda": "MT:COL1_MINIBLOCK_1001",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_1001",
+  "match": "same"
  },
  "SMALL_BLOCK_TOP_RIGHT_BOTTOM_LEFT": {
-  "gda": "MT:COL1_MINIBLOCK_0110",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_0110",
+  "match": "same"
  },
  "SMALL_SPIKE_UPSIDEDOWN_LEFT": {
-  "gda": "MT:COL1_MINI_SPIKE_DOWN_LT",
+  "gda": "MT:MINI_SPIKE_DOWN_LT",
   "match": "same"
  },
  "SMALL_SPIKE_UPSIDEDOWN_RIGHT": {
-  "gda": "MT:COL1_MINI_SPIKE_DOWN_RT",
+  "gda": "MT:MINI_SPIKE_DOWN_RT",
   "match": "same"
  },
  "SMALL_SPIKE_UPSIDEDOWN_BOTH": {
-  "gda": "MT:COL1_MINI_SPIKE_DOWN_LT_RT",
+  "gda": "MT:MINI_SPIKE_DOWN_LT_RT",
   "match": "same"
  },
  "UP_RIGHT_DIAG_SPIKES": {
-  "gda": "MT:SMALL_SPIKE_TOP",
-  "match": "close",
-  "note": "Famidash slope-spike piece; GDA has small spikes there"
+  "gda": "MT:SMALL_SPIKE_TOP & SMALL_SPIKE_RIGHT",
+  "match": "combo",
+  "note": "corner: small spikes from two sides (GDA stacks the two in one cell)"
  },
  "UP_LEFT_DIAG_SPIKES": {
-  "gda": "MT:SMALL_SPIKE_TOP",
-  "match": "close",
-  "note": "Famidash slope-spike piece; GDA has small spikes there"
+  "gda": "MT:SMALL_SPIKE_TOP & SMALL_SPIKE_LEFT",
+  "match": "combo",
+  "note": "corner: small spikes from two sides (GDA stacks the two in one cell)"
  },
  "DOWN_RIGHT_DIAG_SPIKES": {
-  "gda": "MT:SMALL_SPIKE_BOTTOM",
-  "match": "close",
-  "note": "Famidash slope-spike piece; GDA has small spikes there"
+  "gda": "MT:SMALL_SPIKE_BOTTOM & SMALL_SPIKE_RIGHT",
+  "match": "combo",
+  "note": "corner: small spikes from two sides (GDA stacks the two in one cell)"
  },
  "DOWN_LEFT_DIAG_SPIKES": {
-  "gda": "MT:SMALL_SPIKE_BOTTOM",
-  "match": "close",
-  "note": "Famidash slope-spike piece; GDA has small spikes there"
+  "gda": "MT:SMALL_SPIKE_BOTTOM & SMALL_SPIKE_LEFT",
+  "match": "combo",
+  "note": "corner: small spikes from two sides (GDA stacks the two in one cell)"
  },
  "FAKE_SPIKE_UP": {
   "gda": "MT:FAKE_SPIKE_UP",
@@ -883,24 +874,24 @@
   "match": "same"
  },
  "SPIKE_PLATFORM": {
-  "gda": "MT:CENTER_SLAB_UP & MEDIUM_SPIKE_BOTTOM",
-  "match": "close",
-  "note": "spike on a mid-height slab"
+  "gda": "MT:SLAB_DOWN & SPMT:SMALL_SPIKE_BOTTOM",
+  "match": "offset",
+  "note": "small spike standing on a bottom slab (GDA: the small spike 8 px up, as a sprite)"
  },
  "SPIKE_INVERTED_PLATFORM": {
-  "gda": "MT:CENTER_SLAB_DOWN & MEDIUM_SPIKE_TOP",
-  "match": "close",
-  "note": "spike under a mid-height slab"
+  "gda": "MT:SMALL_SPIKE_TOP & SLAB_DOWN",
+  "match": "combo",
+  "note": "spike hanging from the top, slab at the bottom"
  },
  "TOP_SLAB_CHECKERED": {
-  "gda": "MT:SLAB_UP",
+  "gda": "MT:SLAB_UP & CHK_FILLER",
   "match": "close",
-  "note": "checkerboard look"
+  "note": "slab over the top of a checkerboard filler; in Electroman GDA has 1.6 slabs there"
  },
  "BOTTOM_SLAB_CHECKERED": {
-  "gda": "MT:SLAB_DOWN",
+  "gda": "MT:SLAB_DOWN & CHK_FILLER",
   "match": "close",
-  "note": "checkerboard look"
+  "note": "slab under a checkerboard filler"
  },
  "FAKE_SPIKE_HALF": {
   "gda": "MT:FAKE_MEDIUM_SPIKE_BOTTOM",
@@ -935,9 +926,8 @@
   "match": "same"
  },
  "SMALL_BLOCK_ALL": {
-  "gda": "MT:COL1_MINIBLOCK_1111",
-  "match": "same",
-  "note": "GDA's mini blocks are colour channel pieces"
+  "gda": "MT:MINIBLOCK_1111",
+  "match": "same"
  },
  "3D_TOP": {
   "gda": null,
@@ -1092,12 +1082,12 @@
  "LEFT_HALF_HALF_SPIKE_TOP": {
   "gda": "SP:HALF_SPIKE_V",
   "match": "offset",
-  "note": "small spike 8 px off the grid"
+  "note": "upside-down small spike 8 px off the grid (sprite flipped)"
  },
  "RIGHT_HALF_HALF_SPIKE_TOP": {
   "gda": "SP:HALF_SPIKE_V",
   "match": "offset",
-  "note": "small spike 8 px off the grid"
+  "note": "upside-down small spike 8 px off the grid (sprite flipped)"
  },
  "LEFT_HALF_SPIKE_UP": {
   "gda": "SP:SPIKE_V",
@@ -1160,14 +1150,14 @@
   "note": "invisible solid quarter: GDA has no invisible mini block"
  },
  "BOTTOM_BACKGROUND_SPIKES_SB": {
-  "gda": "MT:GROUND_WAVY_SPIKE_BOTTOM",
-  "match": "close",
-  "note": "spike-bush look"
+  "gda": "SP:SMALL_BG_SPIKES & MT:GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "combo",
+  "note": "background spike bushes over the floor (Xstep)"
  },
  "TOP_BACKGROUND_SPIKES_SB": {
-  "gda": "MT:GROUND_WAVY_SPIKE_TOP",
-  "match": "close",
-  "note": "spike-bush look"
+  "gda": "SP:SMALL_BG_SPIKES & MT:GROUND_WAVY_SPIKE_TOP",
+  "match": "combo",
+  "note": "upside down"
  },
  "PITSPIKES_RIGHT_SB": {
   "gda": "MT:GROUND_SPIKE_RIGHT",
@@ -1180,9 +1170,9 @@
   "note": "spike-bush look"
  },
  "BIG_SAW_MIDDLE_DIAMOND": {
-  "gda": "SP:BIG_SAW & PULSING_DIAMOND",
-  "match": "part",
-  "note": "big saw centre with the pulsing diamond on it"
+  "gda": "SP:PULSING_DIAMOND",
+  "match": "same",
+  "note": "only the diamond, no saw"
  },
  "CHECKERBOARD_BB": {
   "gda": "MT:BRICKS_FULL",
@@ -1265,13 +1255,12 @@
   "match": "same"
  },
  "XSTEP_SPECIAL_BB": {
-  "gda": "MT:GROUND_WAVY_SPIKE_BOTTOM",
-  "match": "close",
-  "note": "Xstep's ground wavy spikes, full bottom"
+  "gda": "MT:GROUND_WAVY_SPIKE_BOTTOM & BRICKS_FILLER",
+  "match": "combo"
  },
  "BOTTOM_SLAB_CHECKERED_V": {
-  "gda": "MT:SLAB_DOWN",
+  "gda": "MT:SLAB_DOWN & CHK_FILLER",
   "match": "close",
-  "note": "checkerboard look, other column pattern"
+  "note": "slab under a checkerboard filler, other column pattern"
  }
 }
