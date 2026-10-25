@@ -47,7 +47,7 @@ COLLISION = {
     "COL_CENTERED_MINI_BLOCK": X + 24,
     # slopes (include/collision.h COL_SLOPE_BASE, slope_lines[] in src/player.c), in GDA's order
     **{"COL_" + n: S + i for i, n in enumerate(['SLOPE_45_UP', 'SLOPE_45_DOWN', 'SLOPE_45_UP_UD', 'SLOPE_45_DOWN_UD', 'SLOPE_22_UP_1', 'SLOPE_22_UP_2', 'SLOPE_22_DOWN_1', 'SLOPE_22_DOWN_2', 'SLOPE_22_UP_UD_1', 'SLOPE_22_UP_UD_2', 'SLOPE_22_DOWN_UD_1', 'SLOPE_22_DOWN_UD_2', 'SLOPE_66_UP_1', 'SLOPE_66_UP_2', 'SLOPE_66_DOWN_1', 'SLOPE_66_DOWN_2', 'SLOPE_66_UP_UD_1', 'SLOPE_66_UP_UD_2', 'SLOPE_66_DOWN_UD_1', 'SLOPE_66_DOWN_UD_2'])},
-    "BREAKABLE_BRICK": 7,
+    "BREAKABLE_BRICK": 0x16,   # COL_BREAKABLE: solid, breaks when the player runs into it
 }
 # Not added: GDA's level end wall (our level end is a sprite), and its old ground / ceiling pieces
 # (art stamped "OLD": older copies of the ground look, which GROUND_0 / CEILING_0 and ours are)

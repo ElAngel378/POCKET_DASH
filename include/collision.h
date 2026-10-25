@@ -23,6 +23,7 @@
 #define COL_PAD_MAGENTA  0x0F  // Magenta Pad (Small Jump)
 #define COL_DEATH_TOP_HALF    0x10  // Deadly in bottom half (spike points up)
 #define COL_DEATH_BOTTOM_HALF 0x11  // Deadly in top half (spike points down)
+#define COL_BREAKABLE    0x16  // Solid block that breaks when the player runs into it (break_block)
 // Quarter-tile spikes (one half of a spike split over two tiles, 8px tall).
 // bit0 = right half, bit2 = top half. The metatile table stores these; the
 // collision lookups turn them into COL_DEATH_LEFT/RIGHT (x half is checked by
@@ -188,6 +189,13 @@ void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank);
 void load_collision_columns(uint16_t map_col, const uint8_t* map,
                             uint16_t map_w, uint8_t map_bank,
                             uint8_t* columns, uint8_t row0);
+
+// Breakable blocks the player broke: these map cells read as empty (metatile 0) in the map
+// fetches above, until broken_reset (level start, respawn). break_block also asks gameplay.c to
+// redraw the column (broken_redraw, 0xFFFF: none).
+void break_block(uint16_t col, uint8_t row);
+void broken_reset(void);
+extern uint16_t broken_redraw;
 
 void load_menu_ground_tiles(void) BANKED;
 

@@ -220,12 +220,14 @@ static uint8_t col_job_slot;
 static uint8_t col_job_issued;  // slice handed to the VBlank handler, not yet acknowledged
 static uint8_t row0_job_issued;
 static uint16_t col_job_col;    // column being / last written (columns up to loaded_r are wanted)
+static uint16_t fix_saved_col = 0xFFFF;   // col_job_col while a broken block's column is rewritten
 static uint16_t max_scroll_px;
 
 // No column or row job: the ring holds the columns up to loaded_r and the band's rows
 static void stream_jobs_reset(void) {
     col_job_col = loaded_r;
     col_job_step = COL_JOB_STEPS;
+    fix_saved_col = 0xFFFF;
     row0_job_pos = 16;
     col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0; bg_fj_rows = 0;
     band_cam_row = 0xFF;
@@ -529,6 +531,7 @@ static void reload_level_state(uint8_t idx) {
     scroll_acc = 0;
     loaded_r = BKG_MT_W - 1;
     stream_jobs_reset();
+    broken_reset();   // broken blocks come back
     target_bg_idx = dmg_start_bg_idx();
     pause_suppress_jump = 0;
     end_anim_state = END_ANIM_INACTIVE;
@@ -1368,6 +1371,7 @@ void play_level(uint8_t idx) BANKED {
     mt_band = band_for_cam(cam_py, BAND_MAX);
     loaded_r = BKG_MT_W - 1;
     stream_jobs_reset();
+    broken_reset();
     max_scroll_px = ((level_map_w - VIEW_MT_W) << 4);
 
     reduce_flash = setting_dmg_gradient ? 0 : 1;
@@ -1620,6 +1624,7 @@ void play_level(uint8_t idx) BANKED {
 
         if (end_anim_state == END_ANIM_INACTIVE) {
             died = player_update(&player, joy, collision_columns, 16);
+            if (broken_redraw != 0xFFFF) cached_collision_col = 0xFFFF;   // a block broke: reload the columns
 #ifdef DEBUG_PROFILE
             if (died) gpdeaths++;
 #endif
@@ -1884,7 +1889,22 @@ void play_level(uint8_t idx) BANKED {
         // last slice was still unacknowledged its acknowledgement skipped the new job's step 0
         // (the map fetch): the new ring column showed the previous column. At 2.8 px a frame a
         // column comes every 5-6 frames, so 1-2 slices put off by late VBlanks were enough.
-        if (col_job_step >= COL_JOB_STEPS && col_job_col < loaded_r) {
+        // A broken block's column (break_block) is rewritten before the next new one
+        if (col_job_step >= COL_JOB_STEPS && fix_saved_col != 0xFFFF) {
+            col_job_col = fix_saved_col;   // that rewrite is done: back to the new columns
+            fix_saved_col = 0xFFFF;
+        }
+        if (col_job_step >= COL_JOB_STEPS && broken_redraw != 0xFFFF) {
+            if (broken_redraw <= col_job_col && broken_redraw + 15u >= col_job_col) {   // in the ring
+                fix_saved_col = col_job_col;
+                col_job_col = broken_redraw;
+                col_job_slot = (uint8_t)(col_job_col & 15);
+                if (view_rev) col_job_slot = (uint8_t)(-(int8_t)col_job_slot & 15);
+                col_job_step = 0;
+            }
+            broken_redraw = 0xFFFF;
+        }
+        else if (col_job_step >= COL_JOB_STEPS && col_job_col < loaded_r) {
             col_job_col++;
             col_job_slot = (uint8_t)(col_job_col & 15);
             if (view_rev) col_job_slot = (uint8_t)(-(int8_t)col_job_slot & 15);

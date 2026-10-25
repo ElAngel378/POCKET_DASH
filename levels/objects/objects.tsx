@@ -3873,7 +3873,7 @@
  <tile id="391">
   <properties>
    <property name="name" value="BREAKABLE_BRICK"/>
-   <property name="collision" type="int" value="7"/>
+   <property name="collision" type="int" value="22"/>
    <property name="palette" type="int" value="0"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="-1"/>

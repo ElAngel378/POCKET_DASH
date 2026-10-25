@@ -140,6 +140,8 @@ static uint8_t col_at_partial(uint8_t col, uint8_t inner_y, uint8_t xin) {
         uint8_t h = slope_h(col, xin);
         uint8_t below = (inner_y >= h);
         return (below != slope_lines[(uint8_t)(col - COL_SLOPE_BASE)].ud) ? COL_ALL : COL_NONE;
+    } else if (col == COL_BREAKABLE) {
+        return COL_ALL;
     }
     return col;
 }
@@ -551,8 +553,13 @@ uint8_t player_update(
     // Famidash bg_coll_R: the point at x + width (mini x + 8), at the box centre height
     uint8_t front_center = COL_AT(box_r, py + front_y);
     if (IS_SOLID(front_center)) {
-        p->dead = 1;
-        return 1;
+        // A breakable block in front breaks instead (GDA: the player's centre hitbox breaks it)
+        int16_t fy = (int16_t)py + front_y;
+        if (RAW_COL(box_r, fy) != COL_BREAKABLE) {
+            p->dead = 1;
+            return 1;
+        }
+        break_block((uint16_t)(p->world_x + box_r) >> 4, (uint8_t)((uint16_t)(p->y_base + (uint8_t)fy) >> 4));
     }
     // Most frames touch no spike: look at the (up to 4) metatiles the spike probes below lie in
     // first, and only run the 6 spike_at calls when one of them is a spike type
