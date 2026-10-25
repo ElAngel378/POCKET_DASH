@@ -1,0 +1,1277 @@
+{
+ "EMPTY": {
+  "gda": "MT:AIR",
+  "match": "same"
+ },
+ "GROUND_EDGE_BOTTOM": {
+  "gda": "MT:CEILING_D",
+  "match": "close",
+  "note": "ceiling look piece (GDA CEILING_0, D..F)"
+ },
+ "GROUND_BOTTOM": {
+  "gda": "MT:CEILING_0",
+  "match": "close",
+  "note": "ceiling fill; GDA levels often use BLK_FILLER there"
+ },
+ "HALF_SLAB_BOTTOM": {
+  "gda": "MT:SLAB_DOWN",
+  "match": "same"
+ },
+ "SMALL_SAW_BOTTOM_HALF": {
+  "gda": "SP:SMALL_SAW",
+  "match": "part",
+  "note": "bottom half of the saw (saw 8 px up)"
+ },
+ "BG5": {
+  "gda": "MT:CEILING_D",
+  "match": "close",
+  "note": "ceiling look piece"
+ },
+ "BG6": {
+  "gda": "MT:CEILING_0",
+  "match": "close",
+  "note": "ceiling fill; GDA levels often use BLK_FILLER there"
+ },
+ "FAKE_BLOCK": {
+  "gda": "MT:BASIC_BLOCK_NO_COLL",
+  "match": "same"
+ },
+ "MED_SAW_TOP_LEFT": {
+  "gda": "SP:MEDIUM_SAW",
+  "match": "part",
+  "note": "top left quarter"
+ },
+ "MED_SAW_TOP_RIGHT": {
+  "gda": "SP:MEDIUM_SAW",
+  "match": "part",
+  "note": "top right quarter"
+ },
+ "MED_SAW_BOTTOM_LEFT": {
+  "gda": "SP:MEDIUM_SAW",
+  "match": "part",
+  "note": "bottom left quarter"
+ },
+ "MED_SAW_BOTTOM_RIGHT": {
+  "gda": "SP:MEDIUM_SAW",
+  "match": "part",
+  "note": "bottom right quarter"
+ },
+ "BOTTOM_BACKGROUND_SPIKES": {
+  "gda": "MT:GROUND_SPIKE_BOTTOM",
+  "match": "same"
+ },
+ "TOP_BACKGROUND_SPIKES": {
+  "gda": "MT:GROUND_SPIKE_TOP",
+  "match": "same"
+ },
+ "HALF_LEFT_SPIKE_BACKGROUND": {
+  "gda": "MT:SMALL_SPIKE_LEFT",
+  "match": "same"
+ },
+ "HALF_RIGHT_SPIKE_BACKGROUND": {
+  "gda": "MT:SMALL_SPIKE_RIGHT",
+  "match": "same"
+ },
+ "BLOCK": {
+  "gda": "MT:BASIC_BLOCK",
+  "match": "same"
+ },
+ "SPIKE_UP": {
+  "gda": "MT:SPIKE_UP",
+  "match": "same"
+ },
+ "SPIKE_HALF": {
+  "gda": "MT:SMALL_SPIKE_BOTTOM",
+  "match": "same"
+ },
+ "HALF_SPIKE_BACKGROUND": {
+  "gda": "MT:SMALL_SPIKE_BOTTOM",
+  "match": "same",
+  "note": "background copy (no collision)"
+ },
+ "HALF_SPIKE_BACKGROUND_TOP": {
+  "gda": "MT:SMALL_SPIKE_TOP",
+  "match": "same",
+  "note": "background copy (no collision)"
+ },
+ "PLATFORM_SPIKE": {
+  "gda": "MT:SLAB_UP & SMALL_SPIKE_BOTTOM",
+  "match": "combo"
+ },
+ "PLATFORM_PITSPIKES": {
+  "gda": "MT:SLAB_UP & GROUND_SPIKE_BOTTOM",
+  "match": "combo"
+ },
+ "PITSPIKES_TOP": {
+  "gda": "MT:GROUND_SPIKE_TOP",
+  "match": "same"
+ },
+ "PITSPIKES": {
+  "gda": "MT:GROUND_SPIKE_BOTTOM",
+  "match": "same"
+ },
+ "PLATFORM": {
+  "gda": "MT:SLAB_UP",
+  "match": "same"
+ },
+ "SPIKE_LEFT": {
+  "gda": "MT:SPIKE_RIGHT",
+  "match": "same",
+  "note": "GDA names this spike the other way round"
+ },
+ "SPIKE_TOP": {
+  "gda": "MT:SPIKE_DOWN",
+  "match": "same"
+ },
+ "SPIKE_RIGHT": {
+  "gda": "MT:SPIKE_LEFT",
+  "match": "same",
+  "note": "GDA names this spike the other way round"
+ },
+ "HALF_SPIKE_LEFT": {
+  "gda": "MT:MEDIUM_SPIKE_LEFT",
+  "match": "same"
+ },
+ "HALF_SPIKE_TOP": {
+  "gda": "MT:SMALL_SPIKE_TOP",
+  "match": "same"
+ },
+ "HALF_SPIKE_RIGHT": {
+  "gda": "MT:MEDIUM_SPIKE_RIGHT",
+  "match": "same"
+ },
+ "CHECKERBOARD": {
+  "gda": "MT:CHK_FULL",
+  "match": "same"
+ },
+ "CHECKERBOARD_1": {
+  "gda": "MT:CHK_SIDE_UP",
+  "match": "same"
+ },
+ "CHECKERBOARD_2": {
+  "gda": "MT:CHK_SIDE_RIGHT",
+  "match": "same"
+ },
+ "CHECKERBOARD_3": {
+  "gda": "MT:CHK_SIDE_DOWN",
+  "match": "same"
+ },
+ "CHECKERBOARD_4": {
+  "gda": "MT:CHK_SIDE_LEFT",
+  "match": "same"
+ },
+ "CHECKERBOARD_5": {
+  "gda": "MT:CHK_CORNER_TL",
+  "match": "same"
+ },
+ "CHECKERBOARD_6": {
+  "gda": "MT:CHK_CORNER_TR",
+  "match": "same"
+ },
+ "CHECKERBOARD_7": {
+  "gda": "MT:CHK_CORNER_BR",
+  "match": "same"
+ },
+ "CHECKERBOARD_8": {
+  "gda": "MT:CHK_CORNER_BL",
+  "match": "same"
+ },
+ "CHECKERBOARD_9": {
+  "gda": "MT:CHK_CRN_INS_TL",
+  "match": "same"
+ },
+ "CHECKERBOARD_10": {
+  "gda": "MT:CHK_CRN_INS_TR",
+  "match": "same"
+ },
+ "CHECKERBOARD_11": {
+  "gda": "MT:CHK_CRN_INS_BR",
+  "match": "same"
+ },
+ "CHECKERBOARD_12": {
+  "gda": "MT:CHK_CRN_INS_BL",
+  "match": "same"
+ },
+ "CHECKERBOARD_13": {
+  "gda": "MT:CHK_DB_SIDE_V",
+  "match": "same"
+ },
+ "CHECKERBOARD_14": {
+  "gda": "MT:CHK_DB_SIDE_H",
+  "match": "same"
+ },
+ "CHECKERBOARD_15": {
+  "gda": "MT:CHK_FILLER",
+  "match": "same"
+ },
+ "CHECKERBOARD_16": {
+  "gda": "MT:CHK_DB_CRN_TOP",
+  "match": "same"
+ },
+ "CHECKERBOARD_17": {
+  "gda": "MT:CHK_DB_CRN_RGT",
+  "match": "same"
+ },
+ "CHECKERBOARD_18": {
+  "gda": "MT:CHK_DB_CRN_BOT",
+  "match": "same"
+ },
+ "CHECKERBOARD_19": {
+  "gda": "MT:CHK_DB_CRN_LFT",
+  "match": "same"
+ },
+ "ORB_OUTLINE": {
+  "gda": "SP:YELLOW_ORB",
+  "match": "part",
+  "note": "the orb's ring (every orb colour)"
+ },
+ "PAD_UP_OUTLINE": {
+  "gda": "SP:YELLOW_PAD",
+  "match": "part",
+  "note": "the pad's outline (every pad colour)"
+ },
+ "PAD_DOWN_OUTLINE": {
+  "gda": "SP:YELLOW_PAD",
+  "match": "part",
+  "note": "upside-down pad's outline"
+ },
+ "HALF_SLAB_DOWN_SPIKE": {
+  "gda": "MT:SLAB_UP & SMALL_SPIKE_TOP",
+  "match": "combo"
+ },
+ "DOUBLE_WAVY_PLATFORM_LEFT": {
+  "gda": "MT:WAVY_SLAB_START_TOP",
+  "match": "close",
+  "note": "wavy both sides; GDA's is wavy below only"
+ },
+ "DOUBLE_WAVY_PLATFORM_MIDDLE": {
+  "gda": "MT:WAVY_SLAB_MIDDLE_TOP",
+  "match": "close",
+  "note": "wavy both sides"
+ },
+ "DOUBLE_WAVY_PLATFORM_RIGHT": {
+  "gda": "MT:WAVY_SLAB_END_TOP",
+  "match": "close",
+  "note": "wavy both sides"
+ },
+ "XSTEP_SPECIAL": {
+  "gda": "MT:GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "close",
+  "note": "Xstep's ground wavy spikes, full bottom"
+ },
+ "GRAVEL_LEFT_TOP_WAVY_BOTTOM": {
+  "gda": "MT:WAVY_SLAB_START_TOP & GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "combo"
+ },
+ "WAVY_PLATFORM_MIDDLE_TOP_WAVYPIT_BOTTOM": {
+  "gda": "MT:WAVY_SLAB_MIDDLE_TOP & GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "combo"
+ },
+ "WAVY_PLATFORM_RIGHT_TOP_WAVYPIT_BOTTOM": {
+  "gda": "MT:WAVY_SLAB_END_TOP & GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "combo"
+ },
+ "WAVY_PLATFORM_STANDALONE_TOP_WAVYPIT_BOTTOM": {
+  "gda": "MT:WAVY_SLAB_SINGLE_TOP & GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "combo"
+ },
+ "X_FULL_OUTLINE": {
+  "gda": "MT:X_FULL",
+  "match": "same"
+ },
+ "X_TOP_OUTLINE": {
+  "gda": "MT:X_SIDE_UP",
+  "match": "same"
+ },
+ "X_RIGHT_OUTLINE": {
+  "gda": "MT:X_SIDE_RIGHT",
+  "match": "same"
+ },
+ "X_BOTTOM_OUTLINE": {
+  "gda": "MT:X_SIDE_DOWN",
+  "match": "same"
+ },
+ "X_LEFT_OUTLINE": {
+  "gda": "MT:X_SIDE_LEFT",
+  "match": "same"
+ },
+ "X_TOP_LEFT_OUTLINE": {
+  "gda": "MT:X_CORNER_TL",
+  "match": "same"
+ },
+ "X_TOP_RIGHT_OUTLINE": {
+  "gda": "MT:X_CORNER_TR",
+  "match": "same"
+ },
+ "X_BOTTOM_RIGHT_OUTLINE": {
+  "gda": "MT:X_CORNER_BR",
+  "match": "same"
+ },
+ "X_BOTTOM_LEFT_OUTLINE": {
+  "gda": "MT:X_CORNER_BL",
+  "match": "same"
+ },
+ "X_TOP_LEFT_DOT": {
+  "gda": "MT:X_INS_CRN_TL",
+  "match": "same"
+ },
+ "X_TOP_RIGHT_DOT": {
+  "gda": "MT:X_INS_CRN_TR",
+  "match": "same"
+ },
+ "X_BOTTOM_RIGHT_DOT": {
+  "gda": "MT:X_INS_CRN_BR",
+  "match": "same"
+ },
+ "X_BOTTOM_LEFT_DOT": {
+  "gda": "MT:X_INS_CRN_BL",
+  "match": "same"
+ },
+ "X_LEFT_RIGHT_OUTLINE": {
+  "gda": "MT:X_DB_SIDE_V",
+  "match": "same"
+ },
+ "X_TOP_BOTTOM_OUTLINE": {
+  "gda": "MT:X_DB_SIDE_H",
+  "match": "same"
+ },
+ "X_NO_OUTLINE": {
+  "gda": "MT:X_FILLER",
+  "match": "same"
+ },
+ "X_LEFT_TOP_RIGHT_OUTLINE": {
+  "gda": "MT:X_DB_CRN_TOP",
+  "match": "same"
+ },
+ "X_TOP_RIGHT_BOTTOM_OUTLINE": {
+  "gda": "MT:X_DB_CRN_RGT",
+  "match": "same"
+ },
+ "X_LEFT_RIGHT_BOTTOM_OUTLINE": {
+  "gda": "MT:X_DB_CRN_BOT",
+  "match": "same"
+ },
+ "X_TOP_LEFT_BOTTOM_OUTLINE": {
+  "gda": "MT:X_DB_CRN_LFT",
+  "match": "same"
+ },
+ "TOP_WAVY_PLATFORM_LEFT": {
+  "gda": "MT:WAVY_SLAB_START_TOP",
+  "match": "same"
+ },
+ "TOP_WAVY_PLATFORM_MIDDLE": {
+  "gda": "MT:WAVY_SLAB_MIDDLE_TOP",
+  "match": "same"
+ },
+ "TOP_WAVY_PLATFORM_RIGHT": {
+  "gda": "MT:WAVY_SLAB_END_TOP",
+  "match": "same"
+ },
+ "TOP_WAVY_PLATFORM_STANDALONE": {
+  "gda": "MT:WAVY_SLAB_SINGLE_TOP",
+  "match": "same"
+ },
+ "BOTTOM_WAVY_PLATFORM_LEFT": {
+  "gda": "MT:WAVY_SLAB_START_BOTTOM",
+  "match": "same"
+ },
+ "BOTTOM_WAVY_PLATFORM_MIDDLE": {
+  "gda": "MT:WAVY_SLAB_MIDDLE_BOTTOM",
+  "match": "same"
+ },
+ "BOTTOM_WAVY_PLATFORM_RIGHT": {
+  "gda": "MT:WAVY_SLAB_END_BOTTOM",
+  "match": "same"
+ },
+ "BOTTOM_WAVY_PLATFORM_STANDALONE": {
+  "gda": "MT:WAVY_SLAB_SINGLE_BOTTOM",
+  "match": "same"
+ },
+ "BOTTOM_WAVYPIT": {
+  "gda": "MT:GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "same"
+ },
+ "TOP_WAVYPIT": {
+  "gda": "MT:GROUND_WAVY_SPIKE_TOP",
+  "match": "same"
+ },
+ "PITSPIKES_RIGHT": {
+  "gda": "MT:GROUND_SPIKE_RIGHT",
+  "match": "same"
+ },
+ "PITSPIKES_LEFT": {
+  "gda": "MT:GROUND_SPIKE_LEFT",
+  "match": "same"
+ },
+ "BLACK_FULL_BORDER": {
+  "gda": "MT:BLK_FULL",
+  "match": "same"
+ },
+ "BLACK_TOP": {
+  "gda": "MT:BLK_SIDE_TOP",
+  "match": "same"
+ },
+ "BLACK_RIGHT": {
+  "gda": "MT:BLK_SIDE_RIGHT",
+  "match": "same"
+ },
+ "BLACK_BOTTOM": {
+  "gda": "MT:BLK_SIDE_BOTTOM",
+  "match": "same"
+ },
+ "BLACK_LEFT": {
+  "gda": "MT:BLK_SIDE_LEFT",
+  "match": "same"
+ },
+ "BLACK_TOP_LEFT": {
+  "gda": "MT:BLK_CORNER_TL",
+  "match": "same"
+ },
+ "BLACK_TOP_RIGHT": {
+  "gda": "MT:BLK_CORNER_TR",
+  "match": "same"
+ },
+ "BLACK_BOTTOM_RIGHT": {
+  "gda": "MT:BLK_CORNER_BR",
+  "match": "same"
+ },
+ "BLACK_BOTTOM_LEFT": {
+  "gda": "MT:BLK_CORNER_BL",
+  "match": "same"
+ },
+ "BLACK_TOP_LEFT_DOT": {
+  "gda": "MT:BLK_INS_CRN_TL",
+  "match": "same"
+ },
+ "BLACK_TOP_RIGHT_DOT": {
+  "gda": "MT:BLK_INS_CRN_TR",
+  "match": "same"
+ },
+ "BLACK_BOTTOM_RIGHT_DOT": {
+  "gda": "MT:BLK_INS_CRN_BR",
+  "match": "same"
+ },
+ "BLACK_BOTTOM_LEFT_DOT": {
+  "gda": "MT:BLK_INS_CRN_BL",
+  "match": "same"
+ },
+ "BLACK_LEFT_RIGHT": {
+  "gda": "MT:BLK_DB_SIDE_H",
+  "match": "same"
+ },
+ "BLACK_TOP_BOTTOM": {
+  "gda": "MT:BLK_DB_SIDE_V",
+  "match": "same"
+ },
+ "BLACK_NONE": {
+  "gda": "MT:BLK_FILLER",
+  "match": "same"
+ },
+ "BLACK_TOP_LEFT_RIGHT": {
+  "gda": "MT:BLK_DB_CRN_TOP",
+  "match": "same"
+ },
+ "BLACK_TOP_RIGHT_BOTTOM": {
+  "gda": "MT:BLK_DB_CRN_RGT",
+  "match": "same"
+ },
+ "BLACK_LEFT_RIGHT_BOTTOM": {
+  "gda": "MT:BLK_DB_CRN_BOT",
+  "match": "same"
+ },
+ "BLACK_TOP_LEFT_BOTTOM": {
+  "gda": "MT:BLK_DB_CRN_LFT",
+  "match": "same"
+ },
+ "BIG_SAW_TOP_LEFT": {
+  "gda": "SP:BIG_SAW",
+  "match": "part",
+  "note": "top left ninth"
+ },
+ "BIG_SAW_TOP_MIDDLE": {
+  "gda": "SP:BIG_SAW",
+  "match": "part",
+  "note": "top middle ninth"
+ },
+ "BIG_SAW_TOP_RIGHT": {
+  "gda": "SP:BIG_SAW",
+  "match": "part",
+  "note": "top right ninth"
+ },
+ "BIG_SAW_MIDDLE_LEFT": {
+  "gda": "SP:BIG_SAW",
+  "match": "part",
+  "note": "middle left ninth"
+ },
+ "BIG_SAW_MIDDLE": {
+  "gda": "SP:BIG_SAW",
+  "match": "part",
+  "note": "middle ninth"
+ },
+ "BIG_SAW_MIDDLE_RIGHT": {
+  "gda": "SP:BIG_SAW",
+  "match": "part",
+  "note": "middle right ninth"
+ },
+ "BIG_SAW_BOTTOM_LEFT": {
+  "gda": "SP:BIG_SAW",
+  "match": "part",
+  "note": "bottom left ninth"
+ },
+ "BIG_SAW_BOTTOM_MIDDLE": {
+  "gda": "SP:BIG_SAW",
+  "match": "part",
+  "note": "bottom middle ninth"
+ },
+ "BIG_SAW_BOTTOM_RIGHT": {
+  "gda": "SP:BIG_SAW",
+  "match": "part",
+  "note": "bottom right ninth"
+ },
+ "SMALL_SAW": {
+  "gda": "SP:SMALL_SAW",
+  "match": "same",
+  "note": "a sprite in GDA"
+ },
+ "CHIPPED_BLOCK": {
+  "gda": "MT:+_FULL",
+  "match": "same"
+ },
+ "SMALL_SAW_TOP_HALF": {
+  "gda": "SP:SMALL_SAW",
+  "match": "part",
+  "note": "top half of the saw (saw 8 px down)"
+ },
+ "CLOUD_TOP_UP": {
+  "gda": "SP:BIG_BG_CLOUDS",
+  "match": "part",
+  "note": "background cloud decoration"
+ },
+ "CLOUD_TOP_DOWN": {
+  "gda": "SP:BIG_BG_CLOUDS",
+  "match": "part",
+  "note": "background cloud decoration"
+ },
+ "WAVYPIT_BOTTOM_SPIKEPIT_TOP": {
+  "gda": "MT:GROUND_SPIKE_TOP & GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "combo"
+ },
+ "SPIKEPIT_TOP_WAVYPIT_BOTTOM": {
+  "gda": "MT:GROUND_WAVY_SPIKE_TOP & GROUND_SPIKE_BOTTOM",
+  "match": "combo"
+ },
+ "CLOUD_LEFT": {
+  "gda": "SP:BIG_BG_CLOUDS & MT:GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "part",
+  "note": "cloud over wavy spikes"
+ },
+ "CLOUD_LEFT_TOP": {
+  "gda": "SP:BIG_BG_CLOUDS & MT:GROUND_WAVY_SPIKE_TOP",
+  "match": "part",
+  "note": "cloud under ceiling wavy spikes"
+ },
+ "CLOUD_RIGHT": {
+  "gda": "SP:BIG_BG_CLOUDS & MT:GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "part",
+  "note": "cloud over wavy spikes"
+ },
+ "CLOUD_RIGHT_TOP": {
+  "gda": "SP:BIG_BG_CLOUDS & MT:GROUND_WAVY_SPIKE_TOP",
+  "match": "part",
+  "note": "cloud under ceiling wavy spikes"
+ },
+ "GROUND_EDGE_TOP": {
+  "gda": "MT:GROUND_D",
+  "match": "close",
+  "note": "ground look piece (GDA GROUND_0, D..F)"
+ },
+ "GROUND_TOP": {
+  "gda": "MT:GROUND_0",
+  "match": "close",
+  "note": "ground look piece"
+ },
+ "CHIPPED_BLOCK_LEFT_HALF_WAVYPIT": {
+  "gda": "SPMT:+_FULL & MT:GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "offset",
+  "note": "half block off the grid over wavy spikes"
+ },
+ "CHIPPED_BLOCK_RIGHT_HALF_WAVYPIT": {
+  "gda": "SPMT:+_FULL & MT:GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "offset",
+  "note": "half block off the grid over wavy spikes"
+ },
+ "CHIPPED_BLOCK_LEFT_HALF": {
+  "gda": "SPMT:+_FULL",
+  "match": "offset",
+  "note": "half a block: GDA places it 8 px off the grid"
+ },
+ "CHIPPED_BLOCK_RIGHT_HALF": {
+  "gda": "SPMT:+_FULL",
+  "match": "offset",
+  "note": "half a block: GDA places it 8 px off the grid"
+ },
+ "DOUBLE_HALF_PAD_UP_OUTLINE": {
+  "gda": "SP:YELLOW_PAD",
+  "match": "offset",
+  "note": "two pads' halves (two pads 8 px off the grid)"
+ },
+ "SLOPE_SUPPORT": {
+  "gda": "MT:+_FILLER",
+  "match": "close",
+  "note": "no art in ours; slope filler"
+ },
+ "44DEG_RIGHT_DOWN": {
+  "gda": "MT:COL1_SLOPE_45_DOWN",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "45DEG_LEFT_DOWN": {
+  "gda": "MT:COL1_SLOPE_45_UP",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "45DEG_RIGHT_UP": {
+  "gda": "MT:COL1_SLOPE_45_DOWN_UD",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "45DEG_LEFT_UP": {
+  "gda": "MT:COL1_SLOPE_45_UP_UD",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "22DEG_RIGHT_DOWN_RIGHT_HALF": {
+  "gda": "MT:COL1_22_DOWN_2",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "22DEG_RIGHT_DOWN_LEFT_HALF": {
+  "gda": "MT:COL1_22_DOWN_1",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "22DEG_LEFT_DOWN_RIGHT_HALF": {
+  "gda": "MT:COL1_22_UP_2",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "22DEG_LEFT_DOWN_LEFT_HALF": {
+  "gda": "MT:COL1_22_UP_1",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "22DEG_RIGHT_UP_RIGHT_HALF": {
+  "gda": "MT:COL1_22_DOWN_UD_2",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "22DEG_RIGHT_UP_LEFT_HALF": {
+  "gda": "MT:COL1_22_DOWN_UD_1",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "22DEG_LEFT_UP_RIGHT_HALF": {
+  "gda": "MT:COL1_22_UP_UD_2",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "22DEG_LEFT_UP_LEFT_HALF": {
+  "gda": "MT:COL1_22_UP_UD_1",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "66DEG_RIGHT_DOWN_TOP_HALF": {
+  "gda": "MT:COL1_66_DOWN_1",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "66DEG_RIGHT_DOWN_BOTTOM_HALF": {
+  "gda": "MT:COL1_66_DOWN_2",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "66DEG_LEFT_DOWN_BOTTOM_HALF": {
+  "gda": "MT:COL1_66_UP_1",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "66DEG_LEFT_DOWN_TOP_HALF": {
+  "gda": "MT:COL1_66_UP_2",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "66DEG_UPSIDEDOWN_RIGHT_UP_TOP_HALF": {
+  "gda": "MT:COL1_66_DOWN_UD_1",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "66DEG_UPSIDEDOWN_RIGHT_UP_BOTTOM_HALF": {
+  "gda": "MT:COL1_66_DOWN_UD_2",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "66DEG_UPSIDEDOWN_LEFT_UP_BOTTOM_HALF": {
+  "gda": "MT:COL1_66_UP_UD_1",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "66DEG_UPSIDEDOWN_LEFT_UP_TOP_HALF": {
+  "gda": "MT:COL1_66_UP_UD_2",
+  "match": "close",
+  "note": "no art in ours (Famidash placeholder); by name, GDA's slopes are colour channel pieces"
+ },
+ "SLOPE_SUPPORT_TOP_LEFT": {
+  "gda": "MT:+_CORNER_TL",
+  "match": "close",
+  "note": "no art in ours; by name"
+ },
+ "SLOPE_SUPPORT_TOP_RIGHT": {
+  "gda": "MT:+_CORNER_TR",
+  "match": "close",
+  "note": "no art in ours; by name"
+ },
+ "SLOPE_SUPPORT_BOTTOM_RIGHT": {
+  "gda": "MT:+_CORNER_BR",
+  "match": "close",
+  "note": "no art in ours; by name"
+ },
+ "SLOPE_SUPPORT_BOTTOM_LEFT": {
+  "gda": "MT:+_CORNER_BL",
+  "match": "close",
+  "note": "no art in ours; by name"
+ },
+ "SMALL_BLOCK_BOTTOM_LEFT_TOP_SPIKE": {
+  "gda": "MT:COL1_MINIBLOCK_0010 & COL1_MINI_SPIKE_UP_LT",
+  "match": "combo"
+ },
+ "SMALL_BLOCK_BOTTOM_RIGHT_TOP_SPIKE": {
+  "gda": "MT:COL1_MINIBLOCK_0001 & COL1_MINI_SPIKE_UP_RT",
+  "match": "combo"
+ },
+ "SMALL_BLOCK_BOTTOM_BOTH_TOP_SPIKE_LEFT": {
+  "gda": "MT:COL1_MINIBLOCK_0011 & COL1_MINI_SPIKE_UP_LT",
+  "match": "combo"
+ },
+ "SMALL_BLOCK_BOTTOM_BOTH_TOP_SPIKE_RIGHT": {
+  "gda": "MT:COL1_MINIBLOCK_0011 & COL1_MINI_SPIKE_UP_RT",
+  "match": "combo"
+ },
+ "SMALL_BLOCK_BOTTOM_BOTH_TOP_SPIKES_BOTH": {
+  "gda": "MT:COL1_MINIBLOCK_0011 & COL1_MINI_SPIKE_UP_LT_RT",
+  "match": "combo"
+ },
+ "SMALL_SPIKE_LEFT": {
+  "gda": "MT:COL1_MINI_SPIKE_UP_LB",
+  "match": "same"
+ },
+ "SMALL_SPIKE_RIGHT": {
+  "gda": "MT:COL1_MINI_SPIKE_UP_RB",
+  "match": "same"
+ },
+ "SMALL_SPIKE_BOTH": {
+  "gda": "MT:COL1_MINI_SPIKE_UP_LB_RB",
+  "match": "same"
+ },
+ "SMALL_BLOCK_TOP_LEFT": {
+  "gda": "MT:COL1_MINIBLOCK_1000",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "SMALL_BLOCK_TOP_RIGHT": {
+  "gda": "MT:COL1_MINIBLOCK_0100",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "SMALL_BLOCK_BOTTOM_LEFT": {
+  "gda": "MT:COL1_MINIBLOCK_0010",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "SMALL_BLOCK_BOTTOM_RIGHT": {
+  "gda": "MT:COL1_MINIBLOCK_0001",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "SMALL_BLOCK_TOP_BOTH": {
+  "gda": "MT:COL1_MINIBLOCK_1100",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "SMALL_BLOCK_BOTTOM_BOTH": {
+  "gda": "MT:COL1_MINIBLOCK_0011",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "SMALL_BLOCK_LEFT_BOTH": {
+  "gda": "MT:COL1_MINIBLOCK_1010",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "SMALL_BLOCK_RIGHT_BOTH": {
+  "gda": "MT:COL1_MINIBLOCK_0101",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "SMALL_BLOCK_TOP_LEFT_3": {
+  "gda": "MT:COL1_MINIBLOCK_1110",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "SMALL_BLOCK_TOP_RIGHT_3": {
+  "gda": "MT:COL1_MINIBLOCK_1101",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "SMALL_BLOCK_BOTTOM_LEFT_3": {
+  "gda": "MT:COL1_MINIBLOCK_1011",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "SMALL_BLOCK_BOTTOM_RIGHT_3": {
+  "gda": "MT:COL1_MINIBLOCK_0111",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "SMALL_BLOCK_TOP_LEFT_BOTTOM_RIGHT": {
+  "gda": "MT:COL1_MINIBLOCK_1001",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "SMALL_BLOCK_TOP_RIGHT_BOTTOM_LEFT": {
+  "gda": "MT:COL1_MINIBLOCK_0110",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "SMALL_SPIKE_UPSIDEDOWN_LEFT": {
+  "gda": "MT:COL1_MINI_SPIKE_DOWN_LT",
+  "match": "same"
+ },
+ "SMALL_SPIKE_UPSIDEDOWN_RIGHT": {
+  "gda": "MT:COL1_MINI_SPIKE_DOWN_RT",
+  "match": "same"
+ },
+ "SMALL_SPIKE_UPSIDEDOWN_BOTH": {
+  "gda": "MT:COL1_MINI_SPIKE_DOWN_LT_RT",
+  "match": "same"
+ },
+ "UP_RIGHT_DIAG_SPIKES": {
+  "gda": "MT:SMALL_SPIKE_TOP",
+  "match": "close",
+  "note": "Famidash slope-spike piece; GDA has small spikes there"
+ },
+ "UP_LEFT_DIAG_SPIKES": {
+  "gda": "MT:SMALL_SPIKE_TOP",
+  "match": "close",
+  "note": "Famidash slope-spike piece; GDA has small spikes there"
+ },
+ "DOWN_RIGHT_DIAG_SPIKES": {
+  "gda": "MT:SMALL_SPIKE_BOTTOM",
+  "match": "close",
+  "note": "Famidash slope-spike piece; GDA has small spikes there"
+ },
+ "DOWN_LEFT_DIAG_SPIKES": {
+  "gda": "MT:SMALL_SPIKE_BOTTOM",
+  "match": "close",
+  "note": "Famidash slope-spike piece; GDA has small spikes there"
+ },
+ "FAKE_SPIKE_UP": {
+  "gda": "MT:FAKE_SPIKE_UP",
+  "match": "same"
+ },
+ "FAKE_SPIKE_TOP": {
+  "gda": "MT:FAKE_SPIKE_DOWN",
+  "match": "same"
+ },
+ "SPIKE_PLATFORM": {
+  "gda": "MT:CENTER_SLAB_UP & MEDIUM_SPIKE_BOTTOM",
+  "match": "close",
+  "note": "spike on a mid-height slab"
+ },
+ "SPIKE_INVERTED_PLATFORM": {
+  "gda": "MT:CENTER_SLAB_DOWN & MEDIUM_SPIKE_TOP",
+  "match": "close",
+  "note": "spike under a mid-height slab"
+ },
+ "TOP_SLAB_CHECKERED": {
+  "gda": "MT:SLAB_UP",
+  "match": "close",
+  "note": "checkerboard look"
+ },
+ "BOTTOM_SLAB_CHECKERED": {
+  "gda": "MT:SLAB_DOWN",
+  "match": "close",
+  "note": "checkerboard look"
+ },
+ "FAKE_SPIKE_HALF": {
+  "gda": "MT:FAKE_MEDIUM_SPIKE_BOTTOM",
+  "match": "same"
+ },
+ "FAKE_HALF_SPIKE_TOP": {
+  "gda": "MT:FAKE_MEDIUM_SPIKE_TOP",
+  "match": "same"
+ },
+ "FAKE_SMALL_SPIKE_LEFT": {
+  "gda": "MT:FAKE_MINI_SPIKE_UP_LB",
+  "match": "same"
+ },
+ "FAKE_SMALL_SPIKE_RIGHT": {
+  "gda": "MT:FAKE_MINI_SPIKE_UP_RB",
+  "match": "same"
+ },
+ "FAKE_SMALL_SPIKE_BOTH": {
+  "gda": "MT:FAKE_MINI_SPIKE_UP_LB_RB",
+  "match": "same"
+ },
+ "FAKE_SMALL_SPIKE_UPSIDEDOWN_LEFT": {
+  "gda": "MT:FAKE_MINI_SPIKE_DOWN_LT",
+  "match": "same"
+ },
+ "FAKE_SMALL_SPIKE_UPSIDEDOWN_RIGHT": {
+  "gda": "MT:FAKE_MINI_SPIKE_DOWN_RT",
+  "match": "same"
+ },
+ "FAKE_SMALL_SPIKE_UPSIDEDOWN_BOTH": {
+  "gda": "MT:FAKE_MINI_SPIKE_DOWN_LT_RT",
+  "match": "same"
+ },
+ "SMALL_BLOCK_ALL": {
+  "gda": "MT:COL1_MINIBLOCK_1111",
+  "match": "same",
+  "note": "GDA's mini blocks are colour channel pieces"
+ },
+ "3D_TOP": {
+  "gda": null,
+  "match": "none",
+  "note": "Famidash's 3D block edge; GDA's 3D sets (3DL_, 3DFILL_) are a different style"
+ },
+ "3D_TOP_RIGHT_CORNER": {
+  "gda": null,
+  "match": "none",
+  "note": "Famidash's 3D block edge; GDA's 3D sets (3DL_, 3DFILL_) are a different style"
+ },
+ "3D_RIGHT_SIDE": {
+  "gda": null,
+  "match": "none",
+  "note": "Famidash's 3D block edge; GDA's 3D sets (3DL_, 3DFILL_) are a different style"
+ },
+ "22DEG_RIGHT_DOWN_RIGHT_HALF_FAKE": {
+  "gda": "MT:LINE_SLOPE_NO_COLL_22_DOWN_2",
+  "match": "close",
+  "note": "no collision slope"
+ },
+ "22DEG_RIGHT_DOWN_LEFT_HALF_FAKE": {
+  "gda": "MT:LINE_SLOPE_NO_COLL_22_DOWN_1",
+  "match": "close",
+  "note": "no collision slope"
+ },
+ "SPIKE_UP_RIGHT_COL_SHIFTED": {
+  "gda": "SP:SPIKE_V",
+  "match": "offset",
+  "note": "spike 8 px off the grid"
+ },
+ "SPIKE_UP_LEFT_COL_SHIFTED": {
+  "gda": "SP:SPIKE_V",
+  "match": "offset",
+  "note": "spike 8 px off the grid"
+ },
+ "SPIKE_DOWN_LEFT_COL_SHIFTED": {
+  "gda": "SP:SPIKE_V",
+  "match": "offset",
+  "note": "upside-down spike 8 px off the grid"
+ },
+ "SPIKE_DOWN_RIGHT_COL_SHIFTED": {
+  "gda": "SP:SPIKE_V",
+  "match": "offset",
+  "note": "upside-down spike 8 px off the grid"
+ },
+ "BLOCK_EVERY_END_LEFT_COL": {
+  "gda": "SP:BASIC_BLOCK_OBJ",
+  "match": "offset",
+  "note": "block 8 px off the grid (Every End)"
+ },
+ "BLOCK_EVERY_END_RIGHT_COL": {
+  "gda": "SP:BASIC_BLOCK_OBJ",
+  "match": "offset",
+  "note": "block 8 px off the grid (Every End)"
+ },
+ "SMALL_BLOCK_TOP_RIGHT_INVIS": {
+  "gda": null,
+  "match": "none",
+  "note": "invisible solid quarter: GDA has no invisible mini block"
+ },
+ "CHECKERBOARD_16_EVERYEND": {
+  "gda": "SPMT:CHK_DB_CRN_TOP",
+  "match": "offset",
+  "note": "checkerboard piece 8 px off the grid (Every End)"
+ },
+ "CHECKERBOARD_4_EVERYEND": {
+  "gda": "SPMT:CHK_SIDE_LEFT",
+  "match": "offset",
+  "note": "checkerboard piece 8 px off the grid (Every End)"
+ },
+ "CHECKERBOARD_8_EVERYEND": {
+  "gda": "SPMT:CHK_CORNER_BL",
+  "match": "offset",
+  "note": "checkerboard piece 8 px off the grid (Every End)"
+ },
+ "SMALL_BLOCK_TOP_LEFT_INVIS": {
+  "gda": null,
+  "match": "none",
+  "note": "invisible solid quarter: GDA has no invisible mini block"
+ },
+ "CHECKERBOARD_18_EVERYEND": {
+  "gda": "SPMT:CHK_DB_CRN_BOT",
+  "match": "offset",
+  "note": "checkerboard piece 8 px off the grid (Every End)"
+ },
+ "CHECKERBOARD_5_EVERYEND": {
+  "gda": "SPMT:CHK_CORNER_TL",
+  "match": "offset",
+  "note": "checkerboard piece 8 px off the grid (Every End)"
+ },
+ "BLOCK_EVERY_END_BOTTOM_COL": {
+  "gda": "SP:BASIC_BLOCK_OBJ",
+  "match": "offset",
+  "note": "block 8 px off the grid (Every End)"
+ },
+ "BLOCK_EVERY_END_TOP_COL": {
+  "gda": "SP:BASIC_BLOCK_OBJ",
+  "match": "offset",
+  "note": "block 8 px off the grid (Every End)"
+ },
+ "LEFT_HALF_ORB_OUTLINE": {
+  "gda": "SP:YELLOW_ORB",
+  "match": "offset",
+  "note": "orb 8 px off the grid (left half)"
+ },
+ "RIGHT_HALF_ORB_OUTLINE": {
+  "gda": "SP:YELLOW_ORB",
+  "match": "offset",
+  "note": "orb 8 px off the grid (right half)"
+ },
+ "LEFT_HALF_PAD_UP_OUTLINE": {
+  "gda": "SP:YELLOW_PAD",
+  "match": "offset",
+  "note": "pad 8 px off the grid"
+ },
+ "RIGHT_HALF_PAD_UP_OUTLINE": {
+  "gda": "SP:YELLOW_PAD",
+  "match": "offset",
+  "note": "pad 8 px off the grid"
+ },
+ "LEFT_HALF_PAD_DOWN_OUTLINE": {
+  "gda": "SP:YELLOW_PAD",
+  "match": "offset",
+  "note": "pad 8 px off the grid"
+ },
+ "RIGHT_HALF_PAD_DOWN_OUTLINE": {
+  "gda": "SP:YELLOW_PAD",
+  "match": "offset",
+  "note": "pad 8 px off the grid"
+ },
+ "TOP_HALF_ORB_OUTLINE": {
+  "gda": "SP:YELLOW_ORB",
+  "match": "offset",
+  "note": "orb 8 px off the grid (top half)"
+ },
+ "BOTTOM_HALF_ORB_OUTLINE": {
+  "gda": "SP:YELLOW_ORB",
+  "match": "offset",
+  "note": "orb 8 px off the grid (bottom half)"
+ },
+ "LEFT_HALF_SPIKE_HALF": {
+  "gda": "SP:HALF_SPIKE_V",
+  "match": "offset",
+  "note": "small spike 8 px off the grid"
+ },
+ "RIGHT_HALF_SPIKE_HALF": {
+  "gda": "SP:HALF_SPIKE_V",
+  "match": "offset",
+  "note": "small spike 8 px off the grid"
+ },
+ "LEFT_HALF_HALF_SPIKE_TOP": {
+  "gda": "SP:HALF_SPIKE_V",
+  "match": "offset",
+  "note": "small spike 8 px off the grid"
+ },
+ "RIGHT_HALF_HALF_SPIKE_TOP": {
+  "gda": "SP:HALF_SPIKE_V",
+  "match": "offset",
+  "note": "small spike 8 px off the grid"
+ },
+ "LEFT_HALF_SPIKE_UP": {
+  "gda": "SP:SPIKE_V",
+  "match": "offset",
+  "note": "spike(s) 8 px off the grid"
+ },
+ "RIGHT_HALF_SPIKE_UP": {
+  "gda": "SP:SPIKE_V",
+  "match": "offset",
+  "note": "spike(s) 8 px off the grid"
+ },
+ "DOUBLE_HALF_SPIKE_UP": {
+  "gda": "SP:SPIKE_V",
+  "match": "offset",
+  "note": "spike(s) 8 px off the grid"
+ },
+ "LEFT_HALF_X_FULL_OUTLINE": {
+  "gda": "SPMT:X_FULL",
+  "match": "offset",
+  "note": "block 8 px off the grid"
+ },
+ "RIGHT_HALF_X_FULL_OUTLINE": {
+  "gda": "SPMT:X_FULL",
+  "match": "offset",
+  "note": "block 8 px off the grid"
+ },
+ "LEFT_HALF_SPIKE_TOP": {
+  "gda": "SP:SPIKE_V",
+  "match": "offset",
+  "note": "spike(s) 8 px off the grid"
+ },
+ "RIGHT_HALF_SPIKE_TOP": {
+  "gda": "SP:SPIKE_V",
+  "match": "offset",
+  "note": "spike(s) 8 px off the grid"
+ },
+ "DOUBLE_HALF_SPIKE_TOP": {
+  "gda": "SP:SPIKE_V",
+  "match": "offset",
+  "note": "spike(s) 8 px off the grid"
+ },
+ "SOLID_EMPTY_TILE": {
+  "gda": "MT:INVISIBLE_FLOOR_CEIL",
+  "match": "same",
+  "note": "invisible solid"
+ },
+ "CHECKERBOARD_6_POLARGEIST": {
+  "gda": "MT:CHK_CORNER_TR",
+  "match": "close",
+  "note": "Polargeist's variant"
+ },
+ "INVIS_SMALL_BLOCK_BOTTOM_RIGHT": {
+  "gda": null,
+  "match": "none",
+  "note": "invisible solid quarter: GDA has no invisible mini block"
+ },
+ "INVIS_SMALL_BLOCK_BOTTOM_LEFT": {
+  "gda": null,
+  "match": "none",
+  "note": "invisible solid quarter: GDA has no invisible mini block"
+ },
+ "BOTTOM_BACKGROUND_SPIKES_SB": {
+  "gda": "MT:GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "close",
+  "note": "spike-bush look"
+ },
+ "TOP_BACKGROUND_SPIKES_SB": {
+  "gda": "MT:GROUND_WAVY_SPIKE_TOP",
+  "match": "close",
+  "note": "spike-bush look"
+ },
+ "PITSPIKES_RIGHT_SB": {
+  "gda": "MT:GROUND_SPIKE_RIGHT",
+  "match": "close",
+  "note": "spike-bush look"
+ },
+ "PITSPIKES_LEFT_SB": {
+  "gda": "MT:GROUND_SPIKE_LEFT",
+  "match": "close",
+  "note": "spike-bush look"
+ },
+ "BIG_SAW_MIDDLE_DIAMOND": {
+  "gda": "SP:BIG_SAW & PULSING_DIAMOND",
+  "match": "part",
+  "note": "big saw centre with the pulsing diamond on it"
+ },
+ "CHECKERBOARD_BB": {
+  "gda": "MT:BRICKS_FULL",
+  "match": "same"
+ },
+ "CHECKERBOARD_1_BB": {
+  "gda": "MT:BRICKS_SIDE_TOP",
+  "match": "same"
+ },
+ "CHECKERBOARD_2_BB": {
+  "gda": "MT:BRICKS_SIDE_RIGHT",
+  "match": "same"
+ },
+ "CHECKERBOARD_3_BB": {
+  "gda": "MT:BRICKS_SIDE_BOTTOM",
+  "match": "same"
+ },
+ "CHECKERBOARD_4_BB": {
+  "gda": "MT:BRICKS_SIDE_LEFT",
+  "match": "same"
+ },
+ "CHECKERBOARD_5_BB": {
+  "gda": "MT:BRICKS_CORNER_TL",
+  "match": "same"
+ },
+ "CHECKERBOARD_6_BB": {
+  "gda": "MT:BRICKS_CORNER_TR",
+  "match": "same"
+ },
+ "CHECKERBOARD_7_BB": {
+  "gda": "MT:BRICKS_CORNER_BR",
+  "match": "same"
+ },
+ "CHECKERBOARD_8_BB": {
+  "gda": "MT:BRICKS_CORNER_BL",
+  "match": "same"
+ },
+ "CHECKERBOARD_9_BB": {
+  "gda": "MT:BRICKS_INS_CRN_TL",
+  "match": "same"
+ },
+ "CHECKERBOARD_10_BB": {
+  "gda": "MT:BRICKS_INS_CRN_TR",
+  "match": "same"
+ },
+ "CHECKERBOARD_11_BB": {
+  "gda": "MT:BRICKS_INS_CRN_BR",
+  "match": "same"
+ },
+ "CHECKERBOARD_12_BB": {
+  "gda": "MT:BRICKS_INS_CRN_BL",
+  "match": "same"
+ },
+ "CHECKERBOARD_13_BB": {
+  "gda": "MT:BRICKS_SIDE_H",
+  "match": "same"
+ },
+ "CHECKERBOARD_14_BB": {
+  "gda": "MT:BRICKS_SIDE_V",
+  "match": "same"
+ },
+ "CHECKERBOARD_15_BB": {
+  "gda": "MT:BRICKS_FILLER",
+  "match": "same"
+ },
+ "CHECKERBOARD_16_BB": {
+  "gda": "MT:BRICKS_DB_CRN_TOP",
+  "match": "same"
+ },
+ "CHECKERBOARD_17_BB": {
+  "gda": "MT:BRICKS_DB_CRN_RGT",
+  "match": "same"
+ },
+ "CHECKERBOARD_18_BB": {
+  "gda": "MT:BRICKS_DB_CRN_BOT",
+  "match": "same"
+ },
+ "CHECKERBOARD_19_BB": {
+  "gda": "MT:BRICKS_DB_CRN_LFT",
+  "match": "same"
+ },
+ "XSTEP_SPECIAL_BB": {
+  "gda": "MT:GROUND_WAVY_SPIKE_BOTTOM",
+  "match": "close",
+  "note": "Xstep's ground wavy spikes, full bottom"
+ },
+ "BOTTOM_SLAB_CHECKERED_V": {
+  "gda": "MT:SLAB_DOWN",
+  "match": "close",
+  "note": "checkerboard look, other column pattern"
+ }
+}
