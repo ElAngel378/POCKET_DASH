@@ -4037,6 +4037,7 @@
    <property name="dmg_art" type="int" value="-1"/>
    <property name="gda_name" value="FADING_BLOCK"/>
    <property name="gda_collision" value="COL_FULL"/>
+   <property name="fade" type="bool" value="true"/>
   </properties>
  </tile>
  <tile id="410">
@@ -4048,6 +4049,7 @@
    <property name="dmg_art" type="int" value="-1"/>
    <property name="gda_name" value="FADING_MEDIUM_SPIKE_BOTTOM"/>
    <property name="gda_collision" value="COL_MEDIUM_SPIKE_BOTTOM"/>
+   <property name="fade" type="bool" value="true"/>
   </properties>
  </tile>
  <tile id="411">
@@ -4059,6 +4061,7 @@
    <property name="dmg_art" type="int" value="-1"/>
    <property name="gda_name" value="FADING_MEDIUM_SPIKE_TOP"/>
    <property name="gda_collision" value="COL_MEDIUM_SPIKE_TOP"/>
+   <property name="fade" type="bool" value="true"/>
   </properties>
  </tile>
  <tile id="412">
@@ -4070,6 +4073,7 @@
    <property name="dmg_art" type="int" value="-1"/>
    <property name="gda_name" value="FADING_SPIKE_DOWN"/>
    <property name="gda_collision" value="COL_SPIKE_BOTTOM"/>
+   <property name="fade" type="bool" value="true"/>
   </properties>
  </tile>
  <tile id="413">
@@ -4081,6 +4085,7 @@
    <property name="dmg_art" type="int" value="-1"/>
    <property name="gda_name" value="FADING_SPIKE_UP"/>
    <property name="gda_collision" value="COL_SPIKE_TOP"/>
+   <property name="fade" type="bool" value="true"/>
   </properties>
  </tile>
  <tile id="414">

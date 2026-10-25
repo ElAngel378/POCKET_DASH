@@ -227,7 +227,7 @@ static void stream_jobs_reset(void) {
     col_job_col = loaded_r;
     col_job_step = COL_JOB_STEPS;
     row0_job_pos = 16;
-    col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
+    col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0; bg_fj_rows = 0;
     band_cam_row = 0xFF;
 }
 
@@ -548,6 +548,7 @@ static void reload_level_state(uint8_t idx) {
     previous_oam_index = MAX_HARDWARE_SPRITES;
     cached_collision_col = 0xFFFF;
     move_bkg(0, (uint8_t)cam_py);
+    fade_scx = fade_psx = 0;   // (the player starts at the screen's left edge)
     BGP_REG = bg_pals[dmg_shown_bg_idx(target_bg_idx)];
     if (_cpu == CGB_TYPE) {
         famidash_reset_bg_palettes(idx);
@@ -861,6 +862,7 @@ static uint8_t pause_menu(uint8_t idx) {
     if (_cpu == CGB_TYPE) {
         wait_vbl_done();
         apply_pause_box_attributes(0);
+        fade_reset_view();   // fading objects: the pause box drew them full
         fade_restore_pause_box_palettes();
         set_sprite_palette(0, 8, gbc_sprite_palettes);
         apply_custom_player_palette();
@@ -1039,6 +1041,7 @@ static void mirror_switch(uint16_t px) {
     mj_wait = 0;
     loaded_r = RING_COL0(px) + 15u;
     stream_jobs_reset();
+    fade_reset_view();   // the other map's fading objects were built full: fade_update redraws them
     bg_lcdc_map = (mj_map_hi == 0x9Cu) ? LCDCF_BG9C00 : LCDCF_BG9800;
 }
 
@@ -1062,6 +1065,11 @@ static void mirror_reload(uint8_t idx, uint8_t enable_display) {
     }
     PROF_MARK(16);   // mirror: columns
 
+    uint16_t init_scroll_px = player.reversed
+        ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
+        : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
+    fade_scx = (uint8_t)init_scroll_px;   // the columns' fading objects: for this view
+    fade_psx = player.reversed ? MIRROR_PLAYER_SCREEN_X : ((cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X);
     int32_t col_start = (int32_t)(cam_px >> 4) - 4;
     if (col_start < 0) col_start = 0;
     for (uint8_t i = 0; i < 16; i++) {
@@ -1081,9 +1089,6 @@ static void mirror_reload(uint8_t idx, uint8_t enable_display) {
     reload_bg_shared_sprite_tiles();
     PROF_MARK(18);   // mirror: rest
 
-    uint16_t init_scroll_px = player.reversed
-        ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
-        : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
     move_bkg((uint8_t)init_scroll_px, (uint8_t)cam_py);
 
     if (enable_display) {
@@ -1141,6 +1146,7 @@ static void mirror_reflect(uint8_t idx) {
         ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
         : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
     move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
+    fade_reset_view();   // fading objects: the map moved, fade_update redraws them
     SHOW_BKG;
     SHOW_SPRITES;
     SPRITES_8x16;
@@ -1181,7 +1187,7 @@ static void practice_respawn(uint8_t idx) {
         load_menu_ground_tiles();
         flush_ground_row();
         famidash_bg_set_now(cp->bg_palettes);
-        set_bkg_palette(0, 6, shadow_bkg_palettes);
+        set_bkg_palette(0, 8, shadow_bkg_palettes);
         fade_set_sprite_palette(0, 8, gbc_sprite_palettes);
         apply_custom_player_palette();
     } else {
@@ -1251,6 +1257,13 @@ static void handle_death(uint8_t idx, uint8_t sprite_x_final, int16_t final_py, 
     } else {
         reload_level_state(idx);
     }
+}
+
+// Each frame of the death animation (death_effect.c): a crash shows every fading object (GD)
+void fade_death_tick(void) BANKED {
+    fade_reveal = 1;
+    fade_update(loaded_r, level_map, level_map_w, level_map_bank, view_rev,
+                (col_job_step < COL_JOB_STEPS) ? col_job_slot : 0xFFu);
 }
 
 static void update_camera_y(void) {
@@ -1399,6 +1412,7 @@ void play_level(uint8_t idx) BANKED {
         apply_custom_player_palette();
     }
     move_bkg(0, (uint8_t)cam_py);
+    fade_scx = fade_psx = 0;
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
 
     {
@@ -1862,6 +1876,8 @@ void play_level(uint8_t idx) BANKED {
 #endif
 
         PROF_MARK(7);   // column job
+        fade_scx = (uint8_t)scroll_px;   // fading objects: frames for this frame's view
+        fade_psx = sprite_x_final;
         // The frame that switches maps issues no map job: it could reach the VBlank handler
         // before the switch does and land in the map going out.
         if (!mj_switched) {
@@ -1914,6 +1930,7 @@ void play_level(uint8_t idx) BANKED {
                 row0_job_pos = 0;
                 row0_job_issued = 0;
                 bg_rj_pending = 0;
+                fade_band_moved(row_job_row);
                 if (mj_active) {
                     // the other map needs the row too (two moves before it got the first: rebuild)
                     if (mj_row_pending != 0xFF) mj_next = 0;
@@ -1962,6 +1979,11 @@ void play_level(uint8_t idx) BANKED {
         if (row0_job_pos < 16 && !row0_job_issued && !mj_switched) {
             request_row_slots(row0_job_pos, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, view_rev);
             row0_job_issued = 1;
+        }
+        // fading objects whose frame changed with the scroll
+        if (fade_count && !mj_switched) {
+            fade_update(loaded_r, level_map, level_map_w, level_map_bank, view_rev,
+                        (col_job_step < COL_JOB_STEPS) ? col_job_slot : 0xFFu);
         }
         if (bg_gdma_isr_on) {
             famidash_bg_fade_step();

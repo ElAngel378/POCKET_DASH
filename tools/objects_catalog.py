@@ -88,7 +88,9 @@ def tmx_level_objects(tmx_path):
 def assign_level_ids(cat, tids):
     """Level id (the map byte, 0..255) of each catalog object a level uses: its famidash_id when it
     has one and no other object of the level has it, else the lowest id free in the level (never an
-    ENGINE_ID). tools/build_levels.py (map bytes) and tools/build_bg_tiles.py (tables) both use it."""
+    ENGINE_ID). The fading objects (property fade) get one run of consecutive free ids, which is how
+    the engine knows them (fade_range). tools/build_levels.py (map bytes) and tools/build_bg_tiles.py
+    (tables) both use it."""
     ids, taken = {}, set()
     bad = sorted(t for t in tids if t not in cat.objects)
     if bad:
@@ -96,20 +98,37 @@ def assign_level_ids(cat, tids):
                          "collision, palette, famidash_id: levels/objects/README.md)" % bad)
     for tid in sorted(tids):
         fid = cat.objects[tid].get("famidash_id", -1)
-        if fid >= 0 and fid not in taken:
+        # (fading saw parts keep their engine ids: the engine knows saws by id)
+        if fid >= 0 and fid not in taken and (not cat.objects[tid].get("fade") or fid in ENGINE_IDS):
             ids[tid] = fid
             taken.add(fid)
+    fading = sorted(t for t in tids if cat.objects[t].get("fade") and t not in ids)
+    if fading:
+        first = next((i for i in range(1, 257 - len(fading))
+                      if not any(j in taken or j in ENGINE_IDS for j in range(i, i + len(fading)))), None)
+        if first is None:
+            raise SystemExit("no run of %d free ids for a level's fading objects" % len(fading))
+        for k, tid in enumerate(fading):
+            ids[tid] = first + k
+            taken.add(first + k)
     free = (i for i in range(1, 256) if i not in taken and i not in ENGINE_IDS)
     for tid in sorted(tids):
-        if tid not in ids:
-            fid = cat.objects[tid].get("famidash_id", -1)
-            if fid in ENGINE_IDS and fid >= 0:
-                raise SystemExit("two objects of a level have engine id %d (%s)" % (fid, cat.objects[tid]["name"]))
-            i = next(free, None)
-            if i is None:
-                raise SystemExit("a level uses more than 256 kinds of object")
-            ids[tid] = i
+        if tid in ids:
+            continue
+        fid = cat.objects[tid].get("famidash_id", -1)
+        if fid in ENGINE_IDS and fid >= 0:
+            raise SystemExit("two objects of a level have engine id %d (%s)" % (fid, cat.objects[tid]["name"]))
+        i = next(free, None)
+        if i is None:
+            raise SystemExit("a level uses more than 256 kinds of object")
+        ids[tid] = i
     return ids
+
+
+def fade_range(cat, ids):
+    """(first level id, count) of a level's fading objects (assign_level_ids' ids), (0, 0) if none"""
+    f = sorted(i for tid, i in ids.items() if cat.objects[tid].get("fade") and i not in ENGINE_IDS)
+    return (f[0], len(f)) if f else (0, 0)
 
 
 # Preview colours of the 4 colour indices per CGB palette (src/famidash_bg.c with a blue sky).
@@ -123,12 +142,14 @@ PREVIEW_PALETTES = {
 }
 COL_NONE, COL_TOP, COL_BOTTOM, COL_FLOOR_CEIL = 0, 5, 6, 9
 FAKE_MARK, INVISIBLE_MARK, ONE_SIDED_MARK = (255, 0, 255, 255), (255, 40, 40, 255), (255, 220, 0, 255)
+FADE_MARK = (0, 230, 230, 255)
 
 
 def write_preview():
     """objects_preview.png (the image Tiled shows) from objects.png, in CGB colours with markers:
     magenta corner = fake (looks like a hazard or a block, does nothing), red dashed outline =
-    invisible (collision without art), yellow edge = solid from that side only. Also keeps
+    invisible (collision without art), yellow edge = solid from that side only, cyan corner =
+    fading (fades with its place on the screen). Also keeps
     objects.tsx's image size and tile count in step with objects.png, so new rows show in Tiled."""
     art = Image.open(ART).convert("L")
     cols, rows = art.width // 16, art.height // 16
@@ -153,6 +174,10 @@ def write_preview():
             for y in range(4):
                 for x in range(4 - y):
                     px[ox + x, oy + y] = FAKE_MARK
+        if o.get("fade"):
+            for y in range(4):
+                for x in range(4 - y):
+                    px[ox + 15 - x, oy + y] = FADE_MARK
         if (blank or "INVIS" in o["name"]) and col != COL_NONE:
             for k in range(0, 16, 2):
                 for x, y in ((k, 0), (k + 1, 15), (0, k + 1), (15, k)):

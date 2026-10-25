@@ -46,7 +46,8 @@ $(TEMPDIR)/%.o: %.s
 	$(GBCC) $(LCCFLAGS) -c -o $@ $<
 
 # No automatic header tracking: list generated headers / INCBIN data explicitly
-$(TEMPDIR)/mt_renderer.o: src/graphics/bg_level_tables.h levels/chr_data/bg_extra_tiles.bin
+$(TEMPDIR)/mt_renderer.o: src/graphics/bg_level_tables.h
+$(TEMPDIR)/bg_extra_tiles.o: levels/chr_data/bg_extra_tiles.bin
 $(TEMPDIR)/tileset.o: levels/chr_data/bg_base_tiles.bin levels/chr_data/bg_base_tiles_flipped.bin
 $(TEMPDIR)/saw_anim_data.o: levels/chr_data/saw_anim_tiles.bin
 $(TEMPDIR)/assets.o: include/bg_tiles.h

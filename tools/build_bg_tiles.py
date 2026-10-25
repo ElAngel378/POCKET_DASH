@@ -296,7 +296,19 @@ def main():
         for m in mts:
             col[m] = cat.objects[objs[m]]["collision"]
             pal[m] = cat.objects[objs[m]]["palette"]
+        # fading objects: one run of ids (assign_level_ids), drawn in palette 0 / 6 / 7 (CGB)
+        fade = sorted(m for m in mts if cat.objects[objs[m]].get("fade") and m not in saw_mts)
+        for m in fade:
+            assert pal[m] == 0, "%s: fading object %s must use palette 0" % (name, cat.objects[objs[m]]["name"])
+        assert fade == list(range(fade[0], fade[0] + len(fade))) if fade else True, name
+        # fading saws (fade property on saw parts): they keep the saw ids, the level's saws fade
+        fade_saws = any(cat.objects[objs[m]].get("fade") for m in mts if m in saw_mts)
+        if fade_saws and any(m in saw_mts and not cat.objects[objs[m]].get("fade") for m in mts):
+            raise SystemExit("%s: fading and normal saws in one level (a level's saws all fade or none)" % name)
+        if fade_saws and not fade:
+            fade = [next(i for i in range(1, 256) if i not in level_mts)]   # an id the level never uses
         levels.append(dict(lv=lv, name=name, cgb=stream(cgb_loads), dmg=stream(dmg_loads),
+                           fade=(fade[0], len(fade), int(fade_saws)) if fade else (0, 0, 0),
                            big_saw=big_saw, saws=any(m in saw_mts for m in level_mts),
                            cgb_mt=bytes(cgb_mt), dmg_mt=bytes(dmg_mt), col=bytes(col), pal=bytes(pal),
                            cgb_sheet=b"".join(cgb_sheet), dmg_sheet=b"".join(dmg_sheet + dmg_rev),
@@ -379,7 +391,10 @@ def main():
           "// 1 = the level has saws (animate them)",
           "static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { %s };" % ", ".join(str(int(L_["saws"])) for L_ in levels),
           "// 1 = the level has big saws, so metatile SAW_CENTER_MT is their centre (CGB)",
-          "static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { %s };" % ", ".join(str(int(L_["big_saw"])) for L_ in levels)]
+          "static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { %s };" % ", ".join(str(int(L_["big_saw"])) for L_ in levels),
+          "// Fading objects (fade property): first level id, count (0: none), 1 = the saws fade",
+          "static const uint8_t bg_level_fade[BG_LEVEL_COUNT][3] = { %s };" % ", ".join(
+              "{ %d, %d, %d }" % L_["fade"] for L_ in levels)]
     for L_ in levels:
         r = L_["rest"]
         if r:

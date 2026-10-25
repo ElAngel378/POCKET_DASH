@@ -33,7 +33,10 @@ void apply_pause_box_attributes(uint8_t apply) BANKED {
             uint8_t *addr = (uint8_t *)(map + ((uint16_t)my << 5) + mx);
             while (STAT_REG & 0x02);
             if (apply) {
-                *addr |= 0x04;
+                // palettes 4..7 show palettes 0..3 dimmed. A fading object's palette 6 / 7: shown
+                // as palette 0 (full) dimmed, and full afterwards (gameplay redraws their frames)
+                uint8_t a = *addr;
+                *addr = ((a & 0x06) == 0x06) ? (uint8_t)((a & 0xF8) | 0x04) : (uint8_t)(a | 0x04);
             } else {
                 *addr &= 0xFB;
             }

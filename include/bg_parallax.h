@@ -44,6 +44,11 @@ extern volatile uint8_t bg_rj_pending;
 extern uint8_t bg_rj_x, bg_rj_y;
 extern uint8_t bg_rj_tiles[2 * 2 * BG_RJ_SLOTS];   // top tile row, then bottom tile row
 extern uint8_t bg_rj_attrs[2 * 2 * BG_RJ_SLOTS];
+// Fading cells (mt_renderer.c fade_update): metatile rows (bit r: tile rows 2r, 2r + 1) of the
+// map column at tile x bg_fj_x, from mj_out (row r: its 4 tiles at 4r, attributes at 64 + 4r).
+// The handler writes as many as fit and clears their bits; 0: nothing to write.
+extern volatile uint16_t bg_fj_rows;
+extern uint8_t bg_fj_x;
 // Saw animation: GDMA of bg_saw_blocks 16-byte tiles from bg_saw_src (in ROM bank bg_saw_bank)
 // to VRAM bank 1 at offset bg_saw_dst from 0x8000, after the parallax GDMA (retried when late).
 extern volatile uint8_t bg_saw_pending;
@@ -77,10 +82,14 @@ extern uint8_t bg_dmg_bgp, bg_dmg_obp0, bg_dmg_obp1;
 #define request_bg_scroll(x, y) do { bg_scx = (x); bg_scy = (y); bg_scroll_pending = 1; } while (0)
 #define request_bg_parallax(p) do { bg_gdma_phase = (p); bg_gdma_pending = 1; } while (0)
 void bg_parallax_vbl_isr(void);
+// count tiles of bg_extra_tiles (bg_extra_tiles.c) from src (every other 16 bytes: it holds each
+// tile normal + mirrored) to BG tile slots dst.. (display off: plain writes)
+BANKREF_EXTERN(bg_extra_tiles)
+void bg_extra_copy(uint8_t dst, uint8_t count, const uint8_t *src);
 void init_bg_parallax(void);
 void set_bg_parallax_phase(uint8_t phase);
 // Register/unregister the VBlank handler (CGB only). Not in bank 0 to save space there.
-#define bg_parallax_isr_start() do {     bg_gdma_pending = 0; bg_scroll_pending = 0; bg_lcdc_map = 0xFF; bg_dmg_pal_pending = 0; bg_vbl_seen = 0;     add_VBL(bg_parallax_vbl_isr); bg_vbl_on = 1;     bg_gdma_isr_on = (_cpu == CGB_TYPE); } while (0)
+#define bg_parallax_isr_start() do {     bg_gdma_pending = 0; bg_fj_rows = 0; bg_scroll_pending = 0; bg_lcdc_map = 0xFF; bg_dmg_pal_pending = 0; bg_vbl_seen = 0;     add_VBL(bg_parallax_vbl_isr); bg_vbl_on = 1;     bg_gdma_isr_on = (_cpu == CGB_TYPE); } while (0)
 #define bg_parallax_isr_stop() do {     if (bg_vbl_on) { bg_vbl_on = 0; bg_gdma_isr_on = 0; remove_VBL(bg_parallax_vbl_isr); bg_gdma_pending = 0; } } while (0)
 
 // Waits for the next VBlank. GBDK's wait_vbl_done() can sleep through a whole

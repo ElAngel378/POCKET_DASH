@@ -15,8 +15,7 @@
 // tools/build_bg_tiles.py out of levels/chr_data/bg_tiles.png (bg_level_tables.h).
 #include "bg_level_tables.h"
 #include "bg_tiles.h"
-INCBIN(bg_extra_tiles, "levels/chr_data/bg_extra_tiles.bin")   // per tile: normal + mirrored
-INCBIN_EXTERN(bg_extra_tiles)
+INCBIN_EXTERN(bg_extra_tiles)   // bg_extra_tiles.c: per tile normal + mirrored, copied by bg_extra_copy
 extern const uint8_t saw_anim_tiles[];   // saw_anim_data.c: SAW_ANIM_FRAMES x SAW_ANIM_TILES x 16 bytes
 BANKREF_EXTERN(saw_anim)
 static uint8_t mt_saws;
@@ -86,93 +85,15 @@ void saw_anim_request(void) BANKED {
         bg_saw_blocks = SAW_CHUNK_TILES;
         bg_saw_pending = 1;
     } else {
-        // bg_extra_tiles is in this file's bank: per tile normal + mirrored (32 bytes)
+        // bg_extra_tiles: per tile normal + mirrored (32 bytes)
         uint8_t n = (uint8_t)(SAW_ANIM_TILES - saw_pos);
         if (n > DMG_SAW_TILES_PER_FRAME) n = DMG_SAW_TILES_PER_FRAME;
         bg_saw_src = bg_extra_tiles + ((uint16_t)(saw_frame_first[saw_frame] + saw_pos) << 5) + (saw_reversed ? 16 : 0);
         bg_saw_dmg_dsts = saw_dmg_dst + saw_pos;
-        bg_saw_bank = _current_bank;
+        bg_saw_bank = BANK(bg_extra_tiles);
         bg_saw_dmg_n = n;
     }
     saw_issued = 1;
-}
-
-// Display off: `count` tiles from sc_src (every other 16 bytes: bg_extra_tiles holds normal +
-// mirrored) to consecutive tile slots at sc_dst.
-static const uint8_t *sc_src;
-static uint8_t *sc_dst;
-static uint8_t sc_count;
-static void copy_tiles_strided(void) __naked {
-    __asm
-        ld      hl, #_sc_dst
-        ld      a, (hl+)
-        ld      e, a
-        ld      d, (hl)                 ; de = VRAM
-        ld      hl, #_sc_src
-        ld      a, (hl+)
-        ld      h, (hl)
-        ld      l, a                    ; hl = source
-        ld      a, (_sc_count)
-        ld      b, a
-    1$:
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     e
-        ld      a, (hl+)
-        ld      (de), a
-        inc     de
-        ld      a, l
-        add     a, #16                  ; skip the other orientation
-        ld      l, a
-        jr      NC, 2$
-        inc     h
-    2$:
-        dec     b
-        jr      NZ, 1$
-        ret
-    __endasm;
 }
 
 // Reads a level's load list (bg_level_lists.c, another bank) through scratch_buf, 256 bytes
@@ -222,9 +143,6 @@ void bg_level_set_flip_mode(uint8_t level) BANKED {
     mt_cgb_flip = 1;
 }
 
-// VRAM address of BG tile slot (BG tiles 0..127 are at 0x9000, 128..255 at 0x8800)
-#define BG_TILE_ADDR(slot) ((uint8_t *)((((slot) < 128u) ? 0x9000u : 0x8000u) + ((uint16_t)(slot) << 4)))
-
 // The level's BG sheet: every level has its own (tools/build_bg_tiles.py: the tiles of the objects
 // it uses, CGB / DMG; the DMG one also mirrored, for mirror portals: one copy). `tiles` (the base
 // sheet in this orientation) only for a level without one. apply_level_bg_tiles, called next,
@@ -255,18 +173,93 @@ static void level_table(uint8_t *dst, const uint8_t * const *ptrs, const uint8_t
 
 static void bm_info_build(uint8_t level);
 
+// Fading objects (tools/make_fading_objects.py), GD 1.6's fading blocks and hazards: they turn
+// transparent near the player and a crash shows them all again. 4 frames by the distance of the
+// cell from the player on screen: 3 full (far) .. 0 invisible (the empty metatile, next to the
+// player). CGB frames 1 / 2: the same tiles in BG palettes 6 / 7 (palette 0 blended towards the
+// sky, famidash_bg.c); DMG: invisible or full. Collision never changes. All the fading cells of a ring
+// slot are drawn at its frame (fade_drawn_of): the column and row builds use it, and fade_update
+// rewrites a slot's fading cells when its frame on screen changes. RAM is short (the stack): the
+// frames are 2 bits a slot.
+uint8_t fade_first, fade_count;     // the level's fading ids: fade_first .. fade_first + fade_count - 1
+uint8_t fade_scx;                   // the scroll x the frames are worked out for (gameplay.c)
+uint8_t fade_psx;                   // the player's screen x (gameplay.c)
+uint8_t fade_reveal;                // the player crashed: every fading object full
+static uint8_t fade_drawn[4];       // ring slot s: bits 2 (s & 3) .. of byte s >> 2
+static uint16_t fade_unknown;       // ring slots whose cells may be at any frame (built full), a bit each
+static uint16_t fade_any;           // ring slots that may hold a fading cell, a bit each
+static uint8_t fade_mj;             // building the other map for a mirror portal: full, no state
+#define IS_FADE(id) ((uint8_t)((id) - fade_first) < fade_count)
+uint8_t fade_saws;                  // the level's saws are fading saws (they keep the saw ids)
+// a fading cell: a fading object, or a saw part in a level of fading saws
+#define IS_FADE_CELL(id) (IS_FADE(id) || (fade_saws && saw_mt_index[id] && ((id) != SAW_CENTER_MT || mt_big_saws)))
+// screen x of ring slot s's left edge (240..255: just off the left edge)
+#define FADE_SX(slot) ((uint8_t)((uint8_t)((slot) << 4) - fade_scx))
+// The frame of ring slot s's cells for where they are now: by how far ahead of the player the
+// cell is (both 16 px wide: their left edges' distance). Full from 3.5 blocks ahead, invisible
+// closer than 1.5 (DMG: 2), and behind the player (it is only on screen for 2 more blocks; fading
+// back in there doubled the cells to redraw, and the updater fell behind).
+// Mirror mode: the player is on the right (fade_psx 112), ahead is to the left.
+static uint8_t fade_frame_of(uint8_t slot) {
+    if (fade_reveal) return 3;
+    uint8_t sx = FADE_SX(slot);
+    int16_t x = (sx >= 224u) ? (int16_t)sx - 256 : (int16_t)sx;
+    int16_t d = x - (int16_t)fade_psx;
+    if (fade_psx >= 80u) d = -d;
+    if (d < 0) return 0;
+    if (_cpu != CGB_TYPE) return (d < 32) ? 0 : 3;
+    return (d < 24) ? 0 : (d < 40) ? 1 : (d < 56) ? 2 : 3;
+}
+
+static uint8_t fade_drawn_of(uint8_t slot) {
+    return (uint8_t)(fade_drawn[slot >> 2] >> ((slot & 3u) << 1)) & 3u;
+}
+// slot's cells are (or are being) drawn at frame f
+static void fade_set_drawn(uint8_t slot, uint8_t f) {
+    uint8_t sh = (uint8_t)((slot & 3u) << 1);
+    uint8_t *p = &fade_drawn[slot >> 2];
+    *p = (uint8_t)((*p & (uint8_t)~(3u << sh)) | (uint8_t)(f << sh));
+    fade_unknown &= ~((uint16_t)1 << slot);
+}
+
+// Every slot's frame unknown (level start, respawn, mirror portal): fade_update redraws them
+void fade_reset_view(void) BANKED {
+    memset(fade_drawn, 0xFF, sizeof(fade_drawn));   // frame 3: built full
+    fade_unknown = fade_any = 0xFFFF;
+    fade_reveal = 0;
+    bg_fj_rows = 0;
+}
+
+// Ring slot `slot` gets a new column (its 16 ids): drawn at the frame for where it is now
+static void fade_new_column(uint8_t slot, const uint8_t *ids) {
+    if (!fade_count) return;
+    fade_set_drawn(slot, fade_frame_of(slot));
+    if (bg_fj_rows && bg_fj_x == (uint8_t)(slot << 1)) {
+        CRITICAL { bg_fj_rows = 0; }   // that slot's cells: rewritten by the new column
+    }
+    uint16_t bit = (uint16_t)1 << slot;
+    fade_any &= ~bit;
+    for (uint8_t r = 0; r < 16u; r++) {
+        if (IS_FADE_CELL(ids[r])) { fade_any |= bit; break; }
+    }
+}
+
 // Called after load_level_bg_sheet (display off). level: game_levels index.
 void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     uint8_t n;
     uint8_t cgb = (_cpu == CGB_TYPE);
-    uint8_t display_off = !(LCDC_REG & LCDCF_ON);
     uint8_t baked = mt_sheet_baked;
     mt_sheet_baked = 0;
     mt_saws = cgb;
     mt_big_saws = 0;
     saw_on = 0;
     saw_anim_reset();
+    fade_count = fade_saws = 0;
+    fade_reset_view();
     if (level >= BG_LEVEL_COUNT) return;   // (tools/build_bg_tiles.py makes tables for every level)
+    fade_first = bg_level_fade[level][0];
+    fade_count = bg_level_fade[level][1];
+    fade_saws = bg_level_fade[level][2];   // (with fading saws only, the build gives an unused id run)
     mt_big_saws = bg_level_big_saws[level];
     saw_on = bg_level_saws[level];
     saw_reversed = reversed;
@@ -283,16 +276,7 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
         if (cgb) n = 0;
         for (; n; n--) {
             uint8_t dst = *r++, count = *r++;
-            const uint8_t *src = bg_extra_tiles + (uint16_t)(*r++) * 32u + (reversed ? 16u : 0u);
-            if (display_off) {
-                sc_src = src; sc_dst = BG_TILE_ADDR(dst); sc_count = count;
-                copy_tiles_strided();
-            } else {
-                while (count--) {
-                    set_bkg_data(dst++, 1, src);
-                    src += 32;
-                }
-            }
+            bg_extra_copy(dst, count, bg_extra_tiles + (uint16_t)(*r++) * 32u + (reversed ? 16u : 0u));
         }
         return;
     }
@@ -310,27 +294,8 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
         }
         if (reversed && !(bank & 0x80) && !mt_cgb_flip) src += 16;
         if (cgb) VBK_REG = bank & 1;
-        if (baked && !(bank & 1) && (uint16_t)dst + count <= BG_BASE_TILE_COUNT) {
-            count = 0;   // in the sheet
-        } else if (display_off) {
-            if (dst < 128u && (uint8_t)(dst + count) > 128u) {
-                // the run crosses from 0x9000.. to 0x8800..
-                uint8_t first = (uint8_t)(128u - dst);
-                sc_src = src; sc_dst = BG_TILE_ADDR(dst); sc_count = first;
-                copy_tiles_strided();
-                src += (uint16_t)first << 5;
-                dst = 128u; count -= first;
-            }
-            if (count) {
-                sc_src = src; sc_dst = BG_TILE_ADDR(dst); sc_count = count;
-                copy_tiles_strided();
-            }
-            count = 0;
-        } else {
-            while (count--) {
-                set_bkg_data(dst++, 1, src);
-                src += 32;
-            }
+        if (!baked || (bank & 1) || (uint16_t)dst + count > BG_BASE_TILE_COUNT) {   // else in the sheet
+            bg_extra_copy(dst, count, src);
         }
         if (cgb) VBK_REG = VBK_TILES;
     }
@@ -363,10 +328,7 @@ void reapply_bg_shared_slots(uint8_t level, uint8_t reversed) BANKED {
         if (dst < 160u) continue;
         const uint8_t *src = bg_extra_tiles + (uint16_t)first_tile * 32u;
         if (reversed && !(bank & 0x80) && !mt_cgb_flip) src += 16;
-        while (count--) {
-            set_bkg_data(dst++, 1, src);
-            src += 32;
-        }
+        bg_extra_copy(dst, count, src);
     }
 }
 
@@ -690,15 +652,17 @@ static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, ui
     bm_dst = out + ((uint8_t)r_start << 2);
     bm_tab = reversed ? &mt_tab_rev[0][0] : &mt_tab[0][0];
     bm_n = (uint8_t)(r_end - r_start);
-    if (_cpu != CGB_TYPE) {
-        build_rows_dmg_asm();
-        return;
-    }
-
     uint8_t vram_slot = (uint8_t)(map_col & 15u);
     if (reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15u);
     uint8_t tl_x = (uint8_t)((vram_slot & 3u) << 1);
     uint8_t tr_x = tl_x + 1u;
+    uint8_t gr = (uint8_t)(GROUND_ROW & 15u);
+    uint8_t has_ground = 0;
+    if (_cpu != CGB_TYPE) {
+        build_rows_dmg_asm();
+        goto fade;   // (the fading cells, then return)
+    }
+
     bm_flip = (reversed && mt_cgb_flip) ? 0x20 : 0;
     bm_off[0] = tl_x; bm_off[1] = tr_x;
     bm_off[2] = (uint8_t)(tl_x + 8u); bm_off[3] = (uint8_t)(tr_x + 8u);
@@ -722,8 +686,7 @@ static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, ui
     build_rows_cgb_asm();
 
     // The ground row (below the map) shows the ground strip
-    uint8_t gr = (uint8_t)(GROUND_ROW & 15u);
-    uint8_t has_ground = ((uint8_t)(GROUND_ROW - mt_band) <= 15u && gr >= r_start && gr < r_end);
+    has_ground = ((uint8_t)(GROUND_ROW - mt_band) <= 15u && gr >= r_start && gr < r_end);
     if (has_ground) {
         uint8_t *d = out + (gr << 2);
         uint8_t *da = out + BKG_MT_H * 4 + (gr << 2);
@@ -732,22 +695,49 @@ static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, ui
         da[0] = da[1] = da[2] = da[3] = 0x0C;   // Bank 1 + Palette 4
     }
     // Saw metatiles: bank 1 tiles (mirrored when reversed)
-    if (!bm_saw) return;
-    for (uint8_t r = r_start; r < r_end; r++) {
-        uint8_t metatile_id = ids[r];
-        uint8_t si = saw_mt_index[metatile_id];
-        if (si && mt_saws && (metatile_id != SAW_CENTER_MT || mt_big_saws) && !(has_ground && r == gr)) {
-            uint8_t r0 = row_r0[r];
-            saw_dst = out + (r << 2);
-            saw_dst_attr = out + BKG_MT_H * 4 + (r << 2);
-            put_saw(si, reversed, r0, (uint8_t)(r0 + 8u), tl_x, tr_x);
+    if (bm_saw) {
+        for (uint8_t r = r_start; r < r_end; r++) {
+            uint8_t metatile_id = ids[r];
+            uint8_t si = saw_mt_index[metatile_id];
+            if (si && mt_saws && (metatile_id != SAW_CENTER_MT || mt_big_saws) && !(has_ground && r == gr)) {
+                uint8_t r0 = row_r0[r];
+                saw_dst = out + (r << 2);
+                saw_dst_attr = out + BKG_MT_H * 4 + (r << 2);
+                put_saw(si, reversed, r0, (uint8_t)(r0 + 8u), tl_x, tr_x);
+            }
+        }
+    }
+fade:
+    // Fading cells at their slot's frame: 0 the empty metatile (CGB: the parallax tiles), 1 / 2
+    // palettes 6 / 7 (CGB). Here, not in a function: this is on the deepest stack path. After the
+    // saws: fading saws too.
+    if (fade_count && !fade_mj) {
+        uint8_t f = fade_drawn_of(vram_slot);
+        if (f != 3u) {
+            for (uint8_t r = r_start; r < r_end; r++) {
+                if (!IS_FADE_CELL(ids[r])) continue;
+                uint8_t *t = out + (r << 2);
+                uint8_t *a = t + BKG_MT_H * 4;
+                for (uint8_t q = 0; q < 4; q++) {
+                    if (f == 0) {
+                        if (_cpu == CGB_TYPE) { t[q] = (uint8_t)(row_r0[r] + bm_off[q]); a[q] = 0x0B; }
+                        else t[q] = bm_tab[q];   // the empty metatile 0
+                    } else if (a[q] != 0x0B) {
+                        a[q] = (uint8_t)((a[q] & 0xF8u) | (5u + f));
+                    }
+                }
+            }
         }
     }
 }
 
+// Ring slot (BG map metatile column) of map column map_col
+#define RING_SLOT(map_col, reversed) ((uint8_t)((reversed) ? (uint8_t)(-(int8_t)(map_col) & 15u) : (uint8_t)((map_col) & 15u)))
+
 void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED {
     cur_map_col = map_col;
     get_map_column(map_col, map, map_bank, col_buf, mt_band);
+    fade_new_column(RING_SLOT(map_col, reversed), col_buf);
     build_mt_rows(map_col, col_buf, metatile_column_buf, reversed, 0, BKG_MT_H);
 }
 
@@ -764,6 +754,7 @@ void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_b
     if (step == 0) {
         cur_map_col = map_col;
         get_map_column(map_col, map, map_bank, col_buf, mt_band);
+        fade_new_column(RING_SLOT(map_col, reversed), col_buf);
     }
     PROF_MARK(12);
 #ifdef DEBUG_PROFILE_NOINT
@@ -782,6 +773,8 @@ void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_b
 // column is rebuilt).
 void refetch_mt_column(const uint8_t* map, uint8_t map_bank) BANKED {
     get_map_column(cur_map_col, map, map_bank, col_buf, mt_band);
+    // the column job's slot may hold a fading cell now (either orientation's slot: "may" is enough)
+    if (fade_count) fade_any |= ((uint16_t)1 << (cur_map_col & 15u)) | ((uint16_t)1 << (-(int8_t)cur_map_col & 15u));
 }
 
 // Display off: the 2 x 32 bytes at fc_src to the 2 map columns at fc_dst (32 rows, 32 bytes apart)
@@ -1071,6 +1064,41 @@ static void row_tiles_cgb(void) __naked {
     __endasm;
 }
 
+// The fading cells of a row job's slots (build_row_slots) at their ring slots' frames, see
+// build_mt_rows; notes the slots that have one in fade_any
+static void fade_patch_row(uint8_t first, uint8_t n, uint8_t row, uint8_t reversed) {
+    uint8_t cgb = (_cpu == CGB_TYPE);
+    for (uint8_t i = 0; i < n; i++) {
+        if (!IS_FADE_CELL(rt_ids[i])) continue;
+        uint8_t slot = (uint8_t)((first + i) & 15u);
+        if (fade_mj) continue;   // the other map: full
+        fade_any |= (uint16_t)1 << slot;
+        uint8_t f = fade_drawn_of(slot);
+        if (f == 3u) continue;
+        uint8_t k = (uint8_t)(i << 1);
+        uint8_t *t0 = &row_tiles[0][k], *t1 = &row_tiles[1][k];
+        uint8_t *a0 = &row_attrs[0][k], *a1 = &row_attrs[1][k];
+        if (f == 0) {
+            if (cgb) {
+                // the parallax tiles row_tiles_cgb draws for the empty tile
+                uint8_t s = reversed ? (uint8_t)(-(int8_t)slot & 15u) : slot;
+                uint8_t p = (uint8_t)(row_ty0[row] + ((s & 3u) << 1));
+                t0[0] = p; t0[1] = (uint8_t)(p + 1u); t1[0] = (uint8_t)(p + 8u); t1[1] = (uint8_t)(p + 9u);
+                a0[0] = a0[1] = a1[0] = a1[1] = 0x0B;
+            } else {
+                const uint8_t *e = rt_mt;   // the empty metatile 0
+                t0[0] = e[0]; t0[1] = e[1]; t1[0] = e[2]; t1[1] = e[3];
+            }
+        } else {
+            uint8_t pal = (uint8_t)(5u + f);
+            if (a0[0] != 0x0B) a0[0] = (uint8_t)((a0[0] & 0xF8u) | pal);
+            if (a0[1] != 0x0B) a0[1] = (uint8_t)((a0[1] & 0xF8u) | pal);
+            if (a1[0] != 0x0B) a1[0] = (uint8_t)((a1[0] & 0xF8u) | pal);
+            if (a1[1] != 0x0B) a1[1] = (uint8_t)((a1[1] & 0xF8u) | pal);
+        }
+    }
+}
+
 static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
     const uint8_t (*mt_table)[4] = reversed ? mt_tab_rev : mt_tab;
     if (_cpu != CGB_TYPE) {
@@ -1079,6 +1107,7 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
         rt_n = n;
         rt_mt = mt_table[0];
         row_tiles_dmg();
+        if (fade_count) fade_patch_row(first, n, row, reversed);
         return;
     }
     if (row == GROUND_ROW) {
@@ -1127,6 +1156,7 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
         row_tiles[0][k] = tiles[0]; row_tiles[0][k + 1u] = tiles[1]; row_tiles[1][k] = tiles[2]; row_tiles[1][k + 1u] = tiles[3];
         row_attrs[0][k] = attrs[0]; row_attrs[0][k + 1u] = attrs[1]; row_attrs[1][k] = attrs[2]; row_attrs[1][k + 1u] = attrs[3];
     }
+    if (fade_count) fade_patch_row(first, n, row, reversed);
 }
 
 void request_row_slots(uint8_t first, uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED {
@@ -1192,7 +1222,7 @@ static const uint8_t *mjw_src;
 static uint8_t *mjw_dst;
 static uint8_t mjw_n;
 static uint8_t mj_col[16];
-static uint8_t mj_out[BKG_MT_H * 8];
+uint8_t mj_out[BKG_MT_H * 8];   // also the fading cell job's buffer (bg_parallax_phases.c)
 
 // Returns at the start of an HBlank with interrupts disabled (the caller enables them again).
 // Interrupts stay enabled while waiting for mode 3.
@@ -1283,8 +1313,14 @@ static void mj_write_run_asm(void) __naked {
 void mj_build_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t map_hi) BANKED {
     uint8_t slot = (uint8_t)(map_col & 15u);
     if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
+    if (bg_fj_rows) {
+        // mj_out holds a fading cell job: it is done again later
+        CRITICAL { fade_unknown |= (uint16_t)1 << (bg_fj_x >> 1); bg_fj_rows = 0; }
+    }
     get_map_column(map_col, map, map_bank, mj_col, mt_band);
+    fade_mj = 1;
     build_mt_rows(map_col, mj_col, mj_out, reversed, 0, BKG_MT_H);
+    fade_mj = 0;
     uint8_t *dst = (uint8_t *)((uint16_t)map_hi << 8) + (uint8_t)(slot << 1);
     VBK_REG = 0;
     mjw_src = mj_out; mjw_dst = dst;
@@ -1300,7 +1336,9 @@ void mj_build_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uin
 void mj_build_row(uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t map_hi) BANKED {
     uint8_t *base = (uint8_t *)((uint16_t)map_hi << 8) + ((uint16_t)(row & 15u) << 6);
     for (uint8_t half = 0; half < 2; half++) {
+        fade_mj = 1;
         build_row_slots((uint8_t)(half << 3), BG_RJ_SLOTS, row, loaded_r, map, map_w, map_bank, reversed);
+        fade_mj = 0;
         uint8_t *d = base + (uint8_t)(half << 4);
         for (uint8_t b = 0; b < 2; b++) {
             VBK_REG = b;
@@ -1352,4 +1390,54 @@ static void reflect_map_asm(void) __naked {
 
 void bg_map_reflect(void) BANKED {
     reflect_map_asm();
+}
+
+// Once a frame in gameplay: the first ring slot near the screen whose fading cells are not at the
+// frame for where it is now gets them rewritten, built into mj_out and written by the VBlank
+// handler (bg_fj_*). One slot at a time: the next one once the handler has written this one.
+// busy_slot: the slot the column job is writing (its build sets the frame), else 0xFF.
+void fade_update(uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t busy_slot) BANKED {
+    if (!fade_count || bg_fj_rows) return;
+    // nearest first: from the player's slot towards where the player goes
+    uint8_t s = (uint8_t)(((uint8_t)(fade_psx + fade_scx + 8u)) >> 4);
+    int8_t dir = (fade_psx >= 80u) ? -1 : 1;
+    for (uint8_t k = 0; k < 16u; k++, s = (uint8_t)((s + dir) & 15u)) {
+        // on screen or a slot off it (the columns coming in and going out are not touched)
+        if ((uint8_t)(FADE_SX(s) + 16u) >= 192u || s == busy_slot) continue;
+        uint8_t f = fade_frame_of(s);
+        uint16_t bit = (uint16_t)1 << s;
+        if (f == fade_drawn_of(s) && !(fade_unknown & bit)) continue;
+        fade_set_drawn(s, f);
+        if (!(fade_any & bit)) continue;
+        // the map column in slot s: the one the ring holds (columns loaded_r - 15 .. loaded_r)
+        uint8_t p = reversed ? (uint8_t)(-(int8_t)s & 15u) : s;
+        uint16_t c = loaded_r - (uint8_t)((uint8_t)((uint8_t)loaded_r - p) & 15u);
+        uint16_t rows = 0;
+        uint8_t lo = 0, hi = 0;
+        if (c < map_w) {
+            get_map_column(c, map, map_bank, mj_col, mt_band);
+            for (uint8_t r = 0; r < 16u; r++) {
+                if (!IS_FADE_CELL(mj_col[r])) continue;
+                if (!rows) lo = r;
+                hi = r;
+                rows |= (uint16_t)1 << r;
+            }
+        }
+        if (!rows) {
+            fade_any &= ~bit;
+            continue;
+        }
+        build_mt_rows(c, mj_col, mj_out, reversed, lo, (uint8_t)(hi + 1u));
+        bg_fj_x = (uint8_t)(s << 1);
+        bg_fj_rows = rows;
+        return;
+    }
+}
+
+// The band moved: a pending fading cell job must not write the VRAM row the new map row goes to
+// (the row job writes it, at the slots' frames)
+void fade_band_moved(uint8_t row) BANKED {
+    if (bg_fj_rows) {
+        CRITICAL { bg_fj_rows &= ~((uint16_t)1 << (row & 15u)); }
+    }
 }

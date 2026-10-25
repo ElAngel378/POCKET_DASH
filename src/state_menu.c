@@ -152,24 +152,27 @@ static void ground_rows_hblank(const uint8_t *rows) __nonbanked;
 
 // The 3 rows are written whole (32 columns, contiguous in the map): on DMG with the fast HBlank
 // copy (set_bkg_tiles waits on STAT per byte: ~66 scanlines for these 60 bytes). Columns 20..31
-// are never seen on the ground lines (SCX 0 there).
+// are never seen on the ground lines (SCX 0 there). The rows are built in scratch_buf (ground_src
+// is done with by then): 96 bytes of stack here, with the music tick on top, reached the variables
+// below the stack (garbage tiles, then a crash).
 static void draw_ground(uint8_t phase) {
-    uint8_t rows[GROUND_ROWS][32];
-    for (uint8_t k = 0; k < GROUND_ROWS; k++) memset(rows[k], GROUND_UNIFORM(k), 32);
+    uint8_t *rows = scratch_buf;   // GROUND_ROWS rows of 32
+    for (uint8_t k = 0; k < GROUND_ROWS; k++) memset(rows + (k << 5), GROUND_UNIFORM(k), 32);
     for (uint8_t j = 0; j < 3; j++) {
         int16_t xl = (int16_t)phase + (int16_t)(j * GROUND_PERIOD) - 8;
         int8_t tx = (int8_t)(xl >> 3);
         uint8_t o = (uint8_t)xl & 7;
         for (uint8_t k = 0; k < GROUND_ROWS; k++) {
-            if (tx >= 0 && tx < 20) rows[k][tx] = GROUND_LEFT(k, o);
-            if (o && tx + 1 >= 0 && tx + 1 < 20) rows[k][tx + 1] = GROUND_RIGHT(k, o);
+            uint8_t *row = rows + (k << 5);
+            if (tx >= 0 && tx < 20) row[tx] = GROUND_LEFT(k, o);
+            if (o && tx + 1 >= 0 && tx + 1 < 20) row[tx + 1] = GROUND_RIGHT(k, o);
         }
     }
     if (_cpu != CGB_TYPE && (LCDC_REG & LCDCF_ON)) {
-        ground_rows_hblank(&rows[0][0]);
+        ground_rows_hblank(rows);
     } else {
         for (uint8_t k = 0; k < GROUND_ROWS; k++) {
-            set_bkg_tiles(0, (uint8_t)(GROUND_ROW + k), 20, 1, rows[k]);
+            set_bkg_tiles(0, (uint8_t)(GROUND_ROW + k), 20, 1, rows + (k << 5));
         }
     }
 }

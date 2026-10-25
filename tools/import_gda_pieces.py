@@ -111,8 +111,11 @@ def main():
             '   <property name="famidash_id" type="int" value="-1"/>\n'
             '   <property name="dmg_art" type="int" value="-1"/>\n'
             '   <property name="gda_name" value="%s"/>\n'
-            '   <property name="gda_collision" value="%s"/>\n'
-            '  </properties>\n </tile>\n' % (tid, name, COLLISION.get(gcol, 0), palette(name), mts[mid][0], gcol))
+            '   <property name="gda_collision" value="%s"/>\n%s'
+            '  </properties>\n </tile>\n' % (tid, name, COLLISION.get(gcol, 0), palette(name), mts[mid][0], gcol,
+                                             # GD 1.6's fading objects (mt_renderer.c fade_*)
+                                             '   <property name="fade" type="bool" value="true"/>\n'
+                                             if name.startswith("FADING_") else ""))
     sheet.save(ART)
     tsx = TSX.read_text(encoding="utf-8")
     TSX.write_text(tsx.replace("</tileset>", "".join(tiles) + "</tileset>"), encoding="utf-8")

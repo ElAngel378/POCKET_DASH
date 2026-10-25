@@ -20,6 +20,8 @@ volatile uint8_t bg_rj_pending;
 uint8_t bg_rj_x, bg_rj_y;
 uint8_t bg_rj_tiles[2 * 2 * BG_RJ_SLOTS];
 uint8_t bg_rj_attrs[2 * 2 * BG_RJ_SLOTS];
+volatile uint16_t bg_fj_rows;
+uint8_t bg_fj_x;
 volatile uint8_t bg_saw_pending;
 uint8_t bg_saw_bank, bg_saw_blocks;
 const uint8_t *bg_saw_src;
@@ -136,9 +138,183 @@ static void copy_row16x2(void) __naked {
     __endasm;
 }
 
+// Fading cells (bg_fj_*): the rows of bg_fj_rows, from mj_out (mt_renderer.c) to map column
+// bg_fj_x of the BG map shown (CGB: their attributes too) while LY is 144..152 (a cell takes well
+// under a line), and leaves bg_fj_rows at the rows not written. No variables of its own: the
+// stack is short of RAM.
+static void fade_cells_copy(void) __naked {
+    __asm
+        ld      hl, #_bg_fj_rows
+        ld      a, (hl+)
+        ld      c, a
+        ld      b, (hl)                 ; bc = rows left, bit 0: row d
+        ld      d, #0
+    1$:
+        ld      a, b
+        or      a, c
+        jr      Z, 9$
+        ldh     a, (_LY_REG + 0)
+        cp      a, #144
+        jr      C, 8$                   ; past VBlank: the rest next time
+        cp      a, #153
+        jr      NC, 8$
+        srl     b
+        rr      c
+        jr      NC, 5$
+        push    bc
+        push    de
+        ld      a, d
+        add     a, a
+        add     a, a
+        add     a, #<_mj_out
+        ld      l, a
+        ld      a, #>_mj_out
+        adc     a, #0
+        ld      h, a                    ; hl = the 4 tiles of the row
+        ld      a, d
+        rrca
+        rrca
+        ld      d, a
+        and     a, #0xC0
+        ld      e, a
+        ld      a, d
+        and     a, #0x03
+        ld      d, a                    ; de = 64r: tile row 2r
+        ld      a, (_bg_fj_x)
+        add     a, e
+        ld      e, a                    ; (64r + x: no carry, x < 32)
+        ldh     a, (_LCDC_REG + 0)
+        and     a, #0x08                ; the map shown: 0x9800, or 0x9C00 when set
+        rrca
+        or      a, #0x98
+        add     a, d
+        ld      d, a                    ; de = map + 64r + x
+        xor     a, a
+        ldh     (_VBK_REG + 0), a
+        push    de
+        push    hl
+        call    6$
+        pop     hl
+        pop     de
+        ld      a, (_bg_gdma_isr_on)    ; CGB: the attributes too
+        or      a, a
+        jr      Z, 4$
+        ld      a, #1
+        ldh     (_VBK_REG + 0), a
+        ld      bc, #64
+        add     hl, bc                  ; the 4 attributes of the row
+        call    6$
+    4$:
+        pop     de
+        pop     bc
+    5$:
+        inc     d
+        jr      1$
+    6$:
+        ; 2 bytes from hl to de, 2 more to de + 32
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        ld      a, e
+        add     a, #31
+        ld      e, a
+        jr      NC, 7$
+        inc     d
+    7$:
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        ret
+    8$:
+        ; out of time: the rows left are bc << d
+        ld      a, d
+        or      a, a
+        jr      Z, 9$
+    10$:
+        sla     c
+        rl      b
+        dec     a
+        jr      NZ, 10$
+    9$:
+        ld      hl, #_bg_fj_rows
+        ld      a, c
+        ld      (hl+), a
+        ld      (hl), b
+        ret
+    __endasm;
+}
+
+// Display off: sc_count tiles from sc_src (every other 16 bytes) to consecutive tile slots at sc_dst
+static const uint8_t *sc_src;
+static uint8_t *sc_dst;
+static uint8_t sc_count;
+static void copy_tiles_strided(void) __naked {
+    __asm
+        ld      hl, #_sc_dst
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)                 ; de = VRAM
+        ld      hl, #_sc_src
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a                    ; hl = source
+        ld      a, (_sc_count)
+        ld      b, a
+    1$:
+        .rept 15
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        .endm
+        ld      a, (hl+)
+        ld      (de), a
+        inc     de
+        ld      a, l
+        add     a, #16                  ; skip the other orientation
+        ld      l, a
+        jr      NC, 2$
+        inc     h
+    2$:
+        dec     b
+        jr      NZ, 1$
+        ret
+    __endasm;
+}
+
+// In bank 0: bg_extra_tiles is in its own bank
+void bg_extra_copy(uint8_t dst, uint8_t count, const uint8_t *src) {
+    uint8_t prev_b = _current_bank;
+    SWITCH_ROM(BANK(bg_extra_tiles));
+    if (!(LCDC_REG & LCDCF_ON)) {
+        while (count) {
+            // BG tiles 0..127 are at 0x9000, 128..255 at 0x8800: a run is cut where it crosses
+            uint8_t n = count;
+            if (dst < 128u && (uint8_t)(dst + n) > 128u) n = (uint8_t)(128u - dst);
+            sc_src = src;
+            sc_dst = (uint8_t *)(((dst < 128u) ? 0x9000u : 0x8000u) + ((uint16_t)dst << 4));
+            sc_count = n;
+            copy_tiles_strided();
+            src += (uint16_t)n << 5;
+            dst += n;
+            count -= n;
+        }
+    } else {
+        while (count--) {
+            set_bkg_data(dst++, 1, src);
+            src += 32;
+        }
+    }
+    SWITCH_ROM(prev_b);
+}
+
 // Writes the 40 bytes of famidash_bg_palettes to CGB background palette RAM 0.., then palette 5
 // (fake spikes, Famidash's PAL_3): colours 0 and 1 of palette 0 (sky, darker sky), black, black.
 // Not stored: 8 more bytes in the palette, fade and checkpoint arrays overflowed the stack.
+// Then palettes 6 and 7 (the fading objects, famidash_bg.c) from shadow_bkg_palettes.
 static void upload_palette(void) __naked {
     __asm
         ld      hl, #_famidash_bg_palettes
@@ -156,6 +332,11 @@ static void upload_palette(void) __naked {
         .endm
         xor     a, a
         .rept 4
+        ldh     (c), a
+        .endm
+        ld      hl, #(_shadow_bkg_palettes + 48)
+        .rept 16
+        ld      a, (hl+)
         ldh     (c), a
         .endm
         ret
@@ -297,6 +478,25 @@ void cube_tiles_load_now(const uint8_t *src, uint8_t bank, uint8_t first_tile) {
     SWITCH_ROM(prev_b);
 }
 
+// Fading cells (bg_fj_*) as far as VBlank allows, never before a column slice still pending (it
+// may be the same column)
+#ifdef DEBUG_PROFILE
+volatile uint8_t gp_fj_late_ly, gp_fj_late_cj, gp_fj_done;   // tools: fading cell jobs put off / done
+#endif
+static void fade_cells_try(void) {
+    uint8_t ly = LY_REG;
+    if (bg_fj_rows && !bg_cj_pending && ly >= 144u && ly <= 152u) {
+        fade_cells_copy();
+#ifdef DEBUG_PROFILE
+        gp_fj_done++;
+#endif
+    }
+#ifdef DEBUG_PROFILE
+    else if (bg_fj_rows && bg_cj_pending) gp_fj_late_cj++;
+    else if (bg_fj_rows) gp_fj_late_ly++;
+#endif
+}
+
 // VBlank interrupt handler: latches scroll, runs the requested parallax GDMA and
 // the requested map uploads, in that order.
 #ifdef DEBUG_PROFILE
@@ -388,6 +588,9 @@ void bg_parallax_vbl_isr(void) {
                 copy_rows2();
             }
             bg_cj_pending = 0;
+            // Fading cells (a few cells): after the parallax they found VBlank used up and fell
+            // behind for frames
+            fade_cells_try();
             // A column and a row in one VBlank leave no time for the parallax after them: the
             // parallax first, unless a row is waiting (climbing: rows that fall behind show stale
             // tiles for seconds, a parallax step put off by a frame is barely visible)
@@ -411,6 +614,9 @@ void bg_parallax_vbl_isr(void) {
         else if (bg_rj_pending && !bg_cj_pending) gp_rj_late++;
 #endif
     }
+    // Fading cells (when no column slice came first), before the player frame (DMG: it takes what
+    // is left of VBlank) and the parallax
+    fade_cells_try();
     // DMG player frame (4 sprite tiles, double buffered by gameplay): as many tiles as still fit,
     // the rest on the next VBlank
     if (bg_cube_pending && !bg_gdma_isr_on) {

@@ -114,6 +114,21 @@ static void shadow_fake_spike_palette(void) {
     shadow_bkg_palettes[23] = 0;
 }
 
+// shadow_bkg_palettes' palettes 6 and 7, for the fading objects' in-between frames (mt_renderer.c):
+// palette 0 a third / two thirds of the way from the sky (its colour 0) to its colours
+extern uint8_t fade_count;   // the level has fading objects (mt_renderer.c)
+static const uint8_t div3[94] = { 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 14, 14, 14, 15, 15, 15, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 20, 20, 20, 21, 21, 21, 22, 22, 22, 23, 23, 23, 24, 24, 24, 25, 25, 25, 26, 26, 26, 27, 27, 27, 28, 28, 28, 29, 29, 29, 30, 30, 30, 31, 31 };
+static void shadow_fade_palettes(void) {
+    const uint8_t *s = (const uint8_t *)famidash_bg_palettes;
+    uint8_t sr = s[0] & 31u, sg = (uint8_t)((s[0] >> 5) | (s[1] << 3)) & 31u, sb = (s[1] >> 2) & 31u;
+    palette_color_t *d = &shadow_bkg_palettes[24];
+    for (uint8_t i = 0; i < 4; i++, s += 2, d++) {
+        uint8_t r = s[0] & 31u, g = (uint8_t)((s[0] >> 5) | (s[1] << 3)) & 31u, b = (s[1] >> 2) & 31u;
+        d[0] = RGB(div3[sr + sr + r], div3[sg + sg + g], div3[sb + sb + b]);
+        d[4] = RGB(div3[sr + r + r], div3[sg + g + g], div3[sb + b + b]);
+    }
+}
+
 // Once per frame (CGB): next step of a running fade
 void famidash_bg_fade_step(void) BANKED {
     if (fade_restart) {
@@ -138,6 +153,7 @@ void famidash_bg_fade_step(void) BANKED {
             p[1] = g_to_hi[g] | (uint8_t)(c[2].val << 2);
         }
     }
+    if (fade_count) shadow_fade_palettes();
     famidash_bkg_palettes_dirty = 1;
 }
 
@@ -147,6 +163,7 @@ void famidash_bg_set_now(const palette_color_t *pal) BANKED {
     memcpy(famidash_bg_palettes, pal, sizeof(famidash_bg_target));
     memcpy(shadow_bkg_palettes, pal, 20 * sizeof(palette_color_t));
     shadow_fake_spike_palette();
+    shadow_fade_palettes();
     fade_left = 0;
     fade_restart = 0;
 }
@@ -218,6 +235,7 @@ void famidash_apply_outline_trigger(uint8_t n) BANKED {
     famidash_bg_palettes[7] = c;
     shadow_bkg_palettes[3] = c;
     shadow_bkg_palettes[7] = c;
+    if (fade_count) shadow_fade_palettes();
     famidash_bkg_palettes_dirty = 1;
 }
 
@@ -263,6 +281,7 @@ void famidash_reset_bg_palettes(uint8_t idx) BANKED {
         // level, and the level popped in at full brightness after the fade in)
         fade_set_bkg_palette(0, 5, famidash_bg_palettes);
         fade_set_bkg_palette(5, 1, &shadow_bkg_palettes[20]);
+        fade_set_bkg_palette(6, 2, &shadow_bkg_palettes[24]);   // the fading objects' palettes
     }
     famidash_bkg_palettes_dirty = 0;
 }
