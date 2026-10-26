@@ -218,7 +218,7 @@ def review(cat, changes, path):
 def main():
     cat = load_catalog()
     changes = {}
-    for g in (group_16, group_extras, group_slopes):
+    for g in (group_16, group_extras):   # group_slopes: the user kept the placeholder slopes
         changes.update(g(cat))
     review(cat, changes, ROOT / "docs" / "user_art.png")
     print("%d objects get the user's art" % len(changes))
