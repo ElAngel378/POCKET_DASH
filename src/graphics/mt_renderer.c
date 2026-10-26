@@ -203,7 +203,9 @@ static const uint8_t fade_by_col[16] = { 3, 3, 2, 2, 1, 1, 0, 0, 0, 0, 1, 1, 2, 
 static uint8_t fade_frame_of(uint8_t slot) {
     uint8_t sx = FADE_SX(slot);
     if (sx >= 224u) return 3;   // just off the left edge: GDA's column 0
-    uint8_t f = fade_by_col[(uint8_t)(((uint16_t)sx * 3u) >> 5) & 15u];
+    // sx * 3 / 32 without a multiplication (16 calls a frame: the multiplication alone was a
+    // quarter of a DMG frame)
+    uint8_t f = fade_by_col[(uint8_t)(((uint16_t)sx + (sx >> 1)) >> 4) & 15u];
     if (_cpu != CGB_TYPE) return (f >= 2u) ? 3 : 0;
     return f ? f : 1;   // GDA's two faintest frames: palette 6 (no palette left for a fourth step)
 }
@@ -1068,7 +1070,9 @@ static void fade_patch_row(uint8_t first, uint8_t n, uint8_t row, uint8_t revers
         if (!IS_FADE_CELL(rt_ids[i])) continue;
         uint8_t slot = (uint8_t)((first + i) & 15u);
         if (fade_mj) continue;   // the other map: full
+        // fade_update skips the slots without fading cells (their frame is not kept): redrawn there
         fade_any |= (uint16_t)1 << slot;
+        fade_unknown |= (uint16_t)1 << slot;
         uint8_t f = fade_drawn_of(slot);
         if (f == 3u) continue;
         uint8_t k = (uint8_t)(i << 1);
@@ -1398,8 +1402,8 @@ static void fade_pack(uint16_t rows) {
     uint8_t n = 0;
     if (bg_gdma_isr_on) {
         uint8_t *e = mj_out;
-        for (uint8_t r = 0; r < 16u; r++) {
-            if (!(rows & ((uint16_t)1 << r))) continue;
+        for (uint8_t r = 0; r < 16u; r++, rows >>= 1) {
+            if (!(rows & 1u)) continue;
             const uint8_t *a = mj_out + 64u + (uint8_t)(r << 2);
             e[0] = r; e[1] = a[0]; e[2] = a[1]; e[3] = a[2]; e[4] = a[3];
             e += 5; n++;
@@ -1407,8 +1411,8 @@ static void fade_pack(uint16_t rows) {
         bg_fj_start = 0;
     } else {
         uint8_t *e = mj_out + 128u;
-        for (uint8_t r = 16u; r--; ) {
-            if (!(rows & ((uint16_t)1 << r))) continue;
+        for (uint8_t r = 16u; r--; rows <<= 1) {
+            if (!(rows & 0x8000u)) continue;
             const uint8_t *t = mj_out + (uint8_t)(r << 2);
             e -= 5;
             e[1] = t[0]; e[2] = t[1]; e[3] = t[2]; e[4] = t[3]; e[0] = r;
@@ -1425,14 +1429,22 @@ static void fade_pack(uint16_t rows) {
 // busy_slot: the slot the column job is writing (its build sets the frame), else 0xFF.
 void fade_update(uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t busy_slot) BANKED {
     if (!fade_count || bg_fj_n) return;
-    // nearest first: from the player's slot towards where the player goes
+    // nearest first: from the player's slot towards where the player goes. Only the slots with
+    // fading cells (a slot without keeps no frame: a row job bringing one marks it unknown), and
+    // half of them a frame, the near half and the far half by turns (on DMG the full scan was a
+    // quarter of the frame and the game lagged)
     uint8_t s = (uint8_t)(((uint8_t)(fade_psx + fade_scx + 8u)) >> 4);
     int8_t dir = (fade_psx >= 80u) ? -1 : 1;
-    for (uint8_t k = 0; k < 16u; k++, s = (uint8_t)((s + dir) & 15u)) {
+    uint8_t k = 0, k_end = 8;
+    if (bg_vbl_frames & 1u) { k = 8; k_end = 16; s = (uint8_t)((s + (dir << 3)) & 15u); }
+    uint16_t bit = (uint16_t)1 << s;
+    uint16_t todo = fade_any | fade_unknown;
+    for (; k < k_end; k++, s = (uint8_t)((s + dir) & 15u),
+         bit = (dir > 0) ? (uint16_t)((bit << 1) | (bit >> 15)) : (uint16_t)((bit >> 1) | (bit << 15))) {
+        if (!(todo & bit)) continue;
         // on screen or a slot off it (the columns coming in and going out are not touched)
         if ((uint8_t)(FADE_SX(s) + 16u) >= 192u || s == busy_slot) continue;
         uint8_t f = fade_frame_of(s);
-        uint16_t bit = (uint16_t)1 << s;
         if (f == fade_drawn_of(s) && !(fade_unknown & bit)) continue;
         fade_set_drawn(s, f);
         if (!(fade_any & bit)) continue;
@@ -1443,11 +1455,12 @@ void fade_update(uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t 
         uint8_t lo = 0, hi = 0;
         if (c < map_w) {
             get_map_column(c, map, map_bank, mj_col, mt_band);
-            for (uint8_t r = 0; r < 16u; r++) {
+            uint16_t rb = 1;
+            for (uint8_t r = 0; r < 16u; r++, rb <<= 1) {
                 if (!IS_FADE_CELL(mj_col[r])) continue;
                 if (!rows) lo = r;
                 hi = r;
-                rows |= (uint16_t)1 << r;
+                rows |= rb;
             }
         }
         if (!rows) {

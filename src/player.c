@@ -168,19 +168,32 @@ typedef struct {
 #define SLOPE_MULT(p)    ((p)->slope_state >> 4)
 #define SET_SLOPE_COUNTER(p, n) ((p)->slope_state = (uint8_t)(((p)->slope_state & 0xF0u) | (n)))
 
-// The circle (c_x, c_y, c_r) within its radius of the segment from (x1, y1) by (dx, dy)
-static uint8_t seg_near(int16_t x1, int16_t y1, int16_t dx, int16_t dy) {
+// No multiplications below (the Game Boy has none: SDCC's routine made a frame on a slope take up
+// to 1.3 frames on DMG): a long side's dx, dy are +-16 or +-32, v x d is a shift
+static int16_t mul_side(int16_t v, int8_t d) {
+    v <<= 4;
+    if (d == 32 || d == -32) v <<= 1;
+    return (d < 0) ? -v : v;
+}
+static const uint8_t sq9[9] = { 0, 1, 4, 9, 16, 25, 36, 49, 64 };
+// The point (px, py) from the circle's centre within its radius
+static uint8_t point_near(int16_t px, int16_t py) {
+    if (px < 0) px = -px;
+    if (py < 0) py = -py;
+    if (px > c_r || py > c_r) return 0;
+    return (uint8_t)(sq9[(uint8_t)px] + sq9[(uint8_t)py]) <= (uint8_t)(c_r * c_r);
+}
+
+// The circle (c_x, c_y, c_r) within its radius of the segment from (x1, y1) by (dx, dy), a long side
+static uint8_t seg_near(int16_t x1, int16_t y1, int8_t dx, int8_t dy) {
     int16_t px = c_x - x1, py = c_y - y1;
-    int16_t t = px * dx + py * dy;
-    uint16_t r2 = (uint16_t)c_r * c_r;
-    if (t <= 0) return (uint16_t)(px * px + py * py) <= r2;
-    if (t >= dx * dx + dy * dy) {
-        px -= dx; py -= dy;
-        return (uint16_t)(px * px + py * py) <= r2;
-    }
-    int16_t c = px * dy - py * dx;
+    int16_t t = mul_side(px, dx) + mul_side(py, dy);
+    if (t <= 0) return point_near(px, py);
+    uint8_t long22 = (sl->kind & (SK_22 | SK_66)) ? 1 : 0;
+    if (t >= (long22 ? 1280 : 512)) return point_near(px - dx, py - dy);
+    int16_t c = mul_side(px, dy) - mul_side(py, dx);
     if (c < 0) c = -c;
-    return (uint16_t)c <= slope_cross_max[(sl->kind & (SK_22 | SK_66)) ? 1 : 0][c_ri];
+    return (uint16_t)c <= slope_cross_max[long22][c_ri];
 }
 
 // GDA check_distance_circle_hipotenuse
@@ -191,7 +204,7 @@ static uint8_t hipo_near(void) {
         int16_t d = (sl->step > 0 ? c_y + c_r : c_y - c_r) - (sl_oy + sl->up_y);
         if (d > -2 && d < 2) return 0;
     }
-    return seg_near(sl_ox + sl->hx1, sl_oy + sl->hy1, sl->hx2 - sl->hx1, sl->hy2 - sl->hy1);
+    return seg_near(sl_ox + sl->hx1, sl_oy + sl->hy1, (int8_t)(sl->hx2 - sl->hx1), (int8_t)(sl->hy2 - sl->hy1));
 }
 
 // GDA check_distance_circle_horizontal_edge: on (step -1) / under (step 1) the flat side, moving to it
@@ -209,8 +222,7 @@ static uint8_t vert_near(void) {
     int16_t y = c_y, y0 = sl_oy + sl->vy1, y1 = sl_oy + sl->vy2;
     if (y < y0) y = y0;
     if (y > y1) y = y1;
-    y -= c_y;
-    return (uint16_t)(dx * dx + y * y) <= (uint16_t)c_r * c_r;
+    return point_near(dx, y - c_y);
 }
 
 // GDA check_slope_eject_type
@@ -223,13 +235,30 @@ static uint8_t slope_eject_type(void) {
 
 // GDA check_slope_collision: how far to move the circle off the slope (SLOPE_NONE: not touching)
 static int16_t slope_eject(uint8_t type) {
-    int16_t ej = 0;
     if (type == EJ_HIPO) {
-        int16_t y0 = c_y;
-        for (uint8_t n = 0; n < 48u && hipo_near(); n++) c_y -= sl->step;
-        ej = c_y - y0;
-        c_y = y0;
-        return ej;
+        // GDA's loop: the circle a pixel at a time along step until hipo_near is false. The sums
+        // hipo_near / seg_near work out change by the same amount each pixel: kept by adding
+        int8_t step = sl->step, dx = (int8_t)(sl->hx2 - sl->hx1), dy = (int8_t)(sl->hy2 - sl->hy1);
+        int16_t px = c_x - (sl_ox + sl->hx1);
+        int16_t py = c_y - (sl_oy + sl->hy1);
+        int16_t t = mul_side(px, dx) + mul_side(py, dy), dt = mul_side(step, dy);
+        int16_t c = mul_side(px, dy) - mul_side(py, dx), dc = mul_side(step, dx);
+        uint8_t long22 = (sl->kind & (SK_22 | SK_66)) ? 1 : 0;
+        int16_t len2 = long22 ? 1280 : 512;
+        int16_t cmax = (int16_t)slope_cross_max[long22][c_ri];
+        // down slopes: not in the top 2 px (hipo_near)
+        uint8_t down = !(sl->kind & SK_UP);
+        int16_t d = (step > 0 ? c_y + c_r : c_y - c_r) - (sl_oy + sl->up_y);
+        int8_t n = 0;
+        for (; n < 48; n++, py -= step, t -= dt, c += dc, d -= step) {
+            if (down && d > -2 && d < 2) break;
+            uint8_t near;
+            if (t <= 0) near = point_near(px, py);
+            else if (t >= len2) near = point_near(px - dx, py - dy);
+            else near = (c < 0 ? -c : c) <= cmax;
+            if (!near) break;
+        }
+        return (int16_t)(-n * step);
     }
     if (type == EJ_HORZ) return (int16_t)(sl_oy + sl->down_y + (int8_t)(c_r * sl->step)) - c_y;
     if (type == EJ_VERT) return 0;
@@ -262,12 +291,18 @@ static uint8_t slope_check(int16_t ej, uint8_t type) {
         if (centre_touches(0)) player.dead = 1;
         return 1;
     }
-    int16_t speed = 0;
+    // The y speed along the slope: GDA's multiplier x the x speed (gameplay.c SCROLL_SPEED_FP 714),
+    // going up eased in over 4 frames. Its size m, shifts only (SDCC's multiplications and
+    // divisions here made a frame on a slope take up to 1.5 frames on DMG)
+    uint16_t m = 0;
     if (type == EJ_HIPO) {
-        // along the slope: GDA's multiplier x the x speed (gameplay.c SCROLL_SPEED_FP), going up
-        // eased in over 4 frames
-        speed = (int16_t)sl->speed * (714 / 2);
-        if (sl->kind & SK_UP) speed = speed / 4 * (int16_t)SLOPE_MULT(&player);
+        int8_t k = sl->speed;
+        if (k < 0) k = -k;
+        m = (k == 1) ? 357 : (k == 2) ? 714 : 1428;
+        if (sl->kind & SK_UP) {
+            uint8_t q = SLOPE_MULT(&player);
+            m = (q == 0) ? 0 : (q == 1) ? (m >> 2) : (q == 2) ? (m >> 1) : (q == 3) ? (uint16_t)(m - (m >> 2)) : m;
+        }
     } else {
         player.vel_y.w = 0;
     }
@@ -275,10 +310,11 @@ static uint8_t slope_check(int16_t ej, uint8_t type) {
     player.world_y.b.l = (step > 0) ? 0xFF : 0;
     c_y += ej;
     if ((sl->kind & (SK_UP | SK_66)) == (SK_UP | SK_66)) {
-        if (player.mode == MODE_BALL) speed /= 2;
-        else if (player.mode == MODE_UFO) speed = speed / 4 * 3;
+        if (player.mode == MODE_BALL) m >>= 1;                            // GDA: / 2
+        else if (player.mode == MODE_UFO) m = (uint16_t)(m - (m >> 2));  // x 3 / 4
     }
-    if (player.mode == MODE_SHIP) speed = speed / 16 * 14;
+    if (player.mode == MODE_SHIP) m = (uint16_t)(m - (m >> 3));         // x 14 / 16
+    int16_t speed = (sl->speed < 0) ? -(int16_t)m : (int16_t)m;
     if ((step > 0) != (player.gravity_flipped != 0)) {
         player.on_ground = 1;
         player.orb_buffered = 0;
