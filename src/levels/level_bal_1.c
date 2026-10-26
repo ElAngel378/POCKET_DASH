@@ -1,4 +1,4 @@
-#pragma bank 180
+#pragma bank 182
 #include <gbdk/incbin.h>
 
 // Columns 256.. of bestautomaticlvl (read through bestautomaticlvl_map's address)

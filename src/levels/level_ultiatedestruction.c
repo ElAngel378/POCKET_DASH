@@ -1,4 +1,4 @@
-#pragma bank 190
+#pragma bank 192
 #include <gbdk/incbin.h>
 
 // Columns 0..255; the rest are in level_ultiatedestruction_1.c.. (next banks, same address)

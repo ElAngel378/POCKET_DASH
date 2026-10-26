@@ -19,7 +19,7 @@ Groups:
                39..41 (tools/make_gda_pulse_tiles.py draws them)
   GDA sprites  whole drawings cut into the blocks tools/import_gda_sprites.py made (same cells,
                collision kept): ToE's stepped skylines (GDP_TOE) for the BG squares, the clouds
-               (Wavy_Gspikes) for the BG clouds, the 1.6 saws (1p6blocks) for the outline saws
+               (Wavy_Gspikes) for the BG clouds, the 1.6 saws (1p6blocks) for the outline saws and the 4-point star saws
 """
 import re
 import sys
@@ -169,6 +169,8 @@ DRAWINGS = {
     "SMALL_BG_CLOUDS": ("Wavy_Gspikes", 24, 16, 72, 32, "bottom"),
     "BIG_OUTLINE_SAW": ("1p6blocks", 16, 32, 64, 80, "centre"),
     "MEDIUM_OUTLINE_SAW": ("1p6blocks", 64, 32, 96, 64, "centre"),
+    "SMALL_OUTLINE_SAW": ("1p6blocks", 0, 48, 16, 64, "centre"),
+    "ALT_BIG_OUTLINE_SAW": ("1p6blocks", 96, 32, 128, 64, "centre"),
 }
 
 

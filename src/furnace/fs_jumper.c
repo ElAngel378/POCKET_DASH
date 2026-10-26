@@ -6,19 +6,25 @@ BANKREF_EXTERN(fs_jumper_chunk0)
 extern const uint8_t fs_jumper_chunk0[];
 BANKREF_EXTERN(fs_jumper_chunk1)
 extern const uint8_t fs_jumper_chunk1[];
+BANKREF_EXTERN(fs_jumper_chunk2)
+extern const uint8_t fs_jumper_chunk2[];
+BANKREF_EXTERN(fs_jumper_chunk3)
+extern const uint8_t fs_jumper_chunk3[];
 
-static const fur_chunk_t fs_jumper_chunks[2] = {
+static const fur_chunk_t fs_jumper_chunks[4] = {
     { BANK(fs_jumper_chunk0), fs_jumper_chunk0 },
     { BANK(fs_jumper_chunk1), fs_jumper_chunk1 },
+    { BANK(fs_jumper_chunk2), fs_jumper_chunk2 },
+    { BANK(fs_jumper_chunk3), fs_jumper_chunk3 },
 };
 
 BANKREF(fs_jumper)
 const fur_song_t fs_jumper = {
-    2, /* chunks */
-    1, /* wave pool chunk */
+    4, /* chunks */
+    3, /* wave pool chunk */
     1, /* anti-click */
-    58880, /* anti-click step at 35.6174 Hz */
-    1884160UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 1734 }, { 0, 3170 }, { 0, 6305 }, { 0, 11273 } }, /* stream entry points */
+    29620, /* anti-click step at 70.8 Hz */
+    947865UL, /* tick period in 1/16 cycles */
+    { { 0, 0 }, { 0, 191 }, { 0, 11231 }, { 1, 1649 }, { 2, 4931 } }, /* stream entry points */
     fs_jumper_chunks
 };
