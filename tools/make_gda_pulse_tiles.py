@@ -7,6 +7,10 @@ flipped). 3 sizes, like the pulsing rods (src/sp_draw.c deco_tile_sets): 16, 12 
 Pair 41 + 3 * size + object: size 0 full, 1 at 12 px, 2 at 8 px. Colour 2 (the cube's colour 1 in
 the player's palette, as Famidash draws decorations).
 
+user=True (tools/apply_user_art.py): the user's art (incoming_art/GDP_Pulsing_Obj.chr) instead of
+GDA's: its big ring, heart, square (pieces 0.1..0.3) at 16 px, its small ones (1.1..1.3, 10 px) at
+12 px and, made smaller, at 8.
+
     python tools/make_gda_pulse_tiles.py
 """
 import sys
@@ -25,16 +29,37 @@ BANK1_ROW = 8      # tools/build_sprite_tiles.py SECTION_ROW["BANK1"]
 FIRST_PAIR = 41
 
 
-def main():
+def user_masks(o):
+    """the user's art of object o: (16 px mask, small mask)"""
+    from apply_user_art import pieces
+    ps = pieces("GDP_Pulsing_Obj")
+    out = []
+    for k in ("0.%d" % (o + 1), "1.%d" % (o + 1)):
+        m = Image.new("L", (16, 16), 0)
+        for y in range(16):
+            for x in range(16):
+                if ps[k][y][x]:
+                    m.putpixel((x, y), 255)
+        out.append(m.crop(m.getbbox()))
+    return out
+
+
+def main(user=False):
     types = gda.sprite_types()
     img = Image.open(PNG).convert("L")
     for o, name in enumerate(OBJECTS):
-        art, ox, oy = gda.sprite_art(types.index(name))
-        mask = art.point(lambda c: 255 if c else 0).crop((ox, oy, ox + 16, oy + 16))
+        if user:
+            big, small = user_masks(o)
+        else:
+            art, ox, oy = gda.sprite_art(types.index(name))
+            mask = art.point(lambda c: 255 if c else 0).crop((ox, oy, ox + 16, oy + 16))
         for s, size in enumerate(SIZES):
-            m = mask.resize((size, size), Image.NEAREST) if size != 16 else mask
+            if user:
+                m = big if s == 0 else small if s == 1 else small.resize((8, 8), Image.NEAREST)
+            else:
+                m = mask.resize((size, size), Image.NEAREST) if size != 16 else mask
             full = Image.new("L", (16, 16), 0)
-            full.paste(m, ((16 - size) // 2, (16 - size) // 2))
+            full.paste(m, ((16 - m.width) // 2, (16 - m.height) // 2))
             pair = FIRST_PAIR + 3 * s + o
             x0, y0 = (pair % 16) * 8, (BANK1_ROW + pair // 16) * 16
             for y in range(16):

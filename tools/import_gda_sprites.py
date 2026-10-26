@@ -146,9 +146,9 @@ def variant_cells(art, ox, oy, dx, dy, shape):
                         s = (SHAPE_CIRCLE, ccx, ccy, r, 0)
             if tile.getbbox() or s:
                 out[(cx, cy)] = (tile, s)
-    # cell coordinates from the block's top left
+    # cell coordinates from the block's top left (and where that is, in cells from the object's)
     mx, my = min(c for c, _ in out), min(r for _, r in out)
-    return {(c - mx, r - my): v for (c, r), v in out.items()}
+    return {(c - mx, r - my): v for (c, r), v in out.items()}, (mx, my)
 
 
 def suffix(dx, dy, hf, vf):
@@ -156,22 +156,13 @@ def suffix(dx, dy, hf, vf):
     return s + ("_HF" if hf else "") + ("_VF" if vf else "")
 
 
-def main():
-    cat = load_catalog()
+def build_blocks(todo, override=None):
+    """[(name, palette, gda type, {(c, r): (art, shape)})] of the GDA types todo, their variants;
+    override: {type: (art in our colours, origin x, origin y)} drawn instead of GDA's art"""
     types = gda.sprite_types()
     boxes = hitboxes()
     use, looks = usage(types)
     mts = gda.metatiles()
-    ours = set()
-    for f in ("gda_sprites.json", "gda_ours.json"):
-        import json
-        for v in json.loads((ROOT / "levels" / "objects" / f).read_text()).values():
-            for k, p in gda_match.parse_label(v.get("gda") or ""):
-                if k and k.startswith("SP") and p:
-                    ours.add(p.split("/")[0].split("[")[0])
-    todo = sorted(t for t in use if t not in ours and t not in SPRITES and t not in SKIP
-                  and not any(o.get("gda_name") == t for o in cat.objects.values()))
-
     blocks = []   # (name, palette, gda type, {(c, r): (art, shape)})
     for t in todo:
         hb = boxes[types.index(t)] if types.index(t) < len(boxes) else (None, None)
@@ -193,12 +184,15 @@ def main():
                 shape = ("solid", (solid[1] - solid[0], min(solid[3], 8) - solid[2], solid[0], solid[2]))
                 pal = 0
             else:
-                r = gda.sprite_art(types.index(t))
-                if not r:
-                    print("no art:", t)
-                    continue
-                img, ox, oy = r
-                img = gb_colours(img, hazard)
+                if override and t in override:
+                    img, ox, oy = override[t]
+                else:
+                    r = gda.sprite_art(types.index(t))
+                    if not r:
+                        print("no art:", t)
+                        continue
+                    img, ox, oy = r
+                    img = gb_colours(img, hazard)
                 shape = hb if hazard else None
                 pal = 0 if hazard else 2
             counts = use[t]
@@ -220,8 +214,63 @@ def main():
                     else:
                         rr, ccx, ccy = v
                         sh = (k, (rr, 16 - ccx if hf else ccx, 16 - ccy if vf else ccy))
-                cells = variant_cells(im, fx, fy, dx, dy, sh)
-                blocks.append((our_name(t) + kname + suffix(dx, dy, hf, vf), pal, t, cells))
+                cells, corner = variant_cells(im, fx, fy, dx, dy, sh)
+                blocks.append((our_name(t) + kname + suffix(dx, dy, hf, vf), pal, t, cells, corner))
+
+    return blocks
+
+
+def refresh_art(override):
+    """Redraws the blocks of the GDA types in override (art: see build_blocks) into the catalog
+    cells they already have (same ids, collision kept). Returns the cells it could not place."""
+    cat = load_catalog()
+    sheet = Image.open(ART).convert("L")
+    missing = []
+    corners = {b[0]: b[4] for b in build_blocks(sorted(override))}   # GDA's art: the cells' names
+    for name, pal, t, cells, (mx, my) in build_blocks(sorted(override), override):
+        ox, oy = corners[name][0] - mx, corners[name][1] - my
+        many = any(n.startswith(name + "_R") for n in cat.by_name)
+        old = {n: tid for n, tid in cat.by_name.items() if n == name or re.fullmatch(re.escape(name) + r"_R\d+C\d+", n)}
+        done = set()
+        for (c, r), (tile, s) in cells.items():
+            c, r = c - ox, r - oy
+            n = name + ("_R%dC%d" % (r, c) if many else "")
+            tid = cat.by_name.get(n)
+            if tid is None:
+                missing.append(n)
+                continue
+            done.add(n)
+            px = tile.load()
+            for yy in range(16):
+                for xx in range(16):
+                    sheet.putpixel(((tid % COLUMNS) * 16 + xx, (tid // COLUMNS) * 16 + yy), 255 - 85 * px[xx, yy])
+        for n, tid in old.items():   # cells the new art leaves empty
+            if n not in done:
+                for yy in range(16):
+                    for xx in range(16):
+                        sheet.putpixel(((tid % COLUMNS) * 16 + xx, (tid // COLUMNS) * 16 + yy), 255)
+    sheet.save(ART)
+    write_preview()
+    return missing
+
+
+def main():
+    cat = load_catalog()
+    types = gda.sprite_types()
+    boxes = hitboxes()
+    use, looks = usage(types)
+    mts = gda.metatiles()
+    ours = set()
+    for f in ("gda_sprites.json", "gda_ours.json"):
+        import json
+        for v in json.loads((ROOT / "levels" / "objects" / f).read_text()).values():
+            for k, p in gda_match.parse_label(v.get("gda") or ""):
+                if k and k.startswith("SP") and p:
+                    ours.add(p.split("/")[0].split("[")[0])
+    todo = sorted(t for t in use if t not in ours and t not in SPRITES and t not in SKIP
+                  and not any(o.get("gda_name") == t for o in cat.objects.values()))
+
+    blocks = build_blocks(todo)
 
     # shapes already in the catalog keep their ids
     shapes = {}
@@ -239,7 +288,7 @@ def main():
     # lay the blocks out in objects.png: shelves of 16 columns from the first free row
     first_row = (max(cat.objects) // COLUMNS) + 1
     placed, x, y, shelf_h = [], 0, first_row, 0
-    for name, pal, t, cells in sorted(blocks, key=lambda b: (-max(r for _, r in b[3]), b[0])):
+    for name, pal, t, cells, _ in sorted(blocks, key=lambda b: (-max(r for _, r in b[3]), b[0])):
         w = max(c for c, _ in cells) + 1
         h = max(r for _, r in cells) + 1
         if x + w > COLUMNS:
