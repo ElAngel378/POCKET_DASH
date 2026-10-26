@@ -118,7 +118,11 @@ typedef struct Player {
     uint16_t sp_idx;
     uint16_t y_base;       // world y of the collision window (world_y is relative to it)
     uint8_t  ufo_orbed;    // an orb took this frame's press (the UFO does not also jump)
-    uint8_t  on_slope;     // standing on a slope (player.c): it follows the slope, up or down
+    uint8_t  on_slope;     // on a slope's long side (player.c, GDA on_slope)
+    uint8_t  slope_state;  // bits 0-2: frames the slope still counts after touching it (GDA
+                           // slope_counter); 4-6: going up it, quarters of its speed (GDA
+                           // slope_speed_multiplier, eased in). One byte: WRAM is full
+    uint8_t  slope_type;   // the last slope's type - COL_SLOPE_BASE (0xFF: none)
 } Player;
 
 // The player (gameplay.c). player_update and the object logic work on it directly: through a

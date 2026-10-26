@@ -2,6 +2,7 @@
 
 #include "player.h"
 #include "collision.h"
+#include "scratch.h"
 
 uint8_t level_max_fall_7;   // player.h
 
@@ -29,6 +30,8 @@ void player_init(Player* p, uint16_t start_x, int16_t start_y) BANKED {
     p->level_complete = 0;
     p->mini = 0;
     p->on_slope = 0;
+    p->slope_state = 0;
+    p->slope_type = 0xFF;
     p->sp_idx = 0;
     p->ufo_orbed = 0;
 }
@@ -89,27 +92,242 @@ static uint8_t box_edge(uint8_t col, uint8_t xin, uint8_t iy, uint8_t bottom) {
     return bottom ? b[3] : b[2];
 }
 
-// Slopes (COL_SLOPE_BASE..): the line y = c + k x / 2 (clamped to the metatile, 0..16), solid below
-// it (above: the _UD ones), as GDA draws them (metatiles.c COL1_SLOPE_*, COL1_22_*, COL1_66_*: the
-// same pixels, the 22 degree ones within half a pixel);
-// vy: the speed (8.8, per frame at the scroll speed, gameplay.c SCROLL_SPEED_FP 714) of a cube
-// walking up it (0: it goes down)
-typedef struct { int8_t c, k; uint8_t ud; int16_t vy; } SlopeLine;
-static const SlopeLine slope_lines[COL_SLOPE_COUNT] = {
-    { 15, -2, 0, -714 }, { 0, 2, 0, 0 }, { 1, 2, 1, 0 }, { 16, -2, 1, 0 },             // 45: UP, DOWN, UP_UD, DOWN_UD
-    { 15, -1, 0, -357 }, { 7, -1, 0, -357 }, { 0, 1, 0, 0 }, { 8, 1, 0, 0 },          // 22: UP_1, UP_2, DOWN_1, DOWN_2
-    { 1, 1, 1, 0 }, { 9, 1, 1, 0 }, { 16, -1, 1, 0 }, { 8, -1, 1, 0 },                // 22: UP_UD_1, _2, DOWN_UD_1, _2
-    { 30, -4, 0, -1428 }, { 14, -4, 0, -1428 }, { -16, 4, 0, 0 }, { 0, 4, 0, 0 },     // 66: UP_1, UP_2, DOWN_1, DOWN_2
-    { -14, 4, 1, 0 }, { 2, 4, 1, 0 }, { 32, -4, 1, 0 }, { 16, -4, 1, 0 },             // 66: UP_UD_1, _2, DOWN_UD_1, _2
+// Slopes (COL_SLOPE_BASE..), as GDA does them (collision.c collide_with_map_slopes, slope_check):
+// the player is a circle (its box's centre, radius half its height), each slope a right triangle
+// (from the slope's metatile; the 22 and 66 degree ones span two). A circle touching the long side
+// is pushed off it a pixel at a time (step: 1 a floor slope, up; -1 a ceiling slope, down) and gets
+// the slope's y speed; the flat side is a floor / ceiling within 4 px; the tall side kills when the
+// player's centre (radius 2, mini 1) touches it. Not solid for the block probes.
+// Per type, from the metatile's top left: the long side (x1, y1 - x2, y2), the flat side's x range
+// (its y is down_y), the tall side (x, y range), up_y / down_y (the triangle's top and bottom along
+// step), step, the y speed in half x speeds (GDA slope_speed_multiplier x 2) and kind
+#define SK_UP 1    // goes up the way the player goes (GDA DEGREES_* below DEGREES_45_DOWN)
+#define SK_22 2
+#define SK_66 4
+typedef struct {
+    int8_t hx1, hy1, hx2, hy2, ex1, ex2, vx, vy1, vy2, up_y, down_y, step, speed;
+    uint8_t kind;
+} Slope;
+static const Slope slopes[COL_SLOPE_COUNT] = {
+    {   0,  16,  16,   0,    0,  16,   16,   0,  16,    0,  16,   1, -2, SK_UP },         // 45_UP
+    {   0,   0,  16,  16,    0,  16,    0,   0,  16,    0,  16,   1,  2, 0 },             // 45_DOWN
+    {  16,  16,   0,   0,    0,  16,   16,   0,  16,   16,   0,  -1,  2, SK_UP },         // 45_UP_UD
+    {  16,   0,   0,  16,    0,  16,    0,   0,  16,   16,   0,  -1, -2, 0 },             // 45_DOWN_UD
+    {   0,  16,  32,   0,    0,  32,   32,   0,  16,    0,  16,   1, -1, SK_UP|SK_22 },   // 22_UP_1
+    { -16,  16,  16,   0,  -16,  16,   16,   0,  16,    0,  16,   1, -1, SK_UP|SK_22 },   // 22_UP_2
+    {   0,   0,  32,  16,    0,  32,    0,   0,  16,    0,  16,   1,  1, SK_22 },         // 22_DOWN_1
+    { -16,   0,  16,  16,  -16,  16,  -16,   0,  16,    0,  16,   1,  1, SK_22 },         // 22_DOWN_2
+    {  32,  16,   0,   0,    0,  32,   32,   0,  16,   16,   0,  -1,  1, SK_UP|SK_22 },   // 22_UP_UD_1
+    {  16,  16, -16,   0,  -16,  16,   16,   0,  16,   16,   0,  -1,  1, SK_UP|SK_22 },   // 22_UP_UD_2
+    {  32,   0,   0,  16,    0,  32,    0,   0,  16,   16,   0,  -1, -1, SK_22 },         // 22_DOWN_UD_1
+    {  16,   0, -16,  16,  -16,  16,  -16,   0,  16,   16,   0,  -1, -1, SK_22 },         // 22_DOWN_UD_2
+    {   0,  32,  16,   0,    0,  16,   16,   0,  32,    0,  32,   1, -4, SK_UP|SK_66 },   // 66_UP_1
+    {   0,  16,  16, -16,    0,  16,   16, -16,  16,  -16,  16,   1, -4, SK_UP|SK_66 },   // 66_UP_2
+    {   0, -16,  16,  16,    0,  16,    0, -16,  16,  -16,  16,   1,  4, SK_66 },         // 66_DOWN_1
+    {   0,   0,  16,  32,    0,  16,    0,   0,  32,    0,  32,   1,  4, SK_66 },         // 66_DOWN_2
+    {  16,  16,   0, -16,    0,  16,   16, -16,  16,   16, -16,  -1,  4, SK_UP|SK_66 },   // 66_UP_UD_1
+    {  16,  32,   0,   0,    0,  16,   16,   0,  32,   32,   0,  -1,  4, SK_UP|SK_66 },   // 66_UP_UD_2
+    {  16,   0,   0,  32,    0,  16,    0,   0,  32,   32,   0,  -1, -4, SK_66 },         // 66_DOWN_UD_1
+    {  16, -16,   0,  16,    0,  16,    0, -16,  16,   16, -16,  -1, -4, SK_66 },         // 66_DOWN_UD_2
 };
 
-// The line's height (0 top .. 16 bottom) of slope type col at x xin of the metatile
-static uint8_t slope_h(uint8_t col, uint8_t xin) {
-    const SlopeLine *l = &slope_lines[(uint8_t)(col - COL_SLOPE_BASE)];
-    int16_t h = (int16_t)l->c + (((int16_t)l->k * (int16_t)xin) >> 1);
-    if (h < 0) return 0;
-    if (h > 16) return 16;
-    return (uint8_t)h;
+// GDA's find_squared_distance_to_line(...) <= r * r (its integer division included) without 32 bit
+// maths: beside the long side |cross| <= floor(sqrt((r * r + 1) * len * len - 1)), by radius
+// (1, 2, 4, 8) and length (45: 16 x 16, 22 / 66: 32 x 16)
+static const uint16_t slope_cross_max[2][4] = { { 31, 50, 93, 182 }, { 50, 79, 147, 288 } };
+
+#define SLOPE_NONE 0x7FFF
+#define EJ_HIPO 1
+#define EJ_HORZ 2
+#define EJ_VERT 3
+// The slope being checked: its type, its metatile's top left (x from the left edge of the
+// player's metatile column, y in the collision window); the circle being checked. In scratch_buf:
+// WRAM is full, and nothing else uses it while player_update runs
+typedef struct {
+    const Slope *sl;
+    uint8_t sl_type;
+    int16_t sl_ox, sl_oy;
+    int16_t c_x, c_y;
+    uint8_t c_r, c_ri;      // radius, its index in slope_cross_max
+    int8_t c_dir;           // 1: the player's y speed is down (> 0), else -1
+    uint8_t c_skip_hipo;    // GDA horizontal_slope_counter
+} SlopeVars;
+#define SV ((SlopeVars *)scratch_buf)
+#define sl          (SV->sl)
+#define sl_type     (SV->sl_type)
+#define sl_ox       (SV->sl_ox)
+#define sl_oy       (SV->sl_oy)
+#define c_x         (SV->c_x)
+#define c_y         (SV->c_y)
+#define c_r         (SV->c_r)
+#define c_ri        (SV->c_ri)
+#define c_dir       (SV->c_dir)
+#define c_skip_hipo (SV->c_skip_hipo)
+// Player.slope_state
+#define SLOPE_COUNTER(p) ((p)->slope_state & 7u)
+#define SLOPE_MULT(p)    ((p)->slope_state >> 4)
+#define SET_SLOPE_COUNTER(p, n) ((p)->slope_state = (uint8_t)(((p)->slope_state & 0xF0u) | (n)))
+
+// The circle (c_x, c_y, c_r) within its radius of the segment from (x1, y1) by (dx, dy)
+static uint8_t seg_near(int16_t x1, int16_t y1, int16_t dx, int16_t dy) {
+    int16_t px = c_x - x1, py = c_y - y1;
+    int16_t t = px * dx + py * dy;
+    uint16_t r2 = (uint16_t)c_r * c_r;
+    if (t <= 0) return (uint16_t)(px * px + py * py) <= r2;
+    if (t >= dx * dx + dy * dy) {
+        px -= dx; py -= dy;
+        return (uint16_t)(px * px + py * py) <= r2;
+    }
+    int16_t c = px * dy - py * dx;
+    if (c < 0) c = -c;
+    return (uint16_t)c <= slope_cross_max[(sl->kind & (SK_22 | SK_66)) ? 1 : 0][c_ri];
+}
+
+// GDA check_distance_circle_hipotenuse
+static uint8_t hipo_near(void) {
+    if (c_skip_hipo) return 0;
+    // down slopes: not in the top 2 px
+    if (!(sl->kind & SK_UP)) {
+        int16_t d = (sl->step > 0 ? c_y + c_r : c_y - c_r) - (sl_oy + sl->up_y);
+        if (d > -2 && d < 2) return 0;
+    }
+    return seg_near(sl_ox + sl->hx1, sl_oy + sl->hy1, sl->hx2 - sl->hx1, sl->hy2 - sl->hy1);
+}
+
+// GDA check_distance_circle_horizontal_edge: on (step -1) / under (step 1) the flat side, moving to it
+static uint8_t horz_near(void) {
+    if (sl->step == c_dir) return 0;
+    if (c_x + c_r <= sl_ox + sl->ex1 || c_x - c_r >= sl_ox + sl->ex2) return 0;
+    int16_t d = (sl->step > 0 ? c_y - c_r : c_y + c_r) - (sl_oy + sl->down_y);
+    if (sl->step > 0) d = -d;
+    return d >= 0 && d < 4;
+}
+
+// GDA check_distance_circle_vertical_edge
+static uint8_t vert_near(void) {
+    int16_t dx = sl_ox + sl->vx - c_x;
+    int16_t y = c_y, y0 = sl_oy + sl->vy1, y1 = sl_oy + sl->vy2;
+    if (y < y0) y = y0;
+    if (y > y1) y = y1;
+    y -= c_y;
+    return (uint16_t)(dx * dx + y * y) <= (uint16_t)c_r * c_r;
+}
+
+// GDA check_slope_eject_type
+static uint8_t slope_eject_type(void) {
+    if (horz_near()) return EJ_HORZ;
+    if (hipo_near()) return EJ_HIPO;
+    if (vert_near()) return EJ_VERT;
+    return 0;
+}
+
+// GDA check_slope_collision: how far to move the circle off the slope (SLOPE_NONE: not touching)
+static int16_t slope_eject(uint8_t type) {
+    int16_t ej = 0;
+    if (type == EJ_HIPO) {
+        int16_t y0 = c_y;
+        for (uint8_t n = 0; n < 48u && hipo_near(); n++) c_y -= sl->step;
+        ej = c_y - y0;
+        c_y = y0;
+        return ej;
+    }
+    if (type == EJ_HORZ) return (int16_t)(sl_oy + sl->down_y + (int8_t)(c_r * sl->step)) - c_y;
+    if (type == EJ_VERT) return 0;
+    return SLOPE_NONE;
+}
+
+// The player's centre (GDA's internal hitbox: radius 2, mini 1) touches the slope: its tall side
+// (vert), or any side
+static uint8_t centre_touches(uint8_t vert) {
+    uint8_t r = c_r, ri = c_ri, hit;
+    c_r = player.mini ? 1 : 2;
+    c_ri = player.mini ? 0 : 1;
+    hit = slope_eject_type();
+    hit = vert ? (hit == EJ_VERT) : (slope_eject(hit) != SLOPE_NONE);
+    c_r = r; c_ri = ri;
+    return hit;
+}
+
+// GDA slope_check: the circle touches the slope sl (ej: how far to move it, type: which side).
+// 1: look at no more slopes
+static uint8_t slope_check(int16_t ej, uint8_t type) {
+    if (type == EJ_VERT) {
+        if (centre_touches(1)) player.dead = 1;
+        return 0;
+    }
+    int8_t step = sl->step;
+    // A cube stands on the slopes on its gravity's side only; the others kill when its centre
+    // touches them
+    if (player.mode == MODE_CUBE && (step < 0) != (player.gravity_flipped != 0)) {
+        if (centre_touches(0)) player.dead = 1;
+        return 1;
+    }
+    int16_t speed = 0;
+    if (type == EJ_HIPO) {
+        // along the slope: GDA's multiplier x the x speed (gameplay.c SCROLL_SPEED_FP), going up
+        // eased in over 4 frames
+        speed = (int16_t)sl->speed * (714 / 2);
+        if (sl->kind & SK_UP) speed = speed / 4 * (int16_t)SLOPE_MULT(&player);
+    } else {
+        player.vel_y.w = 0;
+    }
+    player.world_y.b.h += (int8_t)ej;
+    player.world_y.b.l = (step > 0) ? 0xFF : 0;
+    c_y += ej;
+    if ((sl->kind & (SK_UP | SK_66)) == (SK_UP | SK_66)) {
+        if (player.mode == MODE_BALL) speed /= 2;
+        else if (player.mode == MODE_UFO) speed = speed / 4 * 3;
+    }
+    if (player.mode == MODE_SHIP) speed = speed / 16 * 14;
+    if ((step > 0) != (player.gravity_flipped != 0)) {
+        player.on_ground = 1;
+        player.orb_buffered = 0;
+    }
+    if (type == EJ_HIPO) {
+        player.on_slope = 1;
+        // the slope counts 5 more frames (a cube after a 22 degree slope up: 3)
+        SET_SLOPE_COUNTER(&player, (player.mode == MODE_CUBE && player.slope_type != 0xFF &&
+            (slopes[player.slope_type].kind & (SK_UP | SK_22)) == (SK_UP | SK_22)) ? 3 : 5);
+        player.slope_type = sl_type;
+    } else if (type == EJ_HORZ) {
+        c_skip_hipo = 1;
+    }
+    if (step < 0) {
+        if (player.vel_y.w < speed) player.vel_y.w = speed;
+    } else {
+        if (player.vel_y.w > speed) player.vel_y.w = speed;
+    }
+    return 0;
+}
+
+// GDA collide_with_map_slopes: the slopes in the 2 x 2 metatiles from the top left of the
+// player's box (columns c0, c1; xm: x inside c0's metatile; py: the box's top row). 1: died
+static uint8_t slope_pass(const uint8_t *c0, const uint8_t *c1, uint8_t py, uint8_t xm) {
+    uint8_t mini = player.mini;
+    c_r = mini ? 4 : 8;
+    c_ri = mini ? 2 : 3;
+    c_x = xm + (mini ? 4 : 8);
+    c_y = py + (mini ? 7 : 8);
+    c_dir = (player.vel_y.w > 0) ? 1 : -1;
+    c_skip_hipo = 0;
+    int16_t top = py + (mini ? 3 : 0);
+    for (uint8_t side = 0; side < 4u; side++) {
+        uint8_t yo = (side & 2u) ? 16 : 0;
+        if (player.vel_y.w < 0) yo = 16 - yo;
+        int16_t y = top + yo;
+        if ((uint16_t)y & 0xFF00) continue;
+        uint8_t col = level_mt_col[((side & 1u) ? c1 : c0)[(uint8_t)y >> 4]];
+        if (!IS_SLOPE(col)) continue;
+        sl_type = (uint8_t)(col - COL_SLOPE_BASE);
+        sl = &slopes[sl_type];
+        sl_ox = (side & 1u) ? 16 : 0;
+        sl_oy = y & ~15;
+        uint8_t type = slope_eject_type();
+        int16_t ej = slope_eject(type);
+        if (ej == SLOPE_NONE) continue;
+        if (slope_check(ej, type)) break;
+    }
+    return player.dead;
 }
 
 // Collision types that depend on where inside the metatile the probe is (half blocks,
@@ -137,9 +355,7 @@ static uint8_t col_at_partial(uint8_t col, uint8_t inner_y, uint8_t xin) {
     } else if ((uint8_t)(col - COL_BOX_BASE) < COL_BOX_COUNT) {
         return box_at(col, xin, inner_y) ? COL_ALL : COL_NONE;
     } else if (IS_SLOPE(col)) {
-        uint8_t h = slope_h(col, xin);
-        uint8_t below = (inner_y >= h);
-        return (below != slope_lines[(uint8_t)(col - COL_SLOPE_BASE)].ud) ? COL_ALL : COL_NONE;
+        return COL_NONE;   // the slope code (slope_pass)
     } else if (col == COL_BREAKABLE) {
         return COL_ALL;
     }
@@ -293,13 +509,6 @@ static uint8_t saw_corner(const uint8_t *col_ptr, int16_t y, uint8_t xin, uint8_
     return (uint16_t)(saw_sq[dx] + saw_sq[dy]) < saw_sq[rad];   // dx, dy < rad <= 15
 }
 
-// Not inlined (the slope code's probes): inline_col_at's body once
-static uint8_t probe_col(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
-    return inline_col_at(col_ptr, y, xin);
-}
-// A non-slope solid at probe offset off, height y (the slope code)
-#define FLAT_AT(off, y) (IS_SOLID(probe_col(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)) && !IS_SLOPE(RAW_COL(off, y)))
-
 // off: x offset of the probe point inside the player box
 #define COL_AT(off, y) inline_col_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
 #define SPIKE(off, y) spike_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
@@ -353,6 +562,10 @@ uint8_t player_update(
             max_fall = mini ? MINI_UFO_MAX_FALL : UFO_MAX_FALL;
         } else {
             gravity_val = mini ? MINI_GRAVITY : GRAVITY;
+            // Just off a 22 / 45 degree slope up: no gravity while the slope still counts (GDA:
+            // the cube starts falling later)
+            if (!was_on_ground && SLOPE_COUNTER(p) &&
+                (slopes[p->slope_type].kind & (SK_UP | SK_66)) == SK_UP) gravity_val = 0;
         }
         // Famidash common_gravity_routine: no clamp; past the max fall speed the gravity pulls
         // the other way for a frame (the speed hovers around it)
@@ -415,61 +628,23 @@ uint8_t player_update(
 
     p->on_ground = 0;
 
-    // Floor slopes (normal gravity): the feet stand on the highest slope line under the 3 foot
-    // probes, in the metatile of the feet or the one above it (and, standing on a slope already,
-    // up to 8 px below: down a slope). Up to 8 px up (a slope's tall side is a wall). A cube going
-    // up a slope moves up at the slope's speed and keeps it off its top (GD's slope launch).
-    uint8_t was_on_slope = p->on_slope;
+    // Slopes first (GDA collision_cube): they move the player, the blocks below see where to
     p->on_slope = 0;
-    if (!p->gravity_flipped && (p->vel_y.w >= 0 || was_on_slope)) {
-        int16_t foot_y = py + box_bot;
-        int16_t best = 0x7FFF;
-        int16_t best_vy = 0;
-        for (uint8_t k = 0; k < 3u; k++) {
-            uint8_t off = (k == 0) ? 0 : (k == 1) ? (uint8_t)(box_r >> 1) : box_r;
-            for (uint8_t d = 0; d < 3u; d++) {
-                int16_t yy = (d == 0) ? foot_y - 1 : (d == 1) ? foot_y : foot_y + 8;
-                if (d == 2 && !was_on_slope) break;
-                uint8_t raw = RAW_COL(off, yy);
-                if (!IS_SLOPE(raw)) continue;
-                const SlopeLine *l = &slope_lines[(uint8_t)(raw - COL_SLOPE_BASE)];
-                if (l->ud) continue;
-                uint8_t h = slope_h(raw, (uint8_t)(wx + off) & 15u);
-                if (h >= 16u) continue;   // nothing of the slope in this column of the metatile
-                int16_t sy = (int16_t)(yy & ~15) + h;
-                if (sy < best) { best = sy; best_vy = l->vy; }
-            }
-        }
-        // A foot on flat ground right under the feet (the top of a slope onto blocks), and no
-        // slope line above them: the ground holds the cube (the floor code below), no launch
-        // (standing on a slope: as far down as it would follow the slope)
-        if (best >= foot_y) {
-            for (int16_t fy = foot_y + 1; fy <= foot_y + (was_on_slope ? 8 : 1); fy += 7) {
-                if (FLAT_AT(0, fy) || FLAT_AT(box_r >> 1, fy) || FLAT_AT(box_r, fy)) {
-                    best = 0x7FFF;
-                    if (p->vel_y.w < 0) p->vel_y.w = 0;
-                    break;
-                }
-            }
-        }
-        if (best >= foot_y - 8 && best <= foot_y + (was_on_slope ? 8 : 0)) {
-            p->world_y.b.h = (uint8_t)(best - box_bot);
-            p->world_y.b.l = 0;
-            p->vel_y.w = best_vy;
-            p->on_ground = 1;
-            p->orb_buffered = 0;
-            p->on_slope = 1;
-        }
-    }
+    if (slope_pass(c0, c1, py, x_mod_16)) return 1;
+    py = p->world_y.b.h;
+    // Standing on a slope (GDA slope_counter): the block probes are only the front ones, the
+    // others would catch the blocks the slope is on
+    uint8_t probe0 = SLOPE_COUNTER(p) ? box_r : 0;
+    uint8_t probe1 = SLOPE_COUNTER(p) ? box_r : (uint8_t)(box_r >> 1);
 
     // Floor collision
-    if (p->vel_y.w >= 0 && !p->on_slope) {
+    if (p->vel_y.w >= 0) {
         int16_t foot_y = py + box_bot;
-        uint8_t hit_off = 0;
-        uint8_t hit_col = COL_AT(0, foot_y);
+        uint8_t hit_off = probe0;
+        uint8_t hit_col = COL_AT(probe0, foot_y);
         if (!IS_SOLID(hit_col)) {
-            hit_off = box_r >> 1;
-            hit_col = COL_AT(box_r >> 1, foot_y);
+            hit_off = probe1;
+            hit_col = COL_AT(probe1, foot_y);
             if (!IS_SOLID(hit_col)) {
                 hit_off = box_r;
                 hit_col = COL_AT(box_r, foot_y);
@@ -505,11 +680,11 @@ uint8_t player_update(
     uint8_t head_off = (uint8_t)(box_top + (mini ? 1u : 2u));
     if (p->vel_y.w < 0) {
         int16_t head_y = py + head_off;
-        uint8_t hit_off = 0;
-        uint8_t hit_col = COL_AT(0, head_y);
+        uint8_t hit_off = probe0;
+        uint8_t hit_col = COL_AT(probe0, head_y);
         if (!IS_SOLID(hit_col)) {
-            hit_off = box_r >> 1;
-            hit_col = COL_AT(box_r >> 1, head_y);
+            hit_off = probe1;
+            hit_col = COL_AT(probe1, head_y);
             if (!IS_SOLID(hit_col)) {
                 hit_off = box_r;
                 hit_col = COL_AT(box_r, head_y);
@@ -518,11 +693,8 @@ uint8_t player_update(
         if (IS_SOLID(hit_col)) {
             uint8_t block_bottom_y = (uint8_t)((head_y & ~15) + 16);
             uint8_t raw = RAW_COL(hit_off, head_y);
-            // A ceiling slope: its line above the probe
-            if (IS_SLOPE(raw)) {
-                block_bottom_y = (uint8_t)((head_y & ~15) + slope_h(raw, (uint8_t)(wx + hit_off) & 15u));
             // A box has its bottom where its rectangle above the probe ends
-            } else if ((uint8_t)(raw - COL_BOX_BASE) < COL_BOX_COUNT) {
+            if ((uint8_t)(raw - COL_BOX_BASE) < COL_BOX_COUNT) {
                 block_bottom_y = (uint8_t)((head_y & ~15) +
                                  box_edge(raw, (uint8_t)(wx + hit_off) & 15u, (uint8_t)head_y & 15u, 1));
             // A top half block / quadrant solid hit in its upper half has its bottom 8px higher
@@ -633,6 +805,8 @@ uint8_t player_update(
                 int16_t jf = mini ? MINI_JUMP_FORCE : JUMP_FORCE;
                 p->vel_y.w = (p->gravity_flipped) ? -jf : jf;
                 p->on_ground = 0;
+                if (p->on_slope) SET_SLOPE_COUNTER(p, 2);   // GDA cube_gamemode
+                p->on_slope = 0;
             } else if (p->mode == MODE_BALL && !p->ball_switched) {
                 p->gravity_flipped = !p->gravity_flipped;
                 int16_t sv = mini ? MINI_BALL_SWITCH_VEL : BALL_SWITCH_VEL;
@@ -654,7 +828,18 @@ uint8_t player_update(
     p->ufo_orbed = 0;
 
     // Animation Update
-    if (p->on_ground && p->mode != MODE_BALL) {
+    if (p->mode == MODE_CUBE && SLOPE_COUNTER(p)) {
+        // On (or just off) a slope: lined up with it (GDA snap_to_45 / snap_to_tan_theta_1_2), in
+        // half steps (7.5 deg) past a square side: 45 deg 6, a line going down 22 deg 4 (26.5),
+        // 66 deg 8; going up 12 minus that
+        const Slope *s = &slopes[p->slope_type];
+        uint8_t t = (s->kind & SK_22) ? 4 : (s->kind & SK_66) ? 8 : 6;
+        if (((s->kind & SK_UP) != 0) == (s->step > 0)) t = (uint8_t)(12u - t);
+        uint8_t h = (uint8_t)((p->anim_frame << 1) + (p->anim_timer >= 11u ? 1u : 0u));
+        h = (uint8_t)(h - ((mod6_table[p->anim_frame] << 1) + (h & 1u)) + t);
+        p->anim_frame = (uint8_t)(h >> 1);
+        p->anim_timer = (h & 1u) ? 11 : 0;
+    } else if (p->on_ground && p->mode != MODE_BALL) {
         // Landed mid-spin: settle onto the NEAREST square side, in half steps (7.5 deg, 12 a
         // quarter turn; the half step is anim_timer >= 11, as drawn in the air), 2 a frame.
         // Past 45 deg -> finish the spin forwards; before it -> roll backwards instead.
@@ -682,6 +867,17 @@ uint8_t player_update(
     if (p->world_y.b.h >= (uint8_t)((map_h << 4) - 8)) {
         p->dead = 1;
         return 1;
+    }
+
+    // GDA's per frame slope bookkeeping: the speed up a slope eases in, the slope stops counting
+    if (SLOPE_COUNTER(p)) {
+        if (SLOPE_MULT(p) < 4u) p->slope_state += 0x10;
+        p->slope_state--;
+        if (!SLOPE_COUNTER(p)) {
+            p->on_slope = 0;
+            p->slope_type = 0xFF;
+            p->slope_state = 0;
+        }
     }
 
     p->last_joy = joy;
