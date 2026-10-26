@@ -223,15 +223,15 @@ static void fade_set_drawn(uint8_t slot, uint8_t f) {
 void fade_reset_view(void) BANKED {
     memset(fade_drawn, 0xFF, sizeof(fade_drawn));   // frame 3: built full
     fade_unknown = fade_any = 0xFFFF;
-    bg_fj_rows = 0;
+    bg_fj_n = 0;
 }
 
 // Ring slot `slot` gets a new column (its 16 ids): drawn at the frame for where it is now
 static void fade_new_column(uint8_t slot, const uint8_t *ids) {
     if (!fade_count) return;
     fade_set_drawn(slot, fade_frame_of(slot));
-    if (bg_fj_rows && bg_fj_x == (uint8_t)(slot << 1)) {
-        CRITICAL { bg_fj_rows = 0; }   // that slot's cells: rewritten by the new column
+    if (bg_fj_n && bg_fj_x == (uint8_t)(slot << 1)) {
+        CRITICAL { bg_fj_n = 0; }   // that slot's cells: rewritten by the new column
     }
     uint16_t bit = (uint16_t)1 << slot;
     fade_any &= ~bit;
@@ -1309,9 +1309,9 @@ static void mj_write_run_asm(void) __naked {
 void mj_build_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t map_hi) BANKED {
     uint8_t slot = (uint8_t)(map_col & 15u);
     if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
-    if (bg_fj_rows) {
+    if (bg_fj_n) {
         // mj_out holds a fading cell job: it is done again later
-        CRITICAL { fade_unknown |= (uint16_t)1 << (bg_fj_x >> 1); bg_fj_rows = 0; }
+        CRITICAL { fade_unknown |= (uint16_t)1 << (bg_fj_x >> 1); bg_fj_n = 0; }
     }
     get_map_column(map_col, map, map_bank, mj_col, mt_band);
     fade_mj = 1;
@@ -1388,12 +1388,43 @@ void bg_map_reflect(void) BANKED {
     reflect_map_asm();
 }
 
+// The fading cell job's list (bg_fj_*) from the cells built in mj_out (row r: tiles at 4r,
+// attributes at 64 + 4r) of the rows set in `rows`: per cell its row and the 4 bytes the handler
+// writes (CGB attributes, DMG tiles), packed over bytes already read: CGB from mj_out up (the
+// attributes are above), DMG from mj_out + 128 down (the tiles are below). The handler takes the
+// time a cell's bytes take to copy, not a row's address work and the empty rows between (a slot's
+// cells left the parallax GDMA no VBlank time, it stood still).
+static void fade_pack(uint16_t rows) {
+    uint8_t n = 0;
+    if (bg_gdma_isr_on) {
+        uint8_t *e = mj_out;
+        for (uint8_t r = 0; r < 16u; r++) {
+            if (!(rows & ((uint16_t)1 << r))) continue;
+            const uint8_t *a = mj_out + 64u + (uint8_t)(r << 2);
+            e[0] = r; e[1] = a[0]; e[2] = a[1]; e[3] = a[2]; e[4] = a[3];
+            e += 5; n++;
+        }
+        bg_fj_start = 0;
+    } else {
+        uint8_t *e = mj_out + 128u;
+        for (uint8_t r = 16u; r--; ) {
+            if (!(rows & ((uint16_t)1 << r))) continue;
+            const uint8_t *t = mj_out + (uint8_t)(r << 2);
+            e -= 5;
+            e[1] = t[0]; e[2] = t[1]; e[3] = t[2]; e[4] = t[3]; e[0] = r;
+            n++;
+        }
+        bg_fj_start = (uint8_t)(e - mj_out);
+    }
+    bg_fj_n = n;
+}
+
 // Once a frame in gameplay: the first ring slot near the screen whose fading cells are not at the
 // frame for where it is now gets them rewritten, built into mj_out and written by the VBlank
 // handler (bg_fj_*). One slot at a time: the next one once the handler has written this one.
 // busy_slot: the slot the column job is writing (its build sets the frame), else 0xFF.
 void fade_update(uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t busy_slot) BANKED {
-    if (!fade_count || bg_fj_rows) return;
+    if (!fade_count || bg_fj_n) return;
     // nearest first: from the player's slot towards where the player goes
     uint8_t s = (uint8_t)(((uint8_t)(fade_psx + fade_scx + 8u)) >> 4);
     int8_t dir = (fade_psx >= 80u) ? -1 : 1;
@@ -1424,8 +1455,8 @@ void fade_update(uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t 
             continue;
         }
         build_mt_rows(c, mj_col, mj_out, reversed, lo, (uint8_t)(hi + 1u));
-        bg_fj_x = (uint8_t)(s << 1);
-        bg_fj_rows = rows;
+        bg_fj_x = (uint8_t)(s << 1);   // before bg_fj_n (fade_pack): the handler may run between
+        fade_pack(rows);
         return;
     }
 }
@@ -1433,7 +1464,12 @@ void fade_update(uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t 
 // The band moved: a pending fading cell job must not write the VRAM row the new map row goes to
 // (the row job writes it, at the slots' frames)
 void fade_band_moved(uint8_t row) BANKED {
-    if (bg_fj_rows) {
-        CRITICAL { bg_fj_rows &= ~((uint16_t)1 << (row & 15u)); }
+    if (bg_fj_n) {
+        CRITICAL {
+            uint8_t *e = mj_out + bg_fj_start;
+            for (uint8_t i = bg_fj_n; i; i--, e += 5) {
+                if (*e == (uint8_t)(row & 15u)) *e |= 0x80;   // dropped
+            }
+        }
     }
 }

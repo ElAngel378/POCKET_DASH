@@ -20,8 +20,8 @@ volatile uint8_t bg_rj_pending;
 uint8_t bg_rj_x, bg_rj_y;
 uint8_t bg_rj_tiles[2 * 2 * BG_RJ_SLOTS];
 uint8_t bg_rj_attrs[2 * 2 * BG_RJ_SLOTS];
-volatile uint16_t bg_fj_rows;
-uint8_t bg_fj_x;
+volatile uint8_t bg_fj_n;
+uint8_t bg_fj_start, bg_fj_x;
 volatile uint8_t bg_saw_pending;
 uint8_t bg_saw_bank, bg_saw_blocks;
 const uint8_t *bg_saw_src;
@@ -138,80 +138,60 @@ static void copy_row16x2(void) __naked {
     __endasm;
 }
 
-// Fading cells (bg_fj_*): the rows of bg_fj_rows, from mj_out (mt_renderer.c) to map column
-// bg_fj_x of the BG map shown (CGB: their attributes too) while LY is 144..152 (a cell takes well
-// under a line), and leaves bg_fj_rows at the rows not written. No variables of its own: the
-// stack is short of RAM.
-static void fade_cells_copy(void) __naked {
+// Fading cells (bg_fj_*): the list's cells, from the last one, to map column bg_fj_x of the BG
+// map shown (CGB: attributes only, frames 1..3 are the same tiles in palettes 6, 7, the object's
+// own; DMG: tiles) while LY is 144 .. ly_end - 1 (a cell takes well under a line), and leaves
+// bg_fj_n at the cells not written. No variables of its own: the stack is short of RAM.
+static void fade_cells_copy(uint8_t ly_end) __naked {
+    (void)ly_end;
     __asm
-        ld      hl, #_bg_fj_rows
-        ld      a, (hl+)
-        ld      c, a
-        ld      b, (hl)                 ; bc = rows left, bit 0: row d
-        ld      d, #0
-    1$:
-        ld      a, b
-        or      a, c
-        jr      Z, 9$
-        ldh     a, (_LY_REG + 0)
-        cp      a, #144
-        jr      C, 8$                   ; past VBlank: the rest next time
-        cp      a, #153
-        jr      NC, 8$
-        srl     b
-        rr      c
-        jr      NC, 5$
-        push    bc
-        push    de
-        ld      a, d
-        add     a, a
-        add     a, a
-        add     a, #<_mj_out
-        ld      l, a
-        ld      a, #>_mj_out
-        adc     a, #0
-        ld      h, a                    ; hl = the 4 tiles of the row
-        ld      a, d
-        rrca
-        rrca
-        ld      d, a
-        and     a, #0xC0
-        ld      e, a
-        ld      a, d
-        and     a, #0x03
-        ld      d, a                    ; de = 64r: tile row 2r
-        ld      a, (_bg_fj_x)
-        add     a, e
-        ld      e, a                    ; (64r + x: no carry, x < 32)
+        ld      e, a                    ; e = ly_end
+        ld      a, (_bg_fj_n)
+        or      a, a
+        ret     Z
+        ld      d, a                    ; d = cells left: entries 0 .. d - 1
+        ld      a, (_bg_gdma_isr_on)    ; VRAM bank: CGB 1 (attributes), DMG 0 (tiles)
+        ldh     (_VBK_REG + 0), a
         ldh     a, (_LCDC_REG + 0)
         and     a, #0x08                ; the map shown: 0x9800, or 0x9C00 when set
         rrca
         or      a, #0x98
-        add     a, d
-        ld      d, a                    ; de = map + 64r + x
-        xor     a, a
-        ldh     (_VBK_REG + 0), a
+        ld      c, a                    ; c = its high byte
+        ld      a, (_bg_fj_x)
+        ld      b, a                    ; b = tile x
+        ld      a, d
+        dec     a
+        ld      l, a
+        add     a, a
+        add     a, a
+        add     a, l                    ; 5 (d - 1)
+        ld      hl, #_bg_fj_start
+        add     a, (hl)                 ; the last entry (< 128)
+        add     a, #<_mj_out
+        ld      l, a
+        ld      a, #>_mj_out
+        adc     a, #0
+        ld      h, a                    ; hl = the last entry
+    1$:
+        ldh     a, (_LY_REG + 0)
+        cp      a, #144
+        jr      C, 9$                   ; past VBlank: the rest next time
+        cp      a, e
+        jr      NC, 9$
         push    de
-        push    hl
-        call    6$
-        pop     hl
-        pop     de
-        ld      a, (_bg_gdma_isr_on)    ; CGB: the attributes too
-        or      a, a
-        jr      Z, 4$
-        ld      a, #1
-        ldh     (_VBK_REG + 0), a
-        ld      bc, #64
-        add     hl, bc                  ; the 4 attributes of the row
-        call    6$
-    4$:
-        pop     de
-        pop     bc
-    5$:
-        inc     d
-        jr      1$
-    6$:
-        ; 2 bytes from hl to de, 2 more to de + 32
+        ld      a, (hl+)                ; r
+        bit     7, a
+        jr      NZ, 3$                  ; dropped
+        rrca
+        rrca
+        ld      d, a
+        and     a, #0xC0
+        add     a, b                    ; (64r + x: no carry, x < 32)
+        ld      e, a
+        ld      a, d
+        and     a, #0x03
+        or      a, c
+        ld      d, a                    ; de = map + 64r + x: tile row 2r
         ld      a, (hl+)
         ld      (de), a
         inc     e
@@ -220,30 +200,31 @@ static void fade_cells_copy(void) __naked {
         ld      a, e
         add     a, #31
         ld      e, a
-        jr      NC, 7$
+        jr      NC, 2$
         inc     d
-    7$:
+    2$:
         ld      a, (hl+)
         ld      (de), a
         inc     e
         ld      a, (hl+)
         ld      (de), a
-        ret
-    8$:
-        ; out of time: the rows left are bc << d
-        ld      a, d
-        or      a, a
-        jr      Z, 9$
-    10$:
-        sla     c
-        rl      b
-        dec     a
-        jr      NZ, 10$
+        ld      a, l
+        sub     a, #10                  ; the entry before
+        jr      5$
+    3$:
+        ld      a, l
+        sub     a, #6
+    5$:
+        ld      l, a
+        jr      NC, 4$
+        dec     h
+    4$:
+        pop     de
+        dec     d
+        jr      NZ, 1$
     9$:
-        ld      hl, #_bg_fj_rows
-        ld      a, c
-        ld      (hl+), a
-        ld      (hl), b
+        ld      a, d
+        ld      (_bg_fj_n), a
         ret
     __endasm;
 }
@@ -479,21 +460,24 @@ void cube_tiles_load_now(const uint8_t *src, uint8_t bank, uint8_t first_tile) {
 }
 
 // Fading cells (bg_fj_*) as far as VBlank allows, never before a column slice still pending (it
-// may be the same column)
+// may be the same column). With a parallax GDMA waiting, only up to line 148: it must start by
+// line 149 (parallax_try), and the cells took all of VBlank, the parallax was put off frame after
+// frame (it stood still, then jumped). What is left of the cells goes after it.
 #ifdef DEBUG_PROFILE
 volatile uint8_t gp_fj_late_ly, gp_fj_late_cj, gp_fj_done;   // tools: fading cell jobs put off / done
 #endif
 static void fade_cells_try(void) {
     uint8_t ly = LY_REG;
-    if (bg_fj_rows && !bg_cj_pending && ly >= 144u && ly <= 152u) {
-        fade_cells_copy();
+    uint8_t ly_end = bg_gdma_pending ? 148u : 153u;
+    if (bg_fj_n && !bg_cj_pending && ly >= 144u && ly < ly_end) {
+        fade_cells_copy(ly_end);
 #ifdef DEBUG_PROFILE
         gp_fj_done++;
 #endif
     }
 #ifdef DEBUG_PROFILE
-    else if (bg_fj_rows && bg_cj_pending) gp_fj_late_cj++;
-    else if (bg_fj_rows) gp_fj_late_ly++;
+    else if (bg_fj_n && bg_cj_pending) gp_fj_late_cj++;
+    else if (bg_fj_n) gp_fj_late_ly++;
 #endif
 }
 
@@ -629,6 +613,8 @@ void bg_parallax_vbl_isr(void) {
     // often left the row job too little of VBlank, and in a fast climb the rows fell behind
     // (stale rows on screen)
     parallax_try();
+    // the fading cells left for after it
+    fade_cells_try();
     // Saw animation chunk (~0.5k dots), last: the map streaming above matters more
     ly = LY_REG;
     if (bg_saw_pending && ly >= 144u && ly <= 151u) {

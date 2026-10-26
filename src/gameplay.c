@@ -229,7 +229,7 @@ static void stream_jobs_reset(void) {
     col_job_step = COL_JOB_STEPS;
     fix_saved_col = 0xFFFF;
     row0_job_pos = 16;
-    col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0; bg_fj_rows = 0;
+    col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0; bg_fj_n = 0;
     band_cam_row = 0xFF;
 }
 
