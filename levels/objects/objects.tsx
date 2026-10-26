@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="objects" tilewidth="16" tileheight="16" tilecount="432" columns="16">
- <image source="objects_preview.png" width="256" height="432"/>
+<tileset version="1.10" tiledversion="1.11.2" name="objects" tilewidth="16" tileheight="16" tilecount="1088" columns="16">
+ <image source="objects_preview.png" width="256" height="1088"/>
  <tile id="0">
   <properties>
    <property name="name" value="EMPTY"/>
@@ -4203,6 +4203,5812 @@
    <property name="dmg_art" type="int" value="-1"/>
    <property name="gda_name" value="SLAB_DOWN_FLIPPED"/>
    <property name="gda_collision" value="COL_SLAB_BOTTOM"/>
+  </properties>
+ </tile>
+ <tile id="433">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="434">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_Y8_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="448">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="449">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_Y8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="450">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_Y8_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="451">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_Y8_R1C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="464">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_Y8_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="465">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_Y8_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="466">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_Y8_R2C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="467">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_Y8_R2C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="481">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_Y8_R3C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="482">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_Y8_R3C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="436">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_Y8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="437">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="438">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_Y8_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="452">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="453">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_Y8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="454">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_Y8_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="468">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_Y8_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="469">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_Y8_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="470">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_Y8_R2C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="484">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_Y8_R3C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="485">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_Y8_R3C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="486">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_Y8_R3C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="440">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="441">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_Y8_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="455">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="456">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_Y8_R1C1"/>
+   <property name="collision" type="int" value="128"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,16,16,16,0"/>
+  </properties>
+ </tile>
+ <tile id="457">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_Y8_R1C2"/>
+   <property name="collision" type="int" value="129"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,0,16,16,0"/>
+  </properties>
+ </tile>
+ <tile id="458">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_Y8_R1C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="471">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_Y8_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="472">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_Y8_R2C1"/>
+   <property name="collision" type="int" value="130"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,16,0,16,0"/>
+  </properties>
+ </tile>
+ <tile id="473">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_Y8_R2C2"/>
+   <property name="collision" type="int" value="131"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,0,0,16,0"/>
+  </properties>
+ </tile>
+ <tile id="474">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_Y8_R2C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="488">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_Y8_R3C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="489">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_Y8_R3C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="443">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_Y8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="444">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="445">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_Y8_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="459">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_Y8_R1C0"/>
+   <property name="collision" type="int" value="132"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,24,16,16,0"/>
+  </properties>
+ </tile>
+ <tile id="460">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_Y8_R1C1"/>
+   <property name="collision" type="int" value="133"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,16,16,0"/>
+  </properties>
+ </tile>
+ <tile id="461">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_Y8_R1C2"/>
+   <property name="collision" type="int" value="134"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,-8,16,16,0"/>
+  </properties>
+ </tile>
+ <tile id="475">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_Y8_R2C0"/>
+   <property name="collision" type="int" value="135"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,24,0,16,0"/>
+  </properties>
+ </tile>
+ <tile id="476">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_Y8_R2C1"/>
+   <property name="collision" type="int" value="136"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,0,16,0"/>
+  </properties>
+ </tile>
+ <tile id="477">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_Y8_R2C2"/>
+   <property name="collision" type="int" value="137"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,-8,0,16,0"/>
+  </properties>
+ </tile>
+ <tile id="491">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_Y8_R3C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="492">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_Y8_R3C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="493">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_Y8_R3C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="497">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_X8_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="498">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_X8_Y8_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="512">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_X8_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="513">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_X8_Y8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="514">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_X8_Y8_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="515">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_X8_Y8_R1C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="528">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_X8_Y8_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="529">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_X8_Y8_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="530">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_X8_Y8_R2C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="531">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_X8_Y8_R2C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="545">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_X8_Y8_R3C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="546">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_X8_Y8_R3C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="501">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="516">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="517">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_Y8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="518">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_Y8_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="532">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_Y8_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="533">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_Y8_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="534">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_Y8_R2C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="549">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_Y8_R3C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="504">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="505">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_Y8_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="519">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="520">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_Y8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="521">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_Y8_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="522">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_Y8_R1C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="535">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_Y8_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="536">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_Y8_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="537">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_Y8_R2C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="538">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_Y8_R2C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="552">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_Y8_R3C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="553">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_Y8_R3C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="508">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="523">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="524">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_Y8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="525">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_Y8_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="539">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_Y8_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="540">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_Y8_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="541">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_Y8_R2C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="556">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_Y8_R3C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="561">
+  <properties>
+   <property name="name" value="ALT_BIG_OUTLINE_SAW_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="576">
+  <properties>
+   <property name="name" value="ALT_BIG_OUTLINE_SAW_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="577">
+  <properties>
+   <property name="name" value="ALT_BIG_OUTLINE_SAW_R1C1"/>
+   <property name="collision" type="int" value="138"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,8,8,0"/>
+  </properties>
+ </tile>
+ <tile id="578">
+  <properties>
+   <property name="name" value="ALT_BIG_OUTLINE_SAW_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="593">
+  <properties>
+   <property name="name" value="ALT_BIG_OUTLINE_SAW_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="563">
+  <properties>
+   <property name="name" value="ALT_MEDIUM_OUTLINE_SAW_R0C0"/>
+   <property name="collision" type="int" value="139"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,24,24,10,0"/>
+  </properties>
+ </tile>
+ <tile id="564">
+  <properties>
+   <property name="name" value="ALT_MEDIUM_OUTLINE_SAW_R0C1"/>
+   <property name="collision" type="int" value="140"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,24,10,0"/>
+  </properties>
+ </tile>
+ <tile id="565">
+  <properties>
+   <property name="name" value="ALT_MEDIUM_OUTLINE_SAW_R0C2"/>
+   <property name="collision" type="int" value="141"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,-8,24,10,0"/>
+  </properties>
+ </tile>
+ <tile id="579">
+  <properties>
+   <property name="name" value="ALT_MEDIUM_OUTLINE_SAW_R1C0"/>
+   <property name="collision" type="int" value="142"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,24,8,10,0"/>
+  </properties>
+ </tile>
+ <tile id="580">
+  <properties>
+   <property name="name" value="ALT_MEDIUM_OUTLINE_SAW_R1C1"/>
+   <property name="collision" type="int" value="143"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,8,10,0"/>
+  </properties>
+ </tile>
+ <tile id="581">
+  <properties>
+   <property name="name" value="ALT_MEDIUM_OUTLINE_SAW_R1C2"/>
+   <property name="collision" type="int" value="144"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,-8,8,10,0"/>
+  </properties>
+ </tile>
+ <tile id="595">
+  <properties>
+   <property name="name" value="ALT_MEDIUM_OUTLINE_SAW_R2C0"/>
+   <property name="collision" type="int" value="145"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,24,-8,10,0"/>
+  </properties>
+ </tile>
+ <tile id="596">
+  <properties>
+   <property name="name" value="ALT_MEDIUM_OUTLINE_SAW_R2C1"/>
+   <property name="collision" type="int" value="146"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,-8,10,0"/>
+  </properties>
+ </tile>
+ <tile id="597">
+  <properties>
+   <property name="name" value="ALT_MEDIUM_OUTLINE_SAW_R2C2"/>
+   <property name="collision" type="int" value="147"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,-8,-8,10,0"/>
+  </properties>
+ </tile>
+ <tile id="566">
+  <properties>
+   <property name="name" value="ALT_SMALL_OUTLINE_SAW_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_SMALL_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="582">
+  <properties>
+   <property name="name" value="ALT_SMALL_OUTLINE_SAW_R1C0"/>
+   <property name="collision" type="int" value="148"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_SMALL_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,8,2,0"/>
+  </properties>
+ </tile>
+ <tile id="598">
+  <properties>
+   <property name="name" value="ALT_SMALL_OUTLINE_SAW_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ALT_SMALL_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="567">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="568">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="569">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="583">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="584">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="585">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="599">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="600">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="601">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_R2C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="570">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_X8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="571">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_X8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="586">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_X8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="587">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_X8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="602">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_X8_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="603">
+  <properties>
+   <property name="name" value="BIG_CIRCLE_SAW_DECO_X8_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="572">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="573">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="574">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="588">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="590">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="604">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="605">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="606">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_R2C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="608">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="609">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="610">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="611">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_R0C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="624">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="625">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="626">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="627">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_R1C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="640">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="641">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="642">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_R2C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="643">
+  <properties>
+   <property name="name" value="BIG_CIRCUNFERENCE_SAW_DECO_X8_R2C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="612">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_R0C0"/>
+   <property name="collision" type="int" value="149"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,24,24,16,0"/>
+  </properties>
+ </tile>
+ <tile id="613">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_R0C1"/>
+   <property name="collision" type="int" value="150"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,24,16,0"/>
+  </properties>
+ </tile>
+ <tile id="614">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_R0C2"/>
+   <property name="collision" type="int" value="151"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,-8,24,16,0"/>
+  </properties>
+ </tile>
+ <tile id="628">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_R1C0"/>
+   <property name="collision" type="int" value="152"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,24,8,16,0"/>
+  </properties>
+ </tile>
+ <tile id="629">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_R1C1"/>
+   <property name="collision" type="int" value="153"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,8,16,0"/>
+  </properties>
+ </tile>
+ <tile id="630">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_R1C2"/>
+   <property name="collision" type="int" value="154"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,-8,8,16,0"/>
+  </properties>
+ </tile>
+ <tile id="644">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_R2C0"/>
+   <property name="collision" type="int" value="155"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,24,-8,16,0"/>
+  </properties>
+ </tile>
+ <tile id="645">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_R2C1"/>
+   <property name="collision" type="int" value="156"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,-8,16,0"/>
+  </properties>
+ </tile>
+ <tile id="646">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_R2C2"/>
+   <property name="collision" type="int" value="157"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,-8,-8,16,0"/>
+  </properties>
+ </tile>
+ <tile id="615">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="616">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_R0C1"/>
+   <property name="collision" type="int" value="158"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,16,24,16,0"/>
+  </properties>
+ </tile>
+ <tile id="617">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_R0C2"/>
+   <property name="collision" type="int" value="159"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,0,24,16,0"/>
+  </properties>
+ </tile>
+ <tile id="618">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_R0C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="631">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="632">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_R1C1"/>
+   <property name="collision" type="int" value="160"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,16,8,16,0"/>
+  </properties>
+ </tile>
+ <tile id="633">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_R1C2"/>
+   <property name="collision" type="int" value="161"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,0,8,16,0"/>
+  </properties>
+ </tile>
+ <tile id="634">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_R1C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="647">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="648">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_R2C1"/>
+   <property name="collision" type="int" value="162"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,16,-8,16,0"/>
+  </properties>
+ </tile>
+ <tile id="649">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_R2C2"/>
+   <property name="collision" type="int" value="163"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,0,-8,16,0"/>
+  </properties>
+ </tile>
+ <tile id="650">
+  <properties>
+   <property name="name" value="BIG_OUTLINE_SAW_X8_R2C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="619">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="620">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="621">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="635">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="636">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="637">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="651">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="652">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="653">
+  <properties>
+   <property name="name" value="BIG_SAW_DECO_R2C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="657">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="672">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="673">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="674">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="689">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="660">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="661">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="675">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="676">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="677">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="678">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_R1C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="692">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="693">
+  <properties>
+   <property name="name" value="BIG_SPIKE_SAW_DECO_X8_R2C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="663">
+  <properties>
+   <property name="name" value="BIG_WIDE_BG_CHAINS_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_WIDE_BG_CHAINS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="679">
+  <properties>
+   <property name="name" value="BIG_WIDE_BG_CHAINS_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_WIDE_BG_CHAINS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="695">
+  <properties>
+   <property name="name" value="BIG_WIDE_BG_CHAINS_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_WIDE_BG_CHAINS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="664">
+  <properties>
+   <property name="name" value="BIG_WIDE_BG_CHAINS_Y8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_WIDE_BG_CHAINS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="680">
+  <properties>
+   <property name="name" value="BIG_WIDE_BG_CHAINS_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_WIDE_BG_CHAINS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="696">
+  <properties>
+   <property name="name" value="BIG_WIDE_BG_CHAINS_Y8_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_WIDE_BG_CHAINS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="666">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="681">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="682">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="683">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="698">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="668">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_X8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="669">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_X8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="684">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_X8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="685">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_X8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="700">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_X8_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="701">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_X8_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="704">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_R0C0"/>
+   <property name="collision" type="int" value="164"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,24,24,12,0"/>
+  </properties>
+ </tile>
+ <tile id="705">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_R0C1"/>
+   <property name="collision" type="int" value="165"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,24,12,0"/>
+  </properties>
+ </tile>
+ <tile id="706">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_R0C2"/>
+   <property name="collision" type="int" value="166"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,-8,24,12,0"/>
+  </properties>
+ </tile>
+ <tile id="720">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_R1C0"/>
+   <property name="collision" type="int" value="167"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,24,8,12,0"/>
+  </properties>
+ </tile>
+ <tile id="721">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_R1C1"/>
+   <property name="collision" type="int" value="168"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,8,12,0"/>
+  </properties>
+ </tile>
+ <tile id="722">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_R1C2"/>
+   <property name="collision" type="int" value="169"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,-8,8,12,0"/>
+  </properties>
+ </tile>
+ <tile id="736">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_R2C0"/>
+   <property name="collision" type="int" value="170"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,24,-8,12,0"/>
+  </properties>
+ </tile>
+ <tile id="737">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_R2C1"/>
+   <property name="collision" type="int" value="171"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,-8,12,0"/>
+  </properties>
+ </tile>
+ <tile id="738">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_R2C2"/>
+   <property name="collision" type="int" value="172"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,-8,-8,12,0"/>
+  </properties>
+ </tile>
+ <tile id="707">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_X8_R0C0"/>
+   <property name="collision" type="int" value="173"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,16,24,12,0"/>
+  </properties>
+ </tile>
+ <tile id="708">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_X8_R0C1"/>
+   <property name="collision" type="int" value="174"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,0,24,12,0"/>
+  </properties>
+ </tile>
+ <tile id="723">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_X8_R1C0"/>
+   <property name="collision" type="int" value="175"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,16,8,12,0"/>
+  </properties>
+ </tile>
+ <tile id="724">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_X8_R1C1"/>
+   <property name="collision" type="int" value="176"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,0,8,12,0"/>
+  </properties>
+ </tile>
+ <tile id="739">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_X8_R2C0"/>
+   <property name="collision" type="int" value="177"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,16,-8,12,0"/>
+  </properties>
+ </tile>
+ <tile id="740">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_X8_R2C1"/>
+   <property name="collision" type="int" value="178"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,0,-8,12,0"/>
+  </properties>
+ </tile>
+ <tile id="709">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="710">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="711">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="725">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="726">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="727">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="741">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="742">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="743">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_R2C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="712">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_X8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="713">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_X8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="728">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_X8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="729">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_X8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="744">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_X8_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="745">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_X8_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="714">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="715">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="716">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="730">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="732">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="746">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="747">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="748">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_R2C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="717">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_X8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="718">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_X8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="733">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_X8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="734">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_X8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="749">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_X8_R2C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="750">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_X8_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="753">
+  <properties>
+   <property name="name" value="SMALL_OUTLINE_SAW_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="768">
+  <properties>
+   <property name="name" value="SMALL_OUTLINE_SAW_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="769">
+  <properties>
+   <property name="name" value="SMALL_OUTLINE_SAW_R1C1"/>
+   <property name="collision" type="int" value="179"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,8,7,0"/>
+  </properties>
+ </tile>
+ <tile id="770">
+  <properties>
+   <property name="name" value="SMALL_OUTLINE_SAW_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="785">
+  <properties>
+   <property name="name" value="SMALL_OUTLINE_SAW_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="756">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="771">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="772">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="773">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="788">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_R2C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="758">
+  <properties>
+   <property name="name" value="1.6_HALF_SPIKE_V_R0C0"/>
+   <property name="collision" type="int" value="180"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_HALF_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,6,10,11,14"/>
+  </properties>
+ </tile>
+ <tile id="774">
+  <properties>
+   <property name="name" value="1.6_HALF_SPIKE_V_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_HALF_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="759">
+  <properties>
+   <property name="name" value="1.6_SPIKE_H_Y8_R0C0"/>
+   <property name="collision" type="int" value="181"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,5,11,15,16"/>
+  </properties>
+ </tile>
+ <tile id="775">
+  <properties>
+   <property name="name" value="1.6_SPIKE_H_Y8_R1C0"/>
+   <property name="collision" type="int" value="182"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,5,11,0,1"/>
+  </properties>
+ </tile>
+ <tile id="760">
+  <properties>
+   <property name="name" value="1.6_SPIKE_H_Y8_HF_R0C0"/>
+   <property name="collision" type="int" value="181"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,5,11,15,16"/>
+  </properties>
+ </tile>
+ <tile id="776">
+  <properties>
+   <property name="name" value="1.6_SPIKE_H_Y8_HF_R1C0"/>
+   <property name="collision" type="int" value="182"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,5,11,0,1"/>
+  </properties>
+ </tile>
+ <tile id="761">
+  <properties>
+   <property name="name" value="1.6_SPIKE_V_Y8_R0C0"/>
+   <property name="collision" type="int" value="183"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,7,9,13,16"/>
+  </properties>
+ </tile>
+ <tile id="777">
+  <properties>
+   <property name="name" value="1.6_SPIKE_V_Y8_R1C0"/>
+   <property name="collision" type="int" value="184"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,7,9,0,3"/>
+  </properties>
+ </tile>
+ <tile id="762">
+  <properties>
+   <property name="name" value="1.6_SPIKE_V_Y8_VF_R0C0"/>
+   <property name="collision" type="int" value="183"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,7,9,13,16"/>
+  </properties>
+ </tile>
+ <tile id="778">
+  <properties>
+   <property name="name" value="1.6_SPIKE_V_Y8_VF_R1C0"/>
+   <property name="collision" type="int" value="184"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,7,9,0,3"/>
+  </properties>
+ </tile>
+ <tile id="765">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="779">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="780">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="781">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="782">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_R1C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="783">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_R1C4"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="800">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_VF_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="801">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_VF_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="802">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_VF_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="803">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_VF_R0C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="804">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_VF_R0C4"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="818">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_VF_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="806">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_X8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="807">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_X8_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="821">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_X8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="822">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_X8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="823">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_X8_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="824">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_X8_R1C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="809">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_X8_VF_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="810">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_X8_VF_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="811">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_X8_VF_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="812">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_X8_VF_R0C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="826">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_X8_VF_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="827">
+  <properties>
+   <property name="name" value="BIG_BG_CLOUDS_X8_VF_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="833">
+  <properties>
+   <property name="name" value="BIG_BG_SQUARES_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="834">
+  <properties>
+   <property name="name" value="BIG_BG_SQUARES_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="848">
+  <properties>
+   <property name="name" value="BIG_BG_SQUARES_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="849">
+  <properties>
+   <property name="name" value="BIG_BG_SQUARES_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="850">
+  <properties>
+   <property name="name" value="BIG_BG_SQUARES_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="851">
+  <properties>
+   <property name="name" value="BIG_BG_SQUARES_R1C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="852">
+  <properties>
+   <property name="name" value="BIG_BG_SQUARES_R1C4"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="837">
+  <properties>
+   <property name="name" value="BIG_DECO_TRIANGLE_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="853">
+  <properties>
+   <property name="name" value="BIG_DECO_TRIANGLE_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="838">
+  <properties>
+   <property name="name" value="BIG_DECO_TRIANGLE_VF_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="854">
+  <properties>
+   <property name="name" value="BIG_DECO_TRIANGLE_VF_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="839">
+  <properties>
+   <property name="name" value="BIG_DECO_TRIANGLE_X8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="840">
+  <properties>
+   <property name="name" value="BIG_DECO_TRIANGLE_X8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="855">
+  <properties>
+   <property name="name" value="BIG_DECO_TRIANGLE_X8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="856">
+  <properties>
+   <property name="name" value="BIG_DECO_TRIANGLE_X8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="841">
+  <properties>
+   <property name="name" value="BIG_DECO_TRIANGLE_X8_VF_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="842">
+  <properties>
+   <property name="name" value="BIG_DECO_TRIANGLE_X8_VF_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="857">
+  <properties>
+   <property name="name" value="BIG_DECO_TRIANGLE_X8_VF_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="858">
+  <properties>
+   <property name="name" value="BIG_DECO_TRIANGLE_X8_VF_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BIG_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="843">
+  <properties>
+   <property name="name" value="BUSH_DECO_6_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BUSH_DECO_6"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="844">
+  <properties>
+   <property name="name" value="BUSH_DECO_6_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BUSH_DECO_6"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="845">
+  <properties>
+   <property name="name" value="BUSH_DECO_6_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BUSH_DECO_6"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="859">
+  <properties>
+   <property name="name" value="BUSH_DECO_6_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BUSH_DECO_6"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="860">
+  <properties>
+   <property name="name" value="BUSH_DECO_6_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BUSH_DECO_6"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="861">
+  <properties>
+   <property name="name" value="BUSH_DECO_6_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BUSH_DECO_6"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="846">
+  <properties>
+   <property name="name" value="DIAMOND_BG_CHAINS_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="DIAMOND_BG_CHAINS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="862">
+  <properties>
+   <property name="name" value="DIAMOND_BG_CHAINS_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="DIAMOND_BG_CHAINS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="847">
+  <properties>
+   <property name="name" value="DIAMOND_BG_CHAINS_VF_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="DIAMOND_BG_CHAINS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="863">
+  <properties>
+   <property name="name" value="DIAMOND_BG_CHAINS_VF_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="DIAMOND_BG_CHAINS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="864">
+  <properties>
+   <property name="name" value="GROUND_BUSH_SPIKE_1_V_R0C0"/>
+   <property name="collision" type="int" value="185"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_BUSH_SPIKE_1_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,4,12,9,16"/>
+  </properties>
+ </tile>
+ <tile id="880">
+  <properties>
+   <property name="name" value="GROUND_BUSH_SPIKE_1_V_R1C0"/>
+   <property name="collision" type="int" value="186"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_BUSH_SPIKE_1_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,4,12,0,3"/>
+  </properties>
+ </tile>
+ <tile id="865">
+  <properties>
+   <property name="name" value="GROUND_BUSH_SPIKE_2_V_R0C0"/>
+   <property name="collision" type="int" value="185"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_BUSH_SPIKE_2_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,4,12,9,16"/>
+  </properties>
+ </tile>
+ <tile id="881">
+  <properties>
+   <property name="name" value="GROUND_BUSH_SPIKE_2_V_R1C0"/>
+   <property name="collision" type="int" value="186"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_BUSH_SPIKE_2_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,4,12,0,3"/>
+  </properties>
+ </tile>
+ <tile id="866">
+  <properties>
+   <property name="name" value="GROUND_BUSH_SPIKE_3_V_R0C0"/>
+   <property name="collision" type="int" value="185"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_BUSH_SPIKE_3_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,4,12,9,16"/>
+  </properties>
+ </tile>
+ <tile id="882">
+  <properties>
+   <property name="name" value="GROUND_BUSH_SPIKE_3_V_R1C0"/>
+   <property name="collision" type="int" value="186"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_BUSH_SPIKE_3_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,4,12,0,3"/>
+  </properties>
+ </tile>
+ <tile id="867">
+  <properties>
+   <property name="name" value="GROUND_BUSH_SPIKE_4_V_R0C0"/>
+   <property name="collision" type="int" value="185"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_BUSH_SPIKE_4_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,4,12,9,16"/>
+  </properties>
+ </tile>
+ <tile id="883">
+  <properties>
+   <property name="name" value="GROUND_BUSH_SPIKE_4_V_R1C0"/>
+   <property name="collision" type="int" value="186"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_BUSH_SPIKE_4_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,4,12,0,3"/>
+  </properties>
+ </tile>
+ <tile id="868">
+  <properties>
+   <property name="name" value="GROUND_BUSH_SPIKE_4_V_VF_R0C0"/>
+   <property name="collision" type="int" value="187"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_BUSH_SPIKE_4_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,4,12,13,16"/>
+  </properties>
+ </tile>
+ <tile id="884">
+  <properties>
+   <property name="name" value="GROUND_BUSH_SPIKE_4_V_VF_R1C0"/>
+   <property name="collision" type="int" value="188"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_BUSH_SPIKE_4_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,4,12,0,7"/>
+  </properties>
+ </tile>
+ <tile id="869">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_H_Y8_R0C0"/>
+   <property name="collision" type="int" value="189"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,14,16,14,16"/>
+  </properties>
+ </tile>
+ <tile id="870">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_H_Y8_R0C1"/>
+   <property name="collision" type="int" value="190"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,0,4,14,16"/>
+  </properties>
+ </tile>
+ <tile id="885">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_H_Y8_R1C0"/>
+   <property name="collision" type="int" value="191"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,14,16,0,2"/>
+  </properties>
+ </tile>
+ <tile id="886">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_H_Y8_R1C1"/>
+   <property name="collision" type="int" value="192"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,0,4,0,2"/>
+  </properties>
+ </tile>
+ <tile id="871">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_H_Y8_HF_R0C0"/>
+   <property name="collision" type="int" value="193"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,12,16,14,16"/>
+  </properties>
+ </tile>
+ <tile id="872">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_H_Y8_HF_R0C1"/>
+   <property name="collision" type="int" value="194"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,0,2,14,16"/>
+  </properties>
+ </tile>
+ <tile id="887">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_H_Y8_HF_R1C0"/>
+   <property name="collision" type="int" value="195"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,12,16,0,2"/>
+  </properties>
+ </tile>
+ <tile id="888">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_H_Y8_HF_R1C1"/>
+   <property name="collision" type="int" value="196"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,0,2,0,2"/>
+  </properties>
+ </tile>
+ <tile id="873">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_V_R0C0"/>
+   <property name="collision" type="int" value="197"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,6,10,12,16"/>
+  </properties>
+ </tile>
+ <tile id="889">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_V_R1C0"/>
+   <property name="collision" type="int" value="198"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,6,10,0,2"/>
+  </properties>
+ </tile>
+ <tile id="874">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_V_X8_R0C0"/>
+   <property name="collision" type="int" value="199"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,14,16,12,16"/>
+  </properties>
+ </tile>
+ <tile id="875">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_V_X8_R0C1"/>
+   <property name="collision" type="int" value="200"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,0,2,12,16"/>
+  </properties>
+ </tile>
+ <tile id="890">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_V_X8_R1C0"/>
+   <property name="collision" type="int" value="191"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,14,16,0,2"/>
+  </properties>
+ </tile>
+ <tile id="891">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_V_X8_R1C1"/>
+   <property name="collision" type="int" value="196"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,0,2,0,2"/>
+  </properties>
+ </tile>
+ <tile id="876">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_V_X8_VF_R0C0"/>
+   <property name="collision" type="int" value="189"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,14,16,14,16"/>
+  </properties>
+ </tile>
+ <tile id="877">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_V_X8_VF_R0C1"/>
+   <property name="collision" type="int" value="194"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,0,2,14,16"/>
+  </properties>
+ </tile>
+ <tile id="892">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_V_X8_VF_R1C0"/>
+   <property name="collision" type="int" value="201"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,14,16,0,4"/>
+  </properties>
+ </tile>
+ <tile id="893">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_V_X8_VF_R1C1"/>
+   <property name="collision" type="int" value="202"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,0,2,0,4"/>
+  </properties>
+ </tile>
+ <tile id="878">
+  <properties>
+   <property name="name" value="GROUND_WAVY_SPIKE_V_R0C0"/>
+   <property name="collision" type="int" value="197"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_WAVY_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,6,10,12,16"/>
+  </properties>
+ </tile>
+ <tile id="894">
+  <properties>
+   <property name="name" value="GROUND_WAVY_SPIKE_V_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_WAVY_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="879">
+  <properties>
+   <property name="name" value="GROUND_WAVY_SPIKE_V_VF_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_WAVY_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="895">
+  <properties>
+   <property name="name" value="GROUND_WAVY_SPIKE_V_VF_R1C0"/>
+   <property name="collision" type="int" value="203"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_WAVY_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,6,10,0,4"/>
+  </properties>
+ </tile>
+ <tile id="896">
+  <properties>
+   <property name="name" value="GROUND_WAVY_SPIKE_V_X8_R0C0"/>
+   <property name="collision" type="int" value="199"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_WAVY_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,14,16,12,16"/>
+  </properties>
+ </tile>
+ <tile id="897">
+  <properties>
+   <property name="name" value="GROUND_WAVY_SPIKE_V_X8_R0C1"/>
+   <property name="collision" type="int" value="200"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_WAVY_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,0,2,12,16"/>
+  </properties>
+ </tile>
+ <tile id="912">
+  <properties>
+   <property name="name" value="GROUND_WAVY_SPIKE_V_X8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_WAVY_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="900">
+  <properties>
+   <property name="name" value="MEDIUM_BG_SQUARES_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="901">
+  <properties>
+   <property name="name" value="MEDIUM_BG_SQUARES_R0C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="914">
+  <properties>
+   <property name="name" value="MEDIUM_BG_SQUARES_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="915">
+  <properties>
+   <property name="name" value="MEDIUM_BG_SQUARES_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="916">
+  <properties>
+   <property name="name" value="MEDIUM_BG_SQUARES_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="917">
+  <properties>
+   <property name="name" value="MEDIUM_BG_SQUARES_R1C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="902">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_Y8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="903">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="904">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_Y8_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="918">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="919">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_Y8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="920">
+  <properties>
+   <property name="name" value="MEDIUM_CIRCLE_SAW_DECO_Y8_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="905">
+  <properties>
+   <property name="name" value="MEDIUM_DECO_TRIANGLE_Y8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="921">
+  <properties>
+   <property name="name" value="MEDIUM_DECO_TRIANGLE_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="906">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_X8_Y8_R0C0"/>
+   <property name="collision" type="int" value="204"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,16,16,12,0"/>
+  </properties>
+ </tile>
+ <tile id="907">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_X8_Y8_R0C1"/>
+   <property name="collision" type="int" value="205"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,0,16,12,0"/>
+  </properties>
+ </tile>
+ <tile id="922">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_X8_Y8_R1C0"/>
+   <property name="collision" type="int" value="206"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,16,0,12,0"/>
+  </properties>
+ </tile>
+ <tile id="923">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_X8_Y8_R1C1"/>
+   <property name="collision" type="int" value="207"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,0,0,12,0"/>
+  </properties>
+ </tile>
+ <tile id="908">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_Y8_R0C0"/>
+   <property name="collision" type="int" value="208"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,24,16,12,0"/>
+  </properties>
+ </tile>
+ <tile id="909">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_Y8_R0C1"/>
+   <property name="collision" type="int" value="209"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,16,12,0"/>
+  </properties>
+ </tile>
+ <tile id="910">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_Y8_R0C2"/>
+   <property name="collision" type="int" value="210"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,-8,16,12,0"/>
+  </properties>
+ </tile>
+ <tile id="924">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_Y8_R1C0"/>
+   <property name="collision" type="int" value="211"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,24,0,12,0"/>
+  </properties>
+ </tile>
+ <tile id="925">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_Y8_R1C1"/>
+   <property name="collision" type="int" value="212"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,8,0,12,0"/>
+  </properties>
+ </tile>
+ <tile id="926">
+  <properties>
+   <property name="name" value="MEDIUM_OUTLINE_SAW_Y8_R1C2"/>
+   <property name="collision" type="int" value="213"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_OUTLINE_SAW"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="2,-8,0,12,0"/>
+  </properties>
+ </tile>
+ <tile id="928">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_X8_Y8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="929">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_X8_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="944">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_X8_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="945">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_X8_Y8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="930">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_Y8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="931">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="932">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_Y8_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="946">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="947">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_Y8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="948">
+  <properties>
+   <property name="name" value="MEDIUM_SAW_DECO_Y8_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="933">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_H_Y8_R0C0"/>
+   <property name="collision" type="int" value="214"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,2,6,15,16"/>
+  </properties>
+ </tile>
+ <tile id="949">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_H_Y8_R1C0"/>
+   <property name="collision" type="int" value="215"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,2,6,0,1"/>
+  </properties>
+ </tile>
+ <tile id="934">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_H_Y8_HF_R0C0"/>
+   <property name="collision" type="int" value="216"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,10,14,15,16"/>
+  </properties>
+ </tile>
+ <tile id="950">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_H_Y8_HF_R1C0"/>
+   <property name="collision" type="int" value="217"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,10,14,0,1"/>
+  </properties>
+ </tile>
+ <tile id="936">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_SAW_DECO_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="951">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_SAW_DECO_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="952">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_SAW_DECO_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="953">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_SAW_DECO_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="938">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_V_Y8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="954">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_V_Y8_R1C0"/>
+   <property name="collision" type="int" value="218"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,7,9,1,5"/>
+  </properties>
+ </tile>
+ <tile id="939">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_V_Y8_VF_R0C0"/>
+   <property name="collision" type="int" value="219"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,7,9,11,15"/>
+  </properties>
+ </tile>
+ <tile id="955">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_V_Y8_VF_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="940">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_X8_Y8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="941">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_X8_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="956">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_X8_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="957">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_X8_Y8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="960">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_Y8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="961">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="962">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_Y8_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="976">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="977">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_Y8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="978">
+  <properties>
+   <property name="name" value="MED_CIRCUNFERENCE_SAW_DECO_Y8_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MED_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="963">
+  <properties>
+   <property name="name" value="SMALL_BG_CHAINS_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_CHAINS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="979">
+  <properties>
+   <property name="name" value="SMALL_BG_CHAINS_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_CHAINS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="964">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_X8_Y8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="965">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_X8_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="980">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_X8_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="981">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_X8_Y8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="966">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_Y8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="967">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_Y8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="968">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_Y8_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="982">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_Y8_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="983">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_Y8_R1C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="984">
+  <properties>
+   <property name="name" value="SMALL_SAW_DECO_Y8_R1C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="969">
+  <properties>
+   <property name="name" value="SMALL_WIDE_BG_CHAINS_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_WIDE_BG_CHAINS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="985">
+  <properties>
+   <property name="name" value="SMALL_WIDE_BG_CHAINS_R1C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_WIDE_BG_CHAINS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="970">
+  <properties>
+   <property name="name" value="SPIKE_H_Y8_HF_R0C0"/>
+   <property name="collision" type="int" value="181"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,5,11,15,16"/>
+  </properties>
+ </tile>
+ <tile id="986">
+  <properties>
+   <property name="name" value="SPIKE_H_Y8_HF_R1C0"/>
+   <property name="collision" type="int" value="182"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,5,11,0,1"/>
+  </properties>
+ </tile>
+ <tile id="971">
+  <properties>
+   <property name="name" value="1.6_HALF_SPIKE_V_X8_Y8_R0C0"/>
+   <property name="collision" type="int" value="220"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_HALF_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,14,16,3,6"/>
+  </properties>
+ </tile>
+ <tile id="972">
+  <properties>
+   <property name="name" value="1.6_HALF_SPIKE_V_X8_Y8_R0C1"/>
+   <property name="collision" type="int" value="221"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_HALF_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,0,2,3,6"/>
+  </properties>
+ </tile>
+ <tile id="973">
+  <properties>
+   <property name="name" value="1.6_HALF_SPIKE_V_Y8"/>
+   <property name="collision" type="int" value="222"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_HALF_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,6,10,3,6"/>
+  </properties>
+ </tile>
+ <tile id="974">
+  <properties>
+   <property name="name" value="1.6_HALF_SPIKE_V_Y8_VF"/>
+   <property name="collision" type="int" value="223"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_HALF_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,6,10,10,13"/>
+  </properties>
+ </tile>
+ <tile id="975">
+  <properties>
+   <property name="name" value="1.6_MEDIUM_SPIKE_V"/>
+   <property name="collision" type="int" value="224"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_MEDIUM_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,7,9,9,13"/>
+  </properties>
+ </tile>
+ <tile id="992">
+  <properties>
+   <property name="name" value="1.6_SPIKE_H"/>
+   <property name="collision" type="int" value="225"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,5,11,7,9"/>
+  </properties>
+ </tile>
+ <tile id="993">
+  <properties>
+   <property name="name" value="1.6_SPIKE_H_HF"/>
+   <property name="collision" type="int" value="225"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,5,11,7,9"/>
+  </properties>
+ </tile>
+ <tile id="994">
+  <properties>
+   <property name="name" value="1.6_SPIKE_V"/>
+   <property name="collision" type="int" value="226"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="ONE_POINT_SIX_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,7,9,5,11"/>
+  </properties>
+ </tile>
+ <tile id="995">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ"/>
+   <property name="collision" type="int" value="227"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,16,0,8"/>
+  </properties>
+ </tile>
+ <tile id="996">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_END"/>
+   <property name="collision" type="int" value="227"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,16,0,8"/>
+  </properties>
+ </tile>
+ <tile id="997">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_END_X8_R0C0"/>
+   <property name="collision" type="int" value="228"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,8,16,0,8"/>
+  </properties>
+ </tile>
+ <tile id="998">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_END_X8_R0C1"/>
+   <property name="collision" type="int" value="229"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,8,0,8"/>
+  </properties>
+ </tile>
+ <tile id="999">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_END_X8_Y8_R0C0"/>
+   <property name="collision" type="int" value="230"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,8,16,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1000">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_END_X8_Y8_R0C1"/>
+   <property name="collision" type="int" value="231"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,8,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1001">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_END_Y8"/>
+   <property name="collision" type="int" value="232"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,16,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1002">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_MIDDLE"/>
+   <property name="collision" type="int" value="227"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,16,0,8"/>
+  </properties>
+ </tile>
+ <tile id="1003">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_MIDDLE_X8_R0C0"/>
+   <property name="collision" type="int" value="228"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,8,16,0,8"/>
+  </properties>
+ </tile>
+ <tile id="1004">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_MIDDLE_X8_R0C1"/>
+   <property name="collision" type="int" value="229"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,8,0,8"/>
+  </properties>
+ </tile>
+ <tile id="1005">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_MIDDLE_X8_Y8_R0C0"/>
+   <property name="collision" type="int" value="230"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,8,16,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1006">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_MIDDLE_X8_Y8_R0C1"/>
+   <property name="collision" type="int" value="231"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,8,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1007">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_MIDDLE_Y8"/>
+   <property name="collision" type="int" value="232"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,16,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1008">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_SINGLE"/>
+   <property name="collision" type="int" value="227"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,16,0,8"/>
+  </properties>
+ </tile>
+ <tile id="1009">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_SINGLE_X8_R0C0"/>
+   <property name="collision" type="int" value="228"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,8,16,0,8"/>
+  </properties>
+ </tile>
+ <tile id="1010">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_SINGLE_X8_R0C1"/>
+   <property name="collision" type="int" value="229"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,8,0,8"/>
+  </properties>
+ </tile>
+ <tile id="1011">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_SINGLE_X8_Y8_R0C0"/>
+   <property name="collision" type="int" value="230"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,8,16,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1012">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_SINGLE_X8_Y8_R0C1"/>
+   <property name="collision" type="int" value="231"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,8,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1013">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_SINGLE_Y8"/>
+   <property name="collision" type="int" value="232"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,16,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1014">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_START"/>
+   <property name="collision" type="int" value="227"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,16,0,8"/>
+  </properties>
+ </tile>
+ <tile id="1015">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_START_X8_R0C0"/>
+   <property name="collision" type="int" value="228"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,8,16,0,8"/>
+  </properties>
+ </tile>
+ <tile id="1016">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_START_X8_R0C1"/>
+   <property name="collision" type="int" value="229"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,8,0,8"/>
+  </properties>
+ </tile>
+ <tile id="1017">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_START_X8_Y8_R0C0"/>
+   <property name="collision" type="int" value="230"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,8,16,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1018">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_START_X8_Y8_R0C1"/>
+   <property name="collision" type="int" value="231"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,8,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1019">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_WAVY_START_Y8"/>
+   <property name="collision" type="int" value="232"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,16,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1020">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_X8_R0C0"/>
+   <property name="collision" type="int" value="228"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,8,16,0,8"/>
+  </properties>
+ </tile>
+ <tile id="1021">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_X8_R0C1"/>
+   <property name="collision" type="int" value="229"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,8,0,8"/>
+  </properties>
+ </tile>
+ <tile id="1022">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_X8_Y8_R0C0"/>
+   <property name="collision" type="int" value="230"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,8,16,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1023">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_X8_Y8_R0C1"/>
+   <property name="collision" type="int" value="231"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,8,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1024">
+  <properties>
+   <property name="name" value="BASIC_SLAB_OBJ_Y8"/>
+   <property name="collision" type="int" value="232"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BASIC_SLAB_OBJ"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="0,0,16,8,16"/>
+  </properties>
+ </tile>
+ <tile id="1025">
+  <properties>
+   <property name="name" value="BUSH_DECO_1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BUSH_DECO_1"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1026">
+  <properties>
+   <property name="name" value="BUSH_DECO_2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BUSH_DECO_2"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1027">
+  <properties>
+   <property name="name" value="BUSH_DECO_3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BUSH_DECO_3"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1028">
+  <properties>
+   <property name="name" value="BUSH_DECO_4"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BUSH_DECO_4"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1029">
+  <properties>
+   <property name="name" value="BUSH_DECO_5"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="BUSH_DECO_5"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1030">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_H_R0C0"/>
+   <property name="collision" type="int" value="233"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,14,16,6,10"/>
+  </properties>
+ </tile>
+ <tile id="1031">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_H_R0C1"/>
+   <property name="collision" type="int" value="234"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,0,4,6,10"/>
+  </properties>
+ </tile>
+ <tile id="1032">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_H_X8_R0C0"/>
+   <property name="collision" type="int" value="235"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,6,12,6,10"/>
+  </properties>
+ </tile>
+ <tile id="1033">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_H_X8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1034">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_H_X8_HF_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1035">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_H_X8_HF_R0C1"/>
+   <property name="collision" type="int" value="236"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,4,10,6,10"/>
+  </properties>
+ </tile>
+ <tile id="1036">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_V_Y8"/>
+   <property name="collision" type="int" value="237"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,6,10,4,10"/>
+  </properties>
+ </tile>
+ <tile id="1037">
+  <properties>
+   <property name="name" value="GROUND_SPIKE_V_Y8_VF"/>
+   <property name="collision" type="int" value="238"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="GROUND_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,6,10,6,12"/>
+  </properties>
+ </tile>
+ <tile id="1040">
+  <properties>
+   <property name="name" value="MEDIUM_CLOUD_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CLOUD"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1041">
+  <properties>
+   <property name="name" value="MEDIUM_CLOUD_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CLOUD"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1042">
+  <properties>
+   <property name="name" value="MEDIUM_CLOUD_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_CLOUD"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1043">
+  <properties>
+   <property name="name" value="MEDIUM_DECO_TRIANGLE"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1044">
+  <properties>
+   <property name="name" value="MEDIUM_DECO_TRIANGLE_VF"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1045">
+  <properties>
+   <property name="name" value="MEDIUM_DECO_TRIANGLE_X8_VF_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1046">
+  <properties>
+   <property name="name" value="MEDIUM_DECO_TRIANGLE_X8_VF_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1047">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_H"/>
+   <property name="collision" type="int" value="239"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,2,6,7,9"/>
+  </properties>
+ </tile>
+ <tile id="1048">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_V"/>
+   <property name="collision" type="int" value="224"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,7,9,9,13"/>
+  </properties>
+ </tile>
+ <tile id="1049">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_V_VF"/>
+   <property name="collision" type="int" value="240"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,7,9,3,7"/>
+  </properties>
+ </tile>
+ <tile id="1050">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_V_X8_R0C0"/>
+   <property name="collision" type="int" value="241"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,15,16,9,13"/>
+  </properties>
+ </tile>
+ <tile id="1051">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_V_X8_R0C1"/>
+   <property name="collision" type="int" value="242"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,0,1,9,13"/>
+  </properties>
+ </tile>
+ <tile id="1052">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_V_X8_VF_R0C0"/>
+   <property name="collision" type="int" value="243"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,15,16,3,7"/>
+  </properties>
+ </tile>
+ <tile id="1053">
+  <properties>
+   <property name="name" value="MEDIUM_SPIKE_V_X8_VF_R0C1"/>
+   <property name="collision" type="int" value="244"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="MEDIUM_SPIKE_V"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,0,1,3,7"/>
+  </properties>
+ </tile>
+ <tile id="1056">
+  <properties>
+   <property name="name" value="SMALL_BG_CLOUDS_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1057">
+  <properties>
+   <property name="name" value="SMALL_BG_CLOUDS_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1058">
+  <properties>
+   <property name="name" value="SMALL_BG_CLOUDS_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1059">
+  <properties>
+   <property name="name" value="SMALL_BG_CLOUDS_VF_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1060">
+  <properties>
+   <property name="name" value="SMALL_BG_CLOUDS_VF_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1061">
+  <properties>
+   <property name="name" value="SMALL_BG_CLOUDS_VF_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1062">
+  <properties>
+   <property name="name" value="SMALL_BG_CLOUDS_X8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1063">
+  <properties>
+   <property name="name" value="SMALL_BG_CLOUDS_X8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_CLOUDS"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1064">
+  <properties>
+   <property name="name" value="SMALL_BG_SQUARES_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1065">
+  <properties>
+   <property name="name" value="SMALL_BG_SQUARES_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1066">
+  <properties>
+   <property name="name" value="SMALL_BG_SQUARES_R0C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1067">
+  <properties>
+   <property name="name" value="SMALL_BG_SQUARES_X8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1068">
+  <properties>
+   <property name="name" value="SMALL_BG_SQUARES_X8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_BG_SQUARES"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1069">
+  <properties>
+   <property name="name" value="SMALL_CIRCLE_SAW_DECO"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_CIRCLE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1070">
+  <properties>
+   <property name="name" value="SMALL_CLOUD_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_CLOUD"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1071">
+  <properties>
+   <property name="name" value="SMALL_CLOUD_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_CLOUD"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1072">
+  <properties>
+   <property name="name" value="SMALL_DECO_TRIANGLE"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1073">
+  <properties>
+   <property name="name" value="SMALL_DECO_TRIANGLE_X8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1074">
+  <properties>
+   <property name="name" value="SMALL_DECO_TRIANGLE_X8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMALL_DECO_TRIANGLE"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1075">
+  <properties>
+   <property name="name" value="SMA_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMA_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1076">
+  <properties>
+   <property name="name" value="SMA_CIRCUNFERENCE_SAW_DECO_X8_R0C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMA_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1077">
+  <properties>
+   <property name="name" value="SMA_CIRCUNFERENCE_SAW_DECO_X8_R0C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SMA_CIRCUNFERENCE_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
+  </properties>
+ </tile>
+ <tile id="1078">
+  <properties>
+   <property name="name" value="SPIKE_H"/>
+   <property name="collision" type="int" value="225"/>
+   <property name="palette" type="int" value="0"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="SPIKE_H"/>
+   <property name="gda_collision" value="SPRITE"/>
+   <property name="shape" value="1,5,11,7,9"/>
+  </properties>
+ </tile>
+ <tile id="1079">
+  <properties>
+   <property name="name" value="TINY_SAW_DECO"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="-1"/>
+   <property name="gda_name" value="TINY_SAW_DECO"/>
+   <property name="gda_collision" value="SPRITE"/>
   </properties>
  </tile>
 </tileset>

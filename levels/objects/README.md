@@ -39,7 +39,8 @@ The preview (and the tile count in `objects.tsx`) is remade by `tools/build_bg_t
 | `dmg_art` | int | tile id in `objects_dmg.png` of its DMG art, -1 = the same art on DMG |
 
 | `gda_name` | string | objects from Geometry Dash Advance: GDA's metatile name |
-| `gda_collision` | string | objects from GDA: GDA's collision type. `collision` is the closest type our engine has; where they differ (thin Electroman slabs, slopes, breakable bricks) the mechanic is still to come |
+| `gda_collision` | string | objects from GDA: GDA's collision type. `collision` is the closest type our engine has; where they differ (thin Electroman slabs, slopes, breakable bricks) the mechanic is still to come. `SPRITE`: a piece of a GDA sprite object (below) |
+| `shape` | string | pieces of GDA sprite objects: their collision shape, `kind,a,b,c,d` (kind 0 solid / 1 deadly rectangle x0,x1,y0,y1; 2 deadly circle centre x,y and radius); `collision` is its id from 0x80, `include/col_shapes.h` the table |
 
 Objects with a `famidash_id` keep it as their id in the level: the engine knows some of them
 (saw parts, ground looks, pit spikes). New objects get a free id in each level by themselves.
@@ -52,6 +53,14 @@ Every object is matched to its Geometry Dash Advance object in `gda_ours.json` (
 were added by `tools/import_gda_pieces.py` (tiles 283 on, GDA's art as a placeholder; GDA's old
 ground / ceiling pieces and its level end wall left out). `python tools/gda_pieces.py` lists
 what is still missing (`--all`: for any GDA level).
+
+GDA's sprite objects with no match of ours (off-grid spikes, outline saws, its slab object, the
+decorations) were added by `tools/import_gda_sprites.py` as background pieces, from row 27 on:
+each object (and each 8 px offset / flip the official levels use: names `_X8`, `_Y8`, `_HF`,
+`_VF`) is a block of cells `NAME_R<row>C<col>` laid out as it looks, so in Tiled you select the
+whole block in the tileset and stamp it. Hazards kill with GDA's hitbox (a rectangle or circle
+against the player's box), decorations do nothing. GDA's 3 pulsing decorations (circle, heart,
+square) are sprites 39, 40, 41 (CGB, they pulse to the music).
 
 ## Adding an object
 

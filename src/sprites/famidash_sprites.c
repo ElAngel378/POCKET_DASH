@@ -165,8 +165,13 @@ static const FamidashDeco deco_medium_left = {3, 24, {0,8,16}, {-4,-4,-4}, {D_F5
 
 static const FamidashDeco deco_pulsing_ball = {1, 16, {4,0,0}, {-4,0,0}, {D_PB,0,0}, {DP,0,0}};
 static const FamidashDeco deco_music_note = {2, 16, {0,8,0}, {0,0,0}, {D_E9,D_EB,0}, {DP,DP,0}};
+// GDA's pulsing decorations: the left half, then it mirrored
+static const FamidashDeco deco_gda_circle = {2, 16, {0,8,0}, {0,0,0}, {D_GC,D_GC,0}, {DP,DP|S_FLIPX,0}};
+static const FamidashDeco deco_gda_heart = {2, 16, {0,8,0}, {0,0,0}, {D_GH,D_GH,0}, {DP,DP|S_FLIPX,0}};
+static const FamidashDeco deco_gda_square = {2, 16, {0,8,0}, {0,0,0}, {D_GS,D_GS,0}, {DP,DP|S_FLIPX,0}};
 
 const FamidashDeco * const famidash_deco_table[FAMIDASH_DECO_TABLE_SIZE] = {
+    [39] = &deco_gda_circle, [40] = &deco_gda_heart, [41] = &deco_gda_square,
     [42] = &deco_long_light, [43] = &deco_medium_light,
     [44] = &deco_short_light, [45] = &deco_chain,
     [46] = &deco_spike_g1, [47] = &deco_spike_g2,

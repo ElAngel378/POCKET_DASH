@@ -3,6 +3,7 @@
 #include "player.h"
 #include "collision.h"
 #include "scratch.h"
+#include "col_shapes.h"
 
 uint8_t level_max_fall_7;   // player.h
 
@@ -394,6 +395,11 @@ static uint8_t col_at_partial(uint8_t col, uint8_t inner_y, uint8_t xin) {
         return COL_NONE;   // the slope code (slope_pass)
     } else if (col == COL_BREAKABLE) {
         return COL_ALL;
+    } else if (IS_SHAPE(col)) {
+        // solid rectangles; the deadly shapes are shape_hazard's
+        const int8_t *s = col_shapes[(uint8_t)(col - COL_SHAPE_BASE)];
+        return (s[0] == SHAPE_SOLID && (int8_t)xin >= s[1] && (int8_t)xin < s[2] &&
+                (int8_t)inner_y >= s[3] && (int8_t)inner_y < s[4]) ? COL_ALL : COL_NONE;
     }
     return col;
 }
@@ -545,6 +551,36 @@ static uint8_t saw_corner(const uint8_t *col_ptr, int16_t y, uint8_t xin, uint8_
     return (uint16_t)(saw_sq[dx] + saw_sq[dy]) < saw_sq[rad];   // dx, dy < rad <= 15
 }
 
+// GDA's off-grid hazards (deadly shapes, include/col_shapes.h) against the player's box, as GDA
+// checks its sprite hitboxes (rectangle / circle against the box): in the up to 2 x 2 metatiles
+// the box touches. Columns c0 (x 0..15) and c1 (16..31); the box x0..x1, y0..y1 inclusive, x
+// from c0's left edge, y in the collision window. 1: touched one
+static const uint16_t sq17[17] = { 0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256 };
+static uint8_t shape_hazard(const uint8_t *c0, const uint8_t *c1, uint8_t x0, uint8_t x1, uint8_t y0, uint8_t y1) {
+    uint8_t r_end = (uint8_t)((uint8_t)(y1 >> 4) + 1u);
+    if (y1 < y0) r_end = 16;   // (the box reaches past the window's last row)
+    for (uint8_t k = 0; k < 2u; k++) {
+        const uint8_t *cp = k ? c1 : c0;
+        int16_t bx = k ? 16 : 0;
+        for (uint8_t r = (uint8_t)(y0 >> 4); r < r_end && r < 16u; r++) {
+            uint8_t col = level_mt_col[cp[r]];
+            if (!IS_SHAPE(col)) continue;
+            const int8_t *s = col_shapes[(uint8_t)(col - COL_SHAPE_BASE)];
+            int16_t by = (int16_t)r << 4;
+            if (s[0] == SHAPE_DEADLY) {
+                if ((int16_t)x0 < bx + s[2] && (int16_t)x1 >= bx + s[1] &&
+                    (int16_t)y0 < by + s[4] && (int16_t)y1 >= by + s[3]) return 1;
+            } else if (s[0] == SHAPE_CIRCLE) {
+                int16_t cx = bx + s[1], cy = by + s[2];
+                int16_t dx = (cx < x0) ? x0 - cx : (cx > x1) ? cx - x1 : 0;
+                int16_t dy = (cy < y0) ? y0 - cy : (cy > y1) ? cy - y1 : 0;
+                if (dx < s[3] && dy < s[3] && sq17[dx] + sq17[dy] < sq17[(uint8_t)s[3]]) return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 // off: x offset of the probe point inside the player box
 #define COL_AT(off, y) inline_col_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
 #define SPIKE(off, y) spike_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
@@ -692,6 +728,9 @@ uint8_t player_update(
             // A box has its top where its rectangle under the probe starts
             if ((uint8_t)(raw - COL_BOX_BASE) < COL_BOX_COUNT) {
                 block_top_y += box_edge(raw, (uint8_t)(wx + hit_off) & 15u, (uint8_t)foot_y & 15u, 0);
+            // A solid shape: its rectangle's top
+            } else if (IS_SHAPE(raw)) {
+                block_top_y += (uint8_t)col_shapes[(uint8_t)(raw - COL_SHAPE_BASE)][3];
             // A bottom half block / quadrant solid hit in its lower half has its top 8px lower
             } else if (hit_col == COL_BOTTOM ||
                 ((foot_y & 15) >= 8 && hit_col == COL_ALL && !IS_SOLID(COL_AT(hit_off, foot_y - 8)))) {
@@ -729,8 +768,11 @@ uint8_t player_update(
         if (IS_SOLID(hit_col)) {
             uint8_t block_bottom_y = (uint8_t)((head_y & ~15) + 16);
             uint8_t raw = RAW_COL(hit_off, head_y);
+            // A solid shape: its rectangle's bottom
+            if (IS_SHAPE(raw)) {
+                block_bottom_y = (uint8_t)((head_y & ~15) + col_shapes[(uint8_t)(raw - COL_SHAPE_BASE)][4]);
             // A box has its bottom where its rectangle above the probe ends
-            if ((uint8_t)(raw - COL_BOX_BASE) < COL_BOX_COUNT) {
+            } else if ((uint8_t)(raw - COL_BOX_BASE) < COL_BOX_COUNT) {
                 block_bottom_y = (uint8_t)((head_y & ~15) +
                                  box_edge(raw, (uint8_t)(wx + hit_off) & 15u, (uint8_t)head_y & 15u, 1));
             // A top half block / quadrant solid hit in its upper half has its bottom 8px higher
@@ -804,6 +846,12 @@ uint8_t player_update(
             SPIKE(6, fy + 7) || SPIKE(15, fy + 7)) {
             p->dead = 1; return 1;
         }
+    }
+
+    // GDA's off-grid hazards
+    if (shape_hazard(c0, c1, x_mod_16, (uint8_t)(x_mod_16 + (mini ? MINI_BOX_RIGHT : PLAYER_SIZE)),
+                     (uint8_t)(py + box_top), (uint8_t)(py + box_bot - 1u))) {
+        p->dead = 1; return 1;
     }
 
     // Saw cores: the 4 corners of the drawn player box (see saw_corner)

@@ -68,6 +68,11 @@
 // Slopes (GDA's COL_SLOPE_*, in its order): solid below a line through the metatile (the _UD ones:
 // above it), see slope_lines[] in player.c. 45 degrees in one metatile, 22 over two side by side
 // (_1 left, _2 right), 66 over two stacked (_1 upper, _2 lower).
+// Off-grid GDA pieces (tools/import_gda_sprites.py): a solid / deadly rectangle or a deadly circle
+// per metatile, table col_shapes[] in include/col_shapes.h (generated). Up to 0xFF
+#define COL_SHAPE_BASE  0x80
+#define IS_SHAPE(col) ((col) >= COL_SHAPE_BASE)
+
 #define COL_SLOPE_BASE  0x60
 #define COL_SLOPE_COUNT 20
 #define IS_SLOPE(col) ((uint8_t)((col) - COL_SLOPE_BASE) < COL_SLOPE_COUNT)

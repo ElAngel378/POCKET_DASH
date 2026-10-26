@@ -95,3 +95,89 @@ def sprite_image(tid):
     """GDA's Tiled icon of sprite type tid (levels/sprites.png, 16 per row), 16x16 RGBA"""
     x, y = (tid % 16) * 16, (tid // 16) * 16
     return _sheet("sprites.png").crop((x, y, x + 16, y + 16))
+
+
+# GBA OAM sizes: (shape, size) -> (w, h) in pixels
+_OBJ_SIZES = {("SQUARE", 8): (8, 8), ("SQUARE", 16): (16, 16), ("SQUARE", 32): (32, 32), ("SQUARE", 64): (64, 64)}
+
+
+def _metasprites():
+    """{array name: [dict(w, h, x, y, id, hflip, vflip)]} from src/metaspr.c, and obj_sprites[] (by
+    ObjTypes value: array name or None)"""
+    src = (GDA / "src" / "metaspr.c").read_text(encoding="latin1")
+    src = re.sub(r"//[^\n]*", "", src)
+    arrays = {}
+    for m in re.finditer(r"const u16 (\w+)\[\] = \{(.*?)\};", src, re.S):
+        # split on the commas outside parentheses (CENTER(8, 8), PRIO_IDOFF(a, b, c))
+        items = [x.strip() for x in re.split(r",(?![^(]*\))", m.group(2)) if x.strip()]
+        parts = []
+        i = 0
+        while i + 7 <= len(items) and items[i] != "0xffff":
+            a0, a1, a2, x, y, idoff = items[i:i + 6]
+            i += 7
+            sz = re.search(r"ATTR1_SIZE_(\d+)x(\d+)|ATTR1_SIZE_(\d+)\b", a1)
+            if not sz:   # not an object metasprite (another layout)
+                parts = None
+                break
+            w, h = (int(sz.group(1)), int(sz.group(2))) if sz.group(1) else (int(sz.group(3)),) * 2
+            tid = re.search(r"ATTR2_ID\((\d+)\)", a2)
+            off = re.search(r"PRIO_IDOFF\w*\(\s*\d+\s*,\s*\d+\s*,\s*(\w+)\s*\)", idoff)
+            parts.append(dict(w=w, h=h, x=int(x, 0), y=int(y, 0),
+                              id=(int(tid.group(1)) if tid else 0) + (int(off.group(1), 0) if off else 0),
+                              hflip="ATTR1_HFLIP" in a1, vflip="ATTR1_VFLIP" in a1))
+        if parts:
+            arrays[m.group(1)] = parts
+    table = re.search(r"obj_sprites\[\] = \{(.*?)\};", src, re.S).group(1)
+    names = [x.strip() for x in table.split(",") if x.strip()]
+    return arrays, [None if n == "NULL" else n for n in names]
+
+
+def _chr_offsets():
+    """[(rom tile, tiles)] by ObjTypes value (src/metaspr.c obj_chr_offset)"""
+    src = (GDA / "src" / "metaspr.c").read_text(encoding="latin1")
+    body = re.search(r"obj_chr_offset\[\]\[2\] = \{(.*?)\};", src, re.S).group(1)
+    out = []
+    for m in re.finditer(r'\w*SLOT\("[^"]*",\s*(\w+)\s*,\s*(\w+)\)', body):
+        out.append((int(m.group(1), 0) if m.group(1)[0].isdigit() else None, int(m.group(2), 0) & 0xFFFF))
+    return out
+
+
+def sprite_art(tid):
+    """GDA's art of sprite type tid as drawn (its metasprite over its tiles in graphics/sprites.chr):
+    (image of GBA colour indices 0..15, 0 transparent, origin x, origin y) — the origin is where the
+    object's top left (its Tiled x, y) is in the image. None: no art"""
+    if not hasattr(sprite_art, "_c"):
+        arrays, table = _metasprites()
+        sprite_art._c = (arrays, table, _chr_offsets(), (GDA / "graphics" / "sprites.chr").read_bytes())
+    arrays, table, chr_off, chr_data = sprite_art._c
+    if tid >= len(table) or not table[tid] or table[tid] not in arrays or chr_off[tid][0] is None:
+        return None
+    parts = arrays[table[tid]]
+    if not parts:
+        return None
+    base = chr_off[tid][0]
+    x0 = min(p["x"] for p in parts); y0 = min(p["y"] for p in parts)
+    x1 = max(p["x"] + p["w"] for p in parts); y1 = max(p["y"] + p["h"] for p in parts)
+    img = Image.new("L", (x1 - x0, y1 - y0), 0)
+    pix = img.load()
+    for p in parts:
+        tw = p["w"] // 8
+        for ty in range(p["h"] // 8):
+            for tx in range(tw):
+                t = base + p["id"] + ty * tw + tx   # 1D mapping
+                data = chr_data[t * 32:(t + 1) * 32]
+                if len(data) < 32:
+                    continue
+                for yy in range(8):
+                    for xx in range(8):
+                        b = data[yy * 4 + xx // 2]
+                        c = (b >> 4) if xx & 1 else (b & 15)
+                        if not c:
+                            continue
+                        px, py = tx * 8 + xx, ty * 8 + yy
+                        if p["hflip"]:
+                            px = p["w"] - 1 - px
+                        if p["vflip"]:
+                            py = p["h"] - 1 - py
+                        pix[p["x"] - x0 + px, p["y"] - y0 + py] = c
+    return img, -x0, -y0

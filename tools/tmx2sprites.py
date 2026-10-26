@@ -136,7 +136,8 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
         sprites_firstgid + 254: 14,  # Blue Pad (invisible)
     }
 
-    for i in range(42, 64):
+    # decorations; 39..41: GDA's pulsing circle, heart, square (CGB, src/sprites/famidash_sprites.c)
+    for i in range(39, 64):
         portals_map[sprites_firstgid + i] = i
 
     # bg colour triggers (128..175), block outline colour triggers (176..191, CGB only) and

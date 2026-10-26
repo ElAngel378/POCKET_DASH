@@ -501,7 +501,7 @@ static uint8_t rod_pulse;
 #define DECO_BIG_FAKE   6
 static uint8_t deco_big;
 // VRAM tile of every decoration tile pair (index: D_xx / 2), per pulse state
-#define DECO_SET (D_PB / 2 + 1)
+#define DECO_SET (D_GS / 2 + 1)
 #define DB FAMIDASH_SPRITE_TILE_BASE
 #define DT_FIXED_A DB + D_CF
 #define DT_FIXED_B DB + D_D5, DB + D_D7, DB + D_D9, DB + D_DB, DB + D_DD, DB + D_DF
@@ -511,10 +511,14 @@ static uint8_t deco_big;
 #define DT_ROD7 DT_FIXED_A, DB + D_C9, DB + D_CB, DB + D_CD, DT_FIXED_B
 #define DT_ROD5 DT_FIXED_A, 222, 224, 226, DT_FIXED_B
 #define DT_ROD3 DT_FIXED_A, 228, 230, 232, DT_FIXED_B
+// GDA's pulsing circle, heart, square (tools/make_gda_pulse_tiles.py): 16 / 12 / 8 px with the rods
+#define DT_GDA16 82, 84, 86
+#define DT_GDA12 88, 90, 92
+#define DT_GDA8  94, 96, 98
 static const uint8_t deco_tile_sets[6][DECO_SET] = {
-    { DT_ROD7, DT_SHAPES_BIG, 250 }, { DT_ROD7, DT_SHAPES_SMALL, 250 },
-    { DT_ROD5, DT_SHAPES_BIG, 252 }, { DT_ROD5, DT_SHAPES_SMALL, 252 },
-    { DT_ROD3, DT_SHAPES_BIG, 254 }, { DT_ROD3, DT_SHAPES_SMALL, 254 },
+    { DT_ROD7, DT_SHAPES_BIG, 250, DT_GDA16 }, { DT_ROD7, DT_SHAPES_SMALL, 250, DT_GDA16 },
+    { DT_ROD5, DT_SHAPES_BIG, 252, DT_GDA12 }, { DT_ROD5, DT_SHAPES_SMALL, 252, DT_GDA12 },
+    { DT_ROD3, DT_SHAPES_BIG, 254, DT_GDA8 },  { DT_ROD3, DT_SHAPES_SMALL, 254, DT_GDA8 },
 };
 #undef DB
 // the set shown this frame: its offset in deco_tile_sets (rod_pulse_update, every frame before drawing)

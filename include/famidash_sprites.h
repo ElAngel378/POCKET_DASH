@@ -77,6 +77,9 @@ extern const metasprite_t * const famidash_sprite_table[38];
 #define D_E9 36
 #define D_EB 38
 #define D_PB 40   // pulsing ball: CGB bank 1 tiles 250..255 (7 / 5 / 3 px), see deco_tile_sets in sp_draw.c
+#define D_GC 42   // GDA's pulsing circle, heart, square (objects 39..41): CGB bank 1 tiles 82..99
+#define D_GH 44   // (tools/make_gda_pulse_tiles.py), 16 / 12 / 8 px with the rods
+#define D_GS 46
 
 extern const metasprite_t famidash_deco_45[];
 

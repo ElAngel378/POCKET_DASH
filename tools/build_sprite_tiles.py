@@ -37,6 +37,10 @@ rhombus $E1, ? $E3, ! $E5, arrow $E7, X $ED, the line's ball $F1 (a small star),
 $EB. sp_draw.c shows them between the music's hits (deco_tile_sets). Bank 1 tiles 36..65 are the
 attempt text's (percent_hud.c), 66..127 were free.
 
+GDA_PULSE (bank 1 pairs 41..49, tiles 82..99, tools/make_gda_pulse_tiles.py): GDA's pulsing circle,
+heart and square (sprite objects 39, 40, 41), the left half of each (drawn mirrored for the
+right), at 16 / 12 / 8 px: they pulse with the rods. 100..127 are free.
+
 Only the ranges in LOADS are loaded; the other slots are empty in the image because
 gameplay fills them from the font at runtime ("PAUSED" 76..87, debug HUD and % 90..115)
 or they are background tiles (bank 0 128..159; DMG coins use 144..159), or the coin
@@ -73,6 +77,7 @@ LOADS = [  # condition, VRAM bank, first tile, count, source section, first tile
     (CGB, 1, 222, 12, "ROD_PULSE", 0),     # rod balls between beats (both deco sets draw the same rods)
     (CGB, 1, 250, 6, "PULSE_BALL", 0),     # pulsing ball decoration, 7 / 5 / 3 px
     (CGB, 1, 66, 16, "BANK1", 66),         # PULSE_SMALL: pulsing decorations between beats
+    (CGB, 1, 82, 18, "BANK1", 82),         # GDA_PULSE: GDA's pulsing circle, heart, square (objects 39..41) in 3 sizes
     (CGB, 1, 234, 16, "BANK1", 234),       # pad / orb animation frames 2, 3 (Famidash $FB $FD, $9D $9F, $BD $BF, $5D $5F)
     # coins: levels/chr_data/coin.chr (tools/make_coin_tiles.py), loaded by famidash_sprite_tiles.c
 ]
@@ -170,7 +175,7 @@ def main():
     for cond, bank, first, count, section, src in LOADS:
         rows.append((cond, bank, first, count, len(blob) // 16))
         deco = (cond in (CGB_DECO, CGB_DECO_CLOUD) or section in ("ROD_PULSE", "PULSE_BALL")
-                or (bank, first) == (1, 66))
+                or (bank, first) in ((1, 66), (1, 82)))
         for i in range(count):
             blob += deco_colours(tile(section, src + i)) if deco else tile(section, src + i)
     (ROOT / "levels" / "chr_data" / "sprite_tiles.bin").write_bytes(blob)
