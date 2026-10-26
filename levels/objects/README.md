@@ -50,17 +50,23 @@ Objects with a `famidash_id` keep it as their id in the level: the engine knows 
 Every object is matched to its Geometry Dash Advance object in `gda_ours.json` (BG) and
 `gda_sprites.json` (sprites), by `tools/gda_match.py` and checked by eye (`docs/gda_ours.png`,
 `docs/gda_sprites.png`). The GDA pieces GDA's 1.0-1.6 official levels use that we did not have
-were added by `tools/import_gda_pieces.py` (tiles 283 on, GDA's art as a placeholder; GDA's old
+were added by `tools/import_gda_pieces.py` (GDA's art as a placeholder; GDA's old
 ground / ceiling pieces and its level end wall left out). `python tools/gda_pieces.py` lists
 what is still missing (`--all`: for any GDA level).
 
 GDA's sprite objects with no match of ours (off-grid spikes, outline saws, its slab object, the
-decorations) were added by `tools/import_gda_sprites.py` as background pieces, from row 27 on:
-each object (and each 8 px offset / flip the official levels use: names `_X8`, `_Y8`, `_HF`,
-`_VF`) is a block of cells `NAME_R<row>C<col>` laid out as it looks, so in Tiled you select the
+decorations) were added by `tools/import_gda_sprites.py` as background pieces: each object (and
+each flip the official levels use that looks different: names `_HF`, `_VF`) is a block of cells `NAME_R<row>C<col>` laid out as it looks, so in Tiled you select the
 whole block in the tileset and stamp it. Hazards kill with GDA's hitbox (a rectangle or circle
 against the player's box), decorations do nothing. GDA's 3 pulsing decorations (circle, heart,
 square) are sprites 39, 40, 41 (CGB, they pulse to the music).
+
+## The layout
+
+`python tools/relayout_objects.py` lays the sheet out again by kind (basics, blocks, slopes,
+spikes, saws, orbs and pads, decorations) and renumbers the levels to match (`--dry`: only draws
+`docs/objects_relayout.png`). It also deletes GDA sprite copies that only repeat another object
+(8 px shifted or same-looking flipped copies) that no level uses.
 
 ## Adding an object
 
