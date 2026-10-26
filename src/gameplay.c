@@ -734,6 +734,9 @@ static uint8_t pause_menu(uint8_t idx) {
     move_bkg((uint8_t)(saved_scx - fine_scx), (uint8_t)(saved_scy - fine_scy));
 
     if (_cpu == CGB_TYPE) {
+        // a fading cell job still to write would put palettes 6 / 7 back under the box (they are
+        // the box's palettes now): dropped, the unpause redraws every fading cell (fade_reset_view)
+        CRITICAL { bg_fj_n = 0; }
         fade_apply_pause_box_palettes();
         apply_pause_box_attributes(1);
         static const palette_color_t pause_pal[4] = {

@@ -26,11 +26,20 @@ void apply_pause_box_attributes(uint8_t apply) BANKED {
     uint16_t map = (LCDC_REG & LCDCF_BG9C00) ? 0x9C00u : 0x9800u;   // mirror portals switch maps
 
     VBK_REG = 1;
-    for (uint8_t sy = 2; sy < 17; sy++) {
+    for (uint8_t sy = 0; sy < 18; sy++) {
         uint8_t my = (uint8_t)(scy_tile + sy) & 31;
-        for (uint8_t sx = 1; sx < 19; sx++) {
+        for (uint8_t sx = 0; sx < 20; sx++) {
             uint8_t mx = (uint8_t)(scx_tile + sx) & 31;
             uint8_t *addr = (uint8_t *)(map + ((uint16_t)my << 5) + mx);
+            if (sy < 2 || sy >= 17 || sx < 1 || sx >= 19) {
+                // Outside the box: palettes 6 / 7 now hold the box's dimmed palettes 2 / 3, so a
+                // fading object there shows full (palette 0) until gameplay redraws its frame
+                if (!apply) continue;
+                while (STAT_REG & 0x02);
+                uint8_t a = *addr;
+                if ((a & 0x06) == 0x06) *addr = (uint8_t)(a & 0xF8);
+                continue;
+            }
             while (STAT_REG & 0x02);
             if (apply) {
                 // palettes 4..7 show palettes 0..3 dimmed. A fading object's palette 6 / 7: shown
