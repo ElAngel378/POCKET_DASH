@@ -225,6 +225,7 @@ not_write:
 	ld	a, (de)
 	or	a
 	jr	z, end_save
+.if FRAMES - 1
 	push	de
 	call	top_units		; DE = top frame's units lo
 	ld	a, (de)
@@ -235,6 +236,41 @@ not_write:
 	sbc	a, #0
 	ld	(de), a
 	pop	de
+.else
+	; one call frame (FRAMES = 1): its units at depth + 4, the frame returns when they run out
+	ld	a, e
+	add	a, #4
+	ld	c, a
+	ld	a, d
+	adc	a, #0
+	ld	b, a			; BC = units lo
+	ld	a, (bc)
+	sub	#1
+	ld	(bc), a
+	inc	bc			; BC = units hi (flags kept)
+	jr	c, 3$			; units were n * 256 (n > 0): more left
+	jr	nz, end_save
+	ld	a, (bc)
+	or	a
+	jr	nz, end_save
+	dec	bc			; none left: back to the caller
+	dec	bc
+	ld	a, (bc)			; return address
+	ld	h, a
+	dec	bc
+	ld	a, (bc)
+	ld	l, a
+	dec	bc
+	ld	a, (bc)			; return bank
+	ld	(fur_bank), a
+	xor	a
+	ld	(de), a			; depth 0
+	jr	end_save
+3$:	ld	a, (bc)
+	dec	a
+	ld	(bc), a
+	jr	end_save
+.endif
 pop_frames:				; return from frames with no units left (DE = depth)
 	ld	a, (de)
 	or	a
@@ -358,6 +394,7 @@ chan_bit:
 
 ; DE = depth of a context with depth > 0 -> DE = its top frame's units lo
 top_units:
+.if FRAMES - 1
 	ld	a, (de)
 	dec	a
 	ld	c, a
@@ -365,6 +402,9 @@ top_units:
 	add	a, a
 	add	a, c
 	add	a, #4			; depth + 1 + 5 * (depth - 1) + 3
+.else
+	ld	a, #4			; FRAMES = 1: depth + 4
+.endif
 	add	a, e
 	ld	e, a
 	ret	nc
@@ -834,9 +874,40 @@ ac_divstep:
 	ld	(_fur_ac_r + 1), a
 	ret
 
-; HL / DE (DE = 1..2047) -> L = quotient low byte, BC = remainder (rare: a lower ch3 period,
-; a tick rate change)
+; HL / DE (DE = 1..2047) -> L = quotient low byte, BC = remainder. Keeps DE. Called for a lower
+; ch3 period, a tick rate change and (FUR_AC_MEASURE) every wave: then the quotient is almost
+; always small, and subtracting it out is ~10x faster than the 16 steps of the long division.
 div16:
+	ld	b, d
+	ld	c, e
+	sla	c
+	rl	b
+	sla	c
+	rl	b
+	sla	c
+	rl	b
+	sla	c
+	rl	b			; BC = DE * 16 (< 32768)
+	ld	a, l
+	sub	c
+	ld	a, h
+	sbc	a, b
+	jr	nc, div16_long		; quotient >= 16
+	ld	b, #0xff
+1$:	inc	b
+	ld	a, l
+	sub	e
+	ld	l, a
+	ld	a, h
+	sbc	a, d
+	ld	h, a
+	jr	nc, 1$
+	add	hl, de			; one subtraction too many
+	ld	c, l
+	ld	l, b
+	ld	b, h
+	ret
+div16_long:
 	ld	bc, #0
 	ld	a, #16
 1$:	push	af
