@@ -24,8 +24,13 @@
 #define BLUE_ORB_FORCE     420   // Famidash 0x01A0 (416) - ONLY for Ball!
 #define MAX_FALL_SPEED   1549  // Famidash 0x0600 (1536)
 #define MAX_FALL_SPEED_7 1807  // cube, header max fall $07: + DASH_END_VEL_RESET 0x0100 (1792)
-// The level's Famidash header max fall speed is $07 (Level.max_fall_7), set by play_level
-extern uint8_t level_max_fall_7;
+// What the level needs from the physics, set by play_level: its Famidash header max fall speed
+// is $07 (Level.max_fall_7), it has slopes, it has GDA's off-grid hazards (collision shapes).
+// player_update skips the slope and shape checks in levels without them.
+extern uint8_t level_phys;
+#define LP_MAX_FALL_7 1
+#define LP_SLOPES     2
+#define LP_SHAPES     4
 
 // Ball specific orb/pad forces
 #define BALL_YELLOW_ORB  -1049  // (Famidash -1040)

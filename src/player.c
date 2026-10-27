@@ -5,7 +5,7 @@
 #include "scratch.h"
 #include "col_shapes.h"
 
-uint8_t level_max_fall_7;   // player.h
+uint8_t level_phys;   // player.h
 
 static const uint8_t mod6_table[24] = {
     0, 1, 2, 3, 4, 5,
@@ -625,7 +625,7 @@ uint8_t player_update(
         p->vel_y.w += accel;
     } else {
         uint16_t gravity_val;
-        int16_t max_fall = level_max_fall_7 ? MAX_FALL_SPEED_7 : MAX_FALL_SPEED;
+        int16_t max_fall = (level_phys & LP_MAX_FALL_7) ? MAX_FALL_SPEED_7 : MAX_FALL_SPEED;
         if (p->mode == MODE_BALL) {
             gravity_val = mini ? MINI_BALL_GRAVITY : BALL_GRAVITY;
             max_fall = mini ? MINI_BALL_MAX_FALL : MAX_FALL_SPEED;
@@ -702,7 +702,7 @@ uint8_t player_update(
 
     // Slopes first (GDA collision_cube): they move the player, the blocks below see where to
     p->on_slope = 0;
-    if (slope_pass(c0, c1, py, x_mod_16)) return 1;
+    if ((level_phys & LP_SLOPES) && slope_pass(c0, c1, py, x_mod_16)) return 1;
     py = p->world_y.b.h;
     // Standing on a slope (GDA slope_counter): the block probes are only the front ones, the
     // others would catch the blocks the slope is on
@@ -849,7 +849,7 @@ uint8_t player_update(
     }
 
     // GDA's off-grid hazards
-    if (shape_hazard(c0, c1, x_mod_16, (uint8_t)(x_mod_16 + (mini ? MINI_BOX_RIGHT : PLAYER_SIZE)),
+    if ((level_phys & LP_SHAPES) && shape_hazard(c0, c1, x_mod_16, (uint8_t)(x_mod_16 + (mini ? MINI_BOX_RIGHT : PLAYER_SIZE)),
                      (uint8_t)(py + box_top), (uint8_t)(py + box_bot - 1u))) {
         p->dead = 1; return 1;
     }

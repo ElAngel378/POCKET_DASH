@@ -1323,8 +1323,9 @@ static void update_camera_y(void) {
         if (top + CAM_SHIP_H > ground) top = ground - CAM_SHIP_H;
         uint16_t d = (wy > top) ? (wy - top) : 0;   // 0 .. 144: the ship at the top .. bottom
         if (d > CAM_VIEW_H) d = CAM_VIEW_H;
-        // top - margin .. top + 16 + margin: 32 px of sliding over 144 (d * 2 / 9)
-        t = top + (uint8_t)((uint16_t)(d << 1) / 9u);
+        // top - margin .. top + 16 + margin: 32 px of sliding over 144 (d * 2 / 9, which is
+        // d * 57 / 256 for every d up to 144: SDCC's division loop took ~1k cycles a frame)
+        t = top + (uint8_t)(((d << 6) - (d << 3) + d) >> 8);
         t = (t > CAM_SHIP_MARGIN) ? (t - CAM_SHIP_MARGIN) : 0;
     } else {
         t = (cam_portal_y > CAM_VIEW_H / 2u - 24u) ? (cam_portal_y - (CAM_VIEW_H / 2u - 24u)) : 0;
@@ -1379,7 +1380,7 @@ void play_level(uint8_t idx) BANKED {
 
     reduce_flash = setting_dmg_gradient ? 0 : 1;
     target_bg_idx = dmg_start_bg_idx();
-    level_max_fall_7 = game_levels[idx]->max_fall_7;
+    level_phys = game_levels[idx]->max_fall_7 ? LP_MAX_FALL_7 : 0;
     player_init(&player, 0, 240);
     player.y_base = Y_BASE_MAX;
 
@@ -1393,6 +1394,14 @@ void play_level(uint8_t idx) BANKED {
 #endif
     load_level_bg_sheet(idx, 0, level_tiles, level_tile_count, level_tiles_bank);
     apply_level_bg_tiles(idx, 0);
+    {
+        uint8_t n = 0;
+        do {
+            uint8_t c = level_mt_col[n];
+            if (IS_SLOPE(c)) level_phys |= LP_SLOPES;
+            else if (IS_SHAPE(c)) level_phys |= LP_SHAPES;
+        } while (++n);
+    }
     if (!setting_show_bg_enabled) {
         set_bkg_data(12, 1, blank_bg_tile);
     }
