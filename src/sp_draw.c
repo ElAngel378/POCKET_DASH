@@ -1133,7 +1133,10 @@ static const uint8_t dmg_coin_pair[11] = {
 };
 static uint8_t draw_oam_coin(uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t gotten) {
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
-    uint8_t f = coin_frame_ctr / COIN_FRAME_TICKS;
+    // coin_frame_ctr / COIN_FRAME_TICKS (SDCC divides in a loop, per coin and frame)
+    static const uint8_t coin_frame_of[6 * COIN_FRAME_TICKS] = {
+        0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5 };
+    uint8_t f = coin_frame_of[coin_frame_ctr];
     uint8_t l = coin_frame_l[f], r = coin_frame_r[f];
     uint8_t p, tl, tr;
     if (_cpu == CGB_TYPE) {
