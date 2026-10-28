@@ -58,20 +58,29 @@ void init_bg_parallax(void) {
 static const uint8_t *up_src;
 static uint8_t *up_dst;
 
-// 8 rows of 2 bytes from up_src (contiguous) to up_dst, up_dst advancing by 32 per row.
-static void copy_rows2(void) __naked {
+// The column slice: 8 rows of 2 bytes from src (contiguous, DE) to the BG map shown at tile
+// (bg_cj_x, bg_cj_y), a row every 32 bytes. Computes the address itself: in C, through up_dst,
+// it took ~350 dots more, and on DMG the player frame copy after it lost its last tile.
+static void cj_copy(const uint8_t *src) __naked {
+    (void)src;
     __asm
-        ld      hl, #_up_src
-        ld      a, (hl+)
-        ld      e, a
-        ld      a, (hl)
-        ld      d, a
-        ld      hl, #_up_dst
-        ld      a, (hl+)
-        ld      c, a
-        ld      a, (hl)
+        ld      a, (_bg_cj_y)
+        ld      l, a
+        ld      h, #0
+        add     hl, hl
+        add     hl, hl
+        add     hl, hl
+        add     hl, hl
+        add     hl, hl                  ; y * 32 (y < 32)
+        ld      a, (_bg_cj_x)
+        add     a, l                    ; (no carry: the low byte is a multiple of 32, x < 32)
+        ld      l, a
+        ldh     a, (_LCDC_REG + 0)
+        and     a, #0x08                ; the map shown: 0x9800, or 0x9C00 when set
+        rrca
+        or      a, #0x98
+        add     a, h
         ld      h, a
-        ld      l, c
         ld      bc, #31
         .rept 8
         ld      a, (de)
@@ -469,7 +478,7 @@ volatile uint8_t gp_fj_late_ly, gp_fj_late_cj, gp_fj_done;   // tools: fading ce
 static void fade_cells_try(void) {
     uint8_t ly = LY_REG;
     uint8_t ly_end = bg_gdma_pending ? 148u : 153u;
-    if (bg_fj_n && !bg_cj_pending && ly >= 144u && ly < ly_end) {
+    if (!bg_cj_pending && ly >= 144u && ly < ly_end) {
         fade_cells_copy(ly_end);
 #ifdef DEBUG_PROFILE
         gp_fj_done++;
@@ -480,6 +489,11 @@ static void fade_cells_try(void) {
     else if (bg_fj_n) gp_fj_late_ly++;
 #endif
 }
+// The handler calls it only with cells waiting: a call with none took ~160 dots (DMG: the cube's
+// player frame copy after it lost a tile in most VBlanks, and the spin showed every other image)
+#define FADE_CELLS_TRY() do { if (bg_fj_n) fade_cells_try(); } while (0)
+// The same for the parallax GDMA (CGB): a call with nothing pending took ~100 dots
+#define PARALLAX_TRY() do { if (bg_gdma_pending) parallax_try(); } while (0)
 
 // VBlank interrupt handler: latches scroll, runs the requested parallax GDMA and
 // the requested map uploads, in that order.
@@ -561,24 +575,20 @@ void bg_parallax_vbl_isr(void) {
     {
         ly = LY_REG;
         if (bg_cj_pending && ly >= 144u && ly <= 150u) {
-            up_dst = map + ((uint16_t)bg_cj_y << 5) + bg_cj_x;
-            up_src = bg_cj_tiles;
             VBK_REG = 0;
-            copy_rows2();
+            cj_copy(bg_cj_tiles);
             if (bg_gdma_isr_on) {   // CGB attributes (DMG: no VRAM bank 1, it would overwrite the tiles)
-                up_dst = map + ((uint16_t)bg_cj_y << 5) + bg_cj_x;
-                up_src = bg_cj_attrs;
                 VBK_REG = 1;
-                copy_rows2();
+                cj_copy(bg_cj_attrs);
             }
             bg_cj_pending = 0;
             // Fading cells (a few cells): after the parallax they found VBlank used up and fell
             // behind for frames
-            fade_cells_try();
+            FADE_CELLS_TRY();
             // A column and a row in one VBlank leave no time for the parallax after them: the
             // parallax first, unless a row is waiting (climbing: rows that fall behind show stale
             // tiles for seconds, a parallax step put off by a frame is barely visible)
-            if (!bg_rj_pending) parallax_try();
+            if (!bg_rj_pending) PARALLAX_TRY();
         }
         ly = LY_REG;
         // never before a column slice still pending: built for the band before it moved, it
@@ -600,7 +610,7 @@ void bg_parallax_vbl_isr(void) {
     }
     // Fading cells (when no column slice came first), before the player frame (DMG: it takes what
     // is left of VBlank) and the parallax
-    fade_cells_try();
+    FADE_CELLS_TRY();
     // DMG player frame (4 sprite tiles, double buffered by gameplay): as many tiles as still fit,
     // the rest on the next VBlank
     if (bg_cube_pending && !bg_gdma_isr_on) {
@@ -612,9 +622,9 @@ void bg_parallax_vbl_isr(void) {
     // Parallax GDMA after the map uploads (unless a column took the time, see above): first, it
     // often left the row job too little of VBlank, and in a fast climb the rows fell behind
     // (stale rows on screen)
-    parallax_try();
+    PARALLAX_TRY();
     // the fading cells left for after it
-    fade_cells_try();
+    FADE_CELLS_TRY();
     // Saw animation chunk (~0.5k dots), last: the map streaming above matters more
     ly = LY_REG;
     if (bg_saw_pending && ly >= 144u && ly <= 151u) {
