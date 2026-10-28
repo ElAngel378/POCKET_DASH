@@ -874,40 +874,10 @@ ac_divstep:
 	ld	(_fur_ac_r + 1), a
 	ret
 
-; HL / DE (DE = 1..2047) -> L = quotient low byte, BC = remainder. Keeps DE. Called for a lower
-; ch3 period, a tick rate change and (FUR_AC_MEASURE) every wave: then the quotient is almost
-; always small, and subtracting it out is ~10x faster than the 16 steps of the long division.
+; HL / DE (DE = 1..2047) -> L = quotient low byte, BC = remainder. Takes the same time for any
+; numbers: FUR_AC_MEASURE divides between its DIV read and the ch3 restart, which AC_WAVE times
+; (a faster division for small quotients made the waves click in Pocket Dash)
 div16:
-	ld	b, d
-	ld	c, e
-	sla	c
-	rl	b
-	sla	c
-	rl	b
-	sla	c
-	rl	b
-	sla	c
-	rl	b			; BC = DE * 16 (< 32768)
-	ld	a, l
-	sub	c
-	ld	a, h
-	sbc	a, b
-	jr	nc, div16_long		; quotient >= 16
-	ld	b, #0xff
-1$:	inc	b
-	ld	a, l
-	sub	e
-	ld	l, a
-	ld	a, h
-	sbc	a, d
-	ld	h, a
-	jr	nc, 1$
-	add	hl, de			; one subtraction too many
-	ld	c, l
-	ld	l, b
-	ld	b, h
-	ret
-div16_long:
 	ld	bc, #0
 	ld	a, #16
 1$:	push	af
