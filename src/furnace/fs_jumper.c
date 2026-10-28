@@ -25,6 +25,6 @@ const fur_song_t fs_jumper = {
     1, /* anti-click */
     29620, /* anti-click step at 70.8 Hz */
     947865UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 191 }, { 0, 11231 }, { 1, 1649 }, { 2, 4901 } }, /* stream entry points */
+    { { 0, 0 }, { 0, 191 }, { 0, 11231 }, { 1, 1649 }, { 2, 2558 } }, /* stream entry points */
     fs_jumper_chunks
 };
