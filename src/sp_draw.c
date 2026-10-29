@@ -11,6 +11,7 @@
 #include "assets.h"
 #include "famidash_sprites.h"
 #include "famidash_bg.h"
+#include "sgb.h"
 #include "settings.h"
 
 #define DEBUG_MODE
@@ -922,6 +923,9 @@ static void bg_trigger(uint8_t obj, uint8_t *target_bg_idx) {
 
     if (_cpu == CGB_TYPE) {
         famidash_apply_bg_trigger(pal_idx);
+    } else if (sgb_present) {
+        sgb_set_sky(pal_idx);   // the SGB colours change, the DMG theme stays (bg_pals[1])
+        return;
     }
 
     if (pal_idx < 16) {

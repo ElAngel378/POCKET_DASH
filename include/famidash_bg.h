@@ -14,6 +14,9 @@ void famidash_bg_fade_step(void) BANKED;
 // Shows pal (20 colours) right away, no fade
 void famidash_bg_set_now(const palette_color_t *pal) BANKED;
 
+// The sky colour and its darker shade (out[0], out[1]) of a background colour id
+void famidash_sky_colors(uint8_t color_id, palette_color_t *out) BANKED;
+
 // Apply a background color trigger by NES palette index.
 void famidash_apply_bg_trigger(uint8_t color_id) BANKED;
 

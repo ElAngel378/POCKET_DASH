@@ -184,6 +184,14 @@ uint8_t famidash_bkg_palettes_dirty = 0;
 
 #include "famidash_bg_tables.h"
 
+// The sky colour and its darker shade of a background colour id (colours 0 and 1 of palette 0 after
+// famidash_apply_bg_trigger), for the SGB palette
+void famidash_sky_colors(uint8_t color_id, palette_color_t *out) BANKED {
+    const famidash_sky_shades_t *shades = &famidash_sky_table[(color_id == 31u) ? 0x2Cu : (color_id & 0x3Fu)];
+    out[0] = shades->color;
+    out[1] = shades->darker;
+}
+
 void famidash_apply_bg_trigger(uint8_t color_id) BANKED {
     uint8_t idx = (color_id == 31u) ? 0x2Cu : (color_id & 0x3Fu);
     const famidash_sky_shades_t *shades = &famidash_sky_table[idx];

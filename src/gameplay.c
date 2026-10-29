@@ -23,6 +23,7 @@ BANKREF_EXTERN(chr_gb)   // base level tile sheet (src/graphics/tileset.c)
 #include "sfx_data.h"
 #include "level_complete_sfx.h"
 #include "fade.h"
+#include "sgb.h"
 #include "death_effect.h"
 #include "save_manager.h"
 #include "icon_catalog.h"
@@ -458,6 +459,7 @@ static const uint8_t bg_pals[] = {
 // the first stretch before the first trigger already has the right shades.
 static uint8_t dmg_start_bg_idx(void) {
     if (_cpu == CGB_TYPE) return 0;
+    if (sgb_present) return 1;   // SGB: one theme, the colour triggers change the SGB colours (like CGB)
     uint8_t c = l->bg_color;
     return (c < 16) ? ((c == 15) ? 3 : 2) : ((c < 32) ? 1 : 0);
 }
@@ -472,8 +474,9 @@ static uint8_t dmg_shown_bg_idx(uint8_t idx) {
 // OBP1: the player (cube, ship, ball, mini), in the shades chosen in the icon select menu on every
 // theme: colour 1 secondary, 2 primary, 3 outline. The outline is black, or white on the dark grey
 // and black themes (2, 3), so the cube always stands out from the sky, also on a real DMG screen.
+// SGB (always theme 1): white on a near black sky, where the other three colours look alike.
 static uint8_t dmg_player_obp(uint8_t idx) {
-    uint8_t outline = (idx >= 2) ? 0 : 3;
+    uint8_t outline = (idx >= 2 || sgb_dark_sky) ? 0 : 3;
     return (uint8_t)((outline << 6) | (selected_dmg_primary << 4) | (selected_dmg_secondary << 2));
 }
 
@@ -555,6 +558,9 @@ static void reload_level_state(uint8_t idx) {
     BGP_REG = bg_pals[dmg_shown_bg_idx(target_bg_idx)];
     if (_cpu == CGB_TYPE) {
         famidash_reset_bg_palettes(idx);
+    } else {
+        sgb_set_sky(l->bg_color);
+        sgb_flush();
     }
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
     DISPLAY_ON;
@@ -631,6 +637,8 @@ static void practice_add_checkpoint(void) {
     cp->active = 1;
     if (_cpu == CGB_TYPE) {
         memcpy(cp->bg_palettes, famidash_bg_target, 20 * sizeof(palette_color_t));
+    } else {
+        cp->bg_palettes[0] = sgb_sky_id;   // (the SGB colours restore from it)
     }
     practice_cp_count++;
     last_cp_cam_px = cam_px;
@@ -651,6 +659,7 @@ static void practice_remove_checkpoint(void) {
         practice_checkpoints[0].scroll_acc = 0;
         practice_checkpoints[0].bg_drift_px = 0;
         practice_checkpoints[0].target_bg_idx = dmg_start_bg_idx();
+        practice_checkpoints[0].bg_palettes[0] = l->bg_color;
         practice_checkpoints[0].world_x = 0;
         practice_checkpoints[0].world_y = practice_checkpoints[0].cam_py;
         player_init(&practice_checkpoints[0].player, 0, 240);
@@ -1202,6 +1211,8 @@ static void practice_respawn(uint8_t idx) {
         BGP_REG = bg_pals[apply_idx];
         OBP0_REG = (apply_idx == 3) ? DMG_OBP_ON_BLACK : BGP_REG;
         OBP1_REG = dmg_player_obp(apply_idx);
+        sgb_set_sky((uint8_t)cp->bg_palettes[0]);   // (DMG leaves the CGB palette copy unused: the sky id)
+        sgb_flush();
     }
 
     load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));
@@ -1378,7 +1389,7 @@ void play_level(uint8_t idx) BANKED {
     broken_reset();
     max_scroll_px = ((level_map_w - VIEW_MT_W) << 4);
 
-    reduce_flash = setting_dmg_gradient ? 0 : 1;
+    reduce_flash = (setting_dmg_gradient || sgb_present) ? 0 : 1;   // (SGB: no gradient, it would leave theme 1)
     target_bg_idx = dmg_start_bg_idx();
     level_phys = game_levels[idx]->max_fall_7 ? LP_MAX_FALL_7 : 0;
     player_init(&player, 0, 240);
@@ -1428,6 +1439,8 @@ void play_level(uint8_t idx) BANKED {
         uint8_t si = dmg_shown_bg_idx(target_bg_idx);
         uint8_t sobp0 = (si == 3) ? DMG_OBP_ON_BLACK : bg_pals[si];
         fade_set_dmg_palettes(bg_pals[si], sobp0, dmg_player_obp(si));
+        sgb_set_sky(l->bg_color);
+        sgb_flush();
     }
     fade_set_black();
     // nothing left in OAM from the previous screen (the level complete's "100%" faded in with
@@ -1471,7 +1484,7 @@ void play_level(uint8_t idx) BANKED {
     sp_cache_col = 0xFFFF;
     sp_fill_pending = 0;
     cached_collision_col = 0xFFFF;
-    reduce_flash = setting_dmg_gradient ? 0 : 1;
+    reduce_flash = (setting_dmg_gradient || sgb_present) ? 0 : 1;   // (SGB: no gradient, it would leave theme 1)
     pause_suppress_jump = 0;
     end_anim_state = END_ANIM_INACTIVE;
     end_anim_frame = 0;
@@ -1540,7 +1553,7 @@ void play_level(uint8_t idx) BANKED {
                 }
             }
         } else {
-            if ((joy & J_SELECT) && !(prev_joy & J_SELECT)) {
+            if (!sgb_present && (joy & J_SELECT) && !(prev_joy & J_SELECT)) {
                 reduce_flash = !reduce_flash;
                 setting_dmg_gradient = !reduce_flash;
                 save_game_data();
@@ -2017,7 +2030,10 @@ void play_level(uint8_t idx) BANKED {
         if (parallax_needed) request_bg_parallax(bg_phase);
         saw_anim_request();
         // Same for the scroll registers and the DMG palettes
-        if (_cpu != CGB_TYPE) request_bg_dmg_pals(final_bgp, final_obp0, final_obp1);
+        if (_cpu != CGB_TYPE) {
+            request_bg_dmg_pals(final_bgp, final_obp0, final_obp1);
+            sgb_frame();
+        }
         request_bg_scroll(final_scx, final_scy);
         if (seamless && !mj_switched && end_anim_state == END_ANIM_INACTIVE && !died) mirror_job(px_curr);
 #if ENABLE_DEBUG_MODE
