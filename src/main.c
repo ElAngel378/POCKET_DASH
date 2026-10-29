@@ -1,5 +1,6 @@
 #include <gb/gb.h>
 #include <gb/cgb.h>
+#include "sgb.h"
 #include "assets.h"
 #include "gameplay.h"
 #include "hUGEDriver.h"
@@ -315,6 +316,7 @@ void main(void) {
   fur_beats_start(FUR_NONE);
 
   if (_cpu == CGB_TYPE) cpu_fast();
+  sgb_init();   // before the timer and joypad: the SGB packets use the joypad register
 
 #ifdef DEBUG_PROFILE
   // Profiling build: tools/mesen_profile.lua writes level + 1 to gplevel; then straight in
@@ -341,6 +343,7 @@ void main(void) {
   enable_interrupts();
 
   while (1) {
+    if (sgb_in_level && current_state != STATE_PLAY_LEVEL && current_state != STATE_LEVEL_COMPLETE) sgb_leave_level();
     switch (current_state) {
       case STATE_MENU:
         current_state = update_menu_state();
