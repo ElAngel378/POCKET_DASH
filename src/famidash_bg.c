@@ -66,7 +66,15 @@ static void setup_ch(uint8_t from, uint8_t to) {
     ch_p->val = from;
     ch_p->frac = 0x80;              // rounds to the nearest step
     int16_t st = (int16_t)(((uint16_t)step_hi[k] << 8) | step_lo[k]);
-    for (uint8_t n = step_shift; n; n--) st >>= 1;
+    // halved towards 0: rounded down, a falling channel overshot past 0 in a 4 s fade and
+    // wrapped (0 -> 255: garbage colours, the ground broke)
+    if (st < 0) {
+        st = -st;
+        for (uint8_t n = step_shift; n; n--) st >>= 1;
+        st = -st;
+    } else {
+        for (uint8_t n = step_shift; n; n--) st >>= 1;
+    }
     ch_p->step_lo = (uint8_t)st;
     ch_p->step_hi = (uint8_t)((uint16_t)st >> 8);
     ch_p++;
