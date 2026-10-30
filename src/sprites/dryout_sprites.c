@@ -7,7 +7,7 @@ BANKREF(dryout_sp)
 const SpDef dryout_sp[] = {
     {576, 976, 43},
     {608, 1008, 46},
-    {736, 5, 134},
+    {736, 6, 134},
     {832, 960, 45},
     {1120, 992, 44},
     {1184, 976, 43},
@@ -222,7 +222,7 @@ const SpDef dryout_sp[] = {
 
 // Extracted 44 gameplay-critical objects for DMG mode
 const SpDef dryout_sp_dmg[] = {
-    {736, 5, 134},
+    {736, 6, 134},
     {1552, 5, 133},
     {2080, 4, 132},
     {2352, 4, 131},

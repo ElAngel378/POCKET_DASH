@@ -126,14 +126,14 @@ from 0, left to right, 16 per row):
 | 128..175 | background colour triggers |
 | 176..191 | block outline colour triggers (CGB only) |
 | 192..239 | ground colour triggers |
-| 246..250 | colour trigger fade time: 0 s (instant), 0.5 s, 1 s, 2 s, 4 s (see below) |
+| 246..251 | colour trigger fade time: 0 s (instant), 0.5 s, 1 s, 2 s, 4 s, 10 s (see below) |
 
 Put a sprite in the cell where it should be. If one needs to sit a few pixels off its cell (like
 Famidash levels sometimes do), add an `objectOffsets` entry for the level in
 `levels/metadata/*.json` (same format as the existing ones).
 
 **Fade time.** A background or ground colour trigger fades to its colour in 0.3 s. To change
-that, put a fade time marker (sprites 246..250, the blue bars labelled 0s, .5s, 1s, 2s, 4s)
+that, put a fade time marker (sprites 246..251, the blue bars labelled 0s, .5s, 1s, 2s, 4s, 10s)
 anywhere in the same column as the trigger: it sets the fade time of every colour trigger in that
 column. Two different markers in one column stop the build. A trigger that comes while another
 fade is still running starts from the colours on screen, with its own fade time. (CGB only: the

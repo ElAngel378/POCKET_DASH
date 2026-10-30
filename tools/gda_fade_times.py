@@ -6,7 +6,7 @@
 Our levels' triggers come from Famidash, which cannot fade (NES): it fakes a slow fade with a
 chain of triggers a few blocks apart. GDA has one trigger with a fade time. A chain is kept (its
 colours) and each step fades until the next, so the whole chain takes about GDA's time. Our triggers sit ~160 px after GDA's (the
-camera lead). Markers: tools/tmx2sprites.py (sprites 246..250); a column's BG and ground triggers
+camera lead). Markers: tools/tmx2sprites.py (sprites 246..251); a column's BG and ground triggers
 share one marker (the background's wins). A step's time: to the next step of its chain; the last
 step: the rest of GDA's time (at least 0.3 s); GDA's instant triggers: instant.
 """
@@ -24,7 +24,7 @@ PX_PER_FRAME = 2.79          # the player's speed (one speed for every level)
 LEAD = 160                   # our trigger x - GDA's
 WINDOW = (64, 320)           # a chain's first step: GDA x + this range
 # marker sprite -> fade frames (tools/tmx2sprites.py; no marker: 18)
-MARKERS = {246: 1, None: 18, 247: 30, 248: 60, 249: 120, 250: 240}
+MARKERS = {246: 1, None: 18, 247: 30, 248: 60, 249: 120, 250: 240, 251: 600}
 GDA_NAMES = {"ultiatedestruction": "ultimatedestruction"}
 
 
@@ -115,7 +115,7 @@ def write(path, cols):
     s, m, w, cells = read_sp(path)
     h = len(cells) // w
     for i, gid in enumerate(cells):   # old markers out
-        if 246 <= gid - SPRITE_FIRSTGID <= 250:
+        if 246 <= gid - SPRITE_FIRSTGID <= 251:
             cells[i] = 0
     for c, mk in cols.items():
         if mk is None:

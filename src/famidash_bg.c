@@ -38,14 +38,17 @@ static FadeCh fade_ch[60];
 static uint8_t fade_col[20];
 static uint8_t fade_n;
 static uint8_t fade_nch;            // 3 * fade_n, read by fade_channels
-static uint8_t fade_left;           // frames to go, 0: not fading
+static uint8_t fade_left;           // steps to go, 0: not fading
+static uint8_t fade_div, fade_wait; // frames a step (10 s: 5, else 1), frames to the next step
 static uint8_t fade_restart;        // a trigger changed famidash_bg_target this frame
 static uint8_t fade_time;           // that trigger's fade time (FAMIDASH_FADE_*)
 
 // 8.8 step for a channel change of d = index - 31: d * 256 / frames, for 18 frames (~= d * 57 / 4)
 // and 30. 1, 2 and 4 s halve the 30 frame step (one table each did not fit the bank).
 // (FAMIDASH_FADE_INSTANT: 1 frame, the last one copies the target, the steps are never seen)
-static const uint8_t bg_fade_frames[FAMIDASH_FADE_4S + 1] = { BG_FADE_FRAMES, 1, 30, 60, 120, 240 };
+// 10 s: the 2 s steps, one every 5 frames (600 frames do not fit fade_left, and a 600 frame step
+// rounds small changes to nothing)
+static const uint8_t bg_fade_frames[FAMIDASH_FADE_10S + 1] = { BG_FADE_FRAMES, 1, 30, 60, 120, 240, 120 };
 static const uint8_t step_tab_lo[2][63] = {
     { 0x46, 0x54, 0x62, 0x71, 0x7F, 0x8D, 0x9B, 0xAA, 0xB8, 0xC6, 0xD4, 0xE3, 0xF1, 0xFF, 0x0D, 0x1C, 0x2A, 0x38, 0x46, 0x55, 0x63, 0x71, 0x7F, 0x8E, 0x9C, 0xAA, 0xB8, 0xC7, 0xD5, 0xE3, 0xF1, 0x00, 0x0E, 0x1C, 0x2A, 0x39, 0x47, 0x55, 0x63, 0x72, 0x80, 0x8E, 0x9C, 0xAB, 0xB9, 0xC7, 0xD5, 0xE4, 0xF2, 0x00, 0x0E, 0x1D, 0x2B, 0x39, 0x47, 0x56, 0x64, 0x72, 0x80, 0x8F, 0x9D, 0xAB, 0xB9 },
     { 0xF7, 0x00, 0x09, 0x11, 0x1A, 0x22, 0x2B, 0x33, 0x3C, 0x44, 0x4D, 0x55, 0x5E, 0x66, 0x6F, 0x77, 0x80, 0x89, 0x91, 0x9A, 0xA2, 0xAB, 0xB3, 0xBC, 0xC4, 0xCD, 0xD5, 0xDE, 0xE6, 0xEF, 0xF7, 0x00, 0x09, 0x11, 0x1A, 0x22, 0x2B, 0x33, 0x3C, 0x44, 0x4D, 0x55, 0x5E, 0x66, 0x6F, 0x77, 0x80, 0x89, 0x91, 0x9A, 0xA2, 0xAB, 0xB3, 0xBC, 0xC4, 0xCD, 0xD5, 0xDE, 0xE6, 0xEF, 0xF7, 0x00, 0x09 },
@@ -88,7 +91,8 @@ static void start_fade(void) {
     uint8_t row = (fade_time > FAMIDASH_FADE_INSTANT);
     step_lo = step_tab_lo[row];
     step_hi = step_tab_hi[row];
-    step_shift = row ? (uint8_t)(fade_time - FAMIDASH_FADE_HALF_S) : 0;
+    step_shift = (fade_time == FAMIDASH_FADE_10S) ? 2 : row ? (uint8_t)(fade_time - FAMIDASH_FADE_HALF_S) : 0;
+    fade_div = fade_wait = (fade_time == FAMIDASH_FADE_10S) ? 5 : 1;
     ch_p = fade_ch;
     for (uint8_t i = 0; i < 20; i++, a += 2, b += 2) {
         uint8_t alo = a[0], ahi = a[1], blo = b[0], bhi = b[1];
@@ -164,6 +168,8 @@ void famidash_bg_fade_step(void) BANKED {
         return;
     }
     if (!fade_left) return;
+    if (--fade_wait) return;
+    fade_wait = fade_div;
     if (--fade_left == 0) {
         memcpy(famidash_bg_palettes, famidash_bg_target, sizeof(famidash_bg_target));
         // the pause box and the death fade start from shadow_bkg_palettes
@@ -249,7 +255,7 @@ void famidash_apply_bg_trigger(uint8_t color_id, uint8_t time) BANKED {
     // Palette 4: Ground Grid (Color 0 is the top white line, always pure white)
     famidash_bg_target[16] = RGB(31, 31, 31);
 
-    fade_time = (time <= FAMIDASH_FADE_4S) ? time : FAMIDASH_FADE_DEFAULT;
+    fade_time = (time <= FAMIDASH_FADE_10S) ? time : FAMIDASH_FADE_DEFAULT;
     fade_restart = 1;
 }
 
@@ -294,7 +300,7 @@ void famidash_apply_g_trigger(uint8_t color_id, uint8_t time) BANKED {
     famidash_bg_target[18] = shades->grid_18;
     famidash_bg_target[19] = shades->grid_9;
 
-    fade_time = (time <= FAMIDASH_FADE_4S) ? time : FAMIDASH_FADE_DEFAULT;
+    fade_time = (time <= FAMIDASH_FADE_10S) ? time : FAMIDASH_FADE_DEFAULT;
     fade_restart = 1;
 }
 

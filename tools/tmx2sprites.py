@@ -147,7 +147,7 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
     for i in range(192, 240):
         portals_map[sprites_firstgid + i] = i
 
-    # colour trigger fade time markers (sprites.png 246..250, tools/make_fade_time_icons.py): a
+    # colour trigger fade time markers (sprites.png 246..251, tools/make_fade_time_icons.py): a
     # marker anywhere in a column sets the fade time of the colour triggers of that column (no
     # marker: 0.3 s). Written as the triggers' y (include/famidash_bg.h FAMIDASH_FADE_*): the
     # engine never reads a colour trigger's position other than its x.
@@ -157,6 +157,7 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
         sprites_firstgid + 248: 3,  # 1 s
         sprites_firstgid + 249: 4,  # 2 s
         sprites_firstgid + 250: 5,  # 4 s
+        sprites_firstgid + 251: 6,  # 10 s
     }
     fade_of_col = {}
 
