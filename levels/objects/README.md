@@ -66,7 +66,10 @@ square) are sprites 39, 40, 41 (CGB, they pulse to the music).
 `GDA_PIT_*` (made by `tools/make_gda_pits.py`): GDA's background spike sprites behind our black
 pit spikes, in strips of 4 cells (`GDA_PIT`, `GDA_PIT_TOP`) or 2 cells (`GDA_PIT_SB`, `_SB_TOP`, over
 the wavy pit). They replaced the white Famidash background-spike pits in every level; place the
-pieces of a strip in order along a row (C0, C1, ...) for one continuous row of spikes. On DMG they
+pieces of a strip in order along a row (C0, C1, ...) for one continuous row of spikes. The big
+spikes' peaks reach 5 px into the cell above: put `GDA_PIT_TIP_C<n>` there (above `GDA_PIT_C<n>`;
+`GDA_PIT_TOP_TIP_C<n>` below `GDA_PIT_TOP_C<n>`), or `python tools/make_gda_pits.py --tips` fills
+every empty cell above / below a pit piece in every level. On DMG they
 keep the old pit art (`dmg_art`), so DMG levels need no more tiles than before.
 
 ## The layout

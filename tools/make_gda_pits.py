@@ -2,12 +2,14 @@
 catalog objects, and every level's white background-spike pits (Famidash's BOTTOM / TOP
 _BACKGROUND_SPIKES and their _SB look) replaced by them.
 
-    python tools/make_gda_pits.py
+    python tools/make_gda_pits.py           the pieces and the levels (once)
+    python tools/make_gda_pits.py --tips    the big spikes' tips above the pits (add_tips)
 
 GDA draws a pit as its black GROUND_SPIKE_BOTTOM metatile in front of a BIG / MEDIUM / SMALL_BG_SPIKES
 sprite (in the player's colour); its big sprite's peaks stand 5 px above the pit cell. Here:
-    - GDA_PIT_C0..C3:        BIG_BG_SPIKES (64 px: 4 cells, shifted down 5 px to fit the cell)
-                             behind PITSPIKES; replaces BOTTOM_BACKGROUND_SPIKES
+    - GDA_PIT_C0..C3:        BIG_BG_SPIKES (64 px: 4 cells) behind PITSPIKES; replaces
+                             BOTTOM_BACKGROUND_SPIKES. Its top 5 px: GDA_PIT_TIP_C0..C3 in the
+                             cell above (GDA_PIT_TOP_TIP_* below the upside down ones)
     - GDA_PIT_TOP_C0..C3:    the same upside down, behind PITSPIKES_TOP; replaces
                              TOP_BACKGROUND_SPIKES
     - GDA_PIT_SB_C0..C1:     SMALL_BG_SPIKES (32 px: 2 cells) behind BOTTOM_WAVYPIT; replaces
@@ -105,7 +107,104 @@ def dmg_fallback():
     TSX.write_text(tsx, encoding="utf-8")
 
 
+def add_tips():
+    """GDA's big spikes stand 5 px above the pit cell. The first version shifted them down 5 px
+    into the cell, which cut off their base: the joined-up row became loose tufts. This redraws
+    GDA_PIT / GDA_PIT_TOP at GDA's height and adds the tips as decoration pieces
+    (GDA_PIT_TIP_C0..C3 / GDA_PIT_TOP_TIP_C0..C3, no collision, blank on DMG) in the empty cell
+    above (below, upside down) each pit piece."""
+    cat = load_catalog()
+    if any(o["name"].startswith("GDA_PIT_TIP_") for o in cat.objects.values()):
+        place_tips(cat)   # the catalog has them: (again) put them in the levels
+        return
+    sheet = Image.open(ART).convert("L")
+    img, ox, oy = gda.sprite_art(gda.sprite_types().index("BIG_BG_SPIKES"))
+    used = sorted(set(img.getdata()) - {0})
+    art = img.point([0 if not c else 3 if c == used[-1] else 1 for c in range(256)]).crop(
+        (0, 21, img.width, 42))   # GDA rows -5..15 of the pit cell
+    up = art.transpose(Image.FLIP_TOP_BOTTOM)
+    pieces = {   # name prefix: (cells of the strip, the pit drawn in front or None)
+        "GDA_PIT_C": (strip(art.crop((0, 5, art.width, 21)), cell(sheet, by_name(cat, "PITSPIKES")), False), None),
+        "GDA_PIT_TOP_C": (strip(up.crop((0, 0, up.width, 16)), cell(sheet, by_name(cat, "PITSPIKES_TOP")), False), None),
+        "GDA_PIT_TIP_C": (strip(art.crop((0, -11, art.width, 5)), Image.new("L", (16, 16), 0), False), None),
+        "GDA_PIT_TOP_TIP_C": (strip(up.crop((0, 16, up.width, 32)), Image.new("L", (16, 16), 0), False), None),
+    }
+
+    def draw(tid, t):
+        px = t.load()
+        for y in range(16):
+            for x in range(16):
+                sheet.putpixel(((tid % COLUMNS) * 16 + x, (tid // COLUMNS) * 16 + y), 255 - 85 * px[x, y])
+
+    for prefix in ("GDA_PIT_C", "GDA_PIT_TOP_C"):
+        for k, t in enumerate(pieces[prefix][0]):
+            draw(by_name(cat, prefix + str(k)), t)
+    first = (max(cat.objects) // COLUMNS + 1) * COLUMNS
+    grown = Image.new("L", (sheet.width, (first // COLUMNS + 1) * 16), 255)
+    grown.paste(sheet, (0, 0))
+    sheet = grown
+    blank_dmg = int(cat.objects[by_name(cat, "GDA_PIT_SB_TOP_C0")]["dmg_art"]) + 1   # empty cell
+    tiles, tid = [], first
+    for prefix in ("GDA_PIT_TIP_C", "GDA_PIT_TOP_TIP_C"):
+        for k, t in enumerate(pieces[prefix][0]):
+            draw(tid, t)
+            tiles.append(
+                ' <tile id="%d">\n  <properties>\n'
+                '   <property name="name" value="%s%d"/>\n'
+                '   <property name="collision" type="int" value="0"/>\n'
+                '   <property name="palette" type="int" value="%d"/>\n'
+                '   <property name="famidash_id" type="int" value="-1"/>\n'
+                '   <property name="dmg_art" type="int" value="%d"/>\n'
+                '  </properties>\n </tile>\n' % (tid, prefix, k, PAL_DECO, blank_dmg))
+            tid += 1
+    sheet.save(ART)
+    tsx = TSX.read_text(encoding="utf-8")
+    tsx = re.sub(r'tilecount="\d+"', 'tilecount="%d"' % ((first // COLUMNS + 1) * COLUMNS), tsx, count=1)
+    TSX.write_text(tsx.replace("</tileset>", "".join(tiles) + "</tileset>"), encoding="utf-8")
+    place_tips(load_catalog())
+
+
+def place_tips(cat):
+    """a tip piece in the empty cell above (GDA_PIT_C*) or below (GDA_PIT_TOP_C*) each pit piece;
+    empty: no object or the EMPTY object"""
+    tip_of = {}
+    for k in range(4):
+        tip_of[by_name(cat, "GDA_PIT_C%d" % k)] = (by_name(cat, "GDA_PIT_TIP_C%d" % k), -1)
+        tip_of[by_name(cat, "GDA_PIT_TOP_C%d" % k)] = (by_name(cat, "GDA_PIT_TOP_TIP_C%d" % k), 1)
+    empty = {"0", str(by_name(cat, "EMPTY") + 1)}
+    for p in sorted(TMX.glob("*.tmx")):
+        s = p.read_text(encoding="utf-8")
+        m = re.search(r'(<layer id="1"[^>]*>\s*<data encoding="csv">)(.*?)(</data>)', s, re.S)
+        if not m:
+            continue
+        body = m.group(2)
+        rows = [r.split(",") for r in body.split("\n")]
+        placed = skipped = 0
+        for r, vals in enumerate(rows):
+            for c, v in enumerate(vals):
+                if not v.strip():
+                    continue
+                t = (int(v) & 0x0FFFFFFF) - 1
+                if t not in tip_of:
+                    continue
+                tip, dr = tip_of[t]
+                rr = r + dr
+                if 0 <= rr < len(rows) and c < len(rows[rr]) and rows[rr][c].strip() in empty:
+                    rows[rr][c] = str(tip + 1)
+                    placed += 1
+                else:
+                    skipped += 1
+        if placed:
+            s = s[:m.start(2)] + "\n".join(",".join(v) for v in rows) + s[m.end(2):]
+            p.write_text(s, encoding="utf-8", newline="")
+            print("%s: %d tips (%d cells taken)" % (p.stem, placed, skipped))
+    write_preview()
+
+
 def main():
+    if "--tips" in sys.argv:
+        add_tips()
+        return
     cat = load_catalog()
     if any(o["name"].startswith("GDA_PIT_") for o in cat.objects.values()):
         raise SystemExit("the GDA pits are already in the catalog")

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="objects" tilewidth="16" tileheight="16" tilecount="896" columns="16">
- <image source="objects_preview.png" width="256" height="896"/>
+<tileset version="1.10" tiledversion="1.11.2" name="objects" tilewidth="16" tileheight="16" tilecount="912" columns="16">
+ <image source="objects_preview.png" width="256" height="912"/>
  <tile id="0">
   <properties>
    <property name="name" value="EMPTY"/>
@@ -7283,6 +7283,78 @@
    <property name="palette" type="int" value="2"/>
    <property name="famidash_id" type="int" value="-1"/>
    <property name="dmg_art" type="int" value="83"/>
+  </properties>
+ </tile>
+ <tile id="896">
+  <properties>
+   <property name="name" value="GDA_PIT_TIP_C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="84"/>
+  </properties>
+ </tile>
+ <tile id="897">
+  <properties>
+   <property name="name" value="GDA_PIT_TIP_C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="84"/>
+  </properties>
+ </tile>
+ <tile id="898">
+  <properties>
+   <property name="name" value="GDA_PIT_TIP_C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="84"/>
+  </properties>
+ </tile>
+ <tile id="899">
+  <properties>
+   <property name="name" value="GDA_PIT_TIP_C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="84"/>
+  </properties>
+ </tile>
+ <tile id="900">
+  <properties>
+   <property name="name" value="GDA_PIT_TOP_TIP_C0"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="84"/>
+  </properties>
+ </tile>
+ <tile id="901">
+  <properties>
+   <property name="name" value="GDA_PIT_TOP_TIP_C1"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="84"/>
+  </properties>
+ </tile>
+ <tile id="902">
+  <properties>
+   <property name="name" value="GDA_PIT_TOP_TIP_C2"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="84"/>
+  </properties>
+ </tile>
+ <tile id="903">
+  <properties>
+   <property name="name" value="GDA_PIT_TOP_TIP_C3"/>
+   <property name="collision" type="int" value="0"/>
+   <property name="palette" type="int" value="2"/>
+   <property name="famidash_id" type="int" value="-1"/>
+   <property name="dmg_art" type="int" value="84"/>
   </properties>
  </tile>
 </tileset>
