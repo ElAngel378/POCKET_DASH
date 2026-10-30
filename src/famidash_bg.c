@@ -22,8 +22,9 @@ static const uint16_t vibrant_palette_default[20] = {
 };
 
 // famidash_bg_palettes: what is on screen (the VBlank handler uploads it). The colour triggers
-// set famidash_bg_target and the screen fades to it in BG_FADE_FRAMES frames (0.3 s): every
-// colour channel moves by a fixed 8.8 step, computed once per trigger.
+// set famidash_bg_target and the screen fades to it in the trigger's fade time (BG_FADE_FRAMES,
+// 0.3 s, unless a fade time marker sits in its column: tools/tmx2sprites.py): every colour
+// channel moves by a fixed 8.8 step, computed once per trigger.
 // All byte arithmetic with lookup tables: the first version (int16 channels, variable shifts)
 // took 1.4 frames to start a fade and a quarter of every frame while it ran, so every colour
 // trigger dropped frames.
@@ -39,21 +40,35 @@ static uint8_t fade_n;
 static uint8_t fade_nch;            // 3 * fade_n, read by fade_channels
 static uint8_t fade_left;           // frames to go, 0: not fading
 static uint8_t fade_restart;        // a trigger changed famidash_bg_target this frame
+static uint8_t fade_time;           // that trigger's fade time (FAMIDASH_FADE_*)
 
-// 8.8 step for a channel change of d = index - 31: d * 256 / 18 ~= d * 57 / 4
-static const uint8_t step_tab_lo[63] = { 0x46, 0x54, 0x62, 0x71, 0x7F, 0x8D, 0x9B, 0xAA, 0xB8, 0xC6, 0xD4, 0xE3, 0xF1, 0xFF, 0x0D, 0x1C, 0x2A, 0x38, 0x46, 0x55, 0x63, 0x71, 0x7F, 0x8E, 0x9C, 0xAA, 0xB8, 0xC7, 0xD5, 0xE3, 0xF1, 0x00, 0x0E, 0x1C, 0x2A, 0x39, 0x47, 0x55, 0x63, 0x72, 0x80, 0x8E, 0x9C, 0xAB, 0xB9, 0xC7, 0xD5, 0xE4, 0xF2, 0x00, 0x0E, 0x1D, 0x2B, 0x39, 0x47, 0x56, 0x64, 0x72, 0x80, 0x8F, 0x9D, 0xAB, 0xB9 };
-static const uint8_t step_tab_hi[63] = { 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+// 8.8 step for a channel change of d = index - 31: d * 256 / frames, for 18 frames (~= d * 57 / 4)
+// and 30. 1, 2 and 4 s halve the 30 frame step (one table each did not fit the bank).
+// (FAMIDASH_FADE_INSTANT: 1 frame, the last one copies the target, the steps are never seen)
+static const uint8_t bg_fade_frames[FAMIDASH_FADE_4S + 1] = { BG_FADE_FRAMES, 1, 30, 60, 120, 240 };
+static const uint8_t step_tab_lo[2][63] = {
+    { 0x46, 0x54, 0x62, 0x71, 0x7F, 0x8D, 0x9B, 0xAA, 0xB8, 0xC6, 0xD4, 0xE3, 0xF1, 0xFF, 0x0D, 0x1C, 0x2A, 0x38, 0x46, 0x55, 0x63, 0x71, 0x7F, 0x8E, 0x9C, 0xAA, 0xB8, 0xC7, 0xD5, 0xE3, 0xF1, 0x00, 0x0E, 0x1C, 0x2A, 0x39, 0x47, 0x55, 0x63, 0x72, 0x80, 0x8E, 0x9C, 0xAB, 0xB9, 0xC7, 0xD5, 0xE4, 0xF2, 0x00, 0x0E, 0x1D, 0x2B, 0x39, 0x47, 0x56, 0x64, 0x72, 0x80, 0x8F, 0x9D, 0xAB, 0xB9 },
+    { 0xF7, 0x00, 0x09, 0x11, 0x1A, 0x22, 0x2B, 0x33, 0x3C, 0x44, 0x4D, 0x55, 0x5E, 0x66, 0x6F, 0x77, 0x80, 0x89, 0x91, 0x9A, 0xA2, 0xAB, 0xB3, 0xBC, 0xC4, 0xCD, 0xD5, 0xDE, 0xE6, 0xEF, 0xF7, 0x00, 0x09, 0x11, 0x1A, 0x22, 0x2B, 0x33, 0x3C, 0x44, 0x4D, 0x55, 0x5E, 0x66, 0x6F, 0x77, 0x80, 0x89, 0x91, 0x9A, 0xA2, 0xAB, 0xB3, 0xBC, 0xC4, 0xCD, 0xD5, 0xDE, 0xE6, 0xEF, 0xF7, 0x00, 0x09 },
+};
+static const uint8_t step_tab_hi[2][63] = {
+    { 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+    { 254, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1 },
+};
 // Green channel g (0..31) in the two bytes of an RGB555 colour
 static const uint8_t g_to_lo[32] = { 0x00, 0x20, 0x40, 0x60, 0x80, 0xA0, 0xC0, 0xE0, 0x00, 0x20, 0x40, 0x60, 0x80, 0xA0, 0xC0, 0xE0, 0x00, 0x20, 0x40, 0x60, 0x80, 0xA0, 0xC0, 0xE0, 0x00, 0x20, 0x40, 0x60, 0x80, 0xA0, 0xC0, 0xE0 };
 static const uint8_t g_to_hi[32] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03 };
 
 static FadeCh *ch_p;
+static const uint8_t *step_lo, *step_hi;   // the fade time's row of step_tab_lo / _hi
+static uint8_t step_shift;                 // then halved this many times
 static void setup_ch(uint8_t from, uint8_t to) {
     uint8_t k = (uint8_t)(to + 31u - from);
     ch_p->val = from;
     ch_p->frac = 0x80;              // rounds to the nearest step
-    ch_p->step_lo = step_tab_lo[k];
-    ch_p->step_hi = step_tab_hi[k];
+    int16_t st = (int16_t)(((uint16_t)step_hi[k] << 8) | step_lo[k]);
+    for (uint8_t n = step_shift; n; n--) st >>= 1;
+    ch_p->step_lo = (uint8_t)st;
+    ch_p->step_hi = (uint8_t)((uint16_t)st >> 8);
     ch_p++;
 }
 
@@ -62,6 +77,10 @@ static void start_fade(void) {
     const uint8_t *a = (const uint8_t *)famidash_bg_palettes;
     const uint8_t *b = (const uint8_t *)famidash_bg_target;
     uint8_t n = 0;
+    uint8_t row = (fade_time > FAMIDASH_FADE_INSTANT);
+    step_lo = step_tab_lo[row];
+    step_hi = step_tab_hi[row];
+    step_shift = row ? (uint8_t)(fade_time - FAMIDASH_FADE_HALF_S) : 0;
     ch_p = fade_ch;
     for (uint8_t i = 0; i < 20; i++, a += 2, b += 2) {
         uint8_t alo = a[0], ahi = a[1], blo = b[0], bhi = b[1];
@@ -73,7 +92,7 @@ static void start_fade(void) {
     }
     fade_n = n;
     fade_nch = (uint8_t)(n * 3u);
-    fade_left = n ? BG_FADE_FRAMES : 0;
+    fade_left = n ? bg_fade_frames[fade_time] : 0;
 }
 
 // Adds every channel's 8.8 step (fade_nch > 0 channels)
@@ -192,7 +211,7 @@ void famidash_sky_colors(uint8_t color_id, palette_color_t *out) BANKED {
     out[1] = shades->darker;
 }
 
-void famidash_apply_bg_trigger(uint8_t color_id) BANKED {
+void famidash_apply_bg_trigger(uint8_t color_id, uint8_t time) BANKED {
     uint8_t idx = (color_id == 31u) ? 0x2Cu : (color_id & 0x3Fu);
     const famidash_sky_shades_t *shades = &famidash_sky_table[idx];
     if (shades->color == current_sky_color) return;
@@ -222,6 +241,7 @@ void famidash_apply_bg_trigger(uint8_t color_id) BANKED {
     // Palette 4: Ground Grid (Color 0 is the top white line, always pure white)
     famidash_bg_target[16] = RGB(31, 31, 31);
 
+    fade_time = (time <= FAMIDASH_FADE_4S) ? time : FAMIDASH_FADE_DEFAULT;
     fade_restart = 1;
 }
 
@@ -246,7 +266,7 @@ void famidash_apply_outline_trigger(uint8_t n) BANKED {
     famidash_bkg_palettes_dirty = 1;
 }
 
-void famidash_apply_g_trigger(uint8_t color_id) BANKED {
+void famidash_apply_g_trigger(uint8_t color_id, uint8_t time) BANKED {
     uint8_t idx = (color_id == 31u) ? 0x2Cu : (color_id & 0x3Fu);
 
     const famidash_sky_shades_t *sky_entry = &famidash_sky_table[idx];
@@ -266,6 +286,7 @@ void famidash_apply_g_trigger(uint8_t color_id) BANKED {
     famidash_bg_target[18] = shades->grid_18;
     famidash_bg_target[19] = shades->grid_9;
 
+    fade_time = (time <= FAMIDASH_FADE_4S) ? time : FAMIDASH_FADE_DEFAULT;
     fade_restart = 1;
 }
 
@@ -280,8 +301,8 @@ void famidash_reset_bg_palettes(uint8_t idx) BANKED {
     for (i = 0; i < 20; i++) famidash_bg_target[i] = vibrant_palette_default[i];
     current_sky_color = 0xFFFF;
     current_g_color = 0xFFFF;
-    famidash_apply_bg_trigger(bg_col);
-    famidash_apply_g_trigger(g_col);
+    famidash_apply_bg_trigger(bg_col, FAMIDASH_FADE_DEFAULT);
+    famidash_apply_g_trigger(g_col, FAMIDASH_FADE_DEFAULT);
     famidash_bg_set_now(famidash_bg_target);   // the level's colours from the start, no fade
     if (_cpu == CGB_TYPE) {
         // through the fade module: it fades what it knows (it only dimmed the sprites leaving a

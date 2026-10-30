@@ -147,6 +147,19 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
     for i in range(192, 240):
         portals_map[sprites_firstgid + i] = i
 
+    # colour trigger fade time markers (sprites.png 246..250, tools/make_fade_time_icons.py): a
+    # marker anywhere in a column sets the fade time of the colour triggers of that column (no
+    # marker: 0.3 s). Written as the triggers' y (include/famidash_bg.h FAMIDASH_FADE_*): the
+    # engine never reads a colour trigger's position other than its x.
+    fade_markers = {
+        sprites_firstgid + 246: 1,  # instant
+        sprites_firstgid + 247: 2,  # 0.5 s
+        sprites_firstgid + 248: 3,  # 1 s
+        sprites_firstgid + 249: 4,  # 2 s
+        sprites_firstgid + 250: 5,  # 4 s
+    }
+    fade_of_col = {}
+
     offset_dict = load_metadata_for_level(file_base_name)
     if offset_dict:
         print(f"  - Loaded {len(offset_dict)} FamiDash offset rules for {file_base_name}")
@@ -175,6 +188,14 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
                     except ValueError:
                         continue
 
+                    if tile_id in fade_markers:
+                        col = index % map_width
+                        if fade_of_col.get(col, fade_markers[tile_id]) != fade_markers[tile_id]:
+                            print(f"Error: {tmx_filepath}: two different fade time markers in column {col}")
+                            sys.exit(1)
+                        fade_of_col[col] = fade_markers[tile_id]
+                        continue
+
                     if tile_id in portals_map:
                         col = index % map_width
                         row = index // map_width
@@ -197,11 +218,15 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
                         else:
                             y_px = max(0, row_16 * 16 + dy)
 
+                        if 128 <= obj_id < 176 or 192 <= obj_id < 240:
+                            y_px = ('fade', col)   # the column's fade time, once every marker is read
                         portal_data.append((x_px, y_px, obj_id))
             break
 
     if not sp_layer_found:
         print(f"Warning: 'SP' layer was not found in {tmx_filepath}. Outputting terminator only.")
+
+    portal_data = [(x, fade_of_col.get(y[1], 0) if isinstance(y, tuple) else y, o) for x, y, o in portal_data]
 
     if skip is not None:
         portal_data = [p for p in portal_data if not skip(*p)]

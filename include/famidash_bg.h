@@ -9,7 +9,7 @@ extern palette_color_t famidash_bg_palettes[20];
 extern uint8_t famidash_bkg_palettes_dirty;
 // Colours the colour triggers fade to (famidash_bg_palettes = what is on screen)
 extern palette_color_t famidash_bg_target[20];
-// CGB, once per frame: the 0.3 s fade to famidash_bg_target after a colour trigger
+// CGB, once per frame: the fade to famidash_bg_target after a colour trigger
 void famidash_bg_fade_step(void) BANKED;
 // Shows pal (20 colours) right away, no fade
 void famidash_bg_set_now(const palette_color_t *pal) BANKED;
@@ -17,14 +17,23 @@ void famidash_bg_set_now(const palette_color_t *pal) BANKED;
 // The sky colour and its darker shade (out[0], out[1]) of a background colour id
 void famidash_sky_colors(uint8_t color_id, palette_color_t *out) BANKED;
 
-// Apply a background color trigger by NES palette index.
-void famidash_apply_bg_trigger(uint8_t color_id) BANKED;
+// A colour trigger's fade time: the y of its SpDef (tools/tmx2sprites.py, from the fade time
+// marker in its column)
+#define FAMIDASH_FADE_DEFAULT 0   // 0.3 s
+#define FAMIDASH_FADE_INSTANT 1
+#define FAMIDASH_FADE_HALF_S  2
+#define FAMIDASH_FADE_1S      3
+#define FAMIDASH_FADE_2S      4
+#define FAMIDASH_FADE_4S      5
+
+// Apply a background color trigger by NES palette index, fading in `time` (FAMIDASH_FADE_*).
+void famidash_apply_bg_trigger(uint8_t color_id, uint8_t time) BANKED;
 
 // Block outline colour trigger n (0..15, Famidash objects $B0..$BF): colour 3 of palettes 0, 1
 void famidash_apply_outline_trigger(uint8_t n) BANKED;
 
 // Apply a ground color trigger by NES palette index.
-void famidash_apply_g_trigger(uint8_t color_id) BANKED;
+void famidash_apply_g_trigger(uint8_t color_id, uint8_t time) BANKED;
 
 // Reset all BG palettes to the defaults for level index idx (0-10).
 void famidash_reset_bg_palettes(uint8_t idx) BANKED;

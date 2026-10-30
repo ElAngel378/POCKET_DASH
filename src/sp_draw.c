@@ -917,12 +917,12 @@ static void psl_filter(void) __naked {
     __endasm;
 }
 
-// Background colour trigger (object ids 128..175)
-static void bg_trigger(uint8_t obj, uint8_t *target_bg_idx) {
+// Background colour trigger (object ids 128..175); time: its fade time (its y, FAMIDASH_FADE_*)
+static void bg_trigger(uint8_t obj, uint8_t time, uint8_t *target_bg_idx) {
     uint8_t pal_idx = (uint8_t)(obj - 128);
 
     if (_cpu == CGB_TYPE) {
-        famidash_apply_bg_trigger(pal_idx);
+        famidash_apply_bg_trigger(pal_idx, time);
     } else if (sgb_present) {
         sgb_set_sky(pal_idx);   // the SGB colours change, the DMG theme stays (bg_pals[1])
         return;
@@ -991,7 +991,7 @@ void process_sprite_logic(
             uint8_t o = cache->obj[i];
             if (o >= 128) {
                 if (o <= 175) {
-                    bg_trigger(o, target_bg_idx);
+                    bg_trigger(o, (uint8_t)cache->py[i], target_bg_idx);
                     cache->activated[i] = 1;
                     continue;
                 }
@@ -1043,7 +1043,7 @@ void process_sprite_logic(
 
         if (obj >= 128 && obj <= 175) {
             if (lim_lead >= obj_x) {
-                bg_trigger(obj, target_bg_idx);
+                bg_trigger(obj, (uint8_t)cache->py[i], target_bg_idx);
                 cache->activated[i] = 1;
             }
             continue;
@@ -1062,7 +1062,7 @@ void process_sprite_logic(
             if (lim_lead >= obj_x) {
                 if (_cpu == CGB_TYPE) {
                     uint8_t pal_idx = (uint8_t)(obj - 192);
-                    famidash_apply_g_trigger(pal_idx);
+                    famidash_apply_g_trigger(pal_idx, (uint8_t)cache->py[i]);
                 }
                 cache->activated[i] = 1;
             }
