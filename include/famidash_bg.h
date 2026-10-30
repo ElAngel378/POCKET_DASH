@@ -25,6 +25,7 @@ void famidash_sky_colors(uint8_t color_id, palette_color_t *out) BANKED;
 #define FAMIDASH_FADE_1S      3
 #define FAMIDASH_FADE_2S      4
 #define FAMIDASH_FADE_4S      5
+#define FAMIDASH_FADE_10S     6
 
 // Apply a background color trigger by NES palette index, fading in `time` (FAMIDASH_FADE_*).
 void famidash_apply_bg_trigger(uint8_t color_id, uint8_t time) BANKED;
