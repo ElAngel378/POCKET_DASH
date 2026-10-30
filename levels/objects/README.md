@@ -61,6 +61,14 @@ whole block in the tileset and stamp it. Hazards kill with GDA's hitbox (a recta
 against the player's box), decorations do nothing. GDA's 3 pulsing decorations (circle, heart,
 square) are sprites 39, 40, 41 (CGB, they pulse to the music).
 
+## GDA-style pits
+
+`GDA_PIT_*` (made by `tools/make_gda_pits.py`): GDA's background spike sprites behind our black
+pit spikes, in strips of 4 cells (`GDA_PIT`, `GDA_PIT_TOP`) or 2 cells (`GDA_PIT_SB`, `_SB_TOP`, over
+the wavy pit). They replaced the white Famidash background-spike pits in every level; place the
+pieces of a strip in order along a row (C0, C1, ...) for one continuous row of spikes. On DMG they
+keep the old pit art (`dmg_art`), so DMG levels need no more tiles than before.
+
 ## The layout
 
 `python tools/relayout_objects.py` lays the sheet out again by kind (basics, blocks, slopes,

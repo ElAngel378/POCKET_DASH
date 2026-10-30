@@ -451,8 +451,9 @@ static uint8_t spike_at(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
     uint8_t col = level_mt_col[mt];
     uint8_t iy = py8 & 0x0F;
     // Pit spikes and background spikes are a row of spikes across the whole metatile: they
-    // kill at any x (Famidash: x 5..7 only, so touching them for a frame often did nothing)
-    if (mt == MT_PITSPIKES || mt == MT_BOTTOM_BACKGROUND_SPIKES) return iy > 10u;
+    // kill at any x (Famidash: x 5..7 only, so touching them for a frame often did nothing).
+    // COL_PIT_SPIKES: the GDA-style pits (tools/make_gda_pits.py), known by collision type
+    if (mt == MT_PITSPIKES || mt == MT_BOTTOM_BACKGROUND_SPIKES || col == COL_PIT_SPIKES) return iy > 10u;
     switch (col) {
         case COL_DEATH:              // full spikes: x 4..8, y 4..11
             return (uint8_t)(xin - 4u) <= 4u && (uint8_t)(iy - 4u) <= 7u;
@@ -481,6 +482,7 @@ static uint8_t spike_at(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
 
 // The collision types spike_at can kill on (a superset is fine: it only gates the spike_at calls)
 #define IS_SPIKE_COL(col) ((uint8_t)((col) - COL_DEATH_RIGHT) < 4u || (col) == COL_DEATH || \
+        (col) == COL_PIT_SPIKES || \
         (uint8_t)((col) - COL_DEATH_TOP_HALF) < 2u || \
         (uint8_t)((col) - (COL_QUAD_BASE + 12u)) < (uint8_t)(COL_QUAD_COUNT - 12))
 
