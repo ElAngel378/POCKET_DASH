@@ -169,29 +169,9 @@ extern const uint8_t bg_level_blob_62[];
 extern const uint8_t bg_level_blob_63[];
 extern const uint8_t bg_level_blob_64[];
 extern const uint8_t bg_level_blob_65[];
-extern const uint8_t bg_level_blob_66[];
-extern const uint8_t bg_level_blob_67[];
-extern const uint8_t bg_level_blob_68[];
-extern const uint8_t bg_level_blob_69[];
-extern const uint8_t bg_level_blob_70[];
-extern const uint8_t bg_level_blob_71[];
-extern const uint8_t bg_level_blob_72[];
-extern const uint8_t bg_level_blob_73[];
-extern const uint8_t bg_level_blob_74[];
-extern const uint8_t bg_level_blob_75[];
-extern const uint8_t bg_level_blob_76[];
-extern const uint8_t bg_level_blob_77[];
-extern const uint8_t bg_level_blob_78[];
-extern const uint8_t bg_level_blob_79[];
-extern const uint8_t bg_level_blob_80[];
-extern const uint8_t bg_level_blob_81[];
-extern const uint8_t bg_level_blob_82[];
-extern const uint8_t bg_level_blob_83[];
-extern const uint8_t bg_level_blob_84[];
-extern const uint8_t bg_level_blob_85[];
-const uint8_t * const bg_level_mt[] = { bg_level_blob_0, bg_level_blob_1, bg_level_blob_4, bg_level_blob_5, bg_level_blob_8, bg_level_blob_9, bg_level_blob_12, bg_level_blob_13, bg_level_blob_16, bg_level_blob_17, bg_level_blob_20, bg_level_blob_21, bg_level_blob_24, bg_level_blob_25, bg_level_blob_28, bg_level_blob_29, bg_level_blob_32, bg_level_blob_33, bg_level_blob_36, bg_level_blob_37, bg_level_blob_40, bg_level_blob_41, bg_level_blob_44, bg_level_blob_45, bg_level_blob_48, bg_level_blob_49, bg_level_blob_52, bg_level_blob_53, bg_level_blob_56, bg_level_blob_56, bg_level_blob_59, bg_level_blob_60, bg_level_blob_63, bg_level_blob_64, bg_level_blob_67, bg_level_blob_68, bg_level_blob_71, bg_level_blob_72, bg_level_blob_75, bg_level_blob_76, bg_level_blob_79, bg_level_blob_80, bg_level_blob_83, bg_level_blob_83 };
-const uint8_t * const bg_level_col[] = { bg_level_blob_2, bg_level_blob_6, bg_level_blob_10, bg_level_blob_14, bg_level_blob_18, bg_level_blob_22, bg_level_blob_26, bg_level_blob_30, bg_level_blob_34, bg_level_blob_38, bg_level_blob_42, bg_level_blob_46, bg_level_blob_50, bg_level_blob_54, bg_level_blob_57, bg_level_blob_61, bg_level_blob_65, bg_level_blob_69, bg_level_blob_73, bg_level_blob_77, bg_level_blob_81, bg_level_blob_84 };
-const uint8_t * const bg_level_pal[] = { bg_level_blob_3, bg_level_blob_7, bg_level_blob_11, bg_level_blob_15, bg_level_blob_19, bg_level_blob_23, bg_level_blob_27, bg_level_blob_31, bg_level_blob_35, bg_level_blob_39, bg_level_blob_43, bg_level_blob_47, bg_level_blob_51, bg_level_blob_55, bg_level_blob_58, bg_level_blob_62, bg_level_blob_66, bg_level_blob_70, bg_level_blob_74, bg_level_blob_78, bg_level_blob_82, bg_level_blob_85 };
+const uint8_t * const bg_level_mt[] = { bg_level_blob_0, bg_level_blob_0, bg_level_blob_3, bg_level_blob_3, bg_level_blob_6, bg_level_blob_6, bg_level_blob_8, bg_level_blob_8, bg_level_blob_10, bg_level_blob_10, bg_level_blob_12, bg_level_blob_12, bg_level_blob_14, bg_level_blob_15, bg_level_blob_18, bg_level_blob_18, bg_level_blob_21, bg_level_blob_21, bg_level_blob_24, bg_level_blob_24, bg_level_blob_27, bg_level_blob_28, bg_level_blob_31, bg_level_blob_32, bg_level_blob_35, bg_level_blob_36, bg_level_blob_39, bg_level_blob_40, bg_level_blob_43, bg_level_blob_43, bg_level_blob_46, bg_level_blob_46, bg_level_blob_49, bg_level_blob_49, bg_level_blob_51, bg_level_blob_51, bg_level_blob_54, bg_level_blob_54, bg_level_blob_57, bg_level_blob_57, bg_level_blob_60, bg_level_blob_60, bg_level_blob_63, bg_level_blob_63 };
+const uint8_t * const bg_level_col[] = { bg_level_blob_1, bg_level_blob_4, bg_level_blob_7, bg_level_blob_9, bg_level_blob_11, bg_level_blob_13, bg_level_blob_16, bg_level_blob_19, bg_level_blob_22, bg_level_blob_25, bg_level_blob_29, bg_level_blob_33, bg_level_blob_37, bg_level_blob_41, bg_level_blob_44, bg_level_blob_47, bg_level_blob_50, bg_level_blob_52, bg_level_blob_55, bg_level_blob_58, bg_level_blob_61, bg_level_blob_64 };
+const uint8_t * const bg_level_pal[] = { bg_level_blob_2, bg_level_blob_5, bg_level_blob_5, bg_level_blob_2, bg_level_blob_2, bg_level_blob_5, bg_level_blob_17, bg_level_blob_20, bg_level_blob_23, bg_level_blob_26, bg_level_blob_30, bg_level_blob_34, bg_level_blob_38, bg_level_blob_42, bg_level_blob_45, bg_level_blob_48, bg_level_blob_48, bg_level_blob_53, bg_level_blob_56, bg_level_blob_59, bg_level_blob_62, bg_level_blob_65 };
 
 // Per level sheets (bg_sheet_<level>.c): entry 2 * level is the CGB sheet, 2 * level + 1 the
 // DMG one (BG_BASE_TILE_COUNT tiles normal, then mirrored)

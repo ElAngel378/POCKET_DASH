@@ -24,7 +24,6 @@
 #define COL_DEATH_TOP_HALF    0x10  // Deadly in bottom half (spike points up)
 #define COL_DEATH_BOTTOM_HALF 0x11  // Deadly in top half (spike points down)
 #define COL_BREAKABLE    0x16  // Solid block that breaks when the player runs into it (break_block)
-#define COL_PIT_SPIKES   0x17  // A row of pit spikes: deadly low in the tile at any x (spike_at)
 // Quarter-tile spikes (one half of a spike split over two tiles, 8px tall).
 // bit0 = right half, bit2 = top half. The metatile table stores these; the
 // collision lookups turn them into COL_DEATH_LEFT/RIGHT (x half is checked by
@@ -92,8 +91,7 @@
                         (col) == COL_DEATH_LEFT  || \
                         (col) == COL_DEATH_RIGHT || \
                         (col) == COL_DEATH_TOP_HALF || \
-                        (col) == COL_DEATH_BOTTOM_HALF || \
-                        (col) == COL_PIT_SPIKES)
+                        (col) == COL_DEATH_BOTTOM_HALF)
 
 #define IS_ORB(col)    ((col) == COL_ORB || (col) == COL_ORB_BLUE || (col) == COL_ORB_MAGENTA)
 #define IS_PAD(col)    ((col) == COL_PAD || (col) == COL_PAD_BLUE || (col) == COL_PAD_MAGENTA)
