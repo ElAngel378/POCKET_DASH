@@ -69,7 +69,12 @@ the wavy pit). They replaced the white Famidash background-spike pits in every l
 pieces of a strip in order along a row (C0, C1, ...) for one continuous row of spikes. The big
 spikes' peaks reach 5 px into the cell above: put `GDA_PIT_TIP_C<n>` there (above `GDA_PIT_C<n>`;
 `GDA_PIT_TOP_TIP_C<n>` below `GDA_PIT_TOP_C<n>`), or `python tools/make_gda_pits.py --tips` fills
-every empty cell above / below a pit piece in every level. On DMG they
+every empty cell above / below a pit piece in every level.
+
+`GDA_PITART_*` (made by `tools/import_gda_pits.py`): the 1.0 levels' pits as GDA draws them at
+that spot (its pit metatiles in front of its background spike sprites), cell by cell; the levels
+use them instead of the strips, and Famidash's ground spike decoration sprites are gone from
+them. Where a level ran out of CGB tiles, its rarest pieces stayed the strips. DMG: the old art. On DMG they
 keep the old pit art (`dmg_art`), so DMG levels need no more tiles than before.
 
 ## The layout
