@@ -1,1 +1,0 @@
-python csv2level.py dir\to\level_bg.csv -o ../levels/level_data/ -n level_16high --no-gid-offset --crop-height 16

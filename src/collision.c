@@ -15,80 +15,6 @@
 #define MAP_BANK(map_bank, c) ((uint8_t)((map_bank) + (uint8_t)((c) >> MAP_BANK_COLS_SHIFT)))
 #define MAP_COL(map, c) ((map) + (((uint16_t)(c) & (MAP_BANK_COLS - 1u)) << MAP_ROWS_SHIFT))
 
-static uint8_t _prev_map_bank;
-
-void col_at_begin(uint8_t map_bank) {
-    if (_current_bank == map_bank) {
-        _prev_map_bank = 0xFF;
-        return;
-    }
-    _prev_map_bank = _current_bank;
-    SWITCH_ROM(map_bank);
-}
-
-void col_at_end(void) {
-    if (_prev_map_bank != 0xFF) {
-        SWITCH_ROM(_prev_map_bank);
-    }
-}
-
-uint8_t col_at_raw(
-    uint16_t world_px,
-    int16_t  world_py,
-    const uint8_t *map,
-    uint16_t map_w
-) {
-    if ((uint16_t)world_py >= 256u) {
-        return (world_py < 0) ? COL_NONE : COL_ALL;
-    }
-    uint16_t mx = world_px >> 4;
-    if (mx >= map_w) return COL_ALL;
-
-    return col_at_raw_cached(MAP_COL(map, mx), (uint16_t)world_py);
-}
-
-uint8_t col_at_raw_cached(const uint8_t *col_ptr, uint16_t world_py) {
-    uint8_t py8 = (uint8_t)world_py;
-    uint8_t col = famidash_metatile_collision[col_ptr[py8 >> 4]];
-    uint8_t inner_y = py8 & 0x0F;
-
-    if (col == COL_TOP) {
-        if (inner_y >= 8) return COL_NONE;
-    } else if (col == COL_BOTTOM) {
-        if (inner_y < 8) return COL_NONE;
-    } else if (col == COL_DEATH_TOP_HALF) {
-        if (inner_y < 8) return COL_NONE;
-        return COL_DEATH;
-    } else if (col == COL_DEATH_BOTTOM_HALF) {
-        if (inner_y >= 8) return COL_NONE;
-        return COL_DEATH;
-    } else if (col >= COL_DEATH_LEFT_BOTTOMQ && col <= COL_DEATH_RIGHT_TOPQ) {
-        if (col & 4) {
-            if (inner_y >= 8) return COL_NONE;
-        } else {
-            if (inner_y < 8) return COL_NONE;
-        }
-        return (col & 1) ? COL_DEATH_RIGHT : COL_DEATH_LEFT;
-    }
-
-    return col;
-}
-
-// Bank-safe collision check wrapper
-uint8_t col_at(
-    uint16_t world_px,
-    int16_t  world_py,
-    const uint8_t *map,
-    uint16_t map_w,
-    uint8_t  map_bank
-) {
-    uint8_t res;
-    col_at_begin(MAP_BANK(map_bank, world_px >> 4));
-    res = col_at_raw(world_px, world_py, map, map_w);
-    col_at_end();
-    return res;
-}
-
 // Display-off VRAM copy of n bytes (a multiple of 16) to a 16-byte aligned dst: general purpose
 // DMA on CGB when src is 16-byte aligned too (the DMA ignores the low 4 bits of the source; 16
 // bytes per 8 cycles, the CPU halts), an unrolled loop otherwise. The ROM bank holding src must
@@ -327,15 +253,6 @@ void get_map_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r,
     if (!reversed) c = (c + run > loaded_r) ? lo : c + run;
     else c = (c - run < lo || c < run) ? loaded_r : c - run;
   }
-}
-
-uint8_t get_map_tile(uint16_t col, uint8_t row, const uint8_t *map, uint8_t map_bank) {
-  if (row >= MAP_ROWS) return 0;
-  uint8_t _prev = _current_bank;
-  SWITCH_ROM(MAP_BANK(map_bank, col));
-  uint8_t id = MAP_COL(map, col)[row];
-  SWITCH_ROM(_prev);
-  return id;
 }
 
 

@@ -4,9 +4,7 @@
 #include <gb/gb.h>
 #include <gb/cgb.h>
 
-void fade_init(void) BANKED;
 void fade_set_bkg_palette(uint8_t first, uint8_t count, const palette_color_t *data) BANKED;
-void fade_buffer_bkg_palette(uint8_t first, uint8_t count, const palette_color_t *data) BANKED;
 void fade_set_sprite_palette(uint8_t first, uint8_t count, const palette_color_t *data) BANKED;
 void fade_set_dmg_palettes(uint8_t bgp, uint8_t obp0, uint8_t obp1) BANKED;
 void fade_set_black(void) BANKED;
@@ -14,17 +12,13 @@ void fade_set_black(void) BANKED;
 void fade_capture_current(void) BANKED;
 void fade_to_black(uint8_t delay_frames) BANKED;
 void fade_from_black(uint8_t delay_frames) BANKED;
-void fade_apply_pause_tint(void) BANKED;
-void fade_restore_pause_tint(void) BANKED;
 void fade_apply_pause_box_palettes(void) BANKED;
 void fade_restore_pause_box_palettes(void) BANKED;
 
 extern palette_color_t shadow_bkg_palettes[32];
-extern uint8_t fade_palettes_dirty;
 // 1: fade_set_* only store the palettes (a menu loading behind a black screen); fade_from_black
 // shows them and clears it
 extern uint8_t fade_hold;
-void fade_apply_dirty_palettes(void) BANKED;
 
 inline static uint8_t dim_dmg_byte(uint8_t pal, uint8_t step) {
     uint8_t out = 0;

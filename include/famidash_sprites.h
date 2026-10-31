@@ -79,8 +79,6 @@ extern const metasprite_t * const famidash_sprite_table[38];
 #define D_EB 38
 #define D_PB 40   // pulsing ball: CGB bank 1 tiles 250..255 (7 / 5 / 3 px), see deco_tile_sets in sp_draw.c
 
-extern const metasprite_t famidash_deco_45[];
-
 typedef struct {
     uint8_t count;
     uint8_t width;
