@@ -41,16 +41,22 @@ static uint8_t active_section = SECTION_ICON;
 static uint8_t color_section = SECTION_COLOR_PRIMARY;   // the colour box row Select goes back to
 static uint8_t selected_tab = 0;   // 0 = cube (the only gamemode with icons so far)
 static uint8_t shown_page;
+// The icon box shows the icons in their own order (tools/build_icon_select_gfx.py ICON_ORDER):
+// the cursor moves over the slots, selected_icon is the icon in the cursor's slot
+static const uint8_t icon_order[NUM_CUBE_ICONS] = ICON_ORDER;
+static const uint8_t icon_slot[NUM_CUBE_ICONS] = ICON_SLOT;
+static uint8_t sel_slot;
 
-static uint8_t icon_page(uint8_t icon) {
+static uint8_t slot_page(uint8_t slot) {
     uint8_t p = 0;
-    while (icon >= ICONS_PER_PAGE) { icon -= ICONS_PER_PAGE; p++; }
+    while (slot >= ICONS_PER_PAGE) { slot -= ICONS_PER_PAGE; p++; }
     return p;
 }
 
 // Preview of the selected icon, and its page in the icon box when that changed
 static void refresh_preview_tiles(void) {
-    uint8_t page = icon_page(selected_icon);
+    selected_icon = icon_order[sel_slot];
+    uint8_t page = slot_page(sel_slot);
     if (page != shown_page) {
         shown_page = page;
         icon_page_load(page);
@@ -129,7 +135,7 @@ static void place_brackets(uint8_t oam, uint8_t x, uint8_t y, uint8_t size, uint
 }
 
 static void update_cursor_sprites(void) {
-    uint8_t slot = (uint8_t)(selected_icon - shown_page * ICONS_PER_PAGE);
+    uint8_t slot = (uint8_t)(sel_slot - shown_page * ICONS_PER_PAGE);
     place_brackets(OAM_ICON,
                    (uint8_t)(ICON_SELECT_SLOT_X0 + (slot % ICONS_PER_ROW) * ICON_SELECT_SLOT_PITCH),
                    (uint8_t)(ICON_SELECT_SLOT_Y0 + (slot / ICONS_PER_ROW) * ICON_SELECT_SLOT_PITCH),
@@ -159,6 +165,7 @@ GameState update_icon_select_state(void) BANKED {
     for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
 
     if (selected_icon >= NUM_CUBE_ICONS) selected_icon = 0;
+    sel_slot = icon_slot[selected_icon];
     if (active_section == SECTION_GAMEMODE) active_section = SECTION_ICON;
     if (selected_color_primary >= NUM_PALETTE_COLORS) selected_color_primary = 0;
     if (selected_color_secondary >= NUM_PALETTE_COLORS) selected_color_secondary = 1;
@@ -203,7 +210,7 @@ GameState update_icon_select_state(void) BANKED {
         uint8_t moved = 0, recolour = 0;
 
         // the selected icon's row on its page: 0 top, 1 bottom
-        uint8_t icon_row = (uint8_t)(selected_icon - shown_page * ICONS_PER_PAGE) >= ICONS_PER_ROW;
+        uint8_t icon_row = (uint8_t)(sel_slot - shown_page * ICONS_PER_PAGE) >= ICONS_PER_ROW;
         if (pressed & J_SELECT) {
             if (active_section == SECTION_ICON) active_section = color_section;
             else { color_section = active_section; active_section = SECTION_ICON; }
@@ -211,7 +218,7 @@ GameState update_icon_select_state(void) BANKED {
         } else if (pressed & J_UP) {
             if (active_section == SECTION_ICON) {
                 if (icon_row) {
-                    selected_icon -= ICONS_PER_ROW;
+                    sel_slot -= ICONS_PER_ROW;
                     refresh_preview_tiles();
                     moved = 1;
                 }
@@ -221,8 +228,8 @@ GameState update_icon_select_state(void) BANKED {
             }
         } else if (pressed & J_DOWN) {
             if (active_section == SECTION_ICON) {
-                if (!icon_row && selected_icon + ICONS_PER_ROW < NUM_CUBE_ICONS) {
-                    selected_icon += ICONS_PER_ROW;
+                if (!icon_row && sel_slot + ICONS_PER_ROW < NUM_CUBE_ICONS) {
+                    sel_slot += ICONS_PER_ROW;
                     refresh_preview_tiles();
                     moved = 1;
                 }
@@ -236,8 +243,8 @@ GameState update_icon_select_state(void) BANKED {
                 if (right && selected_tab < NUM_GAMEMODE_TABS - 1) { selected_tab++; moved = 1; }
                 else if (!right && selected_tab > 0) { selected_tab--; moved = 1; }
             } else if (active_section == SECTION_ICON) {
-                if (right && selected_icon < NUM_CUBE_ICONS - 1) { selected_icon++; moved = 1; }
-                else if (!right && selected_icon > 0) { selected_icon--; moved = 1; }
+                if (right && sel_slot < NUM_CUBE_ICONS - 1) { sel_slot++; moved = 1; }
+                else if (!right && sel_slot > 0) { sel_slot--; moved = 1; }
                 if (moved) refresh_preview_tiles();
             } else {
                 // CGB: the colour, DMG: the shade (plain values: SDCC got the pointer version wrong)

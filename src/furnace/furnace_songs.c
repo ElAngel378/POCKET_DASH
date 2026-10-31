@@ -32,6 +32,8 @@ BANKREF_EXTERN(fs_theoryofeverything)
 extern const fur_song_t fs_theoryofeverything;
 BANKREF_EXTERN(fs_electromanadventures)
 extern const fur_song_t fs_electromanadventures;
+BANKREF_EXTERN(fs_clubstep)
+extern const fur_song_t fs_clubstep;
 BANKREF_EXTERN(fs_electrodynamix)
 extern const fur_song_t fs_electrodynamix;
 BANKREF_EXTERN(fs_toe2)
@@ -44,8 +46,6 @@ BANKREF_EXTERN(fs_schemingweasel)
 extern const fur_song_t fs_schemingweasel;
 BANKREF_EXTERN(fs_stayinsideme)
 extern const fur_song_t fs_stayinsideme;
-BANKREF_EXTERN(fs_clubstep)
-extern const fur_song_t fs_clubstep;
 
 const FurSong fur_songs[] = {
     { &fs_menuloop, BANK(fs_menuloop) },
@@ -62,13 +62,13 @@ const FurSong fur_songs[] = {
     { &fs_clutterfunk, BANK(fs_clutterfunk) },
     { &fs_theoryofeverything, BANK(fs_theoryofeverything) },
     { &fs_electromanadventures, BANK(fs_electromanadventures) },
+    { &fs_clubstep, BANK(fs_clubstep) },
     { &fs_electrodynamix, BANK(fs_electrodynamix) },
     { &fs_toe2, BANK(fs_toe2) },
     { &fs_deadlocked, BANK(fs_deadlocked) },
     { &fs_ultiatedestruction, BANK(fs_ultiatedestruction) },
     { &fs_schemingweasel, BANK(fs_schemingweasel) },
     { &fs_stayinsideme, BANK(fs_stayinsideme) },
-    { &fs_clubstep, BANK(fs_clubstep) },
 };
 
 // beat timelines: group (bank file furnace_beats_<group>.c) and index of each song
