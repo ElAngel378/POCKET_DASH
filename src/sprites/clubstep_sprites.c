@@ -565,7 +565,7 @@ const SpDef clubstep_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 338 gameplay-critical objects for DMG mode
+// Extracted 339 gameplay-critical objects for DMG mode
 const SpDef clubstep_sp_dmg[] = {
     {256, 1008, 10},
     {272, 4, 134},
@@ -792,6 +792,7 @@ const SpDef clubstep_sp_dmg[] = {
     {9840, 736, 8},
     {9984, 0, 168},
     {10000, 0, 167},
+    {10008, 760, 51},
     {10016, 1, 150},
     {10096, 0, 149},
     {10128, 0, 150},

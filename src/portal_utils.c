@@ -46,9 +46,9 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
 
         uint8_t obj_id = sp->obj;
 
-        // DMG never draws decorations or ground colour triggers: skip them here
+        // DMG never draws decorations (but the arrow, 51) or ground colour triggers: skip them here
         if (_cpu != CGB_TYPE) {
-            if ((obj_id >= 38 && obj_id < 64) || (obj_id == 73 || obj_id == 74) || (obj_id >= 192 && obj_id <= 239)) continue;
+            if ((obj_id >= 38 && obj_id < 64 && obj_id != 51) || (obj_id == 73 || obj_id == 74) || (obj_id >= 192 && obj_id <= 239)) continue;
         }
 
         // cache nearly full: keep 3 entries for the gameplay objects (with 8, a dense part dropped

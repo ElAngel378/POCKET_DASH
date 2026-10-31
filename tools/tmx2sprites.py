@@ -254,8 +254,9 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
             f.write("    {0xFFFF, 0, 0}\n")
             f.write("};\n\n")
 
-            # DMG: no decorations (38..99) or ground colour triggers (192..239)
-            dmg_data = [p for p in portal_data if p[2] < 38 or (100 <= p[2] < 176)]
+            # DMG: no decorations (38..99) but the arrow (51, the half diamond: it points the way),
+            # no ground colour triggers (192..239)
+            dmg_data = [p for p in portal_data if p[2] < 38 or p[2] == 51 or (100 <= p[2] < 176)]
             f.write(f"// Extracted {len(dmg_data)} gameplay-critical objects for DMG mode\n")
             f.write(f"const SpDef {c_var_name}_sp_dmg[] = {{\n")
             for x, y, obj in dmg_data:

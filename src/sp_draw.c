@@ -54,6 +54,7 @@ extern SpCache active_sp;
 #define OBJ_GROW_PORTAL   25
 #define OBJ_COIN2         26
 #define OBJ_COIN3         27
+#define OBJ_ARROW         51   // the half diamond: the only decoration DMG draws (it points the way: Theory of Everything)
 #define OBJ_PULSING_BALL  73
 #define OBJ_MUSIC_NOTE    74
 
@@ -101,10 +102,10 @@ extern const unsigned char FontPusab[];
 
 static uint8_t sp_has_drawn = 0;
 
-// DMG draws the portals, orbs and pads, coins and mirror portals (the object cache keeps and
-// draws only these there): bit (o & 7) of dmg_drawn_mask[o >> 3], for the object ids below 128.
+// DMG draws the portals, orbs and pads, coins, mirror portals and the arrow (the object cache
+// keeps and draws only these there): bit (o & 7) of dmg_drawn_mask[o >> 3], for the object ids below 128.
 static const uint8_t dmg_drawn_mask[16] = {
-    0xE7, 0x7F, 0x3F, 0x0F, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x42
+    0xE7, 0x7F, 0x3F, 0x0F, 0x20, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x42
 };
 static inline uint8_t is_dmg_drawn(uint8_t o) {
     return o < 128 && (dmg_drawn_mask[o >> 3] & (uint8_t)(1u << (o & 7)));
@@ -1431,6 +1432,8 @@ static void dmg_object_loop(void) __naked {
         ld      (_dmgd_obj), a
         cp      a, #38
         jp      C, 00002$
+        cp      a, #OBJ_ARROW
+        jp      Z, 00002$
         cp      a, #OBJ_MIRROR_PORTAL
         jp      Z, 00002$
         cp      a, #OBJ_MIRROR_EXIT
@@ -1479,6 +1482,8 @@ static void dmg_object_loop(void) __naked {
         ld      e, a                    ; e = screen y
         ; orb / pad: one icon sprite
         ld      a, (_dmgd_obj)
+        cp      a, #OBJ_ARROW
+        jp      Z, 00011$
         cp      a, #38
         jp      NC, 00005$
         ld      c, a                    ; c = obj (dist_x no longer needed)
@@ -1558,6 +1563,32 @@ static void dmg_object_loop(void) __naked {
         pop     hl
         ld      (hl), a
         pop     bc
+        jp      00009$
+00011$:
+        ; arrow: one sprite, the right half of its 16 px (flipped: it points right), mirror mode
+        ; the left half unflipped (it points left)
+        ld      a, (_dmgd_oam)
+        inc     a
+        ld      (_dmgd_oam), a
+        dec     a
+        add     a, a
+        add     a, a
+        ld      l, a
+        ld      h, #>_shadow_OAM
+        ld      a, e
+        ld      (hl+), a
+        ld      c, #0
+        ld      a, (_dmgd_rev)
+        or      a, a
+        ld      a, (_dmgd_sx)
+        jr      NZ, 00012$
+        add     a, #8
+        ld      c, #0x20                ; S_FLIPX
+00012$:
+        ld      (hl+), a
+        ld      (hl), #DMG_ARROW_TILE
+        inc     hl
+        ld      (hl), c
         jp      00009$
 00005$:
         ; anything else: to the list for C (object, screen x, screen y, cache index)
