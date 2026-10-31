@@ -48,6 +48,11 @@ GRID_C0, GRID_R0, GRID_W, GRID_H = 2, 8, 16, 6   # the icon box: per page tiles
 PAGE_TILE_BASE = 16
 PAGES_BANK = 64
 PREVIEWS_BANK = 69   # the previews (46 x 256 bytes) do not fit with the pages in one bank
+# The icon box order: slot -> icon (the icon numbers, which the save keeps, stay as they are)
+ICON_ORDER = list(range(NUM_ICONS))
+for _icon, _after in ((28, 2), (27, 10)):
+    ICON_ORDER.remove(_icon)
+    ICON_ORDER.insert(ICON_ORDER.index(_after) + 1, _icon)
 GM_ORDER = [0, 1, 7, 2, 4, 3, 5]   # cube, ship, ball, ufo, wave, robot, spider (pack columns)
 
 # Player colours (index 0 / 1 = the default primary (outer fill) / secondary of the GD cube)
@@ -166,7 +171,7 @@ def main():
             if i < NUM_ICONS:
                 for y in range(16):
                     for x in range(16):
-                        P[sy + y][sx + x] = grid[icons[i][y][x]]
+                        P[sy + y][sx + x] = grid[icons[ICON_ORDER[i]][y][x]]
             else:   # empty slot: faint rounded outline
                 for y in range(1, 15):
                     for x in range(1, 15):
@@ -337,6 +342,9 @@ const uint8_t icon_select_spr_tiles[{len(spr) * 16}] = {{
 
 #define NUM_CUBE_ICONS {NUM_ICONS}
 #define ICONS_PER_PAGE {ICONS_PER_PAGE}
+// the icon box order (slot -> icon) and its inverse (icon -> slot)
+#define ICON_ORDER {{ {', '.join(map(str, ICON_ORDER))} }}
+#define ICON_SLOT {{ {', '.join(str(ICON_ORDER.index(i)) for i in range(NUM_ICONS))} }}
 #define NUM_ICON_PAGES {NUM_PAGES}
 #define NUM_GAMEMODE_TABS {len(GM_ORDER)}
 #define NUM_PALETTE_COLORS {len(COLORS)}

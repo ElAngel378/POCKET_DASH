@@ -61,7 +61,7 @@ MENU_NAMES = {"menuloop", "menu", "menutheme"}
 # Dash ones; songs not listed come last in file order
 SONG_ORDER = ["menuloop", "stereomadness", "backontrack", "polargeist", "dryout", "baseafterbase",
               "cantletgo", "jumper", "timemachine", "cycles", "xstep", "clutterfunk", "theoryofeverything",
-              "electromanadventures", "electrodynamix", "toe2", "deadlocked",
+              "electromanadventures", "clubstep", "electrodynamix", "toe2", "deadlocked",
               "ultiatedestruction", "schemingweasel", "stayinsideme"]
 NAME_WIDTH = 18               # music test name field
 STRONG, WEAK, FILL, END, LOOP = 2, 1, 0, 0xFE, 0xFF

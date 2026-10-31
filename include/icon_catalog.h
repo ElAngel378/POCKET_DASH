@@ -8,6 +8,9 @@
 
 #define NUM_CUBE_ICONS 46
 #define ICONS_PER_PAGE 12
+// the icon box order (slot -> icon) and its inverse (icon -> slot)
+#define ICON_ORDER { 0, 1, 2, 28, 3, 4, 5, 6, 7, 8, 9, 10, 27, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45 }
+#define ICON_SLOT { 0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 12, 3, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45 }
 #define NUM_ICON_PAGES 4
 #define NUM_GAMEMODE_TABS 7
 #define NUM_PALETTE_COLORS 12
