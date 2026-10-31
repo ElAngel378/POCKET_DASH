@@ -27,6 +27,7 @@
 #define DMG_COIN_TILE_BASE    144
 #define DMG_COIN_TILE_B       192
 #define DMG_COIN_TILE_C       246
+#define DMG_ARROW_TILE        12   // DMG: the arrow decoration (the CGB deco art is in bank 1), tiles 12..13 are free there
 extern const uint8_t famidash_deco_tiles[FAMIDASH_DECO_TILE_COUNT * 16];
 
 // deco_cloud: use the DECOCLOUD decoration art (Famidash picks the deco type per level)

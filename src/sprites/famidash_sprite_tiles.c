@@ -49,6 +49,14 @@ void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED {
         set_sprite_data(202, 6, dmg_object_icon_tiles + 12 * 16);
         set_sprite_data(240, 6, dmg_object_icon_tiles + 18 * 16);
         set_sprite_data(238, 2, dmg_object_icon_tiles + 24 * 16);   // UFO badge
+        // the arrow decoration, the only one DMG draws: its CGB art (in the deco load) to bank 0
+        for (uint8_t i = 0; i < SPRITE_LOAD_COUNT; i++) {
+            const uint8_t *l = sprite_loads[i];
+            if (l[0] != SPR_CGB_DECO) continue;
+            uint16_t src = ((uint16_t)l[4] | ((uint16_t)l[5] << 8)) + (FAMIDASH_SPRITE_TILE_BASE + D_E1 - l[2]);
+            set_sprite_data(DMG_ARROW_TILE, 2, sprite_tiles + src * 16u);
+            break;
+        }
     }
 }
 
