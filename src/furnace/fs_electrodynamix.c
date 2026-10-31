@@ -22,6 +22,6 @@ const fur_song_t fs_electrodynamix = {
     1, /* anti-click */
     34952, /* anti-click step at 60 Hz */
     1118481UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 479 }, { 0, 3381 }, { 0, 11304 }, { 1, 316 } }, /* stream entry points */
+    { { 0, 0 }, { 0, 525 }, { 0, 4667 }, { 1, 177 }, { 1, 7086 } }, /* stream entry points */
     fs_electrodynamix_chunks
 };
