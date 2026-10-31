@@ -46,8 +46,8 @@ OUT = ROOT / "src" / "furnace"
 HDR = ROOT / "include"
 CACHE = ROOT / ".cache" / "furnace"
 FUR_CODE_BANK = 25            # fur_play etc., the song table, the beat timelines
-FIRST_SONG_BANK = 130         # free banks 130..199 (romusage)
-LAST_SONG_BANK = 199
+FIRST_SONG_BANK = 130         # songs go in the banks from here that nothing else in src/ uses
+LAST_SONG_BANK = 254          # (the level maps, sprite lists and hUGE songs are among them)
 # The player's state goes to HRAM (WRAM is full: the stack needs every byte left), so it is cut
 # down: call depth 1 (songs grow ~25%) and at most 4 chunks of 16 KB per song.
 FRAMES = 1
@@ -68,10 +68,18 @@ STRONG, WEAK, FILL, END, LOOP = 2, 1, 0, 0xFE, 0xFF
 
 
 class Banks:
-    """First fit of the generated files into the free banks."""
+    """First fit of the generated files into the free banks: the banks of FIRST_SONG_BANK..
+    LAST_SONG_BANK no #pragma bank in src/ names, except the files written here (src/furnace)."""
 
     def __init__(self):
-        self.free = {b: 16384 for b in range(FIRST_SONG_BANK, LAST_SONG_BANK + 1)}
+        taken = set()
+        for p in (ROOT / "src").rglob("*.c"):
+            if p.parent == OUT:
+                continue
+            m = re.search(r"^#pragma\s+bank\s+(\d+)", p.read_text(errors="ignore"), re.M)
+            if m:
+                taken.add(int(m.group(1)))
+        self.free = {b: 16384 for b in range(FIRST_SONG_BANK, LAST_SONG_BANK + 1) if b not in taken}
 
     def __call__(self, size):
         size += 16  # GBDK's per-file bank padding
@@ -347,8 +355,14 @@ def convert(levels=None):
               + (", approximate loop (intro and first pass exact)" if conv["approx"] else ""))
     write_sources(songs, table, beat_arrays, levels, banks)
     used_banks = sorted(b for b, f in banks.free.items() if f < 16384)
-    print(f"  {len(songs)} Furnace song(s) in banks {used_banks[0]}..{used_banks[-1]}" if used_banks
-          else "  no Furnace songs")
+    runs = []
+    for b in used_banks:
+        if runs and runs[-1][1] == b - 1:
+            runs[-1][1] = b
+        else:
+            runs.append([b, b])
+    print(f"  {len(songs)} Furnace song(s) in banks " + ", ".join(f"{a}..{b}" if a < b else f"{a}" for a, b in runs)
+          if used_banks else "  no Furnace songs")
 
 
 def write_sources(songs, table, beat_arrays, levels, banks):

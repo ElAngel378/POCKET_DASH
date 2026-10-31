@@ -1,4 +1,4 @@
-#pragma bank 191
+#pragma bank 194
 #include <gbdk/incbin.h>
 
 // Columns 256.. of ultiatedestruction (read through ultiatedestruction_map's address)
