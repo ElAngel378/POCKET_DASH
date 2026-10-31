@@ -55,7 +55,6 @@ static palette_color_t shadow_spr_palettes[32];
 static uint8_t active_bkg_count = 0;
 static uint8_t active_spr_count = 0;
 
-uint8_t fade_palettes_dirty = 0;
 // Set while a menu loads with the display on and the screen black: fade_set_* only store the
 // palettes (fade_from_black shows them), so nothing shows before the fade in. fade_from_black
 // clears it.
@@ -64,19 +63,6 @@ uint8_t fade_hold = 0;
 static uint8_t shadow_bgp = 0xE4;
 static uint8_t shadow_obp0 = 0xE4;
 static uint8_t shadow_obp1 = 0xE4;
-
-void fade_init(void) BANKED {
-    uint8_t i;
-    for (i = 0; i < 32; i++) {
-        shadow_bkg_palettes[i] = 0;
-        shadow_spr_palettes[i] = 0;
-    }
-    active_bkg_count = 0;
-    active_spr_count = 0;
-    shadow_bgp = 0xE4;
-    shadow_obp0 = 0xE4;
-    shadow_obp1 = 0xE4;
-}
 
 void fade_set_bkg_palette(uint8_t first, uint8_t count, const palette_color_t *data) BANKED {
     if (_cpu == CGB_TYPE) {
@@ -92,23 +78,6 @@ void fade_set_bkg_palette(uint8_t first, uint8_t count, const palette_color_t *d
             active_bkg_count = first + count;
         }
         if (!fade_hold) set_bkg_palette(first, count, data);
-    }
-}
-
-void fade_buffer_bkg_palette(uint8_t first, uint8_t count, const palette_color_t *data) BANKED {
-    if (_cpu == CGB_TYPE) {
-        uint8_t start_idx = first << 2;
-        uint8_t total_colors = count << 2;
-        uint8_t i;
-        for (i = 0; i < total_colors; i++) {
-            if (start_idx + i < 32) {
-                shadow_bkg_palettes[start_idx + i] = data[i];
-            }
-        }
-        if (first + count > active_bkg_count) {
-            active_bkg_count = first + count;
-        }
-        fade_palettes_dirty = 1;
     }
 }
 
@@ -137,20 +106,6 @@ void fade_set_dmg_palettes(uint8_t bgp, uint8_t obp0, uint8_t obp1) BANKED {
     BGP_REG = bgp;
     OBP0_REG = obp0;
     OBP1_REG = obp1;
-}
-
-void fade_apply_dirty_palettes(void) BANKED {
-    if (fade_palettes_dirty) {
-        if (_cpu == CGB_TYPE) {
-            if (active_bkg_count > 0) set_bkg_palette(0, active_bkg_count, shadow_bkg_palettes);
-            if (active_spr_count > 0) set_sprite_palette(0, active_spr_count, shadow_spr_palettes);
-        } else {
-            BGP_REG = shadow_bgp;
-            OBP0_REG = shadow_obp0;
-            OBP1_REG = shadow_obp1;
-        }
-        fade_palettes_dirty = 0;
-    }
 }
 
 // Takes the palettes a state set directly (set_*_palette, BGP/OBP registers) as the fade target,
@@ -220,33 +175,6 @@ static void compute_cgb_fade_step(uint8_t step) {
 static void write_cgb_fade_step(void) {
     if (active_bkg_count > 0) set_bkg_palette(0, active_bkg_count, step_bkg);
     if (active_spr_count > 0) set_sprite_palette(0, active_spr_count, step_spr);
-}
-
-void fade_apply_pause_tint(void) BANKED {
-    if (_cpu == CGB_TYPE) {
-        palette_color_t temp_bkg[32];
-        palette_color_t temp_spr[32];
-        uint8_t i;
-        uint8_t bkg_colors = (active_bkg_count > 0 ? active_bkg_count : 8) << 2;
-        uint8_t spr_colors = (active_spr_count > 0 ? active_spr_count : 8) << 2;
-        for (i = 0; i < bkg_colors; i++) {
-            temp_bkg[i] = dim_color(shadow_bkg_palettes[i], 3);
-        }
-        for (i = 0; i < spr_colors; i++) {
-            temp_spr[i] = dim_color(shadow_spr_palettes[i], 3);
-        }
-        set_bkg_palette(0, (active_bkg_count > 0 ? active_bkg_count : 8), temp_bkg);
-        set_sprite_palette(0, (active_spr_count > 0 ? active_spr_count : 8), temp_spr);
-    }
-}
-
-void fade_restore_pause_tint(void) BANKED {
-    if (_cpu == CGB_TYPE) {
-        uint8_t bkg_cnt = (active_bkg_count > 0 ? active_bkg_count : 8);
-        uint8_t spr_cnt = (active_spr_count > 0 ? active_spr_count : 8);
-        set_bkg_palette(0, bkg_cnt, shadow_bkg_palettes);
-        set_sprite_palette(0, spr_cnt, shadow_spr_palettes);
-    }
 }
 
 void fade_apply_pause_box_palettes(void) BANKED {

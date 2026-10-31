@@ -834,21 +834,8 @@ void flush_mt_column(uint8_t ring_col) BANKED {
     }
 }
 
-// Writes tile rows 8*step .. 8*step+7 of the prepared column (see prepare_mt_column_slice).
-void flush_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED {
-    uint8_t bx = ring_col << 1;
-    uint8_t ty = (uint8_t)(step << 3);
-    uint8_t off = (uint8_t)(ty << 1);
-    VBK_REG = VBK_TILES;
-    set_bkg_tiles(bx, ty, 2, 8, metatile_column_tiles + off);
-    if (_cpu == CGB_TYPE) {
-        VBK_REG = VBK_ATTRIBUTES;
-        set_bkg_tiles(bx, ty, 2, 8, metatile_column_attributes + off);
-        VBK_REG = VBK_TILES;
-    }
-}
-
-// Same as flush_mt_column_slice() but the VBlank handler does the VRAM writes.
+// Writes tile rows 8*step .. 8*step+7 of the prepared column (see prepare_mt_column_slice): the
+// VBlank handler does the VRAM writes.
 void request_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED {
     uint8_t off = (uint8_t)(step << 4);
     bg_cj_x = (uint8_t)(ring_col << 1);

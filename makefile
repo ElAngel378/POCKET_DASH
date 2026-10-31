@@ -58,7 +58,7 @@ $(TEMPDIR)/pause_button_tiles.o: src/sprites/sprite_blob_offsets.h src/graphics/
 $(TEMPDIR)/state_icon_select.o $(TEMPDIR)/save_manager.o $(TEMPDIR)/gameplay.o $(TEMPDIR)/icon_pages.o $(TEMPDIR)/icon_previews.o $(TEMPDIR)/icon_catalog.o: include/icon_catalog.h include/cube_icon_frames.h
 # the metatile and collision tables (a stale object kept the old square saw hitboxes in the ROM)
 $(TEMPDIR)/famidash_metatiles.o: include/famidash_metatiles_dmg.c include/famidash_metatiles.h include/collision.h
-$(TEMPDIR)/menu_bg.o: levels/chr_data/menu_ground_tiles.bin levels/chr_data/menu_ground_map.bin
+$(TEMPDIR)/menu_bg.o: levels/chr_data/menu_ground_tiles.bin
 # title menu big buttons (tools/gen_title_buttons.py): tile / palette counts in the header
 $(TEMPDIR)/state_menu.o $(TEMPDIR)/title_buttons.o: include/title_buttons.h
 # Furnace songs: song ids and the setting

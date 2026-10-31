@@ -940,7 +940,6 @@ static uint8_t pause_menu(uint8_t idx) {
 }
 
 uint8_t  lc_pending;
-uint8_t  lc_level;
 uint8_t  lc_practice;
 uint8_t  lc_coins;
 uint16_t lc_attempts;
@@ -955,7 +954,6 @@ static void level_complete_record(uint8_t idx) {
         record_level_progress(slot, 100, 0);
         record_level_coins(slot, coins_collected);
     }
-    lc_level = idx;
     lc_practice = practice_mode;
     lc_coins = coins_collected;
     lc_attempts = attempt_count;

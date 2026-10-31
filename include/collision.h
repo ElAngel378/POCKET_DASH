@@ -106,27 +106,6 @@ extern uint8_t level_mt_col[256];
 
 struct hUGESong_t;
 
-// Checks collision at a world coordinate (Bank 0, handles switching)
-uint8_t col_at(
-    uint16_t world_px,
-    int16_t  world_py,
-    const uint8_t *map,
-    uint16_t map_w,
-    uint8_t  map_bank
-);
-
-// Raw collision check (No bank switching, must be inside begin/end)
-uint8_t col_at_raw(
-    uint16_t world_px,
-    int16_t  world_py,
-    const uint8_t *map,
-    uint16_t map_w
-);
-
-// Fast version using pre-calculated column pointer
-uint8_t col_at_raw_cached(const uint8_t *col_ptr, uint16_t world_py);
-
-// Batch collision context: switches to the map bank once.
 // Level maps: MAP_ROWS metatile rows per column, MAP_BANK_COLS columns (16 KB) per ROM bank, in
 // consecutive banks (see collision.c and tools/build_levels.py, which must use the same values)
 #define MAP_ROWS_SHIFT 6
@@ -136,14 +115,10 @@ uint8_t col_at_raw_cached(const uint8_t *col_ptr, uint16_t world_py);
 // CGB: the row below the map shows the ground strip
 #define GROUND_ROW MAP_ROWS
 
-void col_at_begin(uint8_t map_bank);
-void col_at_end(void);
-
 // Safe music initialization from Bank 0
 void init_music_banked(const struct hUGESong_t * song, uint8_t bank, uint8_t divider);
 
 void get_map_column(uint16_t map_col, const uint8_t *map, uint8_t map_bank, uint8_t *dest, uint8_t band);
-uint8_t get_map_tile(uint16_t col, uint8_t row, const uint8_t *map, uint8_t map_bank);
 void get_map_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r, uint8_t reversed,
                        const uint8_t *map, uint16_t map_w, uint8_t map_bank, uint8_t *out);
 
@@ -170,7 +145,6 @@ void mj_build_row(uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t m
 // Saw animation (see mt_renderer.c): call before waiting for VBlank, the VBlank handler uploads
 void saw_anim_request(void) BANKED;
 extern uint8_t saw_on;   // the level has saws (mt_renderer.c)
-void flush_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
 void request_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
 // Vertical streaming: the VRAM ring (16 metatile rows) holds map rows mt_band .. mt_band+15,
 // map row m in VRAM metatile row m & 15. A row entering the band is written with the row job:

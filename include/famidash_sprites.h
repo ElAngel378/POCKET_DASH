@@ -82,8 +82,6 @@ extern const metasprite_t * const famidash_sprite_table[38];
 #define D_GH 44   // (tools/make_gda_pulse_tiles.py), 16 / 12 / 8 px with the rods
 #define D_GS 46
 
-extern const metasprite_t famidash_deco_45[];
-
 typedef struct {
     uint8_t count;
     uint8_t width;

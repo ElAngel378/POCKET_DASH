@@ -118,14 +118,6 @@ const metasprite_t name[] = { \
         TWO_TILE(famidash_blue_orb,      MT_99, MT_9B, P2,           P2 | S_FLIPX);
         TWO_TILE(famidash_pink_orb,      MT_B9, MT_BB, P4,           P4 | S_FLIPX);
 
-const metasprite_t famidash_deco_45[] = {
-    METASPR_ITEM(0, 0, CHAIN_BLOCK_TILE, DP),
-    METASPR_ITEM(0, 8, CHAIN_BLOCK_TILE + 2, DP),
-    METASPR_ITEM(16, -16, CHAIN_BLOCK_TILE + 4, DP),
-    METASPR_ITEM(0, 8, CHAIN_BLOCK_TILE + 6, DP),
-    METASPR_TERM
-};
-
 const metasprite_t * const famidash_sprite_table[38] = {
     famidash_cube_portal, famidash_ship_portal, famidash_ball_portal, famidash_ufo_portal, famidash_pink_pad_up,
     famidash_blue_orb, famidash_pink_orb, 0,
