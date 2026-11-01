@@ -1,4 +1,4 @@
-#pragma bank 124
+#pragma bank 123
 #include <gbdk/incbin.h>
 
 // Columns 0..255; the rest are in level_toe_1.c.. (next banks, same address)

@@ -78,8 +78,8 @@ void fur_beats_start_1(uint8_t k) BANKED;
 uint8_t fur_beats_poll_1(void) BANKED;
 void fur_beats_start_2(uint8_t k) BANKED;
 uint8_t fur_beats_poll_2(void) BANKED;
-static const uint8_t fbeat_group[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2 };
-static const uint8_t fbeat_index[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 1 };
+static const uint8_t fbeat_group[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2 };
+static const uint8_t fbeat_index[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 1, 2, 3, 4, 5, 6, 7, 0, 1 };
 extern const uint8_t *fur_bp;
 extern uint8_t fur_bgroup;   // music_select.c: the group of the song playing, 0xFF none
 

@@ -8,23 +8,20 @@ BANKREF_EXTERN(fs_dryout_chunk1)
 extern const uint8_t fs_dryout_chunk1[];
 BANKREF_EXTERN(fs_dryout_chunk2)
 extern const uint8_t fs_dryout_chunk2[];
-BANKREF_EXTERN(fs_dryout_chunk3)
-extern const uint8_t fs_dryout_chunk3[];
 
-static const fur_chunk_t fs_dryout_chunks[4] = {
+static const fur_chunk_t fs_dryout_chunks[3] = {
     { BANK(fs_dryout_chunk0), fs_dryout_chunk0 },
     { BANK(fs_dryout_chunk1), fs_dryout_chunk1 },
     { BANK(fs_dryout_chunk2), fs_dryout_chunk2 },
-    { BANK(fs_dryout_chunk3), fs_dryout_chunk3 },
 };
 
 BANKREF(fs_dryout)
 const fur_song_t fs_dryout = {
-    4, /* chunks */
-    3, /* wave pool chunk */
+    3, /* chunks */
+    2, /* wave pool chunk */
     1, /* anti-click */
     36408, /* anti-click step at 57.6 Hz */
     1165084UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 174 }, { 0, 3733 }, { 0, 11086 }, { 1, 12088 } }, /* stream entry points */
+    { { 0, 0 }, { 0, 174 }, { 0, 3733 }, { 0, 10928 }, { 1, 10402 } }, /* stream entry points */
     fs_dryout_chunks
 };
