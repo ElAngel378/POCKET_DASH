@@ -1322,8 +1322,9 @@ static void update_camera_y(void) {
         if (top + CAM_SHIP_H > ground) top = ground - CAM_SHIP_H;
         uint16_t d = (wy > top) ? (wy - top) : 0;   // 0 .. 144: the ship at the top .. bottom
         if (d > CAM_VIEW_H) d = CAM_VIEW_H;
-        // top - margin .. top + 16 + margin: 32 px of sliding over 144 (d * 2 / 9)
-        t = top + (uint8_t)((uint16_t)(d << 1) / 9u);
+        // top - margin .. top + 16 + margin: 32 px of sliding over 144 (d * 2 / 9, which is
+        // d * 57 / 256 for every d up to 144: SDCC's division loop took ~1k cycles a frame)
+        t = top + (uint8_t)(((d << 6) - (d << 3) + d) >> 8);
         t = (t > CAM_SHIP_MARGIN) ? (t - CAM_SHIP_MARGIN) : 0;
     } else {
         t = (cam_portal_y > CAM_VIEW_H / 2u - 24u) ? (cam_portal_y - (CAM_VIEW_H / 2u - 24u)) : 0;
