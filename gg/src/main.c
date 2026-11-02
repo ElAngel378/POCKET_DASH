@@ -83,11 +83,12 @@ static uint16_t bg_pal[16];
 // Load a 16-colour palette given as 12-bit Game Gear colours (0x0BGR, 4 bits per channel).
 static void load_palette(uint8_t which, const uint16_t *src) {
 #ifdef __TARGET_sms
+    // 4-bit channel -> 2-bit, rounded: (v * 3 + 7) / 15 (a table, because Z80 division is slow)
+    static const uint8_t q[16] = { 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3 };
     static palette_color_t conv[16];
     for (uint8_t i = 0; i < 16; i++) {
         uint16_t c = src[i];
-        uint8_t r = (uint8_t)(c & 15), g = (uint8_t)((c >> 4) & 15), b = (uint8_t)((c >> 8) & 15);
-        conv[i] = RGB((r * 3 + 7) / 15, (g * 3 + 7) / 15, (b * 3 + 7) / 15);
+        conv[i] = q[c & 15] | (q[(c >> 4) & 15] << 2) | (q[(c >> 8) & 15] << 4);
     }
     set_palette(which, 1, conv);
 #else
