@@ -25,9 +25,11 @@
 // being replaced is always off screen.
 #define VIEW_MT_W        16
 #define LEFT_MASK_PX     8
+#define PLAYER_X         (PLAYER_SCREEN_X + 64)   // more look-ahead on the wide screen
 #else
 #define VIEW_MT_W        10
 #define LEFT_MASK_PX     0
+#define PLAYER_X         PLAYER_SCREEN_X
 #endif
 #define RING_MT_W        16      // 16 metatile columns = 32 tile columns = nametable width
 #define RING_ROWS        28      // nametable height in tiles
@@ -436,7 +438,7 @@ static inline void end_sprites(uint8_t used) {
 }
 
 // Metasprite item offsets are relative to the previous item: cube/ship halves are at dx -1 and +7.
-// sx is 0..PLAYER_SCREEN_X and sy is clamped to 0..144, so 8-bit maths is enough.
+// sx is 0..PLAYER_X and sy is clamped to 0..144, so 8-bit maths is enough.
 static void draw_player(uint8_t sx, uint8_t sy) {
     uint8_t *y = OAM_Y(0);
     uint8_t *xt = OAM_XT(0);
@@ -548,7 +550,7 @@ static void start_level(void) {
     cam_px = DEBUG_START_PX;   // debug builds can start part-way through the level
 #endif
     uint16_t first_mc = cam_px >> 4;
-    uint16_t scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
+    uint16_t scroll_px = (cam_px > PLAYER_X) ? (cam_px - PLAYER_X) : 0;
     first_mc = scroll_px >> 4;
 
     // Fill the nametable: 16 columns from the left edge of the screen, rows 6..33 (covers camera Y 128)
@@ -623,7 +625,7 @@ void main(void) {
             px_curr = cam_px >> 4;
 #ifdef __TARGET_sms
             {
-                uint16_t s = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
+                uint16_t s = (cam_px > PLAYER_X) ? (cam_px - PLAYER_X) : 0;
                 uint16_t need = ((s + LEFT_MASK_PX) >> 4) + (RING_MT_W - 1);
 #else
             if (px_curr != px_prev) {
@@ -672,8 +674,8 @@ void main(void) {
             cam_py = (uint16_t)target;
         }
 
-        uint16_t scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
-        uint8_t sprite_x = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
+        uint16_t scroll_px = (cam_px > PLAYER_X) ? (cam_px - PLAYER_X) : 0;
+        uint8_t sprite_x = (cam_px < PLAYER_X) ? (uint8_t)cam_px : PLAYER_X;
         int16_t final_py = (int16_t)player.world_y.b.h - (int16_t)cam_py;
         if (final_py < 0) final_py = 0;
         else if (final_py > SCREEN_H) final_py = SCREEN_H;
@@ -708,6 +710,18 @@ void main(void) {
             v0 = saved_v0;
         }
 
+        // Sprites go into shadow OAM before the vblank wait: the vblank interrupt copies it to
+        // the VDP, so sprites move in the same frame as the background scroll.
+        PROF_MARK(8);   // sprites
+        if (died) {
+            end_sprites(0);
+            music_stop();
+            dead_timer = 30;
+        } else {
+            draw_player(sprite_x, (uint8_t)final_py);
+            end_sprites(draw_objects(scroll_px, cam_py));
+        }
+
         // --- everything below touches VRAM/VDP registers: do it in vblank ---
         PROF_MARK(6);   // waiting for vblank
         wait_vbl_done();
@@ -727,14 +741,5 @@ void main(void) {
             loaded_mc = need_mc;
         }
 
-        PROF_MARK(8);   // sprites
-        if (died) {
-            end_sprites(0);
-            music_stop();
-            dead_timer = 30;
-        } else {
-            draw_player(sprite_x, (uint8_t)final_py);
-            end_sprites(draw_objects(scroll_px, cam_py));
-        }
     }
 }
