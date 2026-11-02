@@ -15,11 +15,13 @@ or 210-tiles-per-level limit.
 - **The object list is fixed and small.** GD 1.6 added IDs 142–199 (57 objects). The 14 official
   levels use 171 different IDs in all, none above 199. Source: GD's own data on this PC (IDs,
   textures, per-level counts). Full table: `docs/GD_OBJECT_INVENTORY.md`.
-- **Famidash already covers most of it.** Of the 171: 81 it has, 15 approximated, 33 missing,
-  28 are 1.6 objects whose art you already drew, 14 are engine effects (enter effects, ghost trail).
-- **Your art** (the 9 `.chr` files) covers the 1.6 blocks, outlines and rails, waves and saws.
+- **Famidash already covers most of it.** Of the 171: 81 it has, 12 approximated, 28 missing,
+  36 have your art but no object yet, 14 are engine effects (enter effects, ghost trail).
+- **Your art** (the 9 `.chr` files; Clutterfunk Blocks, Wavy Gspikes, y did i do this and
+  sopeslopeslopeslope are NES format, the rest GB) covers the 1.6 blocks, outlines and rails, waves
+  and saws, plus clouds 1–2, the pulsing ring, heart and star, and ToE's stepped ground hills.
   Still to draw: ice spikes, black saws, spiked and cart wheels, spike art, chain art (1.6), and
-  1.5's ground hills, thorns, gear rings, cogwheels.
+  1.5's thorns, gear rings, cogwheels, clouds 3–5, chains.
 - **GD places objects anywhere**, rotated in 90° steps, flipped and stacked (Electroman: 5643
   objects, 3468 of them off the block grid). Famidash's half spikes, half orb rings, combined
   "spike on slab" pieces and quarter blocks are all workarounds for that.
@@ -61,11 +63,11 @@ without your OK.
 - Check: levels still look and play the same.
 
 ### Phase 3 — Fill the 1.5 gaps
-- The missing 1.5 objects (ground hills, thorns, gear rings, clouds, cogwheels), with your art.
+- The missing 1.5 objects (ground hills, thorns, gear rings, clouds, cogwheels, chains), with your art.
 - Theory of Everything gets them first.
 
 ### Phase 4 — 1.6 objects
-- Import your 1.6 art (28 objects); draw the 15 missing.
+- Import your 1.6 art; draw the 15 missing.
 - Mechanics, one at a time: breakable bricks, fading objects, rotating decorations.
 
 ### Phase 5 — Electroman and Clubstep as 1.6

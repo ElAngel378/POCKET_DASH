@@ -2,7 +2,7 @@
 
 Every object ID the 14 official levels use (decoded from GD 2.2's `Resources/levels/1..14.txt`), its texture (`ObjectToolbox`'s ID-to-frame table, read from GeometryDash.exe), the levels using it, and Famidash's equivalent (`include/famidash_metatiles.c` names; sprite ids from `src/sp_draw.c` / `src/sprites/famidash_sprites.c`; and Famidash's per-level tile sets, tools/build_bg_tiles.py LEVEL_SETS: block set B, spike sets B and C). Matched by eye: textures are GD 2.2's, Famidash's art is NES-style.
 
-Status: **HAVE** Famidash has it. **PART** an approximation or substitute. **MISSING** no object and no art. **ART** (1.6) no object yet, but your art exists (the .chr files). **ENGINE** not a drawn object (enter effects, ghost trail, triggers): an engine feature.
+Status: **HAVE** Famidash has it. **PART** an approximation or substitute. **MISSING** no object and no art. **ART** no object yet (or only Famidash's approximation), but your art exists (the .chr files). **ENGINE** not a drawn object (enter effects, ghost trail, triggers): an engine feature.
 
 Famidash's per-level tile sets (block set B, spike sets B and C) are not kept: in the new version
 every object exists in every level, so an entry "block set B" / "spike set C" means the art exists and
@@ -52,13 +52,13 @@ Levels: 1 SM, 2 BoT, 3 PG, 4 DO, 5 BaB, 6 CLG, 7 Jmp, 8 TM, 9 Cyc, 10 xS, 11 CF,
 | 45 | 1.0-1.4 | Mirror portal (orange) | `portal_05_front_001.png` | TM:3 Cyc:2 CF:1 ToE:2 EA:2 | sprite 126 (CGB) | **HAVE** |
 | 46 | 1.0-1.4 | Mirror portal (blue) | `portal_06_front_001.png` | TM:3 Cyc:1 CF:1 ToE:2 EA:2 | sprite 121 (CGB) | **HAVE** |
 | 47 | 1.0-1.4 | Ball portal | `portal_07_front_001.png` | Cyc:2 xS:2 CF:1 ToE:2 EA:2 CS:1 | sprite 2 | **HAVE** |
-| 48 | 1.0-1.4 | Cloud 1 | `d_cloud_01_001.png` | xS:138 CF:117 ToE:24 CS:16 | CLOUD_* (128-135) | **PART** |
-| 49 | 1.0-1.4 | Cloud 2 | `d_cloud_02_001.png` | xS:115 CF:75 ToE:21 CS:12 | CLOUD_* (128-135) | **PART** |
+| 48 | 1.0-1.4 | Cloud 1 | `d_cloud_01_001.png` | xS:138 CF:117 ToE:24 CS:16 | CLOUD_* (128-135) | **ART** (Wavy Gspikes (NES)) |
+| 49 | 1.0-1.4 | Cloud 2 | `d_cloud_02_001.png` | xS:115 CF:75 ToE:21 CS:12 | CLOUD_* (128-135) | **ART** (Wavy Gspikes (NES)) |
 | 50 | 1.0-1.4 | Pulsing circle | `d_ball_01_001.png` | xS:91 CF:26 ToE:50 EA:114 CS:146 | sprite 73 (pulsing ball) | **HAVE** |
-| 51 | 1.0-1.4 | Pulsing ring | `d_ball_02_001.png` | xS:9 EA:23 CS:5 | - | **MISSING** |
-| 52 | 1.0-1.4 | Pulsing heart | `d_ball_03_001.png` | EA:4 | - | **MISSING** |
+| 51 | 1.0-1.4 | Pulsing ring | `d_ball_02_001.png` | xS:9 EA:23 CS:5 | - | **ART** (GDP Pulsing Obj) |
+| 52 | 1.0-1.4 | Pulsing heart | `d_ball_03_001.png` | EA:4 | - | **ART** (GDP Pulsing Obj) |
 | 53 | 1.0-1.4 | Pulsing diamond | `d_ball_04_001.png` | xS:76 ToE:13 EA:5 CS:11 | sprite 50 | **HAVE** |
-| 54 | 1.0-1.4 | Pulsing star | `d_ball_05_001.png` | SM:8 xS:87 CF:18 ToE:40 EA:74 CS:56 | sprite 54? | **PART** |
+| 54 | 1.0-1.4 | Pulsing star | `d_ball_05_001.png` | SM:8 xS:87 CF:18 ToE:40 EA:74 CS:56 | sprite 54? | **ART** (Clutterfunk Blocks (NES)) |
 | 56 | 1.0-1.4 | Enter effect: fade left | `edit_eeFALBtn_001.png` | EA:1 | - | **ENGINE** |
 | 57 | 1.0-1.4 | Enter effect: fade right | `edit_eeFARBtn_001.png` | EA:3 CS:1 | - | **ENGINE** |
 | 58 | 1.0-1.4 | Enter effect: from right half | `edit_eeFRHBtn_001.png` | xS:4 CF:2 ToE:3 EA:4 CS:5 | - | **ENGINE** |
@@ -108,9 +108,9 @@ Levels: 1 SM, 2 BoT, 3 PG, 4 DO, 5 BaB, 6 CLG, 7 Jmp, 8 TM, 9 Cyc, 10 xS, 11 CF,
 | 107 | 1.5 | Chain with base, short | `d_02_chain_02_001.png` | ToE:1 EA:2 CS:1 | sprite 45 (approx) | **PART** |
 | 110 | 1.5 | Chain, small | `d_chain_02_001.png` | PG:5 ToE:2 EA:1 CS:18 | sprite 45 (approx) | **PART** |
 | 111 | 1.5 | UFO portal | `portal_10_front_001.png` | ToE:2 EA:2 CS:2 | sprite 3 | **HAVE** |
-| 113 | 1.5 | Stepped ground hill 1 (ToE) | `d_brick_01_001.png` | ToE:32 EA:4 CS:2 | - | **MISSING** |
-| 114 | 1.5 | Stepped ground hill 2 (ToE) | `d_brick_02_001.png` | ToE:19 EA:6 CS:28 | - | **MISSING** |
-| 115 | 1.5 | Stepped ground hill 3 (ToE) | `d_brick_03_001.png` | ToE:23 EA:8 | - | **MISSING** |
+| 113 | 1.5 | Stepped ground hill 1 (ToE) | `d_brick_01_001.png` | ToE:32 EA:4 CS:2 | - | **ART** (GDP TOE) |
+| 114 | 1.5 | Stepped ground hill 2 (ToE) | `d_brick_02_001.png` | ToE:19 EA:6 CS:28 | - | **ART** (GDP TOE) |
+| 115 | 1.5 | Stepped ground hill 3 (ToE) | `d_brick_03_001.png` | ToE:23 EA:8 | - | **ART** (GDP TOE) |
 | 116 | 1.5 | Brick block (ToE set) | `square_f_01_001.png` | ToE:16 CS:9 | block set B bricks (ToE, Clutterfunk, Electroman, Clubstep) | **HAVE** |
 | 117 | 1.5 | Brick block, edge (ToE set) | `square_f_02_001.png` | ToE:272 EA:94 CS:445 | block set B | **HAVE** |
 | 118 | 1.5 | Brick block, corner (ToE set) | `square_f_03_001.png` | ToE:53 CS:121 | block set B | **HAVE** |
@@ -185,4 +185,4 @@ Levels: 1 SM, 2 BoT, 3 PG, 4 DO, 5 BaB, 6 CLG, 7 Jmp, 8 TM, 9 Cyc, 10 xS, 11 CF,
 | 198 | 1.6 | Black fake spike, small | `fakeSpike_02_001.png` | CS:4 | FAKE_SPIKE_HALF (203) | **HAVE** |
 | 199 | 1.6 | Black fake spike, medium | `fakeSpike_03_001.png` | CS:139 | FAKE_SMALL_SPIKE_* (205-207) | **HAVE** |
 
-Totals over the 171 IDs: ART 28, ENGINE 14, HAVE 81, MISSING 33, PART 15
+Totals over the 171 IDs: ART 36, ENGINE 14, HAVE 81, MISSING 28, PART 12
