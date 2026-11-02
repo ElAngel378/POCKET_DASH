@@ -14,12 +14,13 @@ import sys
 
 GG = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 MESEN = r'C:\Users\soter\OneDrive\Documents\Mesen.exe'
+TARGET = os.environ.get('GG_TARGET', 'gg')   # set GG_TARGET=sms to profile the Master System build
 
 
 def main():
     frames = sys.argv[1] if len(sys.argv) > 1 else '4900'
     extra = ' '.join(sys.argv[2:])
-    env = dict(os.environ, GG_EXTRA='-DDEBUG_PROFILE -DDEBUG_GODMODE ' + extra, GG_OUT='POCKETDASH_prof')
+    env = dict(os.environ, GG_EXTRA='-DDEBUG_PROFILE -DDEBUG_GODMODE ' + extra, GG_OUT='POCKETDASH_prof', GG_TARGET=TARGET)
     r = subprocess.run(['cmd', '/c', os.path.join(GG, 'build.bat')], env=env, capture_output=True, text=True)
     errors = [l for l in (r.stdout + r.stderr).splitlines() if 'error' in l.lower()]
     if r.returncode or errors:
@@ -33,7 +34,7 @@ def main():
     lua = lua.replace('@MARK_ADDR@', '0x' + m.group(1)).replace('@RUN_FRAMES@', frames)
     script = os.path.join(GG, 'build', 'profile_run.lua')
     open(script, 'w').write(lua)
-    r = subprocess.run([MESEN, '--testrunner', os.path.join(GG, 'build', 'POCKETDASH_prof.gg'), script],
+    r = subprocess.run([MESEN, '--testrunner', os.path.join(GG, 'build', 'POCKETDASH_prof.' + TARGET), script],
                        capture_output=True, text=True, timeout=600)
     if r.returncode not in (0,):
         print('mesen exit code', r.returncode)
