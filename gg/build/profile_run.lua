@@ -7,7 +7,7 @@
 -- makes the game drop a frame.
 
 -- Mesen's Lua sandbox has no os library, so tools/profile.py substitutes these two values.
-local MARK_ADDR = 0x0000C166
+local MARK_ADDR = 0x0000C176
 local RUN_FRAMES = 4800
 local FRAME_CYCLES = 228 * 262            -- 59736 CPU cycles per video frame
 
