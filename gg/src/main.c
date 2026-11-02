@@ -25,7 +25,7 @@
 // being replaced is always off screen.
 #define VIEW_MT_W        16
 #define LEFT_MASK_PX     8
-#define PLAYER_X         (PLAYER_SCREEN_X + 64)   // more look-ahead on the wide screen
+#define PLAYER_X         (PLAYER_SCREEN_X + 32)   // more look-ahead on the wide screen
 #else
 #define VIEW_MT_W        10
 #define LEFT_MASK_PX     0
@@ -82,16 +82,12 @@ static uint8_t  vis_lo;                   // first drawable object that can stil
 
 static uint16_t bg_pal[16];
 
-// Load a 16-colour palette given as 12-bit Game Gear colours (0x0BGR, 4 bits per channel).
+// Load a 16-colour palette. The colour tables hold 12-bit Game Gear colours, or on the SMS
+// colours already matched to its 64-colour palette by gg/tools/gg_convert.py.
 static void load_palette(uint8_t which, const uint16_t *src) {
 #ifdef __TARGET_sms
-    // 4-bit channel -> 2-bit, rounded: (v * 3 + 7) / 15 (a table, because Z80 division is slow)
-    static const uint8_t q[16] = { 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3 };
     static palette_color_t conv[16];
-    for (uint8_t i = 0; i < 16; i++) {
-        uint16_t c = src[i];
-        conv[i] = q[c & 15] | (q[(c >> 4) & 15] << 2) | (q[(c >> 8) & 15] << 4);
-    }
+    for (uint8_t i = 0; i < 16; i++) conv[i] = (palette_color_t)src[i];
     set_palette(which, 1, conv);
 #else
     set_palette(which, 1, src);

@@ -78,6 +78,32 @@ def rgb8_to_gg(r, g, b):
     return (r >> 4) | ((g >> 4) << 4) | ((b >> 4) << 8)
 
 
+def _lab(r, g, b):
+    """sRGB 0-255 -> CIELAB (D65)."""
+    def lin(c):
+        c /= 255.0
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = lin(r), lin(g), lin(b)
+    x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047
+    y = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883
+    def f(t):
+        return t ** (1 / 3.0) if t > 0.008856 else 7.787 * t + 16 / 116.0
+    fx, fy, fz = f(x), f(y), f(z)
+    return (116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz))
+
+
+_SMS_LAB = [(_lab(r * 85, g * 85, b * 85), r | (g << 2) | (b << 4))
+            for r in range(4) for g in range(4) for b in range(4)]
+
+
+def gg_to_sms(c):
+    """12-bit Game Gear colour -> nearest of the 64 Master System colours (CIELAB distance).
+    Rounding each channel separately shifts hues badly with only 4 levels per channel."""
+    L = _lab((c & 15) * 17, ((c >> 4) & 15) * 17, ((c >> 8) & 15) * 17)
+    return min(_SMS_LAB, key=lambda e: sum((a - b) ** 2 for a, b in zip(e[0], L)))[1]
+
+
 def main():
     mt_src = read_text('include/famidash_metatiles_dmg.c')
     metatiles = parse_block(mt_src, 'metatiles[FAMIDASH_NUM_METATILES][4]')
@@ -341,6 +367,11 @@ def main():
             s += '    ' + ('{ %s },' % row if nested else row + ',') + '\n'
         return s + '};\n\n'
 
+    def pal_arr(name, values, per_line, nested=False):
+        """Colour table: 12-bit Game Gear colours, or pre-matched SMS colours on __TARGET_sms."""
+        return ('#ifdef __TARGET_sms\n' + arr(name, 'uint16_t', [gg_to_sms(v) for v in values], per_line, '0x%02x', nested)
+                + '#else\n' + arr(name, 'uint16_t', values, per_line, '0x%03x', nested) + '#endif\n\n')
+
     def flat(rows):
         return [v for row in rows for v in row]
 
@@ -350,8 +381,8 @@ def main():
         c.write(arr('gg_mt[256][4]', 'uint8_t', flat(gg_mt), 4, nested=True))
         c.write(arr('gg_ground_top[8]', 'uint8_t', ground_top))
         c.write(arr('gg_ground_bot[8]', 'uint8_t', ground_bot))
-        c.write(arr('gg_bg_palette[16]', 'uint16_t', bg_pal, 8, '0x%03x'))
-        c.write(arr('gg_spr_palette[16]', 'uint16_t', spr_pal, 8, '0x%03x'))
+        c.write(pal_arr('gg_bg_palette[16]', bg_pal, 8))
+        c.write(pal_arr('gg_spr_palette[16]', spr_pal, 8))
         c.write(arr('gg_cube_frames[50][2]', 'uint8_t', flat(cube_frames), 2, nested=True))
         c.write(arr('gg_ship_tiles[2][2]', 'uint8_t', flat(ship_pairs), 2, nested=True))
         c.write('const GgSprItem gg_spr_items[%d] = {\n' % len(spr_items))
@@ -370,8 +401,8 @@ def main():
         for x, y, t in logic:
             c.write('    { %d, %d, %d },\n' % (x, y, t))
         c.write('};\n\n')
-        c.write(arr('gg_sky_tab[64][2]', 'uint16_t', flat(sky_tab), 2, '0x%03x', nested=True))
-        c.write(arr('gg_gnd_tab[64][4]', 'uint16_t', flat(gnd_tab), 4, '0x%03x', nested=True))
+        c.write(pal_arr('gg_sky_tab[64][2]', flat(sky_tab), 2, nested=True))
+        c.write(pal_arr('gg_gnd_tab[64][4]', flat(gnd_tab), 4, nested=True))
         c.write(arr('famidash_metatile_collision[256]', 'uint8_t', mt_col))
 
     # Tile graphics are only needed at startup, so they live in bank 3 (see main()).
