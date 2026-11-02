@@ -185,4 +185,6 @@ Levels: 1 SM, 2 BoT, 3 PG, 4 DO, 5 BaB, 6 CLG, 7 Jmp, 8 TM, 9 Cyc, 10 xS, 11 CF,
 | 198 | 1.6 | Black fake spike, small | `fakeSpike_02_001.png` | CS:4 | FAKE_SPIKE_HALF (203) | **HAVE** |
 | 199 | 1.6 | Black fake spike, medium | `fakeSpike_03_001.png` | CS:139 | FAKE_SMALL_SPIKE_* (205-207) | **HAVE** |
 
+Spinning in GD (rotating objects, from GD server code's ROTATING_OBJECTS list): 85, 86, 87, 88, 89, 97, 98, 137, 138, 139, 154, 155, 156, 180–188. See PLAN_1.6.md decision 5.
+
 Totals over the 171 IDs: ART 36, ENGINE 14, HAVE 81, MISSING 28, PART 12

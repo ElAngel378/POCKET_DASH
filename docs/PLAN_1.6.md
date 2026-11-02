@@ -83,3 +83,8 @@ without your OK.
    work, later.
 4. **Art:** the missing objects (`docs/missing_art.png`) get redrawn by you in 8 bit. GDA's art may
    be borrowed for these objects only; nothing else comes from GDA.
+5. **Spinning deco** (GD's rotating objects up to ID 199: 85–89, 97, 98, 137–139, 154–156,
+   180–188; 88, 89, 98 and 186–188 are saws): background tiles, not sprites, animated by swapping
+   the tile graphics (3–4 pre-rotated frames, one tooth step apart), so every copy turns together
+   at no extra cost. Same upload path as the column streaming. On DMG, slower updates or static if
+   VBlank is tight. Sprites only for objects that actually move.
