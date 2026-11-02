@@ -30,7 +30,9 @@ void music_stop(void) {
 void music_start(void) {
     mus_playing = 0;
     psg_silence();
+#ifdef __TARGET_gg
     GG_SOUND_PAN = 0xFF;
+#endif
     mus_bank_idx = 0;
     mus_ptr = gg_music_banks[0];
     mus_playing = 1;
@@ -53,7 +55,12 @@ void music_tick(void) {
         mus_playing = 0;
         psg_silence();
     } else {
+        // Port 0x06 only exists on the Game Gear; on the SMS skip the stereo byte.
+#ifdef __TARGET_gg
         if (h & 0x80) GG_SOUND_PAN = *mus_ptr++;
+#else
+        if (h & 0x80) mus_ptr++;
+#endif
         for (uint8_t n = h & 0x7F; n; n--) PSG = *mus_ptr++;
     }
 

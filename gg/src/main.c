@@ -16,16 +16,28 @@
 #define MAP_W            GG_LEVEL_WIDTH
 #define level_map        dryout_map
 
+// Visible screen: 160x144 on Game Gear, 256x192 on Master System.
+#define SCREEN_W         DEVICE_SCREEN_PX_WIDTH
+#define SCREEN_H         DEVICE_SCREEN_PX_HEIGHT
+#ifdef __TARGET_sms
+// The SMS screen is as wide as the 32-column nametable, so the VDP's left-column mask hides the
+// leftmost 8 px. The remaining 248 px never span more than 16 metatile columns, so the column
+// being replaced is always off screen.
+#define VIEW_MT_W        16
+#define LEFT_MASK_PX     8
+#else
 #define VIEW_MT_W        10
+#define LEFT_MASK_PX     0
+#endif
 #define RING_MT_W        16      // 16 metatile columns = 32 tile columns = nametable width
 #define RING_ROWS        28      // nametable height in tiles
 #define WORLD_ROWS       34      // 32 map tile rows + 2 ground tile rows
 #define MAP_H            16      // metatile rows
 #define MAX_V0           (WORLD_ROWS - RING_ROWS)
 
-#define CAM_PY_MAX       128     // (256 + 16 ground) - 144
+#define CAM_PY_MAX       (256 + 16 - SCREEN_H)   // level + ground row - screen height
 #define CAM_Y_TOP_ZONE   20
-#define CAM_Y_BOTTOM_ZONE 100
+#define CAM_Y_BOTTOM_ZONE (SCREEN_H - 44)
 
 // 8.8 fixed-point scroll speed, same value as the Game Boy build
 #define SCROLL_SPEED_FP  714
@@ -67,6 +79,21 @@ static uint8_t  obj_lo;                   // first interactive object that can s
 static uint8_t  vis_lo;                   // first drawable object that can still be on screen
 
 static uint16_t bg_pal[16];
+
+// Load a 16-colour palette given as 12-bit Game Gear colours (0x0BGR, 4 bits per channel).
+static void load_palette(uint8_t which, const uint16_t *src) {
+#ifdef __TARGET_sms
+    static palette_color_t conv[16];
+    for (uint8_t i = 0; i < 16; i++) {
+        uint16_t c = src[i];
+        uint8_t r = (uint8_t)(c & 15), g = (uint8_t)((c >> 4) & 15), b = (uint8_t)((c >> 8) & 15);
+        conv[i] = RGB((r * 3 + 7) / 15, (g * 3 + 7) / 15, (b * 3 + 7) / 15);
+    }
+    set_palette(which, 1, conv);
+#else
+    set_palette(which, 1, src);
+#endif
+}
 static uint8_t  pal_dirty;
 
 // DEBUG_PROFILE: each section of the main loop writes its id to gpmark. The headless
@@ -447,7 +474,27 @@ static uint8_t draw_objects(uint16_t scroll_px, uint16_t cam_y) {
     const GgObj *o = &gg_objs[vis_lo];
     for (uint8_t i = GG_OBJ_COUNT - vis_lo; i; i--, o++) {
         uint16_t dx = o->x - scroll_px;              // objects left of scroll_px - 48 were skipped above
-        if (dx >= 160 + 1 && dx < 0x8000u) break;    // sorted by x: everything after is off to the right
+        if (dx >= SCREEN_W + 1 && dx < 0x8000u) break;   // sorted by x: everything after is off to the right
+#ifdef __TARGET_sms
+        {
+            int16_t sy = (int16_t)o->y - (int16_t)cam_y;
+            if (sy < -48 || sy > SCREEN_H) continue;
+            const GgObjDef *d = &gg_obj_defs[o->type];
+            uint8_t n = d->count;
+            if (slot + n > MAX_HARDWARE_SPRITES) break;
+            const GgSprItem *it = &gg_spr_items[d->start];
+            for (; n; n--, it++) {
+                int16_t ix = (int16_t)dx + it->dx;
+                int16_t iy = sy + it->dy;
+                if (ix < 0 || ix > 255 || iy < -15 || iy >= SCREEN_H) continue;
+                *oam_y++ = (uint8_t)(iy + DEVICE_SPRITE_PX_OFFSET_Y);
+                *oam_xt++ = (uint8_t)ix;
+                *oam_xt++ = it->tile;
+                slot++;
+            }
+            continue;
+        }
+#endif
         uint16_t dy = (uint16_t)o->y + BIAS - cam_y;
         if (dy > 144 + BIAS) continue;               // also catches dy < 0 (wrapped)
         uint8_t bx = (uint8_t)dx + BIAS;
@@ -493,7 +540,7 @@ static void start_level(void) {
     obj_lo = 0;
     vis_lo = 0;
     memcpy(bg_pal, gg_bg_palette, sizeof(bg_pal));
-    set_palette(0, 1, bg_pal);
+    load_palette(0, bg_pal);
     pal_dirty = 0;
 
 #ifdef DEBUG_START_PX
@@ -527,7 +574,10 @@ void main(void) {
     set_bkg_4bpp_data(0, GG_BG_TILE_COUNT, gg_bg_tiles);
     set_sprite_4bpp_data(0, GG_SPR_TILE_COUNT, gg_spr_tiles);
     SWITCH_ROM(2);
-    set_palette(1, 1, gg_spr_palette);
+    load_palette(1, gg_spr_palette);
+#ifdef __TARGET_sms
+    HIDE_LEFT_COLUMN;
+#endif
     SPRITES_8x16;
     SHOW_BKG;
     SHOW_SPRITES;
@@ -570,8 +620,14 @@ void main(void) {
             cam_px += scroll_acc >> 8;
             scroll_acc &= 0xFF;
             px_curr = cam_px >> 4;
+#ifdef __TARGET_sms
+            {
+                uint16_t s = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
+                uint16_t need = ((s + LEFT_MASK_PX) >> 4) + (RING_MT_W - 1);
+#else
             if (px_curr != px_prev) {
                 uint16_t need = px_curr + VIEW_MT_W;
+#endif
                 if (need > loaded_mc && need < MAP_W) {
                     needs_col = 1;
                     need_mc = need;
@@ -619,7 +675,7 @@ void main(void) {
         uint8_t sprite_x = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
         int16_t final_py = (int16_t)player.world_y.b.h - (int16_t)cam_py;
         if (final_py < 0) final_py = 0;
-        else if (final_py > 144) final_py = 144;
+        else if (final_py > SCREEN_H) final_py = SCREEN_H;
 
         // --- vertical streaming: decide which nametable row (if any) to load ---
         uint8_t row_pending = 0;
@@ -627,7 +683,7 @@ void main(void) {
         uint8_t new_v0 = v0;
         {
             uint8_t cam_top = (uint8_t)(cam_py >> 3);
-            uint8_t cam_bot = (uint8_t)((cam_py + 143) >> 3);
+            uint8_t cam_bot = (uint8_t)((cam_py + SCREEN_H - 1) >> 3);
             if (cam_bot < WORLD_ROWS - 1) cam_bot++;          // 1 row of lookahead
             if (cam_top > 0) cam_top--;
             if (cam_top < v0) {
@@ -658,7 +714,7 @@ void main(void) {
         PROF_MARK(7);   // VRAM writes (in vblank)
 
         if (pal_dirty) {
-            set_palette(0, 1, bg_pal);
+            load_palette(0, bg_pal);
             pal_dirty = 0;
         }
         if (row_pending) {
