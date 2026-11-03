@@ -25,6 +25,6 @@ const fur_song_t fs_ultiatedestruction = {
     0, /* anti-click */
     0, /* anti-click step at 56.1096 Hz */
     1196032UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 1595 }, { 0, 9776 }, { 1, 2862 }, { 2, 5474 } }, /* stream entry points */
+    { { 0, 0 }, { 0, 1601 }, { 0, 9782 }, { 1, 2872 }, { 2, 5512 } }, /* stream entry points */
     fs_ultiatedestruction_chunks
 };

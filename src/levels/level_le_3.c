@@ -1,4 +1,4 @@
-#pragma bank 188
+#pragma bank 187
 #include <gbdk/incbin.h>
 
 // Columns 768.. of leveleasy (read through leveleasy_map's address)
