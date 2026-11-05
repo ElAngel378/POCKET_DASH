@@ -67,6 +67,9 @@ How a level is built now, in Tiled:
   `SP` layer is special (sprites, as before).
 - Objects bigger than a block are on `Big objects` layers under the others: where a block and a saw
   overlap, the block shows (in game too).
+- `template.tmx` has all these layers ready (big objects and objects, each on the grid and +8 px
+  in x, y and both, a second objects layer, SP): a new level starts from it. Keep it that way when
+  a phase adds a kind of layer.
 - Until phase 1 a cell must still come out as one of Famidash's metatiles: the build stops with the
   cell's position if a combination has none.
 
