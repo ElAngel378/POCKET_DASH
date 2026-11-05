@@ -52,8 +52,8 @@ static const uint8_t bg_cgb_demonpark[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0
 static const uint8_t bg_dmg_demonpark[] = { 0, 0, 0, 0 };
 static const uint8_t bg_cgb_thelightningroad[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0, 0 };
 static const uint8_t bg_dmg_thelightningroad[] = { 0, 0, 0, 0 };
-static const uint8_t bg_cgb_test[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0, 0 };
-static const uint8_t bg_dmg_test[] = { 0, 0, 0, 0 };
+static const uint8_t bg_cgb_test[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0, 16, 3, 0, 12, 3, 2, 12, 17, 1, 12, 17, 3, 12, 22, 2, 12, 22, 3, 12, 23, 0, 12, 23, 1, 12, 25, 2, 12, 25, 3, 12, 26, 0, 12, 26, 2, 12, 28, 1, 12, 28, 3, 12, 29, 2, 12, 29, 3, 12 };
+static const uint8_t bg_dmg_test[] = { 0, 0, 0, 16, 3, 0, 12, 3, 2, 12, 17, 1, 12, 17, 3, 12, 22, 2, 12, 22, 3, 12, 23, 0, 12, 23, 1, 12, 25, 2, 12, 25, 3, 12, 26, 0, 12, 26, 2, 12, 28, 1, 12, 28, 3, 12, 29, 2, 12, 29, 3, 12 };
 
 const uint8_t * const bg_level_lists[] = {
     bg_cgb_stereomadness, bg_dmg_stereomadness,
@@ -101,5 +101,5 @@ const uint16_t bg_level_list_len[] = {
     12, 4,
     12, 4,
     12, 4,
-    12, 4,
+    60, 52,
 };

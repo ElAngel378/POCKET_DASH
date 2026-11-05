@@ -111,6 +111,17 @@ different time now.
 - Check: all levels look and play the same as before, on CGB and DMG; no lag added.
 
 ### Phase 2 — Placement like GD
+
+**Done (branch `phase2-placement`).** A cell no Famidash metatile shows (any stack, any 8 px offset)
+becomes a metatile of the level's own (`tools/compose.py`): its look is composed from the objects'
+art (solid objects and fills opaque, the others show what is behind them through colour 0), its
+palette is the solid / deadly object's, its collision the Famidash metatile's when the solid /
+deadly objects make one, else per 8x8 quarter (half blocks as slabs). It takes a metatile id the
+level does not use, with that palette; the ids the engine treats specially are never reused. Each
+level has its collision table (`src/level_collision.c` for levels with their own metatiles), copied
+into `scratch_buf` while it plays. `test.tmx` shows examples. Not yet: saws and the ground strip
+sharing a cell with other objects, orbs / pads sharing a cell with solid objects, two palettes in
+one cell.
 - 8 px offsets and stacking; the workaround pieces replaced by the real objects.
 - Check: levels still look and play the same.
 

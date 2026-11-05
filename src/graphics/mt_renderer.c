@@ -243,8 +243,23 @@ void load_level_bg_sheet(uint8_t level, uint8_t reversed, const uint8_t *tiles, 
     load_bkg_tileset(tiles, count, bank);
 }
 
+// The level's collision table into scratch_buf (collision.h): its own (bank 12) or Famidash's
+static uint8_t col_level = 0xFF;
+void load_level_collision(void) BANKED {
+    if (col_level < BG_LEVEL_COUNT && bg_level_col[col_level] != famidash_metatile_collision) {
+        fur_copy_banked(scratch_buf, bg_level_col[col_level], 256, 12);
+    } else {
+        memcpy(scratch_buf, famidash_metatile_collision, 256);
+    }
+}
+
+static void apply_level_bg_tiles_(uint8_t level, uint8_t reversed);
 // Called after load_level_bg_sheet (display off). level: game_levels index.
 void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
+    apply_level_bg_tiles_(level, reversed);
+    load_level_collision();   // the load list went through scratch_buf
+}
+static void apply_level_bg_tiles_(uint8_t level, uint8_t reversed) {
     uint8_t n, n_moves, n_over, buf[16];
     uint8_t cgb = (_cpu == CGB_TYPE);
     uint8_t display_off = !(LCDC_REG & LCDCF_ON);
@@ -258,6 +273,7 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     mt_tab_rev = metatiles;   // (no level has no tables: tools/build_bg_tiles.py makes them all)
     // the level's own tiles: streamed from column 0 as the columns are drawn (prepare_mt_column)
     bg_stream_reset(level, reversed, mt_ram_level == level);
+    col_level = level;
     if (level >= BG_LEVEL_COUNT) return;
     mt_big_saws = bg_level_big_saws[level];
     saw_on = bg_level_saws[level];
@@ -394,6 +410,7 @@ void reapply_bg_shared_slots(uint8_t level, uint8_t reversed) BANKED {
             src += 32;
         }
     }
+    load_level_collision();   // the load list went through scratch_buf
 }
 
 // Saw metatile: writes its 4 tiles/attributes (bank 1, mirrored when reversed).

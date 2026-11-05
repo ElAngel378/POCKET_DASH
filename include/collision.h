@@ -56,8 +56,16 @@
 #define IS_PASSTHROUGH(col) ((col) == COL_NONE)
 
 extern const uint8_t famidash_metatile_collision[256];
+// The level's collision table while it plays: a copy of famidash_metatile_collision, or of the
+// level's own (levels with metatiles of their own, tools/compose.py; src/level_collision.c), in
+// scratch_buf (WRAM: lookups as fast as into a fixed table; a pointer cost DMG frames).
+// load_level_collision (mt_renderer.c) copies it in after everything else that uses scratch_buf
+// during a level: the load lists (apply_level_bg_tiles, reapply_bg_shared_slots), the pause box.
+#include "scratch.h"
+#define col_tab scratch_buf
+void load_level_collision(void) BANKED;
 
-#define col_of(tile_id) (famidash_metatile_collision[(tile_id)])
+#define col_of(tile_id) (col_tab[(tile_id)])
 
 struct hUGESong_t;
 

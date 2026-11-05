@@ -230,8 +230,10 @@ def convert_grid(name, grid):
     return sorted(objs, key=lambda o: (objs[o], o[1], o[2]))
 
 
-def compile_objects(name, objs, w, h):
-    """[(key, x, y, flags)] in drawing order (later = on top) -> (metatile rows (h x w), errors)"""
+def compile_objects(name, objs, w, h, novel=None):
+    """[(key, x, y, flags)] in drawing order (later = on top) -> (metatile rows (h x w), errors).
+    novel: a dict to make the cells no Famidash metatile shows in (tools/compose.py: metatile id ->
+    (CGB quarters, DMG quarters, collision)); without it they are errors."""
     cells = {}
     for z, (key, x, y, flags) in enumerate(objs):
         for c, part in cells_of(key, x, y, flags).items():
@@ -257,6 +259,7 @@ def compile_objects(name, objs, w, h):
 
     grid = [[0] * w for _ in range(h)]
     errors = []
+    new = []
     for (cx, cy), zs in sorted(cells.items()):
         if not (0 <= cx < w and 0 <= cy < h):
             continue        # the part of an object hanging off the map
@@ -271,6 +274,8 @@ def compile_objects(name, objs, w, h):
             for n in range(len(loose) - 1, -1, -1):
                 hits = []
                 for keep in combinations(loose, n):
+                    if not whole and not keep:
+                        continue    # nothing left to hide the rest: not hidden, a cell of its own
                     for m in lookup(frozenset(whole | set(keep))):
                         hits.append((max([zs[p] for p in keep], default=-1), m))
                 if hits:
@@ -278,11 +283,31 @@ def compile_objects(name, objs, w, h):
                     found = sorted({m for z, m in hits if z == best})
                     break
         if len(found) != 1:
+            if novel is not None and not found:
+                new.append((cx, cy, [p for p in sorted(parts, key=lambda p: zs[p])]))
+                grid[cy][cx] = -1
+                continue
             errors.append("cell %d, %d (x %d px): no Famidash metatile for %s"
                           % (cx, cy, cx * 16, sorted(parts)))
             continue
         grid[cy][cx] = found[0]
+    if new:
+        made, warn = composer().make(name, grid, new, lookup)
+        novel.update(made)
+        for w_ in warn:
+            print("  warning: " + w_)
     return grid, errors
+
+
+_composer = None
+
+
+def composer():
+    global _composer
+    if _composer is None:
+        import compose
+        _composer = compose.Composer()
+    return _composer
 
 
 def tmx_objects(root):
@@ -315,11 +340,11 @@ def tmx_objects(root):
     return objs
 
 
-def compile_tmx(path):
-    """The metatile rows of an object TMX"""
+def compile_tmx(path, novel=None):
+    """The metatile rows of an object TMX (novel: see compile_objects)"""
     root = ET.parse(path).getroot()
     w, h = int(root.get("width")), int(root.get("height"))
-    grid, errors = compile_objects(path.stem.lower(), tmx_objects(root), w, h)
+    grid, errors = compile_objects(path.stem.lower(), tmx_objects(root), w, h, novel)
     if errors:
         raise SystemExit("%s:\n  %s" % (path.name, "\n  ".join(errors[:20])))
     return grid

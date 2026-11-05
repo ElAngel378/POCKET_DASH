@@ -1,5 +1,6 @@
 #pragma bank 11
 
+#include "collision.h"
 #include <stdint.h>
 #include <gb/gb.h>
 #include <gb/cgb.h>
@@ -22,8 +23,8 @@ static const uint8_t pause_glyph_indices[6] = {
 
 // The box's cells (rows 2..16, columns 1..18) in fake spikes' palette 5: 5 | 4 is still 5, so the
 // unpause must not clear bit 2 there (that would make them palette 1, the real spikes'). In
-// scratch_buf (WRAM is full): nothing else uses it while the game is paused; past the player's
-// slope variables (player.c) anyway
+// scratch_buf (WRAM is full): the level's collision table, which nothing reads while the game is
+// paused (it is copied in again on unpause)
 #define pause_fake_spike_cells (scratch_buf + 192)   // 15 rows of 3 bytes
 
 void apply_pause_box_attributes(uint8_t apply) BANKED {
@@ -61,6 +62,8 @@ void apply_pause_box_attributes(uint8_t apply) BANKED {
         fake += 3;
     }
     VBK_REG = 0;
+    // unpause: the collision table shared scratch_buf with the box's cells (collision.h)
+    if (!apply) load_level_collision();
 }
 
 #include <gbdk/incbin.h>

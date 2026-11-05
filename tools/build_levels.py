@@ -144,11 +144,20 @@ def export_binary_map(tmx_path, out_bin_path):
     height = int(root.attrib['height'])
 
     import level_objects
+    novel = {}
     if level_objects.is_object_tmx(root):
-        # a level made of objects (tools/level_objects.py): their Famidash metatiles
-        grid = level_objects.compile_tmx(Path(tmx_path))
+        # a level made of objects (tools/level_objects.py): their Famidash metatiles, and metatiles
+        # of its own for the cells Famidash has none for (tools/compose.py)
+        grid = level_objects.compile_tmx(Path(tmx_path), novel)
     else:
         grid = old_format_grid(root, tmx_path, width, height)
+    # the level's own metatiles, for tools/build_bg_tiles.py: id -> CGB quarters, DMG quarters,
+    # collision (a quarter: 64 pixels, or null = empty)
+    side = Path(out_bin_path).with_name(Path(out_bin_path).stem + "_novel.json")
+    if novel:
+        side.write_text(json.dumps({str(m): {"cgb": v[0], "dmg": v[1], "col": v[2]} for m, v in sorted(novel.items())}))
+    elif side.exists():
+        side.unlink()
 
     # Maps are MAP_ROWS tall, bottom-aligned: shorter maps get empty rows on top, taller ones
     # lose their top rows
