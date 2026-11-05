@@ -9,7 +9,6 @@ Replace a PNG with your own drawing any time; running this tool again would undo
 
     python tools/import_gda_art.py      (needs ../geometry_dash_advance)
 """
-import subprocess
 import sys
 from pathlib import Path
 from PIL import Image
@@ -44,7 +43,7 @@ ART = {
     "gd139": ("SMA_CIRCUNFERENCE_SAW_DECO", None),
 }
 
-# key -> (your .chr file in main's levels/objects/incoming_art, NES format?, box in its 128 px sheet)
+# key -> (your .chr file in levels/objects/incoming_art, NES format?, box in its 128 px sheet)
 USER_ART = {
     "gd48": ("Wavy_Gspikes", True, (24, 0, 72, 16)),
     "gd49": ("Wavy_Gspikes", True, (24, 16, 72, 32)),
@@ -68,8 +67,7 @@ def gb_colours(img):
 
 def chr_sheet(name, nes):
     """A .chr file as a 128 px wide image of colours 0..3"""
-    b = subprocess.run(["git", "show", "main:levels/objects/incoming_art/%s.chr" % name],
-                       cwd=ROOT, capture_output=True, check=True).stdout
+    b = (ROOT / "levels" / "objects" / "incoming_art" / ("%s.chr" % name)).read_bytes()
     img = Image.new("L", (128, 128))
     for t in range(256):
         d = b[t * 16:t * 16 + 16]
