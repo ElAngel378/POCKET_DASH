@@ -3,7 +3,8 @@
     python tools/visual_regression.py REF.gb|ref.json NEW.gb [--levels 0-12] [--frames 3000] [--step 10]
     python tools/visual_regression.py REF.gb --save ref.json     (record only)
 
-Both ROMs must be PROFILE=1 builds (they start the level directly, god mode). Every level is run as
+Both ROMs must be PROFILE=1 builds (if bank 10 overflows: make PROFILE=1 PROF_EXTRA=-DPROF_NO_MARKS,
+without the profiler's section markers; the level jump still works) (they start the level directly, god mode). Every level is run as
 DMG and CGB in Mesen's test runner (tools/mesen_shots.lua); the screenshot of every STEP-th frame is
 hashed. Differing frames are listed (--dump N prints that frame of a model as PNG to out_*.png).
 """

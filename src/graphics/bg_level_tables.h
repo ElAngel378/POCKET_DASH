@@ -63,18 +63,9 @@ static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0
 static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
 // DMG baked sheets (levels with mirror portals): BG_BASE_TILE_COUNT tiles normal, then mirrored;
 // bank 0 = none (the base sheet, then the load list)
-BANKREF_EXTERN(bg_sheet_timemachine)
-extern const uint8_t bg_sheet_timemachine[];
-BANKREF_EXTERN(bg_sheet_cycles)
-extern const uint8_t bg_sheet_cycles[];
-BANKREF_EXTERN(bg_sheet_clutterfunk)
-extern const uint8_t bg_sheet_clutterfunk[];
-static const uint8_t bg_sheet_rest_timemachine[] = { 0 };
-static const uint8_t bg_sheet_rest_cycles[] = { 0 };
-static const uint8_t bg_sheet_rest_clutterfunk[] = { 3, 224, 1, 50, 225, 1, 51, 226, 1, 52 };
 // and the extra tiles outside the sheet: n, n x (slot, count, first bg_extra_tiles tile)
-static const uint8_t * const bg_dmg_sheet_rest[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, bg_sheet_rest_timemachine, bg_sheet_rest_cycles, 0, bg_sheet_rest_clutterfunk, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-static const uint8_t * const bg_dmg_sheet[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, bg_sheet_timemachine, bg_sheet_cycles, 0, bg_sheet_clutterfunk, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-static const uint8_t bg_dmg_sheet_bank[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, BANK(bg_sheet_timemachine), BANK(bg_sheet_cycles), 0, BANK(bg_sheet_clutterfunk), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+static const uint8_t * const bg_dmg_sheet_rest[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+static const uint8_t * const bg_dmg_sheet[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+static const uint8_t bg_dmg_sheet_bank[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 #endif

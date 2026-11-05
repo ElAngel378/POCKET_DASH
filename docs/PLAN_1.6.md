@@ -74,6 +74,38 @@ How a level is built now, in Tiled:
   cell's position if a combination has none.
 
 ### Phase 1 — Streaming renderer for all levels, no visible change
+
+Design (2026-11-05):
+- Measured with Famidash's art: a level uses at most 155 different tiles (Clubstep), a 24-column
+  window at most 94. Nothing needs streaming yet; the 1.6 art will (Electroman's GDA test: ~1300).
+- Each level gets its own tile pool: the tiles its metatiles show, per platform (CGB / DMG art,
+  DMG fake spikes, block / spike set art: Famidash's tile sets end here). No shared base sheet.
+- The renderer keeps drawing metatiles through the per-level RAM table (`mt_ram`); its hand-written
+  loops do not change. The build gives each map column a list of records "tile T into VRAM slot S";
+  applying one points the metatile quarters that show T at S (both orientations).
+- A tile keeps its slot while any column in the 16-column VRAM ring uses it, so a slot is only
+  reused for tiles of columns that left the ring (off screen, and row jobs read the ring only).
+  The slots are assigned by the build, so the game only follows the lists.
+- Uploads go through the VBlank handler: CGB by GDMA from ROM, DMG copied while VBlank lasts,
+  like the saws. A column is drawn ~3 columns before it scrolls into view, so its tiles have time.
+- Practice checkpoints and respawns: the records are replayed from the start (RAM only) to rebuild
+  which tile is in each slot, then the live slots are uploaded with the display off.
+- Kept as they are: saws (CGB VRAM bank 1, animated; DMG fixed slots), the ground strip, the
+  parallax (tile 12 stays "transparent"), tile 26 (black fill).
+- Slots: CGB bank 0 BG tiles 0..159, DMG 0..143 (144..159 are the coin sprites), minus 12, 26 and
+  the DMG saw slots.
+
+**Done (branch `phase1-streaming`).** `tools/bg_stream.py` (pools, slots, records, a simulator that
+checks every column), `src/graphics/bg_stream.c` (runtime), the VBlank upload in
+`bg_parallax_phases.c`. The build moves each record as early as its slot allows, so a level whose
+tiles all fit loads them before it starts (every level so far, except one Clubstep DMG tile): no
+streaming work while playing. `BG_STREAM_SLOTS=80` (environment, when building) caps the slots so
+levels stream while they play: Xstep (~190 tiles loaded in play) matched the old ROM frame for
+frame. Checked against the old ROM on all 22 levels, DMG and CGB (Mesen): same pictures; the saws'
+spin, the pulsing decorations and a few dropped frames shift slightly because level loading takes a
+different time now.
+
+### Phase 1 tasks
 - Per-column tile streaming (from the Electroman test) for every level; drop the per-level sheets
   and Famidash's tile sets.
 - Check: all levels look and play the same as before, on CGB and DMG; no lag added.

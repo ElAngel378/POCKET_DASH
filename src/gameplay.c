@@ -1,5 +1,6 @@
 #pragma bank 10
 
+#include "bg_stream.h"
 #include <gb/gb.h>
 #include "music.h"
 #include <gbdk/font.h>
@@ -186,7 +187,11 @@ volatile uint16_t gpcamy;   // camera y, player world y, mode | mini << 4 | grav
 volatile uint16_t gpplayy;  // (tools: camera / hitbox checks)
 volatile uint8_t gpstate;
 volatile uint8_t gpdeaths;  // deaths (in god mode: the ones that did not happen)
+#ifdef PROF_NO_MARKS
+#define PROF_MARK(n)   // PROF_EXTRA=-DPROF_NO_MARKS: the level jump only (tools/visual_regression.py)
+#else
 #define PROF_MARK(n) (gpmark = (n))
+#endif
 #else
 #define PROF_MARK(n)
 #endif
@@ -1121,6 +1126,7 @@ static void mirror_reflect(uint8_t idx) {
     PROF_MARK(15);   // mirror: level tiles
     apply_level_bg_tiles(idx, player.reversed);
     if (!setting_show_bg_enabled) set_bkg_data(12, 1, blank_bg_tile);
+    bg_stream_resume();   // the streamed tiles in this orientation
     PROF_MARK(16);   // mirror: columns (map mirrored in place)
     bg_map_reflect();
     PROF_MARK(17);   // mirror: sprite tiles
@@ -1482,7 +1488,7 @@ void play_level(uint8_t idx) BANKED {
         if (music_gate) music_grant();
         else music_gate_on();
         mj_frame = bg_vbl_frames;
-#ifdef DEBUG_PROFILE
+#if defined(DEBUG_PROFILE) && !defined(PROF_NO_MARKS)
         gpcamx = cam_px;
         gpcamy = cam_py;
         gpplayy = PLAYER_WORLD_Y();
@@ -1625,7 +1631,7 @@ void play_level(uint8_t idx) BANKED {
 
         if (end_anim_state == END_ANIM_INACTIVE) {
             died = player_update(&player, joy, collision_columns, 16);
-#ifdef DEBUG_PROFILE
+#if defined(DEBUG_PROFILE) && !defined(PROF_NO_MARKS)
             if (died) gpdeaths++;
 #endif
 #if ENABLE_DEBUG_MODE
@@ -1981,6 +1987,7 @@ void play_level(uint8_t idx) BANKED {
         }
         if (parallax_needed) request_bg_parallax(bg_phase);
         saw_anim_request();
+        if (bs_q_n) bg_stream_feed();
         // Same for the scroll registers and the DMG palettes
         if (_cpu != CGB_TYPE) {
             request_bg_dmg_pals(final_bgp, final_obp0, final_obp1);

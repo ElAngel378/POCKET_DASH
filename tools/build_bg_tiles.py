@@ -276,104 +276,42 @@ def main():
         return b"".join(vram)
 
     streams = []   # (level var, cgb data, dmg data)
-    sheets = {}    # level name -> baked DMG sheets (normal + mirrored)
+    sheets = {}    # level name -> baked DMG sheets (normal + mirrored): none since the streaming
     sheet_rest = {}
+    pools = []     # (level name, metatile columns, CGB slots, DMG slots): tools/bg_stream.py
     for lv in order:
         name = ident[lv]
-        sets = LEVEL_SETS.get(name, {})
-        level_mts = set((ROOT / "levels" / "level_data" / ("%s.bin" % name)).read_bytes())
+        level_map = (ROOT / "levels" / "level_data" / ("%s.bin" % name)).read_bytes()
+        level_mts = set(level_map)
         # metatile 120 is also Xstep's diamond: it is the big saw's centre only where big saws are
         big_saw = bool(level_mts & BIG_SAW_PARTS)
         saw_mts = {m: t for m, t in SAW_METATILES.items() if m != SAW_CENTER_MT or big_saw}
-        # BLOCKS_B2: only the slots the level's metatiles show (DMG slots are scarce)
-        b2 = {t for m in level_mts for t in sheet_mt[m]} & set(BLOCKS_B2_SLOTS)
-        # DMG: block set B too (the quarters a saw tile replaces show no sheet tile)
-        dmg_b = {sheet_mt[m][q] for m in level_mts for q in range(4)
-                 if m not in saw_mts or saw_mts[m][q] is None} & set(BLOCKS_B_SLOTS)
 
-        # CGB
-        # bank bit 7: never load mirrored (CGB mirrors saws with the X flip attribute)
-        loads = [(0x81, SAW_VRAM_BASE, SAW_TILES, first["SAWS_0"]),
-                 (0, BLACK_FILL_SLOT, 1, first["BLACK_FILL"])]
-        overrides = []
-        if sets.get("blocks") == "B":
-            loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B_SLOTS, first["BLOCKS_B_CGB"])]
-            loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B2_SLOTS, first["BLOCKS_B2_CGB"], b2)]
-        if sets.get("spikes") == "B":
-            loads += [(0, d, n, s) for d, n, s in runs(SPIKES_B_SLOTS, first["SPIKES_B_CGB"])]
-            overrides += SPIKES_B_OVERRIDES
-        if sets.get("spikes") == "C":
-            loads += [(0, d, n, s) for d, n, s in runs(SPIKES_C_SLOTS, first["SPIKES_C"])]
-        cgb = stream(loads, [], [], overrides)
+        # The level's other tiles (its metatiles, its Famidash tile sets, DMG fake spikes) are
+        # streamed (tools/bg_stream.py): the lists only hold what stays put.
+        # CGB: the saws (bank bit 7: never load mirrored, CGB mirrors them with the X flip
+        # attribute) and the black fill code uses
+        cgb = stream([(0x81, SAW_VRAM_BASE, SAW_TILES, first["SAWS_0"]),
+                      (0, BLACK_FILL_SLOT, 1, first["BLACK_FILL"])], [], [], [])
 
-        # DMG
-        loads = []
-        if sets.get("blocks") == "B":
-            loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B_SLOTS, first["BLOCKS_B_DMG"], dmg_b)]
-            loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B2_SLOTS, first["BLOCKS_B2_DMG"], b2)]
-        overrides = []
-        if sets.get("spikes") == "B":
-            loads += [(0, d, n, s) for d, n, s in runs(SPIKES_B_SLOTS, first["SPIKES_B_CGB"])]
-            overrides += SPIKES_B_OVERRIDES
-        if sets.get("spikes") == "C":
-            loads += [(0, d, n, s) for d, n, s in runs(SPIKES_C_SLOTS, first["SPIKES_C"])]
-        used_t = set(DMG_RESERVED_TILES)
-        # slots that hold a loaded tile set B must not be handed out as free slots
-        if sets.get("blocks") == "B":
-            used_t.update(dmg_b)
-            used_t.update(b2)
-        if sets.get("spikes") == "B":
-            used_t.update(SPIKES_B_SLOTS)
-        if sets.get("spikes") == "C":
-            used_t.update(SPIKES_C_SLOTS)
-        saw_k = set()
-        for m in level_mts:
-            for q in range(4):
-                st = saw_mts[m][q] if m in saw_mts else None
-                if st is not None:
-                    saw_k.add(st)
-                else:
-                    used_t.add(sheet_mt[m][q])
-        high = sorted(t for t in used_t if t >= DMG_BG_SLOTS)
-        free = [s for s in range(DMG_BG_SLOTS) if s not in used_t]
-        if len(high) > len(free):
-            raise SystemExit("%s: needs %d free DMG BG slots, has %d" % (name, len(high), len(free)))
-        moves = list(zip(free, high))
+        # DMG: the saw tiles the level shows, in sprite tiles DMG never draws (DMG_SHARED_SLOTS,
+        # and DMG_MIRROR_SLOTS without mirror portals), then BG slots from the top
         mirror = has_mirror_portal(name)
-        # fake spike tiles (their sources stay: they are in used_t). A level without room for
-        # them and its saws keeps fake spikes looking like real ones.
-        fake_mts = [m for m in FAKE_SPIKE_MTS if m in level_mts]
-        fake_src = sorted({t for m in fake_mts for t in sheet_mt[m] if t != BLANK_TILE})
-        assert all(t < DMG_BG_SLOTS for t in fake_src)
-        room = len(free) - len(high) + (len(DMG_SHARED_SLOTS + ([] if mirror else DMG_MIRROR_SLOTS)) if saw_k else 0)
-        if fake_src and len(fake_src) + len(saw_k) > room:
-            print("DMG %-20s no room for its %d fake spike tiles: they look like real spikes" % (name, len(fake_src)))
-            fake_mts, fake_src = [], []
-        fake_slot = dict(zip(fake_src, free[len(high):]))
-        fakes = [(d, s_) for s_, d in sorted(fake_slot.items())]
-        overrides += [(m, q, fake_slot[sheet_mt[m][q]]) for m in fake_mts for q in range(4)
-                      if sheet_mt[m][q] != BLANK_TILE]
-        saw_free = free[len(high) + len(fake_src):]
-        if len(saw_k) > len(saw_free):
-            saw_free += DMG_SHARED_SLOTS + ([] if mirror else DMG_MIRROR_SLOTS)
-        if len(saw_k) > len(saw_free):
-            raise SystemExit("%s: needs %d free DMG BG slots, has %d" % (name, len(high) + len(saw_k), len(free) + len(saw_free) - len(free[len(high):])))
-        saw_slot = dict(zip(sorted(saw_k), saw_free))
-        for k_ in sorted(saw_slot):
-            loads.append((0, saw_slot[k_], 1, first["SAWS_0"] + k_))
-        overrides += [(m, q, saw_slot[saw_mts[m][q]]) for m in sorted(level_mts) if m in saw_mts
-                      for q in range(4) if saw_mts[m][q] is not None]
-        dmg = stream(loads, moves, fakes, overrides)
-        if mirror and (moves or fakes or any(d < len(base) for _, d, _, _ in loads)):
-            sheets[name] = bake(loads, moves, fakes, False) + bake(loads, moves, fakes, True)
-            # the loads the sheet does not hold (saws in sprite slots): a mirror portal still
-            # loads these one by one
-            sheet_rest[name] = [v for _, d, n, f in loads if d + n > len(base) for v in (d, n, f)]
+        saw_k = sorted({saw_mts[m][q] for m in level_mts if m in saw_mts for q in range(4)
+                        if saw_mts[m][q] is not None})
+        cands = DMG_SHARED_SLOTS + ([] if mirror else DMG_MIRROR_SLOTS) +             [t for t in range(DMG_BG_SLOTS - 1, -1, -1) if t not in DMG_RESERVED_TILES]
+        saw_slot = dict(zip(saw_k, cands))
+        loads = [(0, saw_slot[k_], 1, first["SAWS_0"] + k_) for k_ in saw_k]
+        overrides = [(m, q, saw_slot[saw_mts[m][q]]) for m in sorted(level_mts) if m in saw_mts
+                     for q in range(4) if saw_mts[m][q] is not None]
+        dmg = stream(loads, [], [], overrides)
         streams.append((lv, name, cgb, dmg, big_saw, any(m in saw_mts for m in level_mts)))
-        if moves or saw_slot or fakes:
-            shared = sum(1 for s in saw_slot.values() if s >= DMG_BG_SLOTS)
-            print("DMG %-20s %d tiles moved above slot %d, %d fake spike tiles, %d saw tiles (%d in sprite tiles), %d free slots left"
-                  % (name, len(moves), DMG_BG_SLOTS, len(fakes), len(saw_slot), shared, len(saw_free) - len(saw_k)))
+        pools.append((name, [level_map[x * 64:(x + 1) * 64] for x in range(len(level_map) // 64)],
+                      [t for t in range(160) if t not in (12, BLACK_FILL_SLOT)],
+                      [t for t in range(DMG_BG_SLOTS) if t not in DMG_RESERVED_TILES and t not in saw_slot.values()]))
+
+    import bg_stream
+    bg_stream.write(pools)
 
     # baked DMG sheets: one file each, packed into free banks from the top down (the #pragma bank
     # numbers here are real banks; tools/build_levels.py allocates the level maps from bank 30 up)

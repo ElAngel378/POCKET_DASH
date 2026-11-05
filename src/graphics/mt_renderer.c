@@ -8,6 +8,7 @@
 #include "bg_parallax.h"
 #include "scratch.h"
 #include "furplayer.h"
+#include "bg_stream.h"
 #include <gbdk/incbin.h>
 
 // Level background tiles: every level loads the base sheet (load_bkg_tileset), then its
@@ -28,8 +29,7 @@ static uint8_t mt_big_saws;   // the level has big saws: SAW_CENTER_MT is their 
 // mirrored one (mt_tab_rev) has each metatile's tiles swapped left / right
 static const uint8_t (*mt_tab)[4] = metatiles;
 static const uint8_t (*mt_tab_rev)[4] = metatiles;
-static uint8_t mt_ram[2][FAMIDASH_NUM_METATILES][4];
-static uint8_t mt_xlat[256];
+uint8_t mt_ram[2][FAMIDASH_NUM_METATILES][4];   // + the streamed tiles' slots (bg_stream.c)
 static uint8_t mt_ram_level = 0xFF;   // level mt_ram was built for (it depends on the level only)
 static uint8_t gnd_tab_key = 0xFF;    // strip column | reversed << 3 the ground looks in mt_ram are for
 
@@ -256,6 +256,8 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     saw_anim_reset();
     mt_tab = metatiles;
     mt_tab_rev = metatiles;   // (no level has no tables: tools/build_bg_tiles.py makes them all)
+    // the level's own tiles: streamed from column 0 as the columns are drawn (prepare_mt_column)
+    bg_stream_reset(level, reversed, mt_ram_level == level);
     if (level >= BG_LEVEL_COUNT) return;
     mt_big_saws = bg_level_big_saws[level];
     saw_on = bg_level_saws[level];
@@ -331,10 +333,6 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     // Moved sheet tiles (DMG: out of the coin sprite tiles) -> per-level metatile table. The
     // table only depends on the level, so a mirror portal or a respawn only moves the tiles again.
     uint8_t rebuild = (mt_ram_level != level);
-    if (rebuild) {
-        n = 0;
-        do { mt_xlat[n] = n; } while (++n);
-    }
     for (n = n_moves; n; n--) {
         uint8_t dst = ll_get(), src = ll_get();
         if (baked) {
@@ -345,7 +343,6 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
             get_bkg_data(src, 1, buf);
             set_bkg_data(dst, 1, buf);
         }
-        mt_xlat[src] = dst;
     }
     // DMG fake spike tiles: a sheet tile with colour 3 turned into 2 (CGB: palette 5); the
     // overrides point the fake spike metatiles at them
@@ -366,7 +363,7 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     {
         const uint8_t *s = &metatiles[0][0];
         uint8_t *d = &mt_ram[0][0][0];
-        for (uint16_t j = 0; j < FAMIDASH_NUM_METATILES * 4u; j++) d[j] = mt_xlat[s[j]];
+        for (uint16_t j = 0; j < FAMIDASH_NUM_METATILES * 4u; j++) d[j] = s[j];
     }
     for (n = n_over; n; n--) {
         uint8_t m = ll_get(), q = ll_get();
@@ -779,6 +776,7 @@ static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, ui
 }
 
 void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED {
+    BG_STREAM_TO(map_col);
     cur_map_col = map_col;
     get_map_column(map_col, map, map_bank, col_buf, mt_band);
     build_mt_rows(map_col, col_buf, metatile_column_buf, reversed, 0, BKG_MT_H);
@@ -795,6 +793,7 @@ extern volatile uint8_t gpmark;
 void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t step) BANKED {
     PROF_MARK(11);
     if (step == 0) {
+        BG_STREAM_TO(map_col);
         cur_map_col = map_col;
         get_map_column(map_col, map, map_bank, col_buf, mt_band);
     }

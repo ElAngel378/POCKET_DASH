@@ -1,6 +1,7 @@
 #include <gb/gb.h>
 #include <gb/cgb.h>
 #include <stdint.h>
+#include "bg_stream.h"
 #include "bg_parallax.h"
 #include "famidash_bg.h"
 #include "music.h"
@@ -306,6 +307,57 @@ void cube_tiles_load_now(const uint8_t *src, uint8_t bank, uint8_t first_tile) {
     SWITCH_ROM(prev_b);
 }
 
+// Streamed background tiles (bg_stream.c): bs_up_slot[i] <- bs_up_buf[16 i..] for i from bs_up_i
+// while bs_up_i < bs_up_n and LY < 152 (a tile takes ~1 DMG line, so it ends inside VBlank).
+// VRAM bank 0.
+static void bs_upload(void) __naked {
+    __asm
+    1$:
+        ldh     a, (_LY_REG + 0)        ; LY
+        cp      #152
+        ret     NC
+        ld      a, (_bs_up_i)
+        ld      c, a
+        ld      a, (_bs_up_n)
+        cp      c
+        ret     Z
+        ret     C
+        ld      b, #0
+        ld      hl, #_bs_up_slot
+        add     hl, bc
+        ld      a, (hl)                 ; slot
+        ld      b, a
+        swap    a
+        ld      e, a
+        and     #0x0F
+        bit     7, b
+        jr      NZ, 2$
+        add     a, #0x90                ; slots 0..127: 0x9000..
+        jr      3$
+    2$:
+        add     a, #0x80                ; 128..255: 0x8800..
+    3$:
+        ld      d, a
+        ld      a, e
+        and     #0xF0
+        ld      e, a                    ; de = VRAM
+        ld      a, c
+        swap    a
+        ld      l, a
+        ld      h, #0
+        ld      bc, #_bs_up_buf
+        add     hl, bc                  ; hl = the tile (c < 16)
+        .rept 16
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        .endm
+        ld      hl, #_bs_up_i
+        inc     (hl)
+        jr      1$
+    __endasm;
+}
+
 // VBlank interrupt handler: latches scroll, runs the requested parallax GDMA and
 // the requested map uploads, in that order.
 #ifdef DEBUG_PROFILE
@@ -431,6 +483,11 @@ void bg_parallax_vbl_isr(void) {
     // often left the row job too little of VBlank, and in a fast climb the rows fell behind
     // (stale rows on screen)
     PARALLAX_TRY();
+    // Streamed tiles: a column is drawn a few columns before it is seen, so they have time
+    if (bs_up_i < bs_up_n) {
+        VBK_REG = 0;
+        bs_upload();
+    }
     // Saw animation chunk (~0.5k dots), last: the map streaming above matters more
     ly = LY_REG;
     if (bg_saw_pending && ly >= 144u && ly <= 151u) {
