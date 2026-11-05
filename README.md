@@ -99,6 +99,7 @@ How to make one, step by step: **[docs/LEVEL_BUILDING_GUIDE.md](docs/LEVEL_BUILD
 |Ranedom | Graphics |
 |NerdBoy628 | Music |
 |UserSniper | Music |
+|Claude (LLM) | Code, NO music or graphics |
 
 **Music credits:** which song was made by whom is listed in [docs/MUSIC.md](docs/MUSIC.md#music-credits).
 
