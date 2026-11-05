@@ -53,6 +53,23 @@ without your OK.
 - Converter: Famidash maps to the new level format.
 - Check: every level converts, and the converted level rebuilds to the same tiles and collision.
 
+**Done (branch `phase0-objects`).** `tools/gd_objects.py` is the table (100 objects: 28 GD ones,
+the rest Famidash's own pieces, keyed `fd_*`); `tools/level_objects.py` converts, compiles and makes
+the Tiled tileset `levels/chr_data/objects/gd_objects.tsx`. Every level's TMX is converted; the
+build compiles them back to byte-identical maps (the ROM's level data did not change).
+
+How a level is built now, in Tiled:
+- The map grid stays 16 px. Pick an object in the `gd_objects` tileset and click: one click per
+  object, whatever its size (a big saw is one 48×48 tile).
+- Rotate / flip with Tiled's buttons (Z, X, Y).
+- Stacking: more tile layers. Half a block off the grid: a layer with Offset X or Y = 8 (Layer
+  Properties). The converter named them `Objects +8x`, `Objects +8y`, ...; any names work, only the
+  `SP` layer is special (sprites, as before).
+- Objects bigger than a block are on `Big objects` layers under the others: where a block and a saw
+  overlap, the block shows (in game too).
+- Until phase 1 a cell must still come out as one of Famidash's metatiles: the build stops with the
+  cell's position if a combination has none.
+
 ### Phase 1 — Streaming renderer for all levels, no visible change
 - Per-column tile streaming (from the Electroman test) for every level; drop the per-level sheets
   and Famidash's tile sets.

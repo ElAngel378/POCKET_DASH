@@ -143,6 +143,31 @@ def export_binary_map(tmx_path, out_bin_path):
     width = int(root.attrib['width'])
     height = int(root.attrib['height'])
 
+    import level_objects
+    if level_objects.is_object_tmx(root):
+        # a level made of objects (tools/level_objects.py): their Famidash metatiles
+        grid = level_objects.compile_tmx(Path(tmx_path))
+    else:
+        grid = old_format_grid(root, tmx_path, width, height)
+
+    # Maps are MAP_ROWS tall, bottom-aligned: shorter maps get empty rows on top, taller ones
+    # lose their top rows
+    crop_height = MAP_ROWS
+    start_y = max(0, height - crop_height)
+    cropped_grid = grid[start_y:height]
+
+    while len(cropped_grid) < crop_height:
+        cropped_grid.insert(0, [0] * width)
+
+    os.makedirs(out_bin_path.parent, exist_ok=True)
+    with open(out_bin_path, 'wb') as f:
+        for x in range(width):
+            for y in range(crop_height):
+                f.write(bytes([cropped_grid[y][x] & 0xFF]))
+
+
+def old_format_grid(root, tmx_path, width, height):
+    """The metatile rows of a Famidash-format TMX (one layer of metatiles)"""
     bg_layer = None
     for layer in root.findall('layer'):
         if layer.get('name') in ['Tile Layer 1', 'background', 'BG', 'Level']:
@@ -163,21 +188,7 @@ def export_binary_map(tmx_path, out_bin_path):
         row = raw_tiles[y * width : (y + 1) * width]
         row_0based = [(tid - 1 if tid > 0 else 0) for tid in row]
         grid.append(row_0based)
-
-    # Maps are MAP_ROWS tall, bottom-aligned: shorter maps get empty rows on top, taller ones
-    # lose their top rows
-    crop_height = MAP_ROWS
-    start_y = max(0, height - crop_height)
-    cropped_grid = grid[start_y:height]
-
-    while len(cropped_grid) < crop_height:
-        cropped_grid.insert(0, [0] * width)
-
-    os.makedirs(out_bin_path.parent, exist_ok=True)
-    with open(out_bin_path, 'wb') as f:
-        for x in range(width):
-            for y in range(crop_height):
-                f.write(bytes([cropped_grid[y][x] & 0xFF]))
+    return grid
 
 # A map is MAP_ROWS rows tall, stored column by column (MAP_ROWS bytes per column), in chunks of
 # MAP_BANK_COLS columns (16 KB, a whole ROM bank), one chunk per bank, in consecutive banks.
