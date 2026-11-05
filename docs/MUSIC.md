@@ -41,12 +41,12 @@ Pocket Dash copies the driver into `src/furnace/` with `tools/convert_furnace.py
 | Cycles | NerdBoy628 |
 | Xstep | Sotos_24 |
 | Clutterfunk | Sotos_24 |
-| Ultimate Destruction | Sotos_24 |
 | ToE (Theory of Everything) | Sotos_24 |
 | Electroman Adventures | ElAngel378 |
 | Electrodynamix | Sotos_24 |
 | Hexagon Force | NerdBoy628 |
 | ToE 2 (Theory of Everything 2) | NerdBoy628 |
 | Deadlocked | Ranedom |
+| Ultimate Destruction | Sotos_24 |
 | Stay Inside Me | Sotos_24 |
 | Scheming Weasel | Ranedom |
