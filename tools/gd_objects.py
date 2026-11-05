@@ -64,9 +64,17 @@ OBJECTS = {
 
 # Objects with art of their own: levels/chr_data/objects/art/<key>.png (GB colours 0..3, 0 shows
 # what is behind), no collision, CGB palette DRAWN_PAL (background decoration). Their occupied
-# quarters are the ones the art draws in. For now the art is GDA's (tools/import_gda_art.py).
+# quarters are the ones the art draws in. tools/import_gda_art.py made the files: your .chr art
+# where it exists, GDA's for the rest for now.
 DRAWN_PAL = 2
 DRAWN = {
+    "gd48": ("Cloud 1", (48, 16)),
+    "gd49": ("Cloud 2", (48, 16)),
+    "gd76": ("Light line 1", (16, 16)),
+    "gd77": ("Light line 2", (16, 16)),
+    "gd78": ("Light line 3", (16, 16)),
+    "gd81": ("Light line 4", (16, 16)),
+    "gd82": ("Light side line", (16, 16)),
     "gd85": ("Cogwheel, big (a quarter)", (24, 24)),
     "gd86": ("Cogwheel, medium", (32, 32)),
     "gd87": ("Cogwheel, small", (24, 24)),
@@ -74,6 +82,9 @@ DRAWN = {
     "gd106": ("Chain, long", (16, 40)),
     "gd107": ("Chain, short", (16, 24)),
     "gd110": ("Chain, thin", (16, 24)),
+    "gd113": ("Stepped ground hill, big", (64, 16)),
+    "gd114": ("Stepped ground hill, medium", (48, 16)),
+    "gd115": ("Stepped ground hill, small", (40, 16)),
     "gd123": ("Thorn, spiral", (16, 16)),
     "gd124": ("Thorn, hook", (16, 16)),
     "gd125": ("Thorn, sprig", (16, 16)),

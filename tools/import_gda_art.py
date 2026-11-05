@@ -1,13 +1,15 @@
-"""Borrow GDA's art for GD objects nobody has drawn yet (docs/PLAN_1.6.md, phase 3).
+"""The art of the objects with art of their own (docs/PLAN_1.6.md, phase 3): your .chr drawings
+(USER_ART), Clutterfunk's thin lines (LINES), and GDA's art for what nobody has drawn yet.
 
-Only the objects in ART below, nothing else from GDA (decision 4 of the plan). Each GDA sprite is
+From GDA only the objects in ART below, nothing else (decision 4 of the plan). Each GDA sprite is
 cut to the GD object's shape (GD's big cogwheel is a quarter wheel, its big gear ring half a ring),
 turned into GB colours and saved as levels/chr_data/objects/art/<key>.png: a palette PNG, colours
 0..3, 0 = transparent. The game and Tiled take the objects' art from there (gd_objects.DRAWN).
-Replace a PNG with your own drawing any time; this tool only needs running again to undo that.
+Replace a PNG with your own drawing any time; running this tool again would undo that.
 
     python tools/import_gda_art.py      (needs ../geometry_dash_advance)
 """
+import subprocess
 import sys
 from pathlib import Path
 from PIL import Image
@@ -42,6 +44,18 @@ ART = {
     "gd139": ("SMA_CIRCUNFERENCE_SAW_DECO", None),
 }
 
+# key -> (your .chr file in main's levels/objects/incoming_art, NES format?, box in its 128 px sheet)
+USER_ART = {
+    "gd48": ("Wavy_Gspikes", True, (24, 0, 72, 16)),
+    "gd49": ("Wavy_Gspikes", True, (24, 16, 72, 32)),
+    "gd113": ("GDP_TOE", False, (0, 24, 64, 40)),
+    "gd114": ("GDP_TOE", False, (72, 8, 120, 24)),
+    "gd115": ("GDP_TOE", False, (72, 32, 112, 48)),
+}
+# Clutterfunk's thin lines: a line along the block's edge, nothing to draw (x0, y0, x1, y1)
+LINES = {"gd76": (3, 0, 13, 1), "gd77": (3, 0, 13, 1), "gd78": (3, 0, 13, 1), "gd81": (3, 0, 13, 1),
+         "gd82": (0, 3, 1, 13)}
+
 GREYS = [255, 255, 255, 170, 170, 170, 85, 85, 85, 0, 0, 0]
 
 
@@ -52,8 +66,37 @@ def gb_colours(img):
     return img.point([0 if not c else 3 if c == top else 1 for c in range(256)])
 
 
+def chr_sheet(name, nes):
+    """A .chr file as a 128 px wide image of colours 0..3"""
+    b = subprocess.run(["git", "show", "main:levels/objects/incoming_art/%s.chr" % name],
+                       cwd=ROOT, capture_output=True, check=True).stdout
+    img = Image.new("L", (128, 128))
+    for t in range(256):
+        d = b[t * 16:t * 16 + 16]
+        for y in range(8):
+            lo, hi = (d[y], d[y + 8]) if nes else (d[2 * y], d[2 * y + 1])
+            for x in range(8):
+                img.putpixel((t % 16 * 8 + x, t // 16 * 8 + y), (lo >> (7 - x) & 1) | (hi >> (7 - x) & 1) << 1)
+    return img
+
+
+def save(key, img):
+    if img.size != GO.OBJECTS[key][2]:
+        raise SystemExit("%s: art %s, object %s" % (key, img.size, GO.OBJECTS[key][2]))
+    out = Image.new("P", img.size)
+    out.putdata(list(img.getdata()))
+    out.putpalette(GREYS)
+    out.save(ART_DIR / ("%s.png" % key), transparency=0)
+
+
 def main():
     ART_DIR.mkdir(parents=True, exist_ok=True)
+    for key, (name, nes, box) in USER_ART.items():
+        save(key, chr_sheet(name, nes).crop(box))
+    for key, box in LINES.items():
+        img = Image.new("L", GO.OBJECTS[key][2])
+        img.paste(3, box)
+        save(key, img)
     names = gda.sprite_types()
     for key, (sprite, box) in ART.items():
         if key not in GO.DRAWN:
@@ -61,13 +104,7 @@ def main():
         img = gda.sprite_art(names.index(sprite))[0]
         if box:
             img = img.crop(box)
-        if img.size != GO.OBJECTS[key][2]:
-            raise SystemExit("%s: art %s, object %s" % (key, img.size, GO.OBJECTS[key][2]))
-        out = Image.new("P", img.size)
-        out.putdata(list(gb_colours(img).getdata()))
-        out.putpalette(GREYS)
-        out.save(ART_DIR / ("%s.png" % key), transparency=0)
-        print("%-6s %-28s %dx%d" % (key, sprite, *img.size))
+        save(key, gb_colours(img))
 
 
 if __name__ == "__main__":

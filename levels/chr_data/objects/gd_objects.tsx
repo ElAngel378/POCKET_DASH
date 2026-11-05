@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="64" tileheight="48" tilecount="119" columns="0">
+<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="64" tileheight="48" tilecount="129" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="1" type="gd1">
   <properties>
@@ -67,11 +67,53 @@
   </properties>
   <image width="16" height="16" source="tiles/gd40.png"/>
  </tile>
+ <tile id="48" type="gd48">
+  <properties>
+   <property name="name" value="Cloud 1"/>
+  </properties>
+  <image width="48" height="16" source="tiles/gd48.png"/>
+ </tile>
+ <tile id="49" type="gd49">
+  <properties>
+   <property name="name" value="Cloud 2"/>
+  </properties>
+  <image width="48" height="16" source="tiles/gd49.png"/>
+ </tile>
  <tile id="61" type="gd61">
   <properties>
    <property name="name" value="Wavy ground spikes"/>
   </properties>
   <image width="16" height="16" source="tiles/gd61.png"/>
+ </tile>
+ <tile id="76" type="gd76">
+  <properties>
+   <property name="name" value="Light line 1"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd76.png"/>
+ </tile>
+ <tile id="77" type="gd77">
+  <properties>
+   <property name="name" value="Light line 2"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd77.png"/>
+ </tile>
+ <tile id="78" type="gd78">
+  <properties>
+   <property name="name" value="Light line 3"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd78.png"/>
+ </tile>
+ <tile id="81" type="gd81">
+  <properties>
+   <property name="name" value="Light line 4"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd81.png"/>
+ </tile>
+ <tile id="82" type="gd82">
+  <properties>
+   <property name="name" value="Light side line"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd82.png"/>
  </tile>
  <tile id="83" type="gd83">
   <properties>
@@ -144,6 +186,24 @@
    <property name="name" value="Chain, thin"/>
   </properties>
   <image width="16" height="24" source="tiles/gd110.png"/>
+ </tile>
+ <tile id="113" type="gd113">
+  <properties>
+   <property name="name" value="Stepped ground hill, big"/>
+  </properties>
+  <image width="64" height="16" source="tiles/gd113.png"/>
+ </tile>
+ <tile id="114" type="gd114">
+  <properties>
+   <property name="name" value="Stepped ground hill, medium"/>
+  </properties>
+  <image width="48" height="16" source="tiles/gd114.png"/>
+ </tile>
+ <tile id="115" type="gd115">
+  <properties>
+   <property name="name" value="Stepped ground hill, small"/>
+  </properties>
+  <image width="40" height="16" source="tiles/gd115.png"/>
  </tile>
  <tile id="116" type="gd116">
   <properties>

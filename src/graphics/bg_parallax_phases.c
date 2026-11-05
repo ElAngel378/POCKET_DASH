@@ -308,12 +308,14 @@ void cube_tiles_load_now(const uint8_t *src, uint8_t bank, uint8_t first_tile) {
 }
 
 // Streamed background tiles (bg_stream.c): bs_up_slot[i] <- bs_up_buf[16 i..] for i from bs_up_i
-// while bs_up_i < bs_up_n and LY < 152 (a tile takes ~1 DMG line, so it ends inside VBlank).
+// while bs_up_i < bs_up_n and 144 <= LY < 152 (a tile takes ~1 DMG line, so it ends inside VBlank).
 // VRAM bank 0.
 static void bs_upload(void) __naked {
     __asm
     1$:
-        ldh     a, (_LY_REG + 0)        ; LY
+        ldh     a, (_LY_REG + 0)        ; LY: past 153 the screen is being drawn again (a long
+        cp      #144                    ; handler), VRAM is locked and the tile would be lost
+        ret     C
         cp      #152
         ret     NC
         ld      a, (_bs_up_i)

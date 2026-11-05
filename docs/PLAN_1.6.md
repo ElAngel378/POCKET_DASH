@@ -129,18 +129,26 @@ one cell.
 - The missing 1.5 objects (ground hills, thorns, gear rings, clouds, cogwheels, chains), with your art.
 - Theory of Everything gets them first.
 
-**In progress (branch `phase3-objects`).** 19 objects added with GDA's art for now (your call,
-2026-11-05): cogwheels 85 (a quarter wheel, as in GD) / 86 / 87 / 97, chains 106 / 107 / 110,
-thorns 123–128, clouds 129–131, gear rings 137 (half a ring, as in GD) / 138 / 139. Their art is
-`levels/chr_data/objects/art/<id>.png` (GB colours 0–3, 0 = see-through): draw over those files and
-rebuild, nothing else to change. `tools/import_gda_art.py` made them (the GDA sprite and crop for
-each). Objects with art of their own are `DRAWN` in `tools/gd_objects.py`: no collision, the
-background decoration palette. Each level with metatiles of its own now has its own CGB palette
-table too (`src/level_collision.c`, copied into the renderer's RAM attribute table), so they can take
-any free metatile id. `test.tmx` shows them all (from x 896 px). Like every background object, a
-decoration hides the parallax behind it within its 8x8 tiles (colour 0 is the palette's own colour).
-Not done: Clutterfunk's lines (76–78, 80–82: GDA has no art for them), ToE's ground hills (your art,
-on the old branches), the cogwheels and rings spinning.
+**Done (branch `phase3-objects`).** 29 objects added, all `DRAWN` in `tools/gd_objects.py` (no
+collision, the background decoration palette), their art in
+`levels/chr_data/objects/art/gd<ID>.png` (GB colours 0–3, 0 = see-through): draw over a file and
+rebuild, nothing else to change. `tools/import_gda_art.py` made the files.
+- Your art: clouds 48, 49, ToE's stepped ground hills 113–115.
+- Lines (nothing to draw): Clutterfunk's 76–78, 81, 82. Its dark fill 80 is Famidash's black fill.
+- GDA's art for now (your call, 2026-11-05): cogwheels 85 (a quarter wheel, as in GD) / 86 / 87 /
+  97, chains 106 / 107 / 110, thorns 123–128, clouds 129–131, gear rings 137 (half a ring, as in
+  GD) / 138 / 139.
+
+Each level with metatiles of its own now has its own CGB palette table too
+(`src/level_collision.c`, copied into the renderer's RAM attribute table), so they can take any free
+metatile id. `test.tmx` shows them all. Like every background object, a decoration hides the
+parallax behind it within its 8x8 tiles (colour 0 is the palette's own colour).
+
+Fixed on the way: the VBlank tile upload only checked LY < 152, so a long handler (heavy frames,
+jumping) ran it after line 153 with VRAM locked and lost tiles. It now needs 144 <= LY < 152. Test
+in-play streaming with the cube jumping: rows and the cube spin are what make frames heavy.
+
+Left for phase 4: the pulsing objects 51, 52, 54 (your art), cogwheels and rings spinning.
 
 ### Phase 4 — 1.6 objects
 - Import your 1.6 art; draw the 15 missing.
