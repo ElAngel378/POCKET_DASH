@@ -68,6 +68,9 @@ static const uint8_t * const bg_dmg_sheet_rest[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0
 // each level's collision table (player.c col_tab): famidash_metatile_collision, or its own
 extern const uint8_t level_col_test[256];
 static const uint8_t * const bg_level_col[BG_LEVEL_COUNT] = { famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, level_col_test };
+// ... and its CGB palette table (mt_renderer.c bm_info): famidash_metatile_palettes, or its own
+extern const uint8_t level_pal_test[256];
+static const uint8_t * const bg_level_pal[BG_LEVEL_COUNT] = { famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, level_pal_test };
 static const uint8_t * const bg_dmg_sheet[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 static const uint8_t bg_dmg_sheet_bank[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 

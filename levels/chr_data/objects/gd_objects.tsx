@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="48" tileheight="48" tilecount="100" columns="0">
+<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="64" tileheight="48" tilecount="119" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="1" type="gd1">
   <properties>
@@ -79,6 +79,24 @@
   </properties>
   <image width="16" height="16" source="tiles/gd83.png"/>
  </tile>
+ <tile id="85" type="gd85">
+  <properties>
+   <property name="name" value="Cogwheel, big (a quarter)"/>
+  </properties>
+  <image width="24" height="24" source="tiles/gd85.png"/>
+ </tile>
+ <tile id="86" type="gd86">
+  <properties>
+   <property name="name" value="Cogwheel, medium"/>
+  </properties>
+  <image width="32" height="32" source="tiles/gd86.png"/>
+ </tile>
+ <tile id="87" type="gd87">
+  <properties>
+   <property name="name" value="Cogwheel, small"/>
+  </properties>
+  <image width="24" height="24" source="tiles/gd87.png"/>
+ </tile>
  <tile id="88" type="gd88">
   <properties>
    <property name="name" value="Saw, big"/>
@@ -91,6 +109,12 @@
   </properties>
   <image width="32" height="32" source="tiles/gd89.png"/>
  </tile>
+ <tile id="97" type="gd97">
+  <properties>
+   <property name="name" value="Cogwheel, tiny"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd97.png"/>
+ </tile>
  <tile id="98" type="gd98">
   <properties>
    <property name="name" value="Saw, small"/>
@@ -102,6 +126,24 @@
    <property name="name" value="Medium spike"/>
   </properties>
   <image width="8" height="8" source="tiles/gd103.png"/>
+ </tile>
+ <tile id="106" type="gd106">
+  <properties>
+   <property name="name" value="Chain, long"/>
+  </properties>
+  <image width="16" height="40" source="tiles/gd106.png"/>
+ </tile>
+ <tile id="107" type="gd107">
+  <properties>
+   <property name="name" value="Chain, short"/>
+  </properties>
+  <image width="16" height="24" source="tiles/gd107.png"/>
+ </tile>
+ <tile id="110" type="gd110">
+  <properties>
+   <property name="name" value="Chain, thin"/>
+  </properties>
+  <image width="16" height="24" source="tiles/gd110.png"/>
  </tile>
  <tile id="116" type="gd116">
   <properties>
@@ -145,11 +187,83 @@
   </properties>
   <image width="16" height="16" source="tiles/gd122.png"/>
  </tile>
+ <tile id="123" type="gd123">
+  <properties>
+   <property name="name" value="Thorn, spiral"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd123.png"/>
+ </tile>
+ <tile id="124" type="gd124">
+  <properties>
+   <property name="name" value="Thorn, hook"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd124.png"/>
+ </tile>
+ <tile id="125" type="gd125">
+  <properties>
+   <property name="name" value="Thorn, sprig"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd125.png"/>
+ </tile>
+ <tile id="126" type="gd126">
+  <properties>
+   <property name="name" value="Thorn, curl"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd126.png"/>
+ </tile>
+ <tile id="127" type="gd127">
+  <properties>
+   <property name="name" value="Thorn, tiny"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd127.png"/>
+ </tile>
+ <tile id="128" type="gd128">
+  <properties>
+   <property name="name" value="Thorn, big"/>
+  </properties>
+  <image width="32" height="24" source="tiles/gd128.png"/>
+ </tile>
+ <tile id="129" type="gd129">
+  <properties>
+   <property name="name" value="Cloud, big"/>
+  </properties>
+  <image width="64" height="32" source="tiles/gd129.png"/>
+ </tile>
+ <tile id="130" type="gd130">
+  <properties>
+   <property name="name" value="Cloud, medium"/>
+  </properties>
+  <image width="48" height="16" source="tiles/gd130.png"/>
+ </tile>
+ <tile id="131" type="gd131">
+  <properties>
+   <property name="name" value="Cloud, small"/>
+  </properties>
+  <image width="24" height="16" source="tiles/gd131.png"/>
+ </tile>
  <tile id="135" type="gd135">
   <properties>
    <property name="name" value="Bush ground spikes"/>
   </properties>
   <image width="16" height="16" source="tiles/gd135.png"/>
+ </tile>
+ <tile id="137" type="gd137">
+  <properties>
+   <property name="name" value="Gear ring, big (a half)"/>
+  </properties>
+  <image width="24" height="48" source="tiles/gd137.png"/>
+ </tile>
+ <tile id="138" type="gd138">
+  <properties>
+   <property name="name" value="Gear ring, medium"/>
+  </properties>
+  <image width="32" height="32" source="tiles/gd138.png"/>
+ </tile>
+ <tile id="139" type="gd139">
+  <properties>
+   <property name="name" value="Gear ring, small"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd139.png"/>
  </tile>
  <tile id="191" type="gd191">
   <properties>

@@ -122,10 +122,42 @@ def size(key, flags=0):
     return (h, w) if flags & GO.FLIP_D else (w, h)
 
 
+_drawn = None
+
+
+def drawn_art():
+    """key -> {object quarter: 64 pixels (GB colours)} of the objects with art of their own
+    (GO.DRAWN, levels/chr_data/objects/art); quarters the art leaves empty are not in it"""
+    global _drawn
+    if _drawn is None:
+        _drawn = {}
+        for key in GO.DRAWN:
+            im = Image.open(OBJ_DIR / "art" / ("%s.png" % key))
+            w, h = GO.OBJECTS[key][2]
+            if im.size != (w, h) or im.mode != "P":
+                raise SystemExit("art/%s.png: must be a %dx%d palette PNG (colours 0..3)" % (key, w, h))
+            px = im.load()
+            qs = {}
+            for qx in range(w // 8):
+                for qy in range(h // 8):
+                    p = tuple(px[qx * 8 + i % 8, qy * 8 + i // 8] & 3 for i in range(64))
+                    if any(p):
+                        qs[(qx, qy)] = p
+            _drawn[key] = qs
+    return _drawn
+
+
+_masks = {}
+
+
 def mask(key, flags=0):
     """Occupied 8x8 quarters of a placed object (object space, after the transform)"""
+    if (key, flags) in _masks:
+        return _masks[(key, flags)]
     w, h = GO.OBJECTS[key][2]
     m = GO.OBJECTS[key][3]
+    if m is None and key in GO.DRAWN:
+        m = set(drawn_art()[key])
     qs = m if m is not None else {(x, y) for x in range(w // 8) for y in range(h // 8)}
     out = set()
     for x, y in qs:
@@ -137,6 +169,7 @@ def mask(key, flags=0):
         if flags & GO.FLIP_V:
             y = H - 1 - y
         out.add((x, y))
+    _masks[(key, flags)] = out
     return out
 
 
@@ -195,6 +228,9 @@ def object_art(levels):
         for cq, (i, oq) in parts_quarters(parts).items():
             art.setdefault((parts[i][0], parts[i][3]), {})[oq] = qt[cq[0] + 2 * cq[1]]
             opal.setdefault(parts[i][0], pal[m])
+    for key, qs in drawn_art().items():
+        art[(key, "")] = dict(qs)
+        opal[key] = GO.DRAWN_PAL
     return art, opal, problems
 
 
@@ -570,7 +606,10 @@ def level_grids(paths, old_only=False):
         if not is_object_tmx(root):
             out[p.stem.lower()] = read_old_grid(root)[1]
         elif not old_only:
-            out[p.stem.lower()] = compile_tmx(p)
+            # the level's own metatiles (phase 2) are made of objects seen elsewhere: left out
+            novel = {}
+            grid = compile_tmx(p, novel)
+            out[p.stem.lower()] = [[0 if m in novel else m for m in row] for row in grid]
     return out
 
 

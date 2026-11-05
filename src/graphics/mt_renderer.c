@@ -253,6 +253,8 @@ void load_level_collision(void) BANKED {
     }
 }
 
+static uint8_t bm_info_key = 0xFF;  // (mt_saws, mt_big_saws, ground looks) bm_info was built for
+                                    // (0xFF: not built for this level)
 static void apply_level_bg_tiles_(uint8_t level, uint8_t reversed);
 // Called after load_level_bg_sheet (display off). level: game_levels index.
 void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
@@ -274,6 +276,7 @@ static void apply_level_bg_tiles_(uint8_t level, uint8_t reversed) {
     // the level's own tiles: streamed from column 0 as the columns are drawn (prepare_mt_column)
     bg_stream_reset(level, reversed, mt_ram_level == level);
     col_level = level;
+    bm_info_key = 0xFF;       // bm_info holds the level's palettes
     if (level >= BG_LEVEL_COUNT) return;
     mt_big_saws = bg_level_big_saws[level];
     saw_on = bg_level_saws[level];
@@ -517,7 +520,6 @@ static uint8_t bm_pal, bm_r0cur;
 static uint8_t bm_off[4];           // parallax tile = row base + bm_off[tile of the metatile]
 static uint8_t bm_info[256];        // per metatile: attributes | 0x80 if it is drawn as a saw (C fix-up); 0x10 (a bit
                                     // CGB ignores): never X flipped (ground looks)
-static uint8_t bm_info_key = 0xFF;  // (mt_saws, mt_big_saws, ground looks) bm_info was built for
 static uint8_t bm_saw;              // the asm saw a saw metatile
 static uint8_t bm_flip;             // 0x20 (X flip) in CGB flip mirror mode, else 0
 static uint8_t row_r0[16];          // first parallax tile of each VRAM metatile row (for mt_band)
@@ -745,9 +747,15 @@ static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, ui
     uint8_t gnd_on = (&mt_tab[0][0] == &mt_ram[0][0][0]);
     uint8_t key = (uint8_t)((mt_saws << 1) | mt_big_saws | (gnd_on << 2));
     if (key != bm_info_key) {
+        // the level's palette table: Famidash's, or its own (levels with metatiles of their own)
+        if (col_level < BG_LEVEL_COUNT && bg_level_pal[col_level] != famidash_metatile_palettes) {
+            fur_copy_banked(bm_info, bg_level_pal[col_level], 256, 12);
+        } else {
+            memcpy(bm_info, famidash_metatile_palettes, 256);
+        }
         uint8_t n = 0;
         do {
-            uint8_t info = famidash_metatile_palettes[n];
+            uint8_t info = bm_info[n];
             if (saw_mt_index[n] && mt_saws && (n != SAW_CENTER_MT || mt_big_saws)) info |= 0x80;
             // like the ground strip: bank 1, palette 4, never X flipped (+ Y flip on the ceiling)
             if (gnd_on && gnd_look_tab[n]) info = (gnd_look_tab[n] == 1 + GND_EDGE_BOTTOM) ? 0x5C : 0x1C;
@@ -992,14 +1000,18 @@ static void row_tiles_cgb(void) __naked {
         ld      d, a
         ld      a, (de)
         ld      c, a
-        ; rt_pal = famidash_metatile_palettes[id] | rt_pf
-        add     a, #<_famidash_metatile_palettes
+        ; rt_pal = (bm_info[id] & 0x7F) | rt_pf: the level's palette (bm_info is built by the
+        ; columns, which are drawn before any row; saw / ground look bits are fixed up in C)
+        add     a, #<_bm_info
         ld      l, a
-        ld      a, #>_famidash_metatile_palettes
+        ld      a, #>_bm_info
         adc     a, #0
         ld      h, a
+        ld      a, (hl)
+        and     a, #0x7F
+        ld      h, a
         ld      a, (_rt_pf)
-        or      a, (hl)
+        or      a, h
         ld      (_rt_pal), a
         ; rt_tlx = (rt_slot & 3) * 2; rt_slot += rt_dir
         ld      a, (_rt_slot)

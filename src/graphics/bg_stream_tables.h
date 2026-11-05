@@ -186,7 +186,7 @@ static const uint8_t bs_banks[BS_LEVEL_COUNT] = {
     248,   // everymadness
     248,   // demonpark
     248,   // thelightningroad
-    248,   // test
+    247,   // test
 };
 
 #endif

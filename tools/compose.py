@@ -105,6 +105,10 @@ class Composer:
                 self.opal.setdefault(key, self.t.pal[m])
             if len(parts) == 1:
                 self.kind.setdefault(parts[0][0], self.kind_of_code(self.t.col[m]))
+        for key, qs in LO.drawn_art().items():
+            for cgb in (1, 0):
+                self.art[cgb][(key, "")] = dict(qs)
+            self.opal[key] = GO.DRAWN_PAL
         for key in GO.OBJECTS:
             self.kind.setdefault(key, "none")
 
@@ -214,13 +218,11 @@ class Composer:
 
     def make(self, name, grid, novel, lookup):
         """novel: [(cx, cy, parts bottom to top)] -> fills grid, returns (metatiles {id: (cgb quarters,
-        dmg quarters, collision)}, warnings)"""
+        dmg quarters, collision, CGB palette)}, warnings). The level's collision and palette tables
+        hold them (tools/build_bg_tiles.py), so any id the level does not use will do."""
         used = {m for row in grid for m in row if m >= 0}
         cells, out, warn = {}, {}, []
-        free = {}
-        for m in range(256):
-            if m not in used and m not in RESERVED:
-                free.setdefault(self.t.pal[m], []).append(m)
+        free = [m for m in range(256) if m not in used and m not in RESERVED]
         for cx, cy, parts in novel:
             col, w = self.collision(parts, lookup)
             if w:
@@ -230,10 +232,11 @@ class Composer:
             pal = self.palette(parts)
             k = (tuple(self.look(1, parts)), tuple(self.look(0, parts)), pal, col)
             if k not in cells:
-                if not free.get(pal):
-                    raise SystemExit("%s: no metatile id left with palette %d (cell %d, %d)" % (name, pal, cx, cy))
-                m = free[pal].pop(0)
+                if not free:
+                    raise SystemExit("%s: no metatile id left (cell %d, %d): too many different cells"
+                                     % (name, cx, cy))
+                m = free.pop(0)
                 cells[k] = m
-                out[m] = (k[0], k[1], col)
+                out[m] = (k[0], k[1], col, pal)
             grid[cy][cx] = cells[k]
         return out, warn

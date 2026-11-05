@@ -1,0 +1,74 @@
+"""Borrow GDA's art for GD objects nobody has drawn yet (docs/PLAN_1.6.md, phase 3).
+
+Only the objects in ART below, nothing else from GDA (decision 4 of the plan). Each GDA sprite is
+cut to the GD object's shape (GD's big cogwheel is a quarter wheel, its big gear ring half a ring),
+turned into GB colours and saved as levels/chr_data/objects/art/<key>.png: a palette PNG, colours
+0..3, 0 = transparent. The game and Tiled take the objects' art from there (gd_objects.DRAWN).
+Replace a PNG with your own drawing any time; this tool only needs running again to undo that.
+
+    python tools/import_gda_art.py      (needs ../geometry_dash_advance)
+"""
+import sys
+from pathlib import Path
+from PIL import Image
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "tools"))
+import gda
+import gd_objects as GO
+
+ART_DIR = ROOT / "levels" / "chr_data" / "objects" / "art"
+
+# key -> (GDA sprite type, crop box in the GDA image (x0, y0, x1, y1), None = all)
+ART = {
+    "gd85": ("BIG_SAW_DECO", (8, 8, 32, 32)),                    # top left quarter of the wheel
+    "gd86": ("MEDIUM_SAW_DECO", None),
+    "gd87": ("SMALL_SAW_DECO", (4, 4, 28, 28)),
+    "gd97": ("TINY_SAW_DECO", None),
+    "gd106": ("BIG_WIDE_BG_CHAINS", (0, 8, 16, 48)),
+    "gd107": ("SMALL_WIDE_BG_CHAINS", (0, 8, 16, 32)),
+    "gd110": ("SMALL_BG_CHAINS", (0, 8, 16, 32)),
+    "gd123": ("BUSH_DECO_5", None),
+    "gd124": ("BUSH_DECO_4", None),
+    "gd125": ("BUSH_DECO_3", None),
+    "gd126": ("BUSH_DECO_2", None),
+    "gd127": ("BUSH_DECO_1", None),
+    "gd128": ("BUSH_DECO_6", (0, 8, 32, 32)),
+    "gd129": ("BIG_CLOUD", None),
+    "gd130": ("MEDIUM_CLOUD", None),
+    "gd131": ("SMALL_CLOUD", (4, 0, 28, 16)),
+    "gd137": ("BIG_CIRCUNFERENCE_SAW_DECO", (8, 8, 32, 56)),     # left half of the ring
+    "gd138": ("MED_CIRCUNFERENCE_SAW_DECO", None),
+    "gd139": ("SMA_CIRCUNFERENCE_SAW_DECO", None),
+}
+
+GREYS = [255, 255, 255, 170, 170, 170, 85, 85, 85, 0, 0, 0]
+
+
+def gb_colours(img):
+    """GDA decoration colours -> GB: its brightest colour (or its only one) 3, the rest 1"""
+    used = sorted(set(img.getdata()) - {0})
+    top = used[-1] if used else 0
+    return img.point([0 if not c else 3 if c == top else 1 for c in range(256)])
+
+
+def main():
+    ART_DIR.mkdir(parents=True, exist_ok=True)
+    names = gda.sprite_types()
+    for key, (sprite, box) in ART.items():
+        if key not in GO.DRAWN:
+            raise SystemExit("%s is not in tools/gd_objects.py DRAWN" % key)
+        img = gda.sprite_art(names.index(sprite))[0]
+        if box:
+            img = img.crop(box)
+        if img.size != GO.OBJECTS[key][2]:
+            raise SystemExit("%s: art %s, object %s" % (key, img.size, GO.OBJECTS[key][2]))
+        out = Image.new("P", img.size)
+        out.putdata(list(gb_colours(img).getdata()))
+        out.putpalette(GREYS)
+        out.save(ART_DIR / ("%s.png" % key), transparency=0)
+        print("%-6s %-28s %dx%d" % (key, sprite, *img.size))
+
+
+if __name__ == "__main__":
+    main()

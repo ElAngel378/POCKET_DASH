@@ -61,6 +61,35 @@ OBJECTS = {
     "gd199": (199, "Fake medium spike", (8, 8), None),
 }
 
+
+# Objects with art of their own: levels/chr_data/objects/art/<key>.png (GB colours 0..3, 0 shows
+# what is behind), no collision, CGB palette DRAWN_PAL (background decoration). Their occupied
+# quarters are the ones the art draws in. For now the art is GDA's (tools/import_gda_art.py).
+DRAWN_PAL = 2
+DRAWN = {
+    "gd85": ("Cogwheel, big (a quarter)", (24, 24)),
+    "gd86": ("Cogwheel, medium", (32, 32)),
+    "gd87": ("Cogwheel, small", (24, 24)),
+    "gd97": ("Cogwheel, tiny", (16, 16)),
+    "gd106": ("Chain, long", (16, 40)),
+    "gd107": ("Chain, short", (16, 24)),
+    "gd110": ("Chain, thin", (16, 24)),
+    "gd123": ("Thorn, spiral", (16, 16)),
+    "gd124": ("Thorn, hook", (16, 16)),
+    "gd125": ("Thorn, sprig", (16, 16)),
+    "gd126": ("Thorn, curl", (16, 16)),
+    "gd127": ("Thorn, tiny", (16, 16)),
+    "gd128": ("Thorn, big", (32, 24)),
+    "gd129": ("Cloud, big", (64, 32)),
+    "gd130": ("Cloud, medium", (48, 16)),
+    "gd131": ("Cloud, small", (24, 16)),
+    "gd137": ("Gear ring, big (a half)", (24, 48)),
+    "gd138": ("Gear ring, medium", (32, 32)),
+    "gd139": ("Gear ring, small", (16, 16)),
+}
+for _k, (_name, _size) in DRAWN.items():
+    OBJECTS[_k] = (int(_k[2:]), _name, _size, None)
+
 # Famidash's own pieces: append only (the position is the tile id)
 FD = [
     ("fd_ground_edge_bottom", "Ground strip edge (bottom)", None),
