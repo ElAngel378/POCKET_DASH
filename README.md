@@ -93,6 +93,7 @@ How to add songs and how the driver works: **[docs/MUSIC.md](docs/MUSIC.md)**.
 |Ranedom | Graphics |
 |NerdBoy628 | Music |
 |UserSniper | Music |
+|Claude (LLM) | Code, NO music or graphics |
 
 **Music credits:** which song was made by whom is listed in [docs/MUSIC.md](docs/MUSIC.md#music-credits).
 
