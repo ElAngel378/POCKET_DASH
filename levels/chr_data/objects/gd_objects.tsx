@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="64" tileheight="48" tilecount="129" columns="0">
+<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="64" tileheight="48" tilecount="154" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="1" type="gd1">
   <properties>
@@ -325,11 +325,161 @@
   </properties>
   <image width="16" height="16" source="tiles/gd139.png"/>
  </tile>
+ <tile id="143" type="gd143">
+  <properties>
+   <property name="name" value="Breakable brick"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd143.png"/>
+ </tile>
+ <tile id="157" type="gd157">
+  <properties>
+   <property name="name" value="Wave hill, middle"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd157.png"/>
+ </tile>
+ <tile id="158" type="gd158">
+  <properties>
+   <property name="name" value="Wave hill, rising"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd158.png"/>
+ </tile>
+ <tile id="159" type="gd159">
+  <properties>
+   <property name="name" value="Wave hill, falling"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd159.png"/>
+ </tile>
+ <tile id="161" type="gd161">
+  <properties>
+   <property name="name" value="1.6 outline, line"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd161.png"/>
+ </tile>
+ <tile id="162" type="gd162">
+  <properties>
+   <property name="name" value="1.6 outline, corner"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd162.png"/>
+ </tile>
+ <tile id="163" type="gd163">
+  <properties>
+   <property name="name" value="1.6 outline, dot"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd163.png"/>
+ </tile>
+ <tile id="164" type="gd164">
+  <properties>
+   <property name="name" value="1.6 striped fill"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd164.png"/>
+ </tile>
+ <tile id="165" type="gd165">
+  <properties>
+   <property name="name" value="1.6 outline, U"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd165.png"/>
+ </tile>
+ <tile id="166" type="gd166">
+  <properties>
+   <property name="name" value="1.6 outline, side"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd166.png"/>
+ </tile>
+ <tile id="167" type="gd167">
+  <properties>
+   <property name="name" value="1.6 outline, dot 2"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd167.png"/>
+ </tile>
+ <tile id="169" type="gd169">
+  <properties>
+   <property name="name" value="1.6 outline, square"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd169.png"/>
+ </tile>
+ <tile id="170" type="gd170">
+  <properties>
+   <property name="name" value="1.6 block"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd170.png"/>
+ </tile>
+ <tile id="171" type="gd171">
+  <properties>
+   <property name="name" value="1.6 block, edge"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd171.png"/>
+ </tile>
+ <tile id="173" type="gd173">
+  <properties>
+   <property name="name" value="1.6 block, corner"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd173.png"/>
+ </tile>
+ <tile id="174" type="gd174">
+  <properties>
+   <property name="name" value="1.6 block, corner 2"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd174.png"/>
+ </tile>
+ <tile id="175" type="gd175">
+  <properties>
+   <property name="name" value="1.6 block, whole"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd175.png"/>
+ </tile>
+ <tile id="176" type="gd176">
+  <properties>
+   <property name="name" value="1.6 block, small"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd176.png"/>
+ </tile>
+ <tile id="186" type="gd186">
+  <properties>
+   <property name="name" value="1.6 saw, big (a quarter)"/>
+  </properties>
+  <image width="24" height="24" source="tiles/gd186.png"/>
+ </tile>
+ <tile id="187" type="gd187">
+  <properties>
+   <property name="name" value="1.6 saw, medium"/>
+  </properties>
+  <image width="32" height="32" source="tiles/gd187.png"/>
+ </tile>
+ <tile id="188" type="gd188">
+  <properties>
+   <property name="name" value="1.6 saw, star"/>
+  </properties>
+  <image width="32" height="32" source="tiles/gd188.png"/>
+ </tile>
  <tile id="191" type="gd191">
   <properties>
    <property name="name" value="Fake spike"/>
   </properties>
   <image width="16" height="16" source="tiles/gd191.png"/>
+ </tile>
+ <tile id="192" type="gd192">
+  <properties>
+   <property name="name" value="1.6 block, middle"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd192.png"/>
+ </tile>
+ <tile id="193" type="gd193">
+  <properties>
+   <property name="name" value="1.6 dark fill"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd193.png"/>
+ </tile>
+ <tile id="194" type="gd194">
+  <properties>
+   <property name="name" value="1.6 block, narrow corner"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd194.png"/>
+ </tile>
+ <tile id="197" type="gd197">
+  <properties>
+   <property name="name" value="1.6 block, narrow"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd197.png"/>
  </tile>
  <tile id="198" type="gd198">
   <properties>

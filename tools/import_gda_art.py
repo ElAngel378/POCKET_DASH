@@ -50,10 +50,33 @@ USER_ART = {
     "gd113": ("GDP_TOE", False, (0, 24, 64, 40)),
     "gd114": ("GDP_TOE", False, (72, 8, 120, 24)),
     "gd115": ("GDP_TOE", False, (72, 32, 112, 48)),
+    "gd143": ("1_6_objects", False, (0, 96, 16, 112)),
+    "gd157": ("1p6blocks", False, (0, 32, 16, 48)),
+    "gd158": ("1p6blocks", False, (0, 32, 16, 48), "H"),
+    "gd159": ("1p6blocks", False, (0, 32, 16, 48)),
+    "gd164": ("1p6blocks", False, (0, 16, 16, 32)),
+    "gd170": ("1p6blocks", False, (0, 0, 16, 16)),
+    "gd171": ("1p6blocks", False, (16, 0, 32, 16)),
+    "gd173": ("1p6blocks", False, (80, 0, 96, 16)),
+    "gd174": ("1p6blocks", False, (96, 0, 112, 16)),
+    "gd175": ("1p6blocks", False, (48, 0, 64, 16)),
+    "gd176": ("1p6blocks", False, (112, 0, 128, 16)),
+    "gd186": ("1p6blocks", False, (16, 32, 40, 56)),     # top left quarter of the saw
+    "gd187": ("1p6blocks", False, (64, 32, 96, 64)),
+    "gd188": ("1p6blocks", False, (96, 32, 128, 64)),
+    "gd192": ("1p6blocks", False, (32, 0, 48, 16)),
+    "gd194": ("1p6blocks", False, (96, 0, 112, 16)),
+    "gd197": ("1p6blocks", False, (64, 0, 80, 16)),
 }
 # Clutterfunk's thin lines: a line along the block's edge, nothing to draw (x0, y0, x1, y1)
 LINES = {"gd76": (3, 0, 13, 1), "gd77": (3, 0, 13, 1), "gd78": (3, 0, 13, 1), "gd81": (3, 0, 13, 1),
          "gd82": (0, 3, 1, 13)}
+# the 1.6 outlines: lines in colour 3 (blocks' outline colour) along a block's edges, to stack on
+# fills and blocks
+EDGE_T, EDGE_L, EDGE_R, EDGE_B = (0, 0, 16, 1), (0, 0, 1, 16), (15, 0, 16, 16), (0, 15, 16, 16)
+OUTLINES = {"gd161": [EDGE_T], "gd162": [EDGE_T, EDGE_L], "gd163": [(0, 0, 1, 1)],
+            "gd165": [EDGE_T, EDGE_L, EDGE_R], "gd166": [EDGE_L], "gd167": [(0, 0, 2, 1)],
+            "gd169": [EDGE_T, EDGE_L, EDGE_R, EDGE_B]}
 
 GREYS = [255, 255, 255, 170, 170, 170, 85, 85, 85, 0, 0, 0]
 
@@ -89,12 +112,19 @@ def save(key, img):
 
 def main():
     ART_DIR.mkdir(parents=True, exist_ok=True)
-    for key, (name, nes, box) in USER_ART.items():
-        save(key, chr_sheet(name, nes).crop(box))
+    for key, (name, nes, box, *flip) in USER_ART.items():
+        img = chr_sheet(name, nes).crop(box)
+        save(key, img.transpose(Image.FLIP_LEFT_RIGHT) if flip else img)
     for key, box in LINES.items():
         img = Image.new("L", GO.OBJECTS[key][2])
         img.paste(3, box)
         save(key, img)
+    for key, boxes in OUTLINES.items():
+        img = Image.new("L", GO.OBJECTS[key][2])
+        for box in boxes:
+            img.paste(3, box)
+        save(key, img)
+    save("gd193", Image.new("L", (16, 16), 3))
     names = gda.sprite_types()
     for key, (sprite, box) in ART.items():
         if key not in GO.DRAWN:

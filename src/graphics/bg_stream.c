@@ -12,8 +12,9 @@
 #include "furplayer.h"
 #include "bg_stream_tables.h"
 
-#define BS_QUEUE 32                     // a power of 2
-static uint8_t bs_q_slot[BS_QUEUE], bs_q_tile[BS_QUEUE];
+#define BS_QUEUE 16                     // a power of 2
+static uint8_t bs_q_slot[BS_QUEUE];
+static uint16_t bs_q_tile[BS_QUEUE];
 static uint8_t bs_q_head;
 uint8_t bs_q_n;                         // queued tiles (gameplay.c calls bg_stream_feed while any)
 
@@ -23,9 +24,9 @@ uint8_t bs_up_buf[BS_UP_MAX * 16];
 
 static uint8_t bs_level = 0xFF;         // BS_LEVEL_COUNT and up: no stream
 static uint8_t bs_bank, bs_dmg, bs_rev;
-static uint8_t bs_pool;                 // the level's tiles
+static uint16_t bs_pool;                // the level's tiles
 static uint8_t bs_tables_ok;            // the metatile tables already point at this level's slots
-static const uint8_t *bs_tile_base;
+static uint16_t bs_tile_base;           // the level's first tile in the tile space (see tile_of)
 static const uint8_t *bs_rp;            // next record bytes to fetch from ROM
 static uint8_t bs_buf[32], bs_bi, bs_bn;
 uint16_t bs_col = 0xFFFF;               // the next column with records (0xFFFF: none)
@@ -45,20 +46,34 @@ static uint8_t rd(void) {
     return bs_buf[bs_bi++];
 }
 
-// DMG: the tiles, then the same tiles mirrored; CGB mirrors with the X flip attribute
-static const uint8_t *tile_src(uint8_t t) {
-    return bs_tile_base + ((uint16_t)(bs_rev ? (uint16_t)bs_pool + t : t) << 4);
+// All levels' tiles are one space of 16 byte tiles over consecutive banks from BS_TILE_BANK (1024
+// tiles a bank), so a level can have any number of them. DMG: the tiles, then the same tiles
+// mirrored; CGB mirrors with the X flip attribute
+static uint16_t tile_of(uint16_t t) {
+    return bs_tile_base + (bs_rev ? bs_pool + t : t);
 }
 
+#define TILE_BANK(g) ((uint8_t)(BS_TILE_BANK + ((g) >> 10)))
+#define TILE_ADDR(g) ((const uint8_t *)(0x4000u + (((g) & 1023u) << 4)))
+
 // Display off: runs of tiles going to consecutive slots, copied in one go
-static uint8_t run_slot, run_tile, run_n;
+static uint8_t run_slot, run_n;
+static uint16_t run_tile;
 static void run_flush(void) {
-    if (run_n) fur_copy_banked(BG_TILE_ADDR(run_slot), tile_src(run_tile), (uint16_t)run_n << 4, bs_bank);
-    run_n = 0;
+    uint8_t s = run_slot;
+    uint16_t g = tile_of(run_tile);
+    while (run_n) {
+        uint16_t k = 1024u - (g & 1023u);     // up to the end of the bank
+        if (k > run_n) k = run_n;
+        fur_copy_banked(BG_TILE_ADDR(s), TILE_ADDR(g), k << 4, TILE_BANK(g));
+        s += (uint8_t)k;
+        g += k;
+        run_n -= (uint8_t)k;
+    }
 }
-static void run_add(uint8_t s, uint8_t t) {
+static void run_add(uint8_t s, uint16_t t) {
     // (slots 127 and 128 are not next to each other in VRAM: 0x97F0, 0x8800)
-    if (run_n && s == (uint8_t)(run_slot + run_n) && t == (uint8_t)(run_tile + run_n) && s != 128u && run_n < 255u) {
+    if (run_n && s == (uint8_t)(run_slot + run_n) && t == run_tile + run_n && s != 128u && run_n < 255u) {
         run_n++;
         return;
     }
@@ -84,9 +99,10 @@ void bg_stream_reset(uint8_t level, uint8_t reversed, uint8_t tables_kept) BANKE
     bs_rev = bs_dmg ? reversed : 0;
     uint8_t k = (uint8_t)((level << 1) | bs_dmg);
     bs_bank = bs_banks[level];
-    bs_tile_base = bs_tiles[k];
+    bs_tile_base = bs_tile_first[k];
     bs_rp = bs_recs[k];
     bs_pool = rd();
+    bs_pool |= (uint16_t)rd() << 8;
     // the same level again (respawn, mirror portal) with tiles that are each loaded once: the
     // tables are this level's already, only the tiles are uploaded again
     uint8_t flags = rd();   // (read whatever tables_kept is)
@@ -95,7 +111,7 @@ void bg_stream_reset(uint8_t level, uint8_t reversed, uint8_t tables_kept) BANKE
     bs_col |= (uint16_t)rd() << 8;
 }
 
-static void enqueue(uint8_t s, uint8_t t) {
+static void enqueue(uint8_t s, uint16_t t) {
     // full (never with the levels so far): let the VBlank handler drain it
     while (bs_q_n == BS_QUEUE) {
         bg_stream_feed();
@@ -115,7 +131,9 @@ void bg_stream_to(uint16_t col) BANKED {
     if (off && !bs_dmg) VBK_REG = 0;
     while (bs_col <= col) {
         for (uint8_t n = rd(); n; n--) {
-            uint8_t s = rd(), t = rd();
+            uint8_t s = rd();
+            uint16_t t = rd();
+            t |= (uint16_t)rd() << 8;
             uint8_t k = rd();
             if (bs_tables_ok) {
                 // skip the quarters: inside the buffer, or refetch from where they end
@@ -154,7 +172,8 @@ void bg_stream_feed(void) BANKED {
     while (bs_q_n && k < most) {
         uint8_t i = bs_q_head;
         bs_up_slot[k] = bs_q_slot[i];
-        fur_copy_banked(bs_up_buf + (k << 4), tile_src(bs_q_tile[i]), 16, bs_bank);
+        uint16_t g = tile_of(bs_q_tile[i]);
+        fur_copy_banked(bs_up_buf + (k << 4), TILE_ADDR(g), 16, TILE_BANK(g));
         bs_q_head = (uint8_t)((i + 1u) & (BS_QUEUE - 1));
         bs_q_n--;
         k++;

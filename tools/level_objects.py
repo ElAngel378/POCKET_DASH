@@ -230,7 +230,7 @@ def object_art(levels):
             opal.setdefault(parts[i][0], pal[m])
     for key, qs in drawn_art().items():
         art[(key, "")] = dict(qs)
-        opal[key] = GO.DRAWN_PAL
+        opal[key] = GO.drawn_pal(key)
     return art, opal, problems
 
 

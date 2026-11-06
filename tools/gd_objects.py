@@ -63,7 +63,7 @@ OBJECTS = {
 
 
 # Objects with art of their own: levels/chr_data/objects/art/<key>.png (GB colours 0..3, 0 shows
-# what is behind), no collision, CGB palette DRAWN_PAL (background decoration). Their occupied
+# what is behind), CGB palette DRAWN_PAL (background decoration) and no collision unless DRAWN_KIND says. Their occupied
 # quarters are the ones the art draws in. tools/import_gda_art.py made the files: your .chr art
 # where it exists, GDA's for the rest for now.
 DRAWN_PAL = 2
@@ -97,7 +97,43 @@ DRAWN = {
     "gd137": ("Gear ring, big (a half)", (24, 48)),
     "gd138": ("Gear ring, medium", (32, 32)),
     "gd139": ("Gear ring, small", (16, 16)),
+    # 1.6 (phase 4)
+    "gd143": ("Breakable brick", (16, 16)),
+    "gd157": ("Wave hill, middle", (16, 16)),
+    "gd158": ("Wave hill, rising", (16, 16)),
+    "gd159": ("Wave hill, falling", (16, 16)),
+    "gd161": ("1.6 outline, line", (16, 16)),
+    "gd162": ("1.6 outline, corner", (16, 16)),
+    "gd163": ("1.6 outline, dot", (16, 16)),
+    "gd164": ("1.6 striped fill", (16, 16)),
+    "gd165": ("1.6 outline, U", (16, 16)),
+    "gd166": ("1.6 outline, side", (16, 16)),
+    "gd167": ("1.6 outline, dot 2", (16, 16)),
+    "gd169": ("1.6 outline, square", (16, 16)),
+    "gd170": ("1.6 block", (16, 16)),
+    "gd171": ("1.6 block, edge", (16, 16)),
+    "gd173": ("1.6 block, corner", (16, 16)),
+    "gd174": ("1.6 block, corner 2", (16, 16)),
+    "gd175": ("1.6 block, whole", (16, 16)),
+    "gd176": ("1.6 block, small", (16, 16)),
+    "gd186": ("1.6 saw, big (a quarter)", (24, 24)),
+    "gd187": ("1.6 saw, medium", (32, 32)),
+    "gd188": ("1.6 saw, star", (32, 32)),
+    "gd192": ("1.6 block, middle", (16, 16)),
+    "gd193": ("1.6 dark fill", (16, 16)),
+    "gd194": ("1.6 block, narrow corner", (16, 16)),
+    "gd197": ("1.6 block, narrow", (16, 16)),
 }
+# DRAWN objects that are not decoration: their quarters collide. Palette 0, like blocks and spikes.
+DRAWN_KIND = {k: "solid" for k in ("gd143", "gd164", "gd170", "gd171", "gd173", "gd174", "gd175",
+                                   "gd176", "gd192", "gd193", "gd194", "gd197")}
+DRAWN_KIND.update({k: "deadly" for k in ("gd186", "gd187", "gd188")})
+
+
+def drawn_pal(key):
+    return 0 if key in DRAWN_KIND else DRAWN_PAL
+
+
 for _k, (_name, _size) in DRAWN.items():
     OBJECTS[_k] = (int(_k[2:]), _name, _size, None)
 

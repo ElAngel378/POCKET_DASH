@@ -6,139 +6,96 @@
 
 #define BS_LEVEL_COUNT 22
 BANKREF_EXTERN(bs_stereomadness)
-extern const uint8_t bs_stereomadness_cgb_tiles[];
 extern const uint8_t bs_stereomadness_cgb_recs[];
-extern const uint8_t bs_stereomadness_dmg_tiles[];
 extern const uint8_t bs_stereomadness_dmg_recs[];
 BANKREF_EXTERN(bs_backontrack)
-extern const uint8_t bs_backontrack_cgb_tiles[];
 extern const uint8_t bs_backontrack_cgb_recs[];
-extern const uint8_t bs_backontrack_dmg_tiles[];
 extern const uint8_t bs_backontrack_dmg_recs[];
 BANKREF_EXTERN(bs_polargeist)
-extern const uint8_t bs_polargeist_cgb_tiles[];
 extern const uint8_t bs_polargeist_cgb_recs[];
-extern const uint8_t bs_polargeist_dmg_tiles[];
 extern const uint8_t bs_polargeist_dmg_recs[];
 BANKREF_EXTERN(bs_dryout)
-extern const uint8_t bs_dryout_cgb_tiles[];
 extern const uint8_t bs_dryout_cgb_recs[];
-extern const uint8_t bs_dryout_dmg_tiles[];
 extern const uint8_t bs_dryout_dmg_recs[];
 BANKREF_EXTERN(bs_baseafterbase)
-extern const uint8_t bs_baseafterbase_cgb_tiles[];
 extern const uint8_t bs_baseafterbase_cgb_recs[];
-extern const uint8_t bs_baseafterbase_dmg_tiles[];
 extern const uint8_t bs_baseafterbase_dmg_recs[];
 BANKREF_EXTERN(bs_cantletgo)
-extern const uint8_t bs_cantletgo_cgb_tiles[];
 extern const uint8_t bs_cantletgo_cgb_recs[];
-extern const uint8_t bs_cantletgo_dmg_tiles[];
 extern const uint8_t bs_cantletgo_dmg_recs[];
 BANKREF_EXTERN(bs_jumper)
-extern const uint8_t bs_jumper_cgb_tiles[];
 extern const uint8_t bs_jumper_cgb_recs[];
-extern const uint8_t bs_jumper_dmg_tiles[];
 extern const uint8_t bs_jumper_dmg_recs[];
 BANKREF_EXTERN(bs_timemachine)
-extern const uint8_t bs_timemachine_cgb_tiles[];
 extern const uint8_t bs_timemachine_cgb_recs[];
-extern const uint8_t bs_timemachine_dmg_tiles[];
 extern const uint8_t bs_timemachine_dmg_recs[];
 BANKREF_EXTERN(bs_cycles)
-extern const uint8_t bs_cycles_cgb_tiles[];
 extern const uint8_t bs_cycles_cgb_recs[];
-extern const uint8_t bs_cycles_dmg_tiles[];
 extern const uint8_t bs_cycles_dmg_recs[];
 BANKREF_EXTERN(bs_xstep)
-extern const uint8_t bs_xstep_cgb_tiles[];
 extern const uint8_t bs_xstep_cgb_recs[];
-extern const uint8_t bs_xstep_dmg_tiles[];
 extern const uint8_t bs_xstep_dmg_recs[];
 BANKREF_EXTERN(bs_clutterfunk)
-extern const uint8_t bs_clutterfunk_cgb_tiles[];
 extern const uint8_t bs_clutterfunk_cgb_recs[];
-extern const uint8_t bs_clutterfunk_dmg_tiles[];
 extern const uint8_t bs_clutterfunk_dmg_recs[];
 BANKREF_EXTERN(bs_theoryofeverything)
-extern const uint8_t bs_theoryofeverything_cgb_tiles[];
 extern const uint8_t bs_theoryofeverything_cgb_recs[];
-extern const uint8_t bs_theoryofeverything_dmg_tiles[];
 extern const uint8_t bs_theoryofeverything_dmg_recs[];
 BANKREF_EXTERN(bs_electromanadventures)
-extern const uint8_t bs_electromanadventures_cgb_tiles[];
 extern const uint8_t bs_electromanadventures_cgb_recs[];
-extern const uint8_t bs_electromanadventures_dmg_tiles[];
 extern const uint8_t bs_electromanadventures_dmg_recs[];
 BANKREF_EXTERN(bs_clubstep)
-extern const uint8_t bs_clubstep_cgb_tiles[];
 extern const uint8_t bs_clubstep_cgb_recs[];
-extern const uint8_t bs_clubstep_dmg_tiles[];
 extern const uint8_t bs_clubstep_dmg_recs[];
 BANKREF_EXTERN(bs_bestautomaticlvl)
-extern const uint8_t bs_bestautomaticlvl_cgb_tiles[];
 extern const uint8_t bs_bestautomaticlvl_cgb_recs[];
-extern const uint8_t bs_bestautomaticlvl_dmg_tiles[];
 extern const uint8_t bs_bestautomaticlvl_dmg_recs[];
 BANKREF_EXTERN(bs_leveleasy)
-extern const uint8_t bs_leveleasy_cgb_tiles[];
 extern const uint8_t bs_leveleasy_cgb_recs[];
-extern const uint8_t bs_leveleasy_dmg_tiles[];
 extern const uint8_t bs_leveleasy_dmg_recs[];
 BANKREF_EXTERN(bs_subzero)
-extern const uint8_t bs_subzero_cgb_tiles[];
 extern const uint8_t bs_subzero_cgb_recs[];
-extern const uint8_t bs_subzero_dmg_tiles[];
 extern const uint8_t bs_subzero_dmg_recs[];
 BANKREF_EXTERN(bs_ultiatedestruction)
-extern const uint8_t bs_ultiatedestruction_cgb_tiles[];
 extern const uint8_t bs_ultiatedestruction_cgb_recs[];
-extern const uint8_t bs_ultiatedestruction_dmg_tiles[];
 extern const uint8_t bs_ultiatedestruction_dmg_recs[];
 BANKREF_EXTERN(bs_everymadness)
-extern const uint8_t bs_everymadness_cgb_tiles[];
 extern const uint8_t bs_everymadness_cgb_recs[];
-extern const uint8_t bs_everymadness_dmg_tiles[];
 extern const uint8_t bs_everymadness_dmg_recs[];
 BANKREF_EXTERN(bs_demonpark)
-extern const uint8_t bs_demonpark_cgb_tiles[];
 extern const uint8_t bs_demonpark_cgb_recs[];
-extern const uint8_t bs_demonpark_dmg_tiles[];
 extern const uint8_t bs_demonpark_dmg_recs[];
 BANKREF_EXTERN(bs_thelightningroad)
-extern const uint8_t bs_thelightningroad_cgb_tiles[];
 extern const uint8_t bs_thelightningroad_cgb_recs[];
-extern const uint8_t bs_thelightningroad_dmg_tiles[];
 extern const uint8_t bs_thelightningroad_dmg_recs[];
 BANKREF_EXTERN(bs_test)
-extern const uint8_t bs_test_cgb_tiles[];
 extern const uint8_t bs_test_cgb_recs[];
-extern const uint8_t bs_test_dmg_tiles[];
 extern const uint8_t bs_test_dmg_recs[];
+#define BS_TILE_BANK 249
 // per level: the CGB data, then the DMG data (DMG: the tiles, then the same tiles mirrored)
-static const uint8_t * const bs_tiles[BS_LEVEL_COUNT * 2] = {
-    bs_stereomadness_cgb_tiles, bs_stereomadness_dmg_tiles,
-    bs_backontrack_cgb_tiles, bs_backontrack_dmg_tiles,
-    bs_polargeist_cgb_tiles, bs_polargeist_dmg_tiles,
-    bs_dryout_cgb_tiles, bs_dryout_dmg_tiles,
-    bs_baseafterbase_cgb_tiles, bs_baseafterbase_dmg_tiles,
-    bs_cantletgo_cgb_tiles, bs_cantletgo_dmg_tiles,
-    bs_jumper_cgb_tiles, bs_jumper_dmg_tiles,
-    bs_timemachine_cgb_tiles, bs_timemachine_dmg_tiles,
-    bs_cycles_cgb_tiles, bs_cycles_dmg_tiles,
-    bs_xstep_cgb_tiles, bs_xstep_dmg_tiles,
-    bs_clutterfunk_cgb_tiles, bs_clutterfunk_dmg_tiles,
-    bs_theoryofeverything_cgb_tiles, bs_theoryofeverything_dmg_tiles,
-    bs_electromanadventures_cgb_tiles, bs_electromanadventures_dmg_tiles,
-    bs_clubstep_cgb_tiles, bs_clubstep_dmg_tiles,
-    bs_bestautomaticlvl_cgb_tiles, bs_bestautomaticlvl_dmg_tiles,
-    bs_leveleasy_cgb_tiles, bs_leveleasy_dmg_tiles,
-    bs_subzero_cgb_tiles, bs_subzero_dmg_tiles,
-    bs_ultiatedestruction_cgb_tiles, bs_ultiatedestruction_dmg_tiles,
-    bs_everymadness_cgb_tiles, bs_everymadness_dmg_tiles,
-    bs_demonpark_cgb_tiles, bs_demonpark_dmg_tiles,
-    bs_thelightningroad_cgb_tiles, bs_thelightningroad_dmg_tiles,
-    bs_test_cgb_tiles, bs_test_dmg_tiles,
+static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {
+    0, 48,
+    152, 189,
+    271, 326,
+    444, 501,
+    623, 678,
+    796, 853,
+    975, 1029,
+    1153, 1224,
+    1374, 1455,
+    1625, 1752,
+    2018, 2098,
+    2286, 2388,
+    2596, 2683,
+    2873, 2980,
+    3222, 3279,
+    3401, 3463,
+    3599, 3659,
+    3791, 3842,
+    3944, 4002,
+    4118, 4193,
+    4355, 4417,
+    4541, 4891,
 };
 static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
     bs_stereomadness_cgb_recs, bs_stereomadness_dmg_recs,
@@ -165,27 +122,27 @@ static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
     bs_test_cgb_recs, bs_test_dmg_recs,
 };
 static const uint8_t bs_banks[BS_LEVEL_COUNT] = {
-    254,   // stereomadness
-    254,   // backontrack
-    254,   // polargeist
-    254,   // dryout
-    253,   // baseafterbase
-    253,   // cantletgo
-    253,   // jumper
-    253,   // timemachine
-    252,   // cycles
-    252,   // xstep
-    251,   // clutterfunk
-    251,   // theoryofeverything
-    250,   // electromanadventures
-    250,   // clubstep
-    249,   // bestautomaticlvl
-    249,   // leveleasy
-    249,   // subzero
-    249,   // ultiatedestruction
-    248,   // everymadness
-    248,   // demonpark
-    248,   // thelightningroad
+    248,   // stereomadness
+    248,   // backontrack
+    248,   // polargeist
+    248,   // dryout
+    248,   // baseafterbase
+    248,   // cantletgo
+    248,   // jumper
+    248,   // timemachine
+    248,   // cycles
+    248,   // xstep
+    248,   // clutterfunk
+    248,   // theoryofeverything
+    247,   // electromanadventures
+    247,   // clubstep
+    247,   // bestautomaticlvl
+    247,   // leveleasy
+    247,   // subzero
+    247,   // ultiatedestruction
+    247,   // everymadness
+    247,   // demonpark
+    247,   // thelightningroad
     247,   // test
 };
 

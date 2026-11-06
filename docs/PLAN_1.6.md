@@ -154,6 +154,14 @@ Left for phase 4: the pulsing objects 51, 52, 54 (your art), cogwheels and rings
 - Import your 1.6 art; draw the 15 missing.
 - Mechanics, one at a time: breakable bricks, fading objects, rotating decorations.
 
+**In progress (branch `phase4-objects`).** 25 objects in from your art (`DRAWN`, `DRAWN_KIND` says
+which collide): blocks 170, 171, 173–176, 192, 194, 197, fills 164, 193, breakable brick 143 (solid,
+does not break yet), wave hills 157–159, outlines 161–163, 165–167, 169 (no collision yet), saws
+186 (a quarter), 187, 188 (deadly by 8x8 quarter, not spinning yet). Levels can have any number of
+tiles: tile numbers are 16 bits in the records and all levels' tiles are one space over consecutive
+banks (`bg_stream_tiles_<n>.c`). Still to do: the 15 objects without art (151–155, 177–185, 190), the
+mechanics.
+
 ### Phase 5 — Electroman and Clubstep as 1.6
 - Built by hand in Tiled with the full object set, GD's levels as the reference.
 

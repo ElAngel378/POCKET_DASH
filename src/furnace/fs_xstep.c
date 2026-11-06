@@ -19,9 +19,9 @@ BANKREF(fs_xstep)
 const fur_song_t fs_xstep = {
     3, /* chunks */
     2, /* wave pool chunk */
-    0, /* anti-click */
-    0, /* anti-click step at 34.7119 Hz */
-    1933312UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 1114 }, { 0, 12632 }, { 1, 372 }, { 1, 7842 } }, /* stream entry points */
+    1, /* anti-click */
+    40642, /* anti-click step at 51.6 Hz */
+    1300559UL, /* tick period in 1/16 cycles */
+    { { 0, 0 }, { 0, 458 }, { 0, 3377 }, { 0, 11355 }, { 1, 8917 } }, /* stream entry points */
     fs_xstep_chunks
 };

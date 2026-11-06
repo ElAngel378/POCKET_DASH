@@ -108,7 +108,12 @@ class Composer:
         for key, qs in LO.drawn_art().items():
             for cgb in (1, 0):
                 self.art[cgb][(key, "")] = dict(qs)
-            self.opal[key] = GO.DRAWN_PAL
+            self.opal[key] = GO.drawn_pal(key)
+            if key in GO.DRAWN_KIND:
+                self.kind[key] = GO.DRAWN_KIND[key]
+        # black is colour 2 on CGB, 3 on DMG: the dark fill shows what Famidash's black fill shows
+        for cgb in (1, 0):
+            self.art[cgb][("gd193", "")] = self.art[cgb][("fd_black_none", "")]
         for key in GO.OBJECTS:
             self.kind.setdefault(key, "none")
 
