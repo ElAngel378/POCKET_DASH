@@ -39,7 +39,8 @@ attempt text's (percent_hud.c), 66..127 were free.
 
 PULSE_GDP (from levels/objects/incoming_art/GDP_Pulsing_Obj.chr, not in the image): the pulsing
 ring and heart (engine ids 65, 66; sprites.png cells 112, 113), left halves (drawn mirrored), big
-(on the music's hits) in CGB bank 1 tiles 82..85, small in 86..89, in the order of their D_ ids
+(on the music's hits) in CGB bank 1 tiles 82..85, small in 86..89, in the player's colour 2 like
+GDA's, in the order of their D_ ids
 (include/famidash_sprites.h). paint_pulse_cells draws them into sprites.png for Tiled.
 
 Only the ranges in LOADS are loaded; the other slots are empty in the image because
@@ -59,7 +60,7 @@ SHEET = ROOT / "levels" / "chr_data" / "graphics" / "sprites.png"
 # PULSE_GDP: x of each shape's 16 x 16 cell in GDP_Pulsing_Obj.chr (big at y 0, small at y 16) and
 # its sprites.png cell, in D_ id order
 PULSE_GDP = [(16, 112), (32, 113)]      # ring, heart
-PULSE_COLOUR = (123, 255, 0, 255)       # the decorations' colour in the default player colours
+PULSE_COLOUR = (0, 255, 255, 255)       # the player's colour 2 (default cyan), as in the game
 
 
 def gdp_pixel(d, x, y):
@@ -174,7 +175,7 @@ def main():
 
     def pulse_gdp_tiles():
         """PULSE_GDP as tiles: each shape's left half (2 tiles), big ones, then small ones, in
-        colour 2 like the other pulsing decorations"""
+        colour 1: the player's colour 2 (sprite palette 0), as GDA draws them (P2)"""
         d = GDP_CHR.read_bytes()
         out = []
         for y0 in (0, 16):
@@ -183,7 +184,7 @@ def main():
                     t = bytearray()
                     for r in range(8):
                         bits = sum(gdp_pixel(d, x0 + x, y0 + half + r) << (7 - x) for x in range(8))
-                        t += bytes([0, bits])
+                        t += bytes([bits, 0])
                     out.append(bytes(t))
         return out
     pulse_gdp = pulse_gdp_tiles()
@@ -219,7 +220,7 @@ def main():
     rows = []
     for cond, bank, first, count, section, src in LOADS:
         rows.append((cond, bank, first, count, len(blob) // 16))
-        deco = (cond in (CGB_DECO, CGB_DECO_CLOUD) or section in ("ROD_PULSE", "PULSE_BALL", "PULSE_GDP")
+        deco = (cond in (CGB_DECO, CGB_DECO_CLOUD) or section in ("ROD_PULSE", "PULSE_BALL")
                 or (bank, first) == (1, 66))
         for i in range(count):
             blob += deco_colours(tile(section, src + i)) if deco else tile(section, src + i)

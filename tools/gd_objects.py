@@ -174,7 +174,7 @@ DMG_SWAP = {"gd146", "gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd16
 
 # As GDA colours them: most decorations in the player's colour 1 (palette 2), these in colour 2
 # (palette 6). Hazards are in the object colour, white (palette 0).
-DRAWN_P2 = {"gd106", "gd107", "gd137", "gd138", "gd139", "gd180", "gd181", "gd182", "gd190"}
+DRAWN_P2 = {"gd48", "gd49", "gd106", "gd107", "gd137", "gd138", "gd139", "gd180", "gd181", "gd182", "gd190"}
 
 
 def drawn_pal(key):
