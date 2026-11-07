@@ -473,6 +473,12 @@ void bg_parallax_vbl_isr(void) {
         else if (bg_rj_pending && !bg_cj_pending) gp_rj_late++;
 #endif
     }
+    // Streamed tiles backing up go before the player frame, which would take all of VBlank while
+    // the cube spins: a spin step put off is barely seen, a full queue stops the game
+    if (bs_q_n >= 4u && bs_up_i < bs_up_n) {
+        VBK_REG = 0;
+        bs_upload();
+    }
     // DMG player frame (4 sprite tiles, double buffered by gameplay): as many tiles as still fit,
     // the rest on the next VBlank
     if (bg_cube_pending && !bg_gdma_isr_on) {

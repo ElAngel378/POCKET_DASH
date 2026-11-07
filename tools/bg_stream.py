@@ -20,6 +20,8 @@ import build_bg_tiles as BG
 
 RING = 16              # map columns in the VRAM ring (mt_renderer.c)
 TRANSPARENT = 12       # sheet tile: empty (CGB: the parallax)
+PER_COLUMN = {1: 4, 0: 2}     # records a column may take in play: CGB, DMG (bg_stream_feed: 4 and 2 tiles a
+                              # frame; a column takes 3 frames at the top speed)
 BLACK_FILL_SLOT = 26
 CGB_GROUND_LOOK = {1, 2, 5, 6, 136, 137}   # mt_renderer.c gnd_look_tab
 
@@ -146,34 +148,46 @@ class Stream:
         self.hoist()
 
     def hoist(self):
-        """Moves every record as early as its slot allows: right after the slot's previous tile
-        was last needed (its last column out of the ring), at the earliest column 0. A level whose
-        tiles all fit gets them all at column 0, loaded before it starts; the others stream early
-        and spread out (a column brings fewer tiles at once)."""
-        by_slot = {}
-        for c, rec in enumerate(self.records):
-            for t, s in rec:
-                by_slot.setdefault(s, []).append((c, t))
+        """Moves records earlier, as far as their slots allow: a slot can take its next tile once
+        its previous tile's last column left the ring. A level whose tiles all fit gets them all at
+        column 0, loaded before it starts. In play a column takes at most PER_COLUMN records (the
+        upload queue must never fill: the game would stop and wait for it), the ones needed soonest
+        first; only a record at its own column goes over that (warned about)."""
         uses = {}                       # tile -> columns using it
         for c, tiles in enumerate(self.col_tiles):
             for t in tiles:
                 uses.setdefault(t, []).append(c)
-        moved = [[] for _ in self.records]
-        slot_prev = {}      # slot -> (original column, tile, column moved to) of its last record
-        tile_prev = {}      # tile -> column its last record moved to (a tile's records keep their order)
+        recs = []                       # [column needed, tile, slot, previous record of the slot,
+        slot_prev, tile_prev = {}, {}   #  of the tile, earliest column]
         for c, rec in enumerate(self.records):
             for t, s in rec:
+                ps, pt = slot_prev.get(s), tile_prev.get(t)
                 e = 0
-                if s in slot_prev:
-                    pc, pt, pe = slot_prev[s]
-                    last = max([u for u in uses[pt] if pc <= u < c], default=pc)
-                    e = max(pe + 1, last + RING)
-                if t in tile_prev:
-                    e = max(e, tile_prev[t] + 1)
-                e = min(e, c)
-                moved[e].append((t, s))
-                slot_prev[s] = (c, t, e)
-                tile_prev[t] = e
+                if ps is not None:
+                    pc, pk = recs[ps][0], recs[ps][1]
+                    e = max([u for u in uses[pk] if pc <= u < c], default=pc) + RING
+                slot_prev[s] = tile_prev[t] = len(recs)
+                recs.append((c, t, s, ps, pt, min(e, c)))
+        moved = [[] for _ in self.records]
+        placed, todo = {}, list(range(len(recs)))
+        budget = PER_COLUMN[self.cgb]
+        for x in range(len(moved)):
+            ready = []
+            for i in todo:
+                c, t, s, ps, pt, e = recs[i]
+                if recs[i][0] < x:
+                    raise SystemExit("%s: record of column %d left behind" % (self.name, c))
+                if e <= x and (ps is None or ps in placed) and (pt is None or pt in placed):
+                    ready.append(i)
+            # each record's predecessors go first (same slot, same tile: their columns are earlier)
+            for n, i in enumerate(sorted(ready, key=lambda i: recs[i][0])):
+                if x and n >= budget and recs[i][0] > x:
+                    break
+                if x and n >= budget:
+                    print("  %s (%s): column %d brings more than %d tiles" % (self.name, "CGB" if self.cgb else "DMG", x, budget))
+                moved[x].append((recs[i][1], recs[i][2]))
+                placed[i] = x
+            todo = [i for i in todo if i not in placed]
         self.records = moved
 
     def simulate(self, grid):

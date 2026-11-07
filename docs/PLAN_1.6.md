@@ -159,7 +159,10 @@ which collide): blocks 170, 171, 173–176, 192, 194, 197, fills 164, 193, break
 does not break yet), wave hills 157–159, outlines 161–163, 165–167, 169 (no collision yet), saws
 186 (a quarter), 187, 188 (deadly by 8x8 quarter, not spinning yet). Levels can have any number of
 tiles: tile numbers are 16 bits in the records and all levels' tiles are one space over consecutive
-banks (`bg_stream_tiles_<n>.c`). Still to do: the 15 objects without art (151–155, 177–185, 190), the
+banks (`bg_stream_tiles_<n>.c`). Streaming never makes the game wait: the build limits what a column
+brings in play (`PER_COLUMN`: 4 tiles CGB, 2 DMG, loading earlier when slots allow), the next column
+waits a little while tiles back up, and backed-up tiles go before the DMG cube frame in VBlank. Test
+level: no stall of 2 frames or more, CGB and DMG, running or jumping. Still to do: the 15 objects without art (151–155, 177–185, 190), the
 mechanics.
 
 ### Phase 5 — Electroman and Clubstep as 1.6
