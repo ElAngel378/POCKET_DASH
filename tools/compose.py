@@ -113,6 +113,7 @@ class Composer:
             self.opal[key] = GO.drawn_pal(key)
             if key in GO.DRAWN_KIND:
                 self.kind[key] = GO.DRAWN_KIND[key]
+        self.spin = {key: LO.spin_frames(key) for key in GO.SPIN}
         for key in GO.OBJECTS:
             self.kind.setdefault(key, "none")
 
@@ -137,8 +138,20 @@ class Composer:
             out.append(p)
         return out
 
-    def quarter(self, cgb, key, tf, oq):
-        """pixels (64) of object quarter oq placed with tf, None if it is empty"""
+    def quarter(self, cgb, key, tf, oq, frame=0):
+        """pixels (64) of object quarter oq placed with tf (spinning objects: in that frame; DMG only
+        has frame 0), None if it is empty"""
+        if key in self.spin:
+            art = self.spin[key][frame if cgb else 0]
+            w, h = GO.OBJECTS[key][2]
+            img = {(qx * 8 + i % 8, qy * 8 + i // 8): p[i] for (qx, qy), p in art.items() for i in range(64)}
+            if tf:
+                img = transform_img(img, w, h, flags_of(tf))
+            qx, qy = oq
+            px = tuple(img[(qx * 8 + i % 8, qy * 8 + i // 8)] for i in range(64))
+            if not cgb and key in GO.DMG_SWAP:
+                px = tuple({2: 3, 3: 2}.get(v, v) for v in px)
+            return px if any(px) else None
         a = self.art[cgb].get((key, tf))
         if a is not None and oq in a:
             return a[oq]
@@ -161,7 +174,7 @@ class Composer:
                 return None if not any(px) else px
         raise SystemExit("no art for %s %s quarter %s" % (key, tf or "-", oq))
 
-    def look(self, cgb, parts):
+    def look(self, cgb, parts, frame=0):
         """parts: [(key, dx, dy, tf)] bottom to top -> 4 quarters: pixels or None (empty)"""
         out = []
         for q in range(4):
@@ -171,17 +184,26 @@ class Composer:
                 oq = ((cqx * 8 - dx) // 8, (cqy * 8 - dy) // 8)
                 if oq not in self.LO.mask(key, flags_of(tf)) or key in GO.INVISIBLE:
                     continue
-                px = self.quarter(cgb, key, tf, oq)
+                px = self.quarter(cgb, key, tf, oq, frame)
                 if px in (SAW, GROUND):
                     raise SystemExit("%s: saws and the ground strip cannot share a cell with other objects yet" % key)
                 if px is None:
                     continue
-                opaque = self.kind[key] == "solid" or key in FILLS
+                opaque = (self.kind[key] == "solid" and key not in GO.OUTLINE) or key in FILLS
                 for i in range(64):
                     if opaque or px[i]:
                         acc[i] = px[i]
             out.append(None if all(v is None for v in acc) else tuple(v or 0 for v in acc))
         return out
+
+    def spin_look(self, parts):
+        """look(1, parts), a quarter that changes between the frames of a spinning object being
+        (frame 0, frame 1, ...)"""
+        looks = [self.look(1, parts, f) for f in range(GO.SPIN_FRAMES)]
+        if not any(p[0] in self.spin for p in parts):
+            return looks[0]
+        zero = (0,) * 64
+        return [q[0] if len(set(q)) == 1 else tuple(p or zero for p in q) for q in zip(*looks)]
 
     def palette(self, parts):
         hit = [p for p in parts if self.kind[p[0]] != "none"]
@@ -234,7 +256,7 @@ class Composer:
             if col is None:
                 col = 0
             pal = self.palette(parts)
-            k = (tuple(self.look(1, parts)), tuple(self.look(0, parts)), pal, col)
+            k = (tuple(self.spin_look(parts)), tuple(self.look(0, parts)), pal, col)
             if k not in cells:
                 if not free:
                     raise SystemExit("%s: no metatile id left (cell %d, %d): too many different cells"

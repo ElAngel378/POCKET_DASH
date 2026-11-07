@@ -63,6 +63,8 @@ static void saw_anim_reset(void) {
 
 // Call once per frame before waiting for VBlank (like request_bg_parallax)
 void saw_anim_request(void) BANKED {
+    // spinning objects, in the time the saws leave (here: bank 10, gameplay.c, is full)
+    if (bs_spin_n && saw_pos >= SAW_ANIM_TILES) bg_stream_spin();
     if (!saw_on) return;
     uint8_t cgb = bg_gdma_isr_on;
     if (saw_timer < 255) saw_timer++;   // every frame, also while a chunk is pending (below)
@@ -82,6 +84,8 @@ void saw_anim_request(void) BANKED {
         saw_pos = 0;
     }
     if (cgb) {
+        if (bg_saw_pending) return;    // a spinning object's chunk: next frame
+        bg_saw_vbk = 1;
         bg_saw_bank = BANK(saw_anim);
         bg_saw_src = saw_anim_tiles + ((uint16_t)(saw_frame * SAW_ANIM_TILES + saw_pos) << 4);
         bg_saw_dst = (uint16_t)0x1000 + ((uint16_t)(SAW_VRAM_BASE + saw_pos) << 4);

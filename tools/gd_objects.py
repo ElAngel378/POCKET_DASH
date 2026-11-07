@@ -103,7 +103,7 @@ DRAWN = {
     "gd152": ("Spiky art, medium", (8, 16)),
     "gd153": ("Spiky art, small", (8, 16)),
     "gd154": ("Spiked wheel (a quarter)", (24, 24)),
-    "gd155": ("Spiked wheel, three points", (32, 24)),
+    "gd155": ("Spiked wheel, three points", (40, 40)),
     "gd157": ("Wave hill, middle", (16, 16)),
     "gd158": ("Wave hill, rising", (16, 16)),
     "gd159": ("Wave hill, falling", (16, 16)),
@@ -128,8 +128,8 @@ DRAWN = {
     "gd181": ("Cart wheel, medium", (24, 24)),
     "gd182": ("Cart wheel, small", (16, 16)),
     "gd183": ("Black saw, big (a quarter)", (24, 24)),
-    "gd184": ("Black saw, medium", (32, 32)),
-    "gd185": ("Black saw, small", (8, 24)),
+    "gd184": ("Black saw, medium", (40, 40)),
+    "gd185": ("Black saw, small", (24, 24)),
     "gd186": ("1.6 saw, big (a quarter)", (24, 24)),
     "gd187": ("1.6 saw, medium", (32, 32)),
     "gd188": ("1.6 saw, star", (32, 32)),
@@ -144,6 +144,17 @@ DRAWN_KIND = {k: "solid" for k in ("gd143", "gd164", "gd170", "gd171", "gd173", 
                                    "gd176", "gd192", "gd193", "gd194", "gd197")}
 DRAWN_KIND.update({k: "deadly" for k in ("gd177", "gd178", "gd179", "gd183", "gd184", "gd185", "gd186",
                                          "gd187", "gd188")})
+# The 1.6 outlines are solid blocks (GDA: COL_FULL) though only their lines are drawn: they fill their
+# whole cell for collision, and what is under them shows
+OUTLINE = {"gd161", "gd162", "gd163", "gd165", "gd166", "gd167", "gd169"}
+DRAWN_KIND.update({k: "solid" for k in OUTLINE})
+# Objects that spin (CGB): key -> how many of them make the whole wheel (1, 2 or 4: rotate them in
+# Tiled, a flipped piece would turn the other way). The build rotates the art (tools/level_objects.py
+# spin_frames) and the game swaps the tiles (bg_stream.c)
+SPIN = {"gd85": 4, "gd86": 1, "gd87": 1, "gd97": 1, "gd137": 2, "gd138": 1, "gd139": 1, "gd154": 4,
+        "gd155": 1, "gd180": 4, "gd181": 1, "gd182": 1, "gd183": 4, "gd184": 1, "gd185": 1, "gd186": 4,
+        "gd187": 1, "gd188": 1}
+SPIN_FRAMES = 3
 # Black is colour 2 on CGB, 3 on DMG, and an outline on it the other way round: the files hold the
 # CGB colours, DMG swaps 2 and 3 in these
 DMG_SWAP = {"gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd167", "gd169", "gd183", "gd184",

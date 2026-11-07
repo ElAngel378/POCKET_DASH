@@ -294,9 +294,6 @@ def main():
         # the level's own metatiles (tools/compose.py, written by build_levels.py)
         side = ROOT / "levels" / "level_data" / ("%s_novel.json" % name)
         novel = {int(k): v for k, v in json.loads(side.read_text()).items()} if side.exists() else {}
-        # their empty quarters show the transparent tile (their other quarters are streamed)
-        own = [(m, q, BLANK_TILE) for m in sorted(novel) for q in range(4)
-               if novel[m]["cgb"][q] is None or novel[m]["dmg"][q] is None]
         if novel:
             col_tabs[name] = [novel[m]["col"] if m in novel else fd_col[m] for m in range(256)]
             pal_tabs[name] = [novel[m]["pal"] if m in novel else fd_pal[m] for m in range(256)]
@@ -311,7 +308,7 @@ def main():
         # attribute) and the black fill code uses
         cgb = stream([(0x81, SAW_VRAM_BASE, SAW_TILES, first["SAWS_0"]),
                       (0, BLACK_FILL_SLOT, 1, first["BLACK_FILL"])], [], [],
-                     [o for o in own if novel[o[0]]["cgb"][o[1]] is None])
+                     [])
 
         # DMG: the saw tiles the level shows, in sprite tiles DMG never draws (DMG_SHARED_SLOTS,
         # and DMG_MIRROR_SLOTS without mirror portals), then BG slots from the top
@@ -323,7 +320,7 @@ def main():
         loads = [(0, saw_slot[k_], 1, first["SAWS_0"] + k_) for k_ in saw_k]
         overrides = [(m, q, saw_slot[saw_mts[m][q]]) for m in sorted(level_mts) if m in saw_mts
                      for q in range(4) if saw_mts[m][q] is not None]
-        dmg = stream(loads, [], [], overrides + [o for o in own if novel[o[0]]["dmg"][o[1]] is None])
+        dmg = stream(loads, [], [], overrides)
         streams.append((lv, name, cgb, dmg, big_saw, any(m in saw_mts for m in level_mts)))
         pools.append((name, [level_map[x * 64:(x + 1) * 64] for x in range(len(level_map) // 64)],
                       [t for t in range(160) if t not in (12, BLACK_FILL_SLOT)],
@@ -457,4 +454,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    from keep_mtimes import keep_unchanged
+    with keep_unchanged():
+        main()

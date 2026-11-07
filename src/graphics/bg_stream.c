@@ -11,12 +11,21 @@
 #include "bg_stream.h"
 #include "furplayer.h"
 #include "bg_stream_tables.h"
+#include "bg_parallax.h"
 
 #define BS_QUEUE 16                     // a power of 2
 static uint8_t bs_q_slot[BS_QUEUE];
 static uint16_t bs_q_tile[BS_QUEUE];
 static uint8_t bs_q_head;
 uint8_t bs_q_n;                         // queued tiles (gameplay.c calls bg_stream_feed while any)
+
+// Spinning objects (CGB): their tiles have slots of their own from BS_SPIN_BASE; each step uploads
+// the next frame by GDMA in VBlank, in chunks (bg_parallax_phases.c), so all copies turn together
+#define BS_SPIN_CHUNK 13                // tiles a VBlank
+#define BS_SPIN_PERIOD 6                // frames from one step to the next, at the fastest
+uint8_t bs_spin_n;                      // the level's spinning tiles (0: none, DMG)
+static uint16_t bs_spin_tile;
+static uint8_t bs_spin_frame, bs_spin_pos, bs_spin_timer, bs_spin_issued;
 
 volatile uint8_t bs_up_i, bs_up_n;
 uint8_t bs_up_slot[BS_UP_MAX];
@@ -94,8 +103,18 @@ void bg_stream_reset(uint8_t level, uint8_t reversed, uint8_t tables_kept) BANKE
     bs_col = 0xFFFF;
     bs_reached = 0;
     bs_bi = bs_bn = 0;
+    bs_spin_n = 0;
     if (level >= BS_LEVEL_COUNT) return;
     bs_dmg = (_cpu != CGB_TYPE);
+    if (!bs_dmg) {
+        // starts idle at frame 0, the frame the records load
+        bs_spin_n = bs_spin_count[level];
+        bs_spin_tile = bs_spin_first[level];
+        bs_spin_frame = 0;
+        bs_spin_pos = bs_spin_n;
+        bs_spin_timer = 0;
+        bs_spin_issued = 0;
+    }
     bs_rev = bs_dmg ? reversed : 0;
     uint8_t k = (uint8_t)((level << 1) | bs_dmg);
     bs_bank = bs_banks[level];
@@ -151,6 +170,7 @@ void bg_stream_to(uint16_t col) BANKED {
                     mt_ram[1][m][q ^ 1u] = s;   // mirrored: left and right quarters swapped
                 }
             }
+            if (t == 0xFFFFu) continue;     // no tile: only the metatile quarters
             if (off) run_add(s, t);
             else enqueue(s, t);
         }
@@ -163,6 +183,31 @@ void bg_stream_to(uint16_t col) BANKED {
 
 void bg_stream_resume(void) BANKED {
     if (bs_resume) bg_stream_to(bs_resume - 1u);
+}
+
+void bg_stream_spin(void) BANKED {
+    if (bs_spin_timer < 255u) bs_spin_timer++;
+    if (bs_spin_issued) {
+        if (bg_saw_pending) return;
+        bs_spin_issued = 0;
+        bs_spin_pos += BS_SPIN_CHUNK;
+    }
+    if (bs_spin_pos >= bs_spin_n) {
+        if (bs_spin_timer < BS_SPIN_PERIOD) return;
+        bs_spin_timer = 0;
+        bs_spin_frame = (uint8_t)((bs_spin_frame + 1u) % BS_SPIN_FRAMES);
+        bs_spin_pos = 0;
+    }
+    uint8_t k = (uint8_t)(bs_spin_n - bs_spin_pos);
+    if (k > BS_SPIN_CHUNK) k = BS_SPIN_CHUNK;
+    uint16_t g = bs_spin_tile + (uint16_t)bs_spin_frame * bs_spin_n + bs_spin_pos;
+    bg_saw_src = TILE_ADDR(g);
+    bg_saw_bank = TILE_BANK(g);
+    bg_saw_dst = (uint16_t)0x1000 + ((uint16_t)(BS_SPIN_BASE + bs_spin_pos) << 4);
+    bg_saw_blocks = k;
+    bg_saw_vbk = 0;
+    bg_saw_pending = 1;
+    bs_spin_issued = 1;
 }
 
 void bg_stream_feed(void) BANKED {

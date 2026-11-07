@@ -47,6 +47,7 @@ extern uint8_t bg_rj_attrs[2 * 2 * BG_RJ_SLOTS];
 // Saw animation: GDMA of bg_saw_blocks 16-byte tiles from bg_saw_src (in ROM bank bg_saw_bank)
 // to VRAM bank 1 at offset bg_saw_dst from 0x8000, after the parallax GDMA (retried when late).
 extern volatile uint8_t bg_saw_pending;
+extern uint8_t bg_saw_vbk;
 extern uint8_t bg_saw_bank, bg_saw_blocks;
 extern const uint8_t *bg_saw_src;
 extern uint16_t bg_saw_dst;

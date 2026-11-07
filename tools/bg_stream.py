@@ -20,6 +20,9 @@ import build_bg_tiles as BG
 
 RING = 16              # map columns in the VRAM ring (mt_renderer.c)
 TRANSPARENT = 12       # sheet tile: empty (CGB: the parallax)
+SPIN_BASE = 28         # the spinning objects' tiles: BG slots from here (CGB, bg_stream.c)
+SPIN_MAX = 52          # ... at most: what VBlank can carry (13 tiles a VBlank, a step every 4+)
+SPIN_FRAMES = 3
 PER_COLUMN = {1: 4, 0: 2}     # records a column may take in play: CGB, DMG (bg_stream_feed: 4 and 2 tiles a
                               # frame; a column takes 3 frames at the top speed)
 BLACK_FILL_SLOT = 26
@@ -90,11 +93,29 @@ class Stream:
     def __init__(self, art, name, grid, cgb, slots, novel=None):
         """novel: the level's own metatiles (tools/compose.py): id -> {"cgb": 4 quarters, "dmg": ...}"""
         self.name, self.cgb = name, cgb
+        self.own = sorted(novel or {})
         big_saw = any(m in BG.BIG_SAW_PARTS for col in grid for m in col)
         used = sorted({m for col in grid for m in col})
         novel = novel or {}
-        self.mq = {m: [tuple(q) if q else None for q in novel[m]["cgb" if cgb else "dmg"]] if m in novel
+        def quarter_of(q):
+            if not q:
+                return None
+            return tuple(tuple(f) for f in q) if len(q) == SPIN_FRAMES else tuple(q)
+        self.mq = {m: [quarter_of(q) for q in novel[m]["cgb" if cgb else "dmg"]] if m in novel
                    else quarters(art, name, m, cgb, big_saw) for m in used}
+        # the tiles that change as objects spin keep a slot for the whole level; past SPIN_MAX they
+        # stand still
+        moving, over = [], False
+        for m in dict.fromkeys(m for col in grid for m in col):      # from the left of the level
+            for q, px in enumerate(self.mq[m]):
+                if px is not None and len(px) == SPIN_FRAMES:
+                    if px not in moving and len(moving) >= SPIN_MAX:
+                        if not over:
+                            print("  %s: more than %d spinning tiles, the rest stands still" % (name, SPIN_MAX))
+                        over = True
+                        self.mq[m][q] = px[0]
+                    elif px not in moving:
+                        moving.append(px)
         pool, index = [], {}
         self.uses = {}          # pool tile -> [(metatile, quarter)]
         for m in used:
@@ -106,10 +127,13 @@ class Stream:
                     pool.append(px)
                 self.uses.setdefault(index[px], []).append((m, q))
         self.pool, self.index = pool, index
-        self.col_tiles = [sorted({index[px] for m in set(col) for px in self.mq[m] if px is not None})
-                          for col in grid]
-        self.slots = list(slots)
+        self.spin = [index[px] for px in moving]
+        self.col_tiles = [sorted({index[px] for m in set(col) for px in self.mq[m]
+                                  if px is not None and len(px) != SPIN_FRAMES}) for col in grid]
+        pinned = list(range(SPIN_BASE, SPIN_BASE + len(moving)))
+        self.slots = [s for s in slots if s not in pinned]
         self.allocate()
+        self.records[0][:0] = list(zip(self.spin, pinned))
 
     def allocate(self):
         """records[c]: [(pool tile, slot)] to apply before column c is drawn. A tile that left the
@@ -220,14 +244,22 @@ def tile_bytes(px):
 def record_bytes(st):
     """Pool size (16 bits), flags (1: every tile has one record, so a reload of the same level can
     skip the metatile table), then the columns with records, in order: column (16 bits), n, n x
-    (slot, pool tile (16 bits), k, k x (metatile, quarter)); then 0xFFFF"""
+    (slot, pool tile (16 bits; 0xFFFF: no tile to load), k, k x (metatile, quarter)); then 0xFFFF"""
     tiles = [t for rec in st.records for t, _ in rec]
     n = len(st.pool)
     out = bytearray([n & 0xFF, n >> 8, 1 if len(tiles) == len(set(tiles)) else 0])
+    # the empty quarters of the level's own metatiles show the transparent tile: records of no tile
+    empty = [(m, q) for m in st.own if m in st.mq for q, px in enumerate(st.mq[m]) if px is None]
+    groups = [empty[i:i + 255] for i in range(0, len(empty), 255)]
     for c, rec in enumerate(st.records):
-        if not rec:
+        if not rec and not (c == 0 and groups):
             continue
-        out += bytes([c & 0xFF, c >> 8, len(rec)])
+        n = len(rec) + (len(groups) if c == 0 else 0)
+        assert n < 256, "%s: %d records in column %d" % (st.name, n, c)
+        out += bytes([c & 0xFF, c >> 8, n])
+        if c == 0:
+            for g in groups:
+                out += bytes([TRANSPARENT, 0xFF, 0xFF, len(g)]) + bytes(v for mq in g for v in mq)
         for t, s in rec:
             uses = st.uses[t]
             assert len(uses) < 256, "%s: tile %d in %d metatile quarters" % (st.name, t, len(uses))
@@ -263,6 +295,7 @@ def write(pools):
     files = {}
     space = bytearray()    # the tile space
     first = {}             # (level, platform) -> its first tile in the space
+    spin = {}              # level -> (its spinning tiles' first tile in the space, their number)
     for name, cols, cgb_slots, dmg_slots, novel in pools:
         cols = [list(c) for c in cols]
         L = ["/* Generated by tools/bg_stream.py - do not edit */", "#pragma bank %d", "#include <gbdk/platform.h>",
@@ -272,13 +305,20 @@ def write(pools):
             st = Stream(art, name, cols, cgb, test_slots(slots), novel)
             st.simulate(cols)
             # DMG: all the tiles, then all of them mirrored (runs of tiles copy in one go)
-            tiles = b"".join(tile_bytes(px) for px in st.pool)
+            tiles = b"".join(tile_bytes(px[0] if len(px) == SPIN_FRAMES else px) for px in st.pool)
             if not cgb:
                 tiles += b"".join(tile_bytes(flipped(px)) for px in st.pool)
             recs = record_bytes(st)
             tag = "cgb" if cgb else "dmg"
             first[(name, tag)] = len(space) // 16
             space += tiles
+            if st.spin:
+                # the frames, one after the other, in one bank (one DMA reads them)
+                data = b"".join(tile_bytes(st.pool[t][f]) for f in range(SPIN_FRAMES) for t in st.spin)
+                if len(space) // 16384 != (len(space) + len(data) - 1) // 16384:
+                    space += bytes(16384 - len(space) % 16384)
+                spin[name] = (len(space) // 16, len(st.spin))
+                space += data
             L += c_array("bs_%s_%s_recs" % (name, tag), recs)
             size += len(recs)
         files[name] = (L, size)
@@ -321,7 +361,13 @@ def write(pools):
     for name, _, _, _, _ in pools:
         H += ["BANKREF_EXTERN(bs_%s)" % name] + ["extern const uint8_t bs_%s_%s_%s[];" % (name, t, k)
                                                  for t in ("cgb", "dmg") for k in ("recs",)]
-    H += ["#define BS_TILE_BANK %d" % tile_bank]
+    H += ["#define BS_TILE_BANK %d" % tile_bank, "#define BS_SPIN_BASE %d" % SPIN_BASE,
+          "#define BS_SPIN_FRAMES %d" % SPIN_FRAMES]
+    H += ["// per level: its spinning tiles (CGB): first tile in the space, number",
+          "static const uint16_t bs_spin_first[BS_LEVEL_COUNT] = { %s };"
+          % ", ".join(str(spin.get(n, (0, 0))[0]) for n, _, _, _, _ in pools),
+          "static const uint8_t bs_spin_count[BS_LEVEL_COUNT] = { %s };"
+          % ", ".join(str(spin.get(n, (0, 0))[1]) for n, _, _, _, _ in pools)]
     H += ["// per level: the CGB data, then the DMG data (DMG: the tiles, then the same tiles mirrored)",
           "static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {"]
     H += ["    %d, %d," % (first[(n, "cgb")], first[(n, "dmg")]) for n, _, _, _, _ in pools] + ["};"]

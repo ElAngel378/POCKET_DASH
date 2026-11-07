@@ -141,10 +141,54 @@ def drawn_art():
             for qx in range(w // 8):
                 for qy in range(h // 8):
                     p = tuple(px[qx * 8 + i % 8, qy * 8 + i // 8] & 3 for i in range(64))
-                    if any(p):
+                    if any(p) or key in GO.OUTLINE:
                         qs[(qx, qy)] = p
             _drawn[key] = qs
     return _drawn
+
+
+_spin = {}
+
+
+def spin_frames(key):
+    """The art of a spinning object, GO.SPIN_FRAMES frames: [{object quarter: 64 pixels}], every
+    quarter in each. The whole wheel is made of its pieces, turned by a part of its rotational
+    symmetry (one tooth), and the piece cut out of it."""
+    if key in _spin:
+        return _spin[key]
+    w, h = GO.OBJECTS[key][2]
+    src = Image.open(OBJ_DIR / "art" / ("%s.png" % key))
+    base = Image.new("L", (w, h))
+    base.putdata([v & 3 for v in src.getdata()])
+    pieces = GO.SPIN[key]
+    if pieces == 4:
+        whole = Image.new("L", (2 * w, 2 * h))
+        whole.paste(base, (0, 0))
+        whole.paste(base.rotate(-90), (w, 0))
+        whole.paste(base.rotate(180), (w, h))
+        whole.paste(base.rotate(90), (0, h))
+    elif pieces == 2:
+        whole = Image.new("L", (2 * w, h))
+        whole.paste(base, (0, 0))
+        whole.paste(base.rotate(180), (w, 0))
+    else:
+        whole = base
+    if whole.width != whole.height:
+        raise SystemExit("%s: a spinning object must be square" % key)
+    solid = [v > 0 for v in whole.getdata()]
+    step = 90
+    for n in (16, 12, 10, 9, 8, 6, 5, 4, 3, 2):
+        turned = [v > 0 for v in whole.rotate(360 / n).getdata()]
+        if sum(a != b for a, b in zip(solid, turned)) <= 0.2 * sum(solid):
+            step = 360 / n
+            break
+    out = []
+    for f in range(GO.SPIN_FRAMES):
+        img = whole.rotate(-step * f / GO.SPIN_FRAMES).crop((0, 0, w, h)).load()
+        out.append({(qx, qy): tuple(img[qx * 8 + i % 8, qy * 8 + i // 8] for i in range(64))
+                    for qx in range(w // 8) for qy in range(h // 8)})
+    _spin[key] = out
+    return out
 
 
 _masks = {}
@@ -156,7 +200,9 @@ def mask(key, flags=0):
         return _masks[(key, flags)]
     w, h = GO.OBJECTS[key][2]
     m = GO.OBJECTS[key][3]
-    if m is None and key in GO.DRAWN:
+    if key in GO.SPIN:          # all that its frames cover
+        m = {q for frame in spin_frames(key) for q, px in frame.items() if any(px)}
+    elif m is None and key in GO.DRAWN and key not in GO.OUTLINE:
         m = set(drawn_art()[key])
     qs = m if m is not None else {(x, y) for x in range(w // 8) for y in range(h // 8)}
     out = set()
@@ -230,6 +276,8 @@ def object_art(levels):
             opal.setdefault(parts[i][0], pal[m])
     for key, qs in drawn_art().items():
         art[(key, "")] = dict(qs)
+        for q in mask(key):
+            art[(key, "")].setdefault(q, (0,) * 64)
         opal[key] = GO.drawn_pal(key)
     return art, opal, problems
 

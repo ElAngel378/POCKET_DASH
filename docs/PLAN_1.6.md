@@ -170,8 +170,25 @@ art 190 (decoration, all in the player colour: colour 3 of palette 2); ice spike
 spike squashed: GDA has no low wide one. Every object of the official levels now has art. GD's 1.0
 deco spikes 18–21 stay sprites 46–49.
 
-Still to do: the mechanics (breakable bricks, fading, pulsing, spinning), outline collision, finer
-hitboxes for ice spikes and saws.
+Spinning (CGB; DMG shows frame 0): `GO.SPIN` lists the objects, `level_objects.spin_frames` rotates
+their art by a part of their rotational symmetry (3 frames), `compose.spin_look` composes every cell
+in each frame, so overlaps spin too. Tiles that change get pinned BG slots from 28 for the whole level
+(at most 52, from the left of the level; the rest stands still). `bg_stream_spin` uploads the next
+frame in chunks of 13 tiles through the saws' VBlank DMA, while the saws are idle. It pauses during
+palette fades (no VBlank time left). Quarter pieces must be rotated in Tiled, not flipped. The empty
+quarters of a level's own metatiles are records now (the old list's count was one byte).
+
+Builds: `tools/keep_mtimes.py` gives unchanged generated files their old time back, so make only
+compiles what changed.
+
+Still to do: hitboxes for ice spikes and saws, fading, breakable bricks, pulsing.
+
+Order agreed 2026-11-07: spinning, hitboxes, fading, breakable bricks, pulsing last. Fading and
+breakable bricks exist in the old code (main's history, gda-objects): review that it is good and worth
+taking before porting it.
+
+Check at the end of phase 4: the same test level built in GDA, compared with ours (palettes above
+all, and that objects show up as they should). GDA's 1.6 objects are the same as GD's.
 
 ### Phase 5 — Electroman and Clubstep as 1.6
 - Built by hand in Tiled with the full object set, GD's levels as the reference.
@@ -191,3 +208,8 @@ hitboxes for ice spikes and saws.
    the tile graphics (3–4 pre-rotated frames, one tooth step apart), so every copy turns together
    at no extra cost. Same upload path as the column streaming. On DMG, slower updates or static if
    VBlank is tight. Sprites only for objects that actually move.
+
+## After that
+
+Make building levels easier (building, compiling, testing in game): many people in the community
+have trouble with it.

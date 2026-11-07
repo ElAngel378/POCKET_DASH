@@ -45,7 +45,7 @@ ART = {
     "gd152": ("MEDIUM_DECO_TRIANGLE", (4, 0, 12, 16)),
     "gd153": ("SMALL_DECO_TRIANGLE", (4, 0, 12, 16)),
     "gd154": ("BIG_SPIKE_SAW_DECO", (8, 8, 32, 32)),             # top left quarter
-    "gd155": ("MEDIUM_SPIKE_SAW_DECO", (0, 0, 32, 24)),
+    "gd155": ("MEDIUM_SPIKE_SAW_DECO", None),
     "gd180": ("BIG_CIRCLE_SAW_DECO", (0, 0, 16, 16)),            # top left quarter
     "gd181": ("MEDIUM_CIRCLE_SAW_DECO", (4, 4, 28, 28)),
     "gd182": ("SMALL_CIRCLE_SAW_DECO", None),
@@ -86,11 +86,23 @@ OUTLINES = {"gd161": [EDGE_T], "gd162": [EDGE_T, EDGE_L], "gd163": [(0, 0, 1, 1)
             "gd165": [EDGE_T, EDGE_L, EDGE_R], "gd166": [EDGE_L], "gd167": [(0, 0, 2, 1)],
             "gd169": [EDGE_T, EDGE_L, EDGE_R, EDGE_B]}
 
-# hazards from GDA: spikes keep their shades, black saws are black with a light edge
+# hazards from GDA: spikes keep their shades, black saws are all one colour (GDA's shades speckle)
 SPIKES = {"gd177": ("ONE_POINT_SIX_SPIKE_V", None), "gd178": ("ONE_POINT_SIX_SPIKE_V", "half height"),
           "gd179": ("ONE_POINT_SIX_MEDIUM_SPIKE_V", None)}
 BLACK_SAWS = {"gd183": ("ALT_BIG_OUTLINE_SAW", (8, 8, 32, 32)),      # top left quarter
-              "gd184": ("ALT_MEDIUM_OUTLINE_SAW", None), "gd185": ("ALT_SMALL_OUTLINE_SAW", (12, 4, 20, 28))}
+              "gd184": ("ALT_MEDIUM_OUTLINE_SAW", None), "gd185": ("ALT_SMALL_OUTLINE_SAW", None)}
+# wheels that are not square: on a canvas with room to turn in, the hub in the middle
+# key -> where the hub is in the GDA image
+HUB = {"gd155": (16, 15), "gd184": (16, 16), "gd185": (16, 16)}
+
+
+def on_canvas(key, img):
+    if key not in HUB:
+        return img
+    w, h = GO.OBJECTS[key][2]
+    out = Image.new("L", (w, h))
+    out.paste(img, (w // 2 - HUB[key][0], h // 2 - HUB[key][1]))
+    return out
 
 GREYS = [255, 255, 255, 170, 170, 170, 85, 85, 85, 0, 0, 0]
 
@@ -157,7 +169,7 @@ def main():
         img = gda.sprite_art(names.index(sprite))[0]
         if box:
             img = img.crop(box)
-        save(key, gb_colours(img, key in ("gd129", "gd130", "gd131")))
+        save(key, on_canvas(key, gb_colours(img, key in ("gd129", "gd130", "gd131"))))
     for key, (sprite, box) in SPIKES.items():
         img = gda.sprite_art(names.index(sprite))[0]
         print(key, sprite, img.size, img.getbbox())
@@ -167,8 +179,7 @@ def main():
     for key, (sprite, box) in BLACK_SAWS.items():
         img = gda.sprite_art(names.index(sprite))[0]
         img = img.crop(box) if box else img
-        top = max(img.getdata())
-        save(key, img.point([0 if not c else 2 if c == top else 3 for c in range(256)]))
+        save(key, on_canvas(key, img.point([0 if not c else 3 for c in range(256)])))
 
 
 if __name__ == "__main__":

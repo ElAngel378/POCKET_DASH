@@ -359,7 +359,7 @@
   <properties>
    <property name="name" value="Spiked wheel, three points"/>
   </properties>
-  <image width="32" height="24" source="tiles/gd155.png"/>
+  <image width="40" height="40" source="tiles/gd155.png"/>
  </tile>
  <tile id="157" type="gd157">
   <properties>
@@ -509,13 +509,13 @@
   <properties>
    <property name="name" value="Black saw, medium"/>
   </properties>
-  <image width="32" height="32" source="tiles/gd184.png"/>
+  <image width="40" height="40" source="tiles/gd184.png"/>
  </tile>
  <tile id="185" type="gd185">
   <properties>
    <property name="name" value="Black saw, small"/>
   </properties>
-  <image width="8" height="24" source="tiles/gd185.png"/>
+  <image width="24" height="24" source="tiles/gd185.png"/>
  </tile>
  <tile id="186" type="gd186">
   <properties>

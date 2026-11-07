@@ -22,6 +22,7 @@ uint8_t bg_rj_x, bg_rj_y;
 uint8_t bg_rj_tiles[2 * 2 * BG_RJ_SLOTS];
 uint8_t bg_rj_attrs[2 * 2 * BG_RJ_SLOTS];
 volatile uint8_t bg_saw_pending;
+uint8_t bg_saw_vbk;     // VRAM bank of the chunk (saws: 1; spinning objects, bg_stream.c: 0)
 uint8_t bg_saw_bank, bg_saw_blocks;
 const uint8_t *bg_saw_src;
 uint16_t bg_saw_dst;
@@ -520,7 +521,7 @@ void bg_parallax_vbl_isr(void) {
 static void saw_gdma(void) {
     uint8_t prev_b = _current_bank;
     SWITCH_ROM(bg_saw_bank);
-    VBK_REG = 1;
+    VBK_REG = bg_saw_vbk;
     HDMA1_REG = (uint8_t)((uint16_t)bg_saw_src >> 8);
     HDMA2_REG = (uint8_t)((uint16_t)bg_saw_src & 0xF0);
     HDMA3_REG = (uint8_t)((bg_saw_dst >> 8) & 0x1F);

@@ -595,4 +595,6 @@ def build_all():
     print("\n=== Level Pipeline Completed Successfully! ===")
 
 if __name__ == "__main__":
-    build_all()
+    from keep_mtimes import keep_unchanged
+    with keep_unchanged():
+        build_all()

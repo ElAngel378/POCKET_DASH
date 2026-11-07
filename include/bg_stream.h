@@ -15,6 +15,10 @@ extern volatile uint8_t bs_up_i, bs_up_n;
 extern uint8_t bs_up_slot[BS_UP_MAX];
 extern uint8_t bs_up_buf[BS_UP_MAX * 16];
 
+// Spinning objects share the saws' VBlank DMA (only while the saws are idle: saw_anim_request)
+extern uint8_t bs_spin_n;    // the level's spinning tiles (CGB; 0: none)
+void bg_stream_spin(void) BANKED;
+
 // The calls below are banked: callers check these first, so a frame with nothing to stream pays
 // nothing (DMG frames are full)
 extern uint8_t bs_q_n;       // tiles queued for bg_stream_feed
