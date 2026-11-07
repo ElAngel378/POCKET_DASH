@@ -166,7 +166,7 @@ level: no stall of 2 frames or more, CGB and DMG, running or jumping.
 
 The 15 objects without art are in with GDA's art for now (your call, 2026-11-06; `import_gda_art.py`):
 spiky art 151–153, spiked wheels 154 (a quarter), 155, cart wheels 180 (a quarter), 181, 182, chain
-art 190 (decoration); ice spikes 177–179, black saws 183 (a quarter), 184, 185 (deadly). 178 is GDA's
+art 190 (decoration, all in the player colour: colour 3 of palette 2); ice spikes 177–179, black saws 183 (a quarter), 184, 185 (deadly). 178 is GDA's
 spike squashed: GDA has no low wide one. Every object of the official levels now has art. GD's 1.0
 deco spikes 18–21 stay sprites 46–49.
 

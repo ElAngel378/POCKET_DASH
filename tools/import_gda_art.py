@@ -95,11 +95,19 @@ BLACK_SAWS = {"gd183": ("ALT_BIG_OUTLINE_SAW", (8, 8, 32, 32)),      # top left 
 GREYS = [255, 255, 255, 170, 170, 170, 85, 85, 85, 0, 0, 0]
 
 
-def gb_colours(img):
-    """GDA decoration colours -> GB: its brightest colour (or its only one) 3, the rest 1"""
+def gb_colours(img, dither=False):
+    """GDA decoration -> GB: all of it in colour 3 (the decoration palette's player colour).
+    dither (clouds): GDA's other shades become a checkerboard, their soft lower edge"""
     used = sorted(set(img.getdata()) - {0})
     top = used[-1] if used else 0
-    return img.point([0 if not c else 3 if c == top else 1 for c in range(256)])
+    out = img.point([0 if not c else 3 for c in range(256)])
+    if dither:
+        src, px = img.load(), out.load()
+        for y in range(img.height):
+            for x in range(img.width):
+                if src[x, y] and src[x, y] != top and (x + y) & 1:
+                    px[x, y] = 0
+    return out
 
 
 def chr_sheet(name, nes):
@@ -149,7 +157,7 @@ def main():
         img = gda.sprite_art(names.index(sprite))[0]
         if box:
             img = img.crop(box)
-        save(key, gb_colours(img))
+        save(key, gb_colours(img, key in ("gd129", "gd130", "gd131")))
     for key, (sprite, box) in SPIKES.items():
         img = gda.sprite_art(names.index(sprite))[0]
         print(key, sprite, img.size, img.getbbox())
