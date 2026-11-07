@@ -103,19 +103,25 @@ class Stream:
             return tuple(tuple(f) for f in q) if len(q) == SPIN_FRAMES else tuple(q)
         self.mq = {m: [quarter_of(q) for q in novel[m]["cgb" if cgb else "dmg"]] if m in novel
                    else quarters(art, name, m, cgb, big_saw) for m in used}
-        # the tiles that change as objects spin keep a slot for the whole level; past SPIN_MAX they
-        # stand still
-        moving, over = [], False
-        for m in dict.fromkeys(m for col in grid for m in col):      # from the left of the level
-            for q, px in enumerate(self.mq[m]):
-                if px is not None and len(px) == SPIN_FRAMES:
-                    if px not in moving and len(moving) >= spin_max:
-                        if not over:
-                            print("  %s: more than %d spinning tiles, the rest stands still" % (name, spin_max))
-                        over = True
-                        self.mq[m][q] = px[0]
-                    elif px not in moving:
-                        moving.append(px)
+        # The tiles that change as objects spin keep a slot for the whole level. An object spins
+        # whole or not at all (a wheel half turning looks broken): they are taken from the left of
+        # the level while they fit, the others stand still
+        moving, tiles_of = [], {}
+        for m in dict.fromkeys(m for col in grid for m in col):
+            if m in novel and cgb:
+                for key in novel[m].get("spin", ()):
+                    for px in self.mq[m]:
+                        if px is not None and len(px) == SPIN_FRAMES:
+                            tiles_of.setdefault(key, {})[px] = 1
+        for key, tiles in tiles_of.items():
+            new = [px for px in tiles if px not in moving]
+            if len(moving) + len(new) <= spin_max:
+                moving += new
+            else:
+                print("  %s: no room for %s to spin (%d tiles, %d of %d used)" % (name, key, len(new), len(moving), spin_max))
+        for m in used:
+            self.mq[m] = [px[0] if px is not None and len(px) == SPIN_FRAMES and px not in moving else px
+                          for px in self.mq[m]]
         pool, index = [], {}
         self.uses = {}          # pool tile -> [(metatile, quarter)]
         for m in used:

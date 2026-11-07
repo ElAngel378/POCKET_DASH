@@ -244,7 +244,7 @@ class Composer:
 
     def make(self, name, grid, novel, lookup):
         """novel: [(cx, cy, parts bottom to top)] -> fills grid, returns (metatiles {id: (cgb quarters,
-        dmg quarters, collision, CGB palette)}, warnings). The level's collision and palette tables
+        dmg quarters, collision, CGB palette, spinning objects in it)}, warnings). The level's collision and palette tables
         hold them (tools/build_bg_tiles.py), so any id the level does not use will do."""
         used = {m for row in grid for m in row if m >= 0}
         cells, out, warn = {}, {}, []
@@ -263,6 +263,6 @@ class Composer:
                                      % (name, cx, cy))
                 m = free.pop(0)
                 cells[k] = m
-                out[m] = (k[0], k[1], col, pal)
+                out[m] = (k[0], k[1], col, pal, sorted({p[0] for p in parts if p[0] in self.spin}))
             grid[cy][cx] = cells[k]
         return out, warn

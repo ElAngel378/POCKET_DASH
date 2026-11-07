@@ -175,7 +175,10 @@ their art by a part of their rotational symmetry (3 frames), `compose.spin_look`
 in each frame, so overlaps spin too. Tiles that change get pinned BG slots from 28 for the whole level
 (at most 52, from the left of the level; the rest stands still). `bg_stream_spin` uploads the next
 frame in chunks of 13 tiles through the saws' VBlank DMA, while the saws are idle. It pauses during
-palette fades (no VBlank time left). Quarter pieces must be rotated in Tiled, not flipped. The empty
+palette fades (no VBlank time left). Quarter pieces must be rotated in Tiled, not flipped. An object spins whole or not at all; the build log says which got no room.
+
+Colours as GDA's: most decorations player colour 1 (palette 2), rings, cart wheels and chains 106, 107,
+190 player colour 2 (palette 6, `DRAWN_P2`), hazards object colour, white (palette 0). The empty
 quarters of a level's own metatiles are records now (the old list's count was one byte).
 
 Builds: `tools/keep_mtimes.py` gives unchanged generated files their old time back, so make only

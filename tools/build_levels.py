@@ -155,7 +155,7 @@ def export_binary_map(tmx_path, out_bin_path):
     # collision (a quarter: 64 pixels, or null = empty)
     side = Path(out_bin_path).with_name(Path(out_bin_path).stem + "_novel.json")
     if novel:
-        side.write_text(json.dumps({str(m): {"cgb": v[0], "dmg": v[1], "col": v[2], "pal": v[3]} for m, v in sorted(novel.items())}))
+        side.write_text(json.dumps({str(m): {"cgb": v[0], "dmg": v[1], "col": v[2], "pal": v[3], "spin": v[4]} for m, v in sorted(novel.items())}))
     elif side.exists():
         side.unlink()
 

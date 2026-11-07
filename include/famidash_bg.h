@@ -40,7 +40,8 @@ void famidash_apply_g_trigger(uint8_t color_id, uint8_t time) BANKED;
 void famidash_reset_bg_palettes(uint8_t idx) BANKED;
 
 // Colour of the background decorations (BG palette 2 colour 3): the cube's colour 1
-void famidash_set_bg_accent(palette_color_t c) BANKED;
+void famidash_set_bg_accent(palette_color_t c, palette_color_t c2) BANKED;
+extern palette_color_t famidash_bg_accent2;
 
 inline static void famidash_apply_palettes(void) {
     if (_cpu == CGB_TYPE && famidash_bkg_palettes_dirty) {

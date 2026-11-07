@@ -40,7 +40,7 @@ static void apply_custom_player_palette(void) {
         custom_pal[2] = icon_color(selected_color_primary);
         custom_pal[3] = RGB8(0, 0, 0);
         fade_set_sprite_palette(0, 1, custom_pal);
-        famidash_set_bg_accent(custom_pal[2]);   // the background decorations too
+        famidash_set_bg_accent(custom_pal[2], custom_pal[1]);   // the background decorations too
     }
 }
 #include "pause_buttons.h"
@@ -1194,7 +1194,7 @@ static void practice_respawn(uint8_t idx) {
         load_menu_ground_tiles();
         flush_ground_row();
         famidash_bg_set_now(cp->bg_palettes);
-        set_bkg_palette(0, 6, shadow_bkg_palettes);
+        set_bkg_palette(0, 7, shadow_bkg_palettes);
         fade_set_sprite_palette(0, 8, gbc_sprite_palettes);
         apply_custom_player_palette();
     } else {

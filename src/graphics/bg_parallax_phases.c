@@ -169,6 +169,19 @@ static void upload_palette(void) __naked {
         .rept 4
         ldh     (c), a
         .endm
+        ; palette 6: sky, darker sky, black, the cube's colour 2
+        ld      hl, #_famidash_bg_palettes
+        .rept 4
+        ld      a, (hl+)
+        ldh     (c), a
+        .endm
+        xor     a, a
+        ldh     (c), a
+        ldh     (c), a
+        ld      a, (_famidash_bg_accent2)
+        ldh     (c), a
+        ld      a, (_famidash_bg_accent2 + 1)
+        ldh     (c), a
         ret
     __endasm;
 }
@@ -363,10 +376,10 @@ static void bs_upload(void) __naked {
 
 // VBlank interrupt handler: latches scroll, runs the requested parallax GDMA and
 // the requested map uploads, in that order.
-#ifdef DEBUG_PROFILE
+#if defined(DEBUG_PROFILE) && !defined(PROF_NO_MARKS)
 extern volatile uint8_t gpmark;
 #endif
-#ifdef DEBUG_PROFILE
+#if defined(DEBUG_PROFILE) && !defined(PROF_NO_MARKS)
 // tools: VBlank uploads put off to the next VBlank for lack of time
 volatile uint16_t gp_gdma_late, gp_rj_late;
 #endif
@@ -380,7 +393,7 @@ static void parallax_try(void) {
         bg_gdma_pending = 0;
         parallax_gdma(bg_gdma_phase);
     }
-#ifdef DEBUG_PROFILE
+#if defined(DEBUG_PROFILE) && !defined(PROF_NO_MARKS)
     else gp_gdma_late++;
 #endif
 }
@@ -388,7 +401,7 @@ static void parallax_try(void) {
 #define PARALLAX_TRY() do { if (bg_gdma_pending) parallax_try(); } while (0)
 
 void bg_parallax_vbl_isr(void) {
-#ifdef DEBUG_PROFILE
+#if defined(DEBUG_PROFILE) && !defined(PROF_NO_MARKS)
     uint8_t prof_prev = gpmark;
     gpmark = 21;   // tools/profile.py: "VBlank handler"
 #endif
@@ -470,7 +483,7 @@ void bg_parallax_vbl_isr(void) {
             }
             bg_rj_pending = 0;
         }
-#ifdef DEBUG_PROFILE
+#if defined(DEBUG_PROFILE) && !defined(PROF_NO_MARKS)
         else if (bg_rj_pending && !bg_cj_pending) gp_rj_late++;
 #endif
     }
@@ -513,7 +526,7 @@ void bg_parallax_vbl_isr(void) {
     VBK_REG = vbk;
     // last: the music ticks put off so as not to delay this handler (main.c)
     if (music_vbl_ticks) music_vbl_run();
-#ifdef DEBUG_PROFILE
+#if defined(DEBUG_PROFILE) && !defined(PROF_NO_MARKS)
     gpmark = prof_prev;
 #endif
 }

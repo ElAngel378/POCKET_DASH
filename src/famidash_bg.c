@@ -136,13 +136,18 @@ static void fade_channels(void) __naked {
     __endasm;
 }
 
-// shadow_bkg_palettes' palette 5 (fake spikes, Famidash PAL_3): sky, darker sky, black, black,
-// from the level palettes (not stored there, see upload_palette)
+// The cube's colour 2: colour 3 of palette 6 (decorations GDA draws in the player's colour 2)
+palette_color_t famidash_bg_accent2 = RGB(0, 31, 31);
+
+// shadow_bkg_palettes' palette 5 (fake spikes, Famidash PAL_3): sky, darker sky, black, black, and
+// palette 6: sky, darker sky, black, accent 2, from the level palettes (not stored there, see
+// upload_palette)
 static void shadow_fake_spike_palette(void) {
-    shadow_bkg_palettes[20] = famidash_bg_palettes[0];
-    shadow_bkg_palettes[21] = famidash_bg_palettes[1];
-    shadow_bkg_palettes[22] = 0;
+    shadow_bkg_palettes[20] = shadow_bkg_palettes[24] = famidash_bg_palettes[0];
+    shadow_bkg_palettes[21] = shadow_bkg_palettes[25] = famidash_bg_palettes[1];
+    shadow_bkg_palettes[22] = shadow_bkg_palettes[26] = 0;
     shadow_bkg_palettes[23] = 0;
+    shadow_bkg_palettes[27] = famidash_bg_accent2;
 }
 
 // Once per frame (CGB): next step of a running fade
@@ -188,7 +193,9 @@ static palette_color_t current_sky_color = RGB( 1,  9, 24);
 // Famidash's player colour in its background palette
 static palette_color_t bg_accent = RGB(15, 31, 0);
 
-void famidash_set_bg_accent(palette_color_t c) BANKED {
+void famidash_set_bg_accent(palette_color_t c, palette_color_t c2) BANKED {
+    famidash_bg_accent2 = c2;
+    shadow_bkg_palettes[27] = c2;
     bg_accent = c;
     famidash_bg_target[11] = c;
     famidash_bg_palettes[11] = c;
@@ -305,7 +312,7 @@ void famidash_reset_bg_palettes(uint8_t idx) BANKED {
         // through the fade module: it fades what it knows (it only dimmed the sprites leaving a
         // level, and the level popped in at full brightness after the fade in)
         fade_set_bkg_palette(0, 5, famidash_bg_palettes);
-        fade_set_bkg_palette(5, 1, &shadow_bkg_palettes[20]);
+        fade_set_bkg_palette(5, 2, &shadow_bkg_palettes[20]);
     }
     famidash_bkg_palettes_dirty = 0;
 }
