@@ -206,7 +206,15 @@ shares breaks whole (build warning). They come back on a respawn. Demo: test2, a
 objects. The old port (9fbfc27) rewrote the whole column a few frames later and lost a brick when
 two broke close together.
 
-Still to do: pulsing.
+Pulsing: the ring and heart (your GDP_Pulsing_Obj.chr) as decoration sprites, engine ids 65, 66.
+
+GDA comparison done 2026-11-07 (tools/gda_compare.py, test and test2 built in GDA): colours match
+after moving clouds 1-2 and the pulsing shapes to player colour 2. Known differences, accepted:
+the fade zone is scaled to our screen, not placed relative to the cube as GDA; colour triggers
+fire a little earlier; 1.6 block pieces and light lines have no exact GDA object.
+
+**Phase 4 done** (user approved 2026-11-07). Left over: black spots on some saws, untested
+cases (fading / bricks with mirror portals, pause, level complete).
 
 Order agreed 2026-11-07: spinning, hitboxes, fading, breakable bricks, pulsing last. Fading and
 breakable bricks exist in the old code (main's history, gda-objects): review that it is good and worth
