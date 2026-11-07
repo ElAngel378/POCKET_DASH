@@ -184,7 +184,10 @@ quarters of a level's own metatiles are records now (the old list's count was on
 Builds: `tools/keep_mtimes.py` gives unchanged generated files their old time back, so make only
 compiles what changed.
 
-Still to do: hitboxes for ice spikes and saws, fading, breakable bricks, pulsing.
+Hitboxes: ice spikes collide like spikes (`HIT_LIKE`), saws by GDA's circles, as the 8x8 quarters
+inside them (`HIT_RADIUS`, GDA's radii). No new engine code.
+
+Still to do: fading, breakable bricks, pulsing.
 
 Order agreed 2026-11-07: spinning, hitboxes, fading, breakable bricks, pulsing last. Fading and
 breakable bricks exist in the old code (main's history, gda-objects): review that it is good and worth

@@ -155,6 +155,10 @@ SPIN = {"gd85": 4, "gd86": 1, "gd87": 1, "gd97": 1, "gd137": 2, "gd138": 1, "gd1
         "gd155": 1, "gd180": 4, "gd181": 1, "gd182": 1, "gd183": 4, "gd184": 1, "gd185": 1, "gd186": 4,
         "gd187": 1, "gd188": 1}
 SPIN_FRAMES = 3
+# Hitboxes. Ice spikes collide like these spikes (key -> key, dy to add when not turned):
+HIT_LIKE = {"gd177": ("gd8", 0), "gd178": ("gd39", -8), "gd179": ("gd39", 0)}
+# Saws are GDA's circles, radius in px: the 8x8 quarters of the object inside it are deadly
+HIT_RADIUS = {"gd183": 8, "gd184": 10, "gd185": 2, "gd186": 16, "gd187": 12, "gd188": 8}
 # Black is colour 2 on CGB, 3 on DMG, and an outline on it the other way round: the files hold the
 # CGB colours, DMG swaps 2 and 3 in these
 DMG_SWAP = {"gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd167", "gd169", "gd183", "gd184",

@@ -209,11 +209,33 @@ class Composer:
         hit = [p for p in parts if self.kind[p[0]] != "none"]
         return self.opal.get((hit or parts)[-1][0], 0)
 
+    def in_radius(self, key, tf, qx, qy):
+        """Is quarter (qx, qy) of a placed saw inside its hitbox (GO.HIT_RADIUS)? Its centre is the
+        wheel's: the object's middle, or the inner corner of a piece"""
+        w, h = GO.OBJECTS[key][2]
+        pieces = GO.SPIN.get(key, 1)
+        cx, cy = (w, h) if pieces == 4 else (w / 2, h / 2)
+        fl = flags_of(tf)
+        if fl & GO.FLIP_D:
+            cx, cy, w, h = cy, cx, h, w
+        if fl & GO.FLIP_H:
+            cx = w - cx
+        if fl & GO.FLIP_V:
+            cy = h - cy
+        d = ((qx * 8 + 4 - cx) ** 2 + (qy * 8 + 4 - cy) ** 2) ** 0.5
+        return d <= max(GO.HIT_RADIUS[key] + 2, 6)
+
     def collision(self, parts, lookup):
         hit = [p for p in parts if self.kind[p[0]] != "none"]
         if not hit:
             return 0, None
-        found = lookup(frozenset(hit))
+        like = []
+        for key, dx, dy, tf in hit:
+            if key in GO.HIT_LIKE:
+                key, shift = GO.HIT_LIKE[key]
+                dy += 0 if tf else shift
+            like.append((key, dx, dy, tf))
+        found = lookup(frozenset(like))
         if len(found) == 1:
             return self.t.col[found[0]], None
         if any(self.kind[p[0]] == "special" for p in hit):
@@ -221,6 +243,8 @@ class Composer:
         solid = deadly = 0
         for key, dx, dy, tf in hit:
             for qx, qy in self.LO.mask(key, flags_of(tf)):
+                if key in GO.HIT_RADIUS and not self.in_radius(key, tf, qx, qy):
+                    continue
                 cx, cy = (dx + 8 * qx) // 8, (dy + 8 * qy) // 8
                 if 0 <= cx < 2 and 0 <= cy < 2:
                     bit = 1 << (cx + 2 * cy)
@@ -229,6 +253,8 @@ class Composer:
                     else:
                         deadly |= bit
         deadly &= ~solid
+        if not solid and not deadly:
+            return 0, None      # e.g. a saw's corner, outside its circle
         if solid == 15:
             return COL_ALL, None
         if deadly == 15 and not solid:
