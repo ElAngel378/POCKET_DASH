@@ -19,10 +19,17 @@ extern uint8_t bs_up_buf[BS_UP_MAX * 16];
 extern uint8_t bs_spin_n;    // the level's spinning tiles (CGB; 0: none)
 void bg_stream_spin(void) BANKED;
 
+// Breakable bricks (bg_stream.c): broken ones read as empty until broken_reset (level start, respawn)
+extern uint8_t broken_n;
+void broken_reset(void) BANKED;
+void brick_break(uint16_t col, uint8_t row) BANKED;
+void broken_fix_ring(uint16_t col, uint8_t *ids) BANKED;
+void player_columns_load(uint16_t col) BANKED;
+
 // Fading objects (bg_stream.c)
 extern uint8_t fade_n;
 void fade_hide(uint16_t col, uint8_t *ids, uint8_t n) BANKED;
-void fade_row(uint8_t first, uint8_t n, uint16_t loaded_r, uint8_t reversed, uint8_t *ids) BANKED;
+void fade_row(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r, uint8_t reversed, uint8_t *ids) BANKED;
 uint8_t col_job_next(void) BANKED;
 void fade_reset_view(void) BANKED;
 void fade_update(uint8_t scx) BANKED;

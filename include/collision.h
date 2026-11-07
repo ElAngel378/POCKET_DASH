@@ -23,6 +23,7 @@
 #define COL_PAD_MAGENTA  0x0F  // Magenta Pad (Small Jump)
 #define COL_DEATH_TOP_HALF    0x10  // Deadly in bottom half (spike points up)
 #define COL_DEATH_BOTTOM_HALF 0x11  // Deadly in top half (spike points down)
+#define COL_BREAKABLE    0x16  // Solid, but breaks where a block would kill the player (brick_break)
 // Quarter-tile spikes (one half of a spike split over two tiles, 8px tall).
 // bit0 = right half, bit2 = top half. The metatile table stores these; the
 // collision lookups turn them into COL_DEATH_LEFT/RIGHT (x half is checked by

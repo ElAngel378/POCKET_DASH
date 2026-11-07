@@ -9,6 +9,7 @@
 #include <gb/gb.h>
 #include <stdint.h>
 #include "bg_stream.h"
+#include "player.h"
 #include "furplayer.h"
 #include "bg_stream_tables.h"
 #include "bg_parallax.h"
@@ -205,6 +206,50 @@ extern uint16_t loaded_r, level_map_w, col_job_col;
 extern const uint8_t *level_map;
 extern uint8_t level_map_bank, view_rev;
 
+// Breakable bricks, as Geometry Dash Advance's (collision.c BREAKABLE_BRICK): solid, except that the
+// player's centre breaks them, here the wall probe that dies on a block (player.c). The map is in
+// ROM, so the last BROKEN_MAX broken cells are kept and every map fetch reads them as empty. Only
+// the ring's columns matter and the player breaks at most about one a column, behind it the ring
+// holds fewer than BROKEN_MAX columns. The whole cell goes, with any object sharing it.
+#define BROKEN_MAX 8u
+static uint16_t broken_col[BROKEN_MAX];
+static uint8_t broken_row[BROKEN_MAX];
+uint8_t broken_n;
+static uint8_t broken_next, broken_todo;    // the next one to replace; a bit each: not drawn yet
+extern uint16_t cached_collision_col;
+extern uint8_t collision_columns[32];
+
+void broken_reset(void) BANKED {
+    broken_n = broken_next = broken_todo = 0;
+}
+
+void brick_break(uint16_t col, uint8_t row) BANKED {
+    broken_col[broken_next] = col;
+    broken_row[broken_next] = row;
+    broken_todo |= (uint8_t)(1u << broken_next);
+    broken_next = (uint8_t)((broken_next + 1u) & (BROKEN_MAX - 1u));
+    if (broken_n < BROKEN_MAX) broken_n++;
+    cached_collision_col = 0xFFFF;      // the player's columns: read again next frame
+}
+
+// Column col's 16 ring rows (ids[k] is the row of the band with row & 15 == k)
+void broken_fix_ring(uint16_t col, uint8_t *ids) BANKED {
+    for (uint8_t i = 0; i < broken_n; i++) {
+        if (broken_col[i] == col && (uint8_t)(broken_row[i] - mt_band) < 16u) ids[broken_row[i] & 15u] = 0;
+    }
+}
+
+// The player's two columns from col (here to save room in gameplay.c's bank)
+void player_columns_load(uint16_t col) BANKED {
+    uint8_t row0 = (uint8_t)(player.y_base >> 4);
+    load_collision_columns(col, level_map, level_map_w, level_map_bank, collision_columns, row0);
+    for (uint8_t i = 0; i < broken_n; i++) {
+        uint16_t c = broken_col[i] - col;
+        uint8_t r = (uint8_t)(broken_row[i] - row0);
+        if (c < 2u && r < 16u) collision_columns[(uint8_t)(c << 4) + r] = 0;
+    }
+}
+
 // Fading objects, as Geometry Dash Advance draws them (level_routines.c handle_fading_blocks): by
 // the cell's place on the screen, full at the edges, faded in the middle, back to full behind the
 // player. No state to go wrong: a checkpoint, a respawn or a mirror portal only asks where a column
@@ -220,10 +265,12 @@ extern uint8_t level_map_bank, view_rev;
 void fade_reset_view(void) BANKED {
     bg_fj_n = 0;
     fade_unknown = fade_any = 0xFFFFu;
+    broken_todo = (uint8_t)(0xFFu >> (uint8_t)(BROKEN_MAX - broken_n));   // (it may have been a brick)
 }
 
 // Column col's ids go to its ring slot, drawn full (a column comes in off the screen)
 void fade_hide(uint16_t col, uint8_t *ids, uint8_t n) BANKED {
+    broken_fix_ring(col, ids);
     uint16_t bit = (uint16_t)1 << ((uint8_t)col & 15u);
     fade_on &= ~bit;
     fade_unknown &= ~bit;
@@ -235,8 +282,13 @@ void fade_hide(uint16_t col, uint8_t *ids, uint8_t n) BANKED {
 }
 
 // A row of ring slots: each cell at its slot's look
-void fade_row(uint8_t first, uint8_t n, uint16_t loaded_r, uint8_t reversed, uint8_t *ids) BANKED {
-    (void)loaded_r;
+void fade_row(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r, uint8_t reversed, uint8_t *ids) BANKED {
+    for (uint8_t b = 0; b < broken_n; b++) {
+        uint16_t c = broken_col[b];
+        if (broken_row[b] != row || c > loaded_r || c + 15u < loaded_r) continue;
+        uint8_t k = (uint8_t)(((reversed ? (uint8_t)-(int8_t)c : (uint8_t)c) - first) & 15u);
+        if (k < n) ids[k] = 0;
+    }
     for (uint8_t i = 0; i < n; i++) {
         if (!IS_FADE(ids[i])) continue;
         uint8_t s = (uint8_t)(first + i);
@@ -248,9 +300,9 @@ void fade_row(uint8_t first, uint8_t n, uint16_t loaded_r, uint8_t reversed, uin
 }
 
 // The cell job's list from the cells built in mj_out (row r: tiles at 4r, attributes at 64 + 4r) of
-// the rows set in `rows`: per cell its row and the 4 bytes the handler writes (CGB attributes, the
-// tiles are the same; DMG tiles), packed over bytes already read: CGB from mj_out up, DMG from
-// mj_out + 128 down.
+// the rows set in `rows`: per cell its row (bit 7: VRAM bank 1) and the 4 bytes the handler writes
+// (CGB attributes, the tiles are the same; DMG tiles), packed over bytes already read: CGB from
+// mj_out up, DMG from mj_out + 128 down.
 static void fade_pack(uint16_t rows) {
     uint8_t n = 0;
     if (bg_gdma_isr_on) {
@@ -258,7 +310,7 @@ static void fade_pack(uint16_t rows) {
         for (uint8_t r = 0; r < 16u; r++, rows >>= 1) {
             if (!(rows & 1u)) continue;
             const uint8_t *a = mj_out + 64u + (uint8_t)(r << 2);
-            e[0] = r; e[1] = a[0]; e[2] = a[1]; e[3] = a[2]; e[4] = a[3];
+            e[0] = r | 0x80u; e[1] = a[0]; e[2] = a[1]; e[3] = a[2]; e[4] = a[3];
             e += 5; n++;
         }
         bg_fj_start = 0;
@@ -276,10 +328,40 @@ static void fade_pack(uint16_t rows) {
     bg_fj_n = n;
 }
 
+// The next broken brick still on the screen goes to the cell job, its tiles and on CGB its
+// attributes (a brick is gone as soon as it is hit: no column rewrite to wait for). After any row
+// job: a slice taken before the hit would draw it again. Returns 1 if there is a job.
+static uint8_t brick_cell(void) {
+    for (uint8_t i = 0, bit = 1; i < broken_n; i++, bit <<= 1) {
+        if (!(broken_todo & bit)) continue;
+        broken_todo &= (uint8_t)~bit;
+        uint16_t c = broken_col[i];
+        uint8_t row = broken_row[i];
+        if ((uint8_t)(row - mt_band) >= 16u || c > loaded_r || c + 15u < loaded_r || c >= level_map_w) continue;
+        uint8_t reversed = view_rev, r = row & 15u;
+        get_map_column(c, level_map, level_map_bank, mj_col, mt_band);
+        broken_fix_ring(c, mj_col);
+        fade_build(c, reversed, r, (uint8_t)(r + 1u));
+        const uint8_t *t = mj_out + (uint8_t)(r << 2);
+        uint8_t cell[8];
+        for (uint8_t k = 0; k < 8u; k++) cell[k] = (k < 4u) ? t[k] : t[60u + k];
+        uint8_t *e = mj_out;
+        e[0] = r; e[1] = cell[0]; e[2] = cell[1]; e[3] = cell[2]; e[4] = cell[3];
+        e[5] = r | 0x80u; e[6] = cell[4]; e[7] = cell[5]; e[8] = cell[6]; e[9] = cell[7];
+        bg_fj_x = (uint8_t)(((reversed ? (uint8_t)-(int8_t)c : (uint8_t)c) & 15u) << 1);
+        bg_fj_start = 0;
+        bg_fj_n = bg_gdma_isr_on ? 2u : 1u;
+        return 1;
+    }
+    return 0;
+}
+
 // Once a frame in levels with fading objects: the first ring slot whose cells are not at the look
 // for where it is now gets them rewritten, by the VBlank handler. One slot at a time.
 void fade_update(uint8_t scx) BANKED {
     if (bg_fj_n) return;
+    if (broken_todo && !bg_rj_pending && brick_cell()) return;
+    if (!fade_n) return;
     uint8_t reversed = view_rev;
     uint16_t want = 0, bit = 1;
     for (uint8_t s = 0; s < 16u; s++, bit <<= 1) {
@@ -300,6 +382,7 @@ void fade_update(uint8_t scx) BANKED {
     uint8_t lo = 0, hi = 0;
     if (c < level_map_w) {
         get_map_column(c, level_map, level_map_bank, mj_col, mt_band);
+        broken_fix_ring(c, mj_col);
         for (uint8_t r = 0; r < BKG_MT_H; r++, rb <<= 1) {
             if (!IS_FADE(mj_col[r])) continue;
             if (on) mj_col[r] += fade_n;
@@ -319,7 +402,7 @@ void fade_update(uint8_t scx) BANKED {
 
 // The VBlank handler (bank switched in): the list's cells, from the last one, to map column bg_fj_x
 // of the BG map shown while LY is 144 .. ly_end - 1 (a cell takes well under a line); leaves bg_fj_n
-// at the cells not written. VRAM bank: CGB 1 (attributes), DMG 0 (tiles).
+// at the cells not written.
 BANKREF(fade_cells_copy)
 void fade_cells_copy(uint8_t ly_end) __naked {
     (void)ly_end;
@@ -329,8 +412,6 @@ void fade_cells_copy(uint8_t ly_end) __naked {
         or      a, a
         ret     Z
         ld      d, a                    ; d = cells left: entries 0 .. d - 1
-        ld      a, (_bg_gdma_isr_on)
-        ldh     (_VBK_REG + 0), a
         ldh     a, (_LCDC_REG + 0)
         and     a, #0x08                ; the map shown: 0x9800, or 0x9C00 when set
         rrca
@@ -358,6 +439,10 @@ void fade_cells_copy(uint8_t ly_end) __naked {
         cp      a, e
         jr      NC, 9$
         push    de
+        ld      a, (hl)                 ; bit 7: VRAM bank (DMG: never set)
+        rlca
+        and     a, #1
+        ldh     (_VBK_REG + 0), a
         ld      a, (hl+)                ; r
         rrca
         rrca

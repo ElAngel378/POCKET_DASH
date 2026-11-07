@@ -810,7 +810,7 @@ void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, u
     BG_STREAM_TO(map_col);
     cur_map_col = map_col;
     get_map_column(map_col, map, map_bank, col_buf, mt_band);
-    if (fade_n) fade_hide(map_col, col_buf, BKG_MT_H);
+    if (fade_n | broken_n) fade_hide(map_col, col_buf, BKG_MT_H);
     build_mt_rows(map_col, col_buf, metatile_column_buf, reversed, 0, BKG_MT_H);
 }
 
@@ -828,7 +828,7 @@ void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_b
         BG_STREAM_TO(map_col);
         cur_map_col = map_col;
         get_map_column(map_col, map, map_bank, col_buf, mt_band);
-        if (fade_n) fade_hide(map_col, col_buf, BKG_MT_H);
+        if (fade_n | broken_n) fade_hide(map_col, col_buf, BKG_MT_H);
     }
     PROF_MARK(12);
 #ifdef DEBUG_PROFILE_NOINT
@@ -847,7 +847,7 @@ void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_b
 // column is rebuilt).
 void refetch_mt_column(const uint8_t* map, uint8_t map_bank) BANKED {
     get_map_column(cur_map_col, map, map_bank, col_buf, mt_band);
-    if (fade_n) fade_hide(cur_map_col, col_buf, BKG_MT_H);
+    if (fade_n | broken_n) fade_hide(cur_map_col, col_buf, BKG_MT_H);
 }
 
 // Display off: the 2 x 32 bytes at fc_src to the 2 map columns at fc_dst (32 rows, 32 bytes apart)
@@ -1132,7 +1132,7 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
     if (_cpu != CGB_TYPE) {
         // DMG: tiles straight from the metatile table (no attributes, parallax or saw tiles)
         get_map_row_slots(first, n, row, loaded_r, reversed, map, map_w, map_bank, rt_ids);
-        if (fade_n) fade_row(first, n, loaded_r, reversed, rt_ids);
+        if (fade_n | broken_n) fade_row(first, n, row, loaded_r, reversed, rt_ids);
         rt_n = n;
         rt_mt = mt_table[0];
         row_tiles_dmg();
@@ -1152,7 +1152,7 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
         return;
     }
     get_map_row_slots(first, n, row, loaded_r, reversed, map, map_w, map_bank, rt_ids);
-    if (fade_n) fade_row(first, n, loaded_r, reversed, rt_ids);
+    if (fade_n | broken_n) fade_row(first, n, row, loaded_r, reversed, rt_ids);
     uint8_t r0 = row_ty0[row];
     rt_n = n;
     rt_mt = mt_table[0];
@@ -1348,6 +1348,7 @@ void mj_build_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uin
     uint8_t slot = (uint8_t)(map_col & 15u);
     if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
     get_map_column(map_col, map, map_bank, mj_col, mt_band);
+    if (broken_n) broken_fix_ring(map_col, mj_col);
     build_mt_rows(map_col, mj_col, mj_out, reversed, 0, BKG_MT_H);
     uint8_t *dst = (uint8_t *)((uint16_t)map_hi << 8) + (uint8_t)(slot << 1);
     VBK_REG = 0;

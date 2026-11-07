@@ -198,7 +198,15 @@ and respawns just ask where a column is. One faded step, not GDA's three: palett
 free (palettes 5, 6: fake spikes, player colour 2). Demo: level `test2`. Mirror portals and the pause
 box with faded cells on screen are not tested yet; on the level complete screen palette 7 is text.
 
-Still to do: breakable bricks, pulsing.
+Breakable bricks (gd143, collision COL_BREAKABLE): solid, broken by the wall probe that would kill
+the player on a block (GDA breaks them with the centre hitbox); only on the grid, off it a plain
+solid block. The last 8 broken cells are kept (bg_stream.c) and every map fetch reads them as
+empty; the broken cell is redrawn through the fading cell list on the next VBlank. A cell a brick
+shares breaks whole (build warning). They come back on a respawn. Demo: test2, after the fading
+objects. The old port (9fbfc27) rewrote the whole column a few frames later and lost a brick when
+two broke close together.
+
+Still to do: pulsing.
 
 Order agreed 2026-11-07: spinning, hitboxes, fading, breakable bricks, pulsing last. Fading and
 breakable bricks exist in the old code (main's history, gda-objects): review that it is good and worth

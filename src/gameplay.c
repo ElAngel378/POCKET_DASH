@@ -243,7 +243,7 @@ static uint8_t previous_oam_index;
 static uint16_t sp_stream_idx;
 static uint16_t sp_cache_col;
 static uint8_t sp_fill_pending;
-static uint16_t cached_collision_col;
+uint16_t cached_collision_col;
 uint8_t view_rev;   // the orientation on screen (player.reversed: the one the game is in)
 
 // CGB seamless mirror portal (mt_cgb_flip levels): the mirrored picture is built into the BG map
@@ -537,6 +537,7 @@ static void reload_level_state(uint8_t idx) {
     scroll_acc = 0;
     loaded_r = BKG_MT_W - 1;
     stream_jobs_reset();
+    broken_reset();   // broken bricks come back
     target_bg_idx = dmg_start_bg_idx();
     pause_suppress_jump = 0;
     end_anim_state = END_ANIM_INACTIVE;
@@ -1384,6 +1385,7 @@ void play_level(uint8_t idx) BANKED {
     mt_band = band_for_cam(cam_py, BAND_MAX);
     loaded_r = BKG_MT_W - 1;
     stream_jobs_reset();
+    broken_reset();
     max_scroll_px = ((level_map_w - VIEW_MT_W) << 4);
 
     reduce_flash = (setting_dmg_gradient || sgb_present) ? 0 : 1;   // (SGB: no gradient, it would leave theme 1)
@@ -1630,8 +1632,7 @@ void play_level(uint8_t idx) BANKED {
             }
         }
         if (px_curr != cached_collision_col) {
-            load_collision_columns(px_curr, level_map, level_map_w,
-                                   level_map_bank, collision_columns, (uint8_t)(player.y_base >> 4));
+            player_columns_load(px_curr);
             cached_collision_col = px_curr;
         }
 
@@ -1937,7 +1938,7 @@ void play_level(uint8_t idx) BANKED {
                 row0_job_pos = 0;
                 row0_job_issued = 0;
                 bg_rj_pending = 0;
-                if (fade_n) fade_reset_view();   // (a pending list has rows of the old band)
+                if (fade_n | broken_n) fade_reset_view();   // (a pending list has rows of the old band)
                 if (mj_active) {
                     // the other map needs the row too (two moves before it got the first: rebuild)
                     if (mj_row_pending != 0xFF) mj_next = 0;
@@ -1988,7 +1989,7 @@ void play_level(uint8_t idx) BANKED {
             row0_job_issued = 1;
         }
         // fading objects whose look changed with the scroll
-        if (fade_n && !mj_active && !mj_switched) {
+        if ((fade_n | broken_n) && !mj_active && !mj_switched) {
             fade_update((uint8_t)scroll_px);
         }
         if (bg_gdma_isr_on) {

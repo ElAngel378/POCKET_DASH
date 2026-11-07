@@ -29,6 +29,7 @@ VARIANT_SETS = {None: (None, None), "B": ("B", None), "SB": (None, "B"), "SC": (
 RESERVED = ({0, 12, 24, BG.SAW_CENTER_MT} | set(BG.SAW_METATILES) | BS.CGB_GROUND_LOOK)
 COL_TOP, COL_BOTTOM, COL_ALL, COL_DEATH, COL_QUAD_BASE = 0x05, 0x06, 0x07, 0x08, 0x20
 SOLID_CODES = {0x05, 0x06, 0x07, 0x09}
+COL_BREAKABLE, BRICK = 0x16, "gd143"       # on the grid; off it, a plain solid block
 SPECIAL_CODES = set(range(0x0A, 0x10))   # orbs, pads
 # fills: no collision, but opaque like the blocks they fill
 FADED_PAL = 7       # the faded look of fading cells on CGB (famidash_bg.c): their tiles, nearer the sky
@@ -257,6 +258,8 @@ class Composer:
         if not solid and not deadly:
             return 0, None      # e.g. a saw's corner, outside its circle
         if solid == 15:
+            if any(p[0] == BRICK and not p[1] and not p[2] for p in hit):
+                return COL_BREAKABLE, ("a brick shares its cell: all of it breaks" if len(parts) > 1 else None)
             return COL_ALL, None
         if deadly == 15 and not solid:
             return COL_DEATH, None
