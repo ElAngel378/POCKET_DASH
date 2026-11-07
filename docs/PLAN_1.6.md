@@ -216,6 +216,13 @@ fire a little earlier; 1.6 block pieces and light lines have no exact GDA object
 **Phase 4 done** (user approved 2026-11-07). Left over: black spots on some saws, untested
 cases (fading / bricks with mirror portals, pause, level complete).
 
+To do (found by the user after the push): palettes of the background pieces GDA draws in
+background shades. 1.6 blocks and fills (170-197, 164, 193): GDA light blue / navy from the BG
+colour, ours white / black. 1.6 outlines (161-169), light lines (76-82), wave hills (157-159):
+GDA LBG (light BG), ours white or player colour 1. The GDA check compared palette numbers that
+mean different things (GDA 2 = LBG, ours 2 = player colour). Idea: use the parallax palette (3),
+which has lighter / darker BG shades, with the art remapped; test on CGB and DMG.
+
 Order agreed 2026-11-07: spinning, hitboxes, fading, breakable bricks, pulsing last. Fading and
 breakable bricks exist in the old code (main's history, gda-objects): review that it is good and worth
 taking before porting it.
