@@ -2,8 +2,9 @@
 
 A level's TMX places objects from levels/chr_data/objects/gd_objects.tsx (tools/gd_objects.py) on
 tile layers: one click per object, rotated / flipped with Tiled's own buttons. Objects stack: put
-them on several layers. A layer may be shifted by 8 px (Layer Properties, Offset X / Y = 8): its
-objects sit half a block off the grid, like GD's. The SP layer keeps the sprites.
+them on several layers: a higher number draws on top (Layer 1 under Layer 2 under Layer 3). A layer
+may be shifted by 8 px (Layer Properties, Offset X / Y = 8, named Layer 1 +8x and so on): its objects
+sit half a block off the grid, like GD's. The SP layer keeps the sprites.
 
 For now the game still draws Famidash metatiles: the build turns the objects back into the
 metatile map (compile_tmx), through the table tools/gd_objects.py FAMIDASH.
@@ -435,8 +436,11 @@ def compile_tmx(path, novel=None):
 
 
 def layer_name(ox, oy, n, big=False):
-    nm = ("Big objects" if big else "Objects") + "".join(" %+d%s" % (v, a) for v, a in ((ox, "x"), (oy, "y")) if v)
-    return nm + ("" if not n else " %d" % (n + 1))
+    """Layer 1: objects bigger than a block. Layer 2: the others, Layer 3 where they share a cell.
+    n: how many layers with that offset there are already"""
+    num, extra = (1, n) if big else (2, 0) if not n else (3, n - 1)
+    nm = "Layer %d" % num + "".join(" %+d%s" % (v, a) for v, a in ((ox, "x"), (oy, "y")) if v)
+    return nm + ("" if not extra else " (%d)" % (extra + 1))
 
 
 def object_layers(objs, w, h):
@@ -478,8 +482,8 @@ def add_to_layer(layers, o, w, h, above=False):
 
 
 def stacked(layers):
-    """The layers bottom first: the big objects' layers, then the others"""
-    return [L for L in layers if L[4]] + [L for L in layers if not L[4]]
+    """The layers bottom first: Layer 1, 2, 3"""
+    return sorted(layers, key=lambda L: L[0][:7])
 
 
 def drawn_order(layers):

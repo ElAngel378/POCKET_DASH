@@ -65,7 +65,7 @@ How a level is built now, in Tiled:
 - Stacking: more tile layers. Half a block off the grid: a layer with Offset X or Y = 8 (Layer
   Properties). The converter named them `Objects +8x`, `Objects +8y`, ...; any names work, only the
   `SP` layer is special (sprites, as before).
-- Objects bigger than a block are on `Big objects` layers under the others: where a block and a saw
+- Objects bigger than a block are on `Layer 1` layers under the others: where a block and a saw
   overlap, the block shows (in game too).
 - `template.tmx` has all these layers ready (big objects and objects, each on the grid and +8 px
   in x, y and both, a second objects layer, SP): a new level starts from it. Keep it that way when
