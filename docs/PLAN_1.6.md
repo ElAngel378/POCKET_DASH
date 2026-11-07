@@ -187,12 +187,16 @@ compiles what changed.
 Hitboxes: ice spikes collide like spikes (`HIT_LIKE`), saws by GDA's circles, as the 8x8 quarters
 inside them (`HIT_RADIUS`, GDA's radii). No new engine code.
 
-Fading objects 144–146 (`GO.FADE`, GDA's art): they vanish 40 px ahead of the player and stay solid /
-deadly. A cell with one has a second metatile without it; the cells take a block of ids with the
-hidden looks right after them, so the game needs no table. The column job redraws a column when the
-player reaches it, only when it holds such a cell (`col_job_next`, `fade_hide`, `fade_row` in
-`bg_stream.c`). The old code (a VBlank job per cell, extra palettes) was not ported: costly for 71
-objects, Clubstep only. No half-faded stage; a crash does not reveal them yet.
+Fading objects 144–146 (`GO.FADE`, GDA's art, the block hollow): as GDA draws them, by the cell's
+place on the screen: full at the edges, faded 43–127 px, full again behind the player. They stay
+solid / deadly. A cell with one has a second metatile: on CGB the same tiles in palette 7 (palette 0
+three quarters of the way to the sky), on DMG without the object. The cells take a block of ids with
+the faded looks right after them, so the game needs no table. `fade_update` (`bg_stream.c`) finds one
+ring slot a frame at the wrong look, and the VBlank handler rewrites its cells from a short list
+(`fade_cells_copy`, attributes on CGB, tiles on DMG). Nothing depends on the path taken: checkpoints
+and respawns just ask where a column is. One faded step, not GDA's three: palette 7 is the only one
+free (palettes 5, 6: fake spikes, player colour 2). Demo: level `test2`. Mirror portals and the pause
+box with faded cells on screen are not tested yet; on the level complete screen palette 7 is text.
 
 Still to do: breakable bricks, pulsing.
 

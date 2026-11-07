@@ -149,7 +149,7 @@ DRAWN_KIND.update({k: "deadly" for k in ("gd144", "gd145", "gd177", "gd178", "gd
                                          "gd187", "gd188")})
 # The 1.6 outlines are solid blocks (GDA: COL_FULL) though only their lines are drawn: they fill their
 # whole cell for collision, and what is under them shows
-OUTLINE = {"gd161", "gd162", "gd163", "gd165", "gd166", "gd167", "gd169"}
+OUTLINE = {"gd146", "gd161", "gd162", "gd163", "gd165", "gd166", "gd167", "gd169"}
 DRAWN_KIND.update({k: "solid" for k in OUTLINE})
 # Objects that spin (CGB): key -> how many of them make the whole wheel (1, 2 or 4: rotate them in
 # Tiled, a flipped piece would turn the other way). The build rotates the art (tools/level_objects.py

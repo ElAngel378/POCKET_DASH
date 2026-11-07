@@ -23,7 +23,14 @@ void bg_stream_spin(void) BANKED;
 extern uint8_t fade_n;
 void fade_hide(uint16_t col, uint8_t *ids, uint8_t n) BANKED;
 void fade_row(uint8_t first, uint8_t n, uint16_t loaded_r, uint8_t reversed, uint8_t *ids) BANKED;
-uint16_t col_job_next(uint16_t *cur, uint16_t loaded_r, uint16_t px, const uint8_t *map, uint8_t map_bank) BANKED;
+uint8_t col_job_next(void) BANKED;
+void fade_reset_view(void) BANKED;
+void fade_update(uint8_t scx) BANKED;
+void fade_cells_copy(uint8_t ly_end);
+BANKREF_EXTERN(fade_cells_copy)
+extern volatile uint8_t bg_fj_n;
+extern uint8_t mj_col[16], mj_out[128];
+void fade_build(uint16_t col, uint8_t reversed, uint8_t r_start, uint8_t r_end) BANKED;
 
 // The calls below are banked: callers check these first, so a frame with nothing to stream pays
 // nothing (DMG frames are full)

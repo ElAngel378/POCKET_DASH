@@ -84,7 +84,7 @@ LINES = {"gd76": (3, 0, 13, 1), "gd77": (3, 0, 13, 1), "gd78": (3, 0, 13, 1), "g
 EDGE_T, EDGE_L, EDGE_R, EDGE_B = (0, 0, 16, 1), (0, 0, 1, 16), (15, 0, 16, 16), (0, 15, 16, 16)
 OUTLINES = {"gd161": [EDGE_T], "gd162": [EDGE_T, EDGE_L], "gd163": [(0, 0, 1, 1)],
             "gd165": [EDGE_T, EDGE_L, EDGE_R], "gd166": [EDGE_L], "gd167": [(0, 0, 2, 1)],
-            "gd169": [EDGE_T, EDGE_L, EDGE_R, EDGE_B]}
+            "gd169": [EDGE_T, EDGE_L, EDGE_R, EDGE_B], "gd146": [EDGE_T, EDGE_L, EDGE_R, EDGE_B]}
 
 # hazards from GDA: spikes keep their shades, black saws are all one colour (GDA's shades speckle)
 SPIKES = {"gd144": ("FADING_SPIKE_V", None), "gd145": ("FADING_MEDIUM_SPIKE_V", None), "gd177": ("ONE_POINT_SIX_SPIKE_V", None), "gd178": ("ONE_POINT_SIX_SPIKE_V", "half height"),
@@ -162,10 +162,6 @@ def main():
     img = Image.new("L", (16, 16), 2)       # the striped fill: light on top, black below
     img.paste(1, (0, 0, 16, 6))
     save("gd164", img)
-    img = Image.new("L", (16, 16), 2)       # the fading block: an outline, black inside
-    for box in (EDGE_T, EDGE_L, EDGE_R, EDGE_B):
-        img.paste(3, box)
-    save("gd146", img)
     names = gda.sprite_types()
     for key, (sprite, box) in ART.items():
         if key not in GO.DRAWN:

@@ -156,10 +156,14 @@ static void upload_palette(void) __naked {
         ld      a, #0x80
         ldh     (0x68), a
         ld      c, #0x69
-        .rept 40
+        ld      b, #4
+    1$:
+        .rept 10
         ld      a, (hl+)
         ldh     (c), a
         .endm
+        dec     b
+        jr      NZ, 1$
         ld      hl, #_famidash_bg_palettes
         .rept 4
         ld      a, (hl+)
@@ -182,6 +186,14 @@ static void upload_palette(void) __naked {
         ldh     (c), a
         ld      a, (_famidash_bg_accent2 + 1)
         ldh     (c), a
+        ; palette 7: the fading objects' faded look (famidash_bg.c)
+        ld      hl, #(_shadow_bkg_palettes + 56)
+        ld      b, #8
+    2$:
+        ld      a, (hl+)
+        ldh     (c), a
+        dec     b
+        jr      NZ, 2$
         ret
     __endasm;
 }
@@ -400,6 +412,17 @@ static void parallax_try(void) {
 // The handler calls it only with a GDMA pending: a call with nothing pending took ~100 dots
 #define PARALLAX_TRY() do { if (bg_gdma_pending) parallax_try(); } while (0)
 
+// Fading cells: never before a column slice still pending; with the parallax still to start, only
+// while it can still start in time (the rest after it, the handler tries again)
+static void fade_cells_try(void) {
+    if (bg_cj_pending) return;
+    uint8_t prev_b = _current_bank;
+    SWITCH_ROM(BANK(fade_cells_copy));
+    fade_cells_copy(bg_gdma_pending ? 148u : 152u);
+    SWITCH_ROM(prev_b);
+}
+#define FADE_CELLS_TRY() do { if (bg_fj_n) fade_cells_try(); } while (0)
+
 void bg_parallax_vbl_isr(void) {
 #if defined(DEBUG_PROFILE) && !defined(PROF_NO_MARKS)
     uint8_t prof_prev = gpmark;
@@ -487,6 +510,7 @@ void bg_parallax_vbl_isr(void) {
         else if (bg_rj_pending && !bg_cj_pending) gp_rj_late++;
 #endif
     }
+    FADE_CELLS_TRY();
     // Streamed tiles backing up go before the player frame, which would take all of VBlank while
     // the cube spins: a spin step put off is barely seen, a full queue stops the game
     if (bs_q_n >= 4u && bs_up_i < bs_up_n) {
@@ -505,6 +529,7 @@ void bg_parallax_vbl_isr(void) {
     // often left the row job too little of VBlank, and in a fast climb the rows fell behind
     // (stale rows on screen)
     PARALLAX_TRY();
+    FADE_CELLS_TRY();
     // Streamed tiles: a column is drawn a few columns before it is seen, so they have time
     if (bs_up_i < bs_up_n) {
         VBK_REG = 0;

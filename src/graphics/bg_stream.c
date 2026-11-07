@@ -31,8 +31,11 @@ static uint8_t bs_spin_frame, bs_spin_pos, bs_spin_timer, bs_spin_issued;
 
 uint8_t fade_n;                     // 0: a level without them, nothing here runs
 static uint8_t fade_first;
-static uint16_t fade_upto;
-static uint16_t col_back;           // the column job's column to go back to after a redrawn one
+static uint16_t fade_on;            // ring slots (map column & 15) drawn faded, a bit each
+static uint16_t fade_any;           // ring slots that may hold a fading cell
+static uint16_t fade_unknown;       // ring slots whose fading cells may be at either look
+volatile uint8_t bg_fj_n;           // the cell job (fade_cells_copy): cells left
+uint8_t bg_fj_x, bg_fj_start;       // its map column; its first entry in mj_out
 
 volatile uint8_t bs_up_i, bs_up_n;
 uint8_t bs_up_slot[BS_UP_MAX];
@@ -112,8 +115,8 @@ void bg_stream_reset(uint8_t level, uint8_t reversed, uint8_t tables_kept) BANKE
     bs_bi = bs_bn = 0;
     bs_spin_n = 0;
     fade_n = 0;
-    fade_upto = 0;
-    col_back = 0;
+    fade_on = 0;
+    fade_reset_view();
     if (level >= BS_LEVEL_COUNT) return;
     fade_first = bs_fade[level << 1];
     fade_n = bs_fade[(level << 1) + 1u];
@@ -197,48 +200,214 @@ void bg_stream_resume(void) BANKED {
     if (bs_resume) bg_stream_to(bs_resume - 1u);
 }
 
-// Fading objects: a column reached by the player shows its cells' hidden looks. The cells are
-// metatiles fade_first .. + fade_n - 1, each hidden look fade_n ids further (tools/compose.py);
-// columns up to fade_upto are hidden. Collision comes from the map: they stay solid and deadly.
-#define FADE_AHEAD 40               // px ahead of the player
+// (gameplay.c)
+extern uint16_t loaded_r, level_map_w, col_job_col;
+extern const uint8_t *level_map;
+extern uint8_t level_map_bank, view_rev;
 
+// Fading objects, as Geometry Dash Advance draws them (level_routines.c handle_fading_blocks): by
+// the cell's place on the screen, full at the edges, faded in the middle, back to full behind the
+// player. No state to go wrong: a checkpoint, a respawn or a mirror portal only asks where a column
+// is now. GDA's fade_frame_table on our screen (its 240 px over our 160): faded 43 .. 127 px.
+// The cells are metatiles fade_first .. + fade_n - 1, each faded look fade_n ids further
+// (tools/compose.py): on CGB the same tiles in palette 7, on DMG, which has no shade to spare,
+// without the object. Collision comes from the map: they stay solid and deadly.
+#define FADE_FROM 43u
+#define FADE_TO 128u
+#define IS_FADE(id) ((uint8_t)((id) - fade_first) < fade_n)
+
+// Every fading cell's look unknown: fade_update looks at them all
+void fade_reset_view(void) BANKED {
+    bg_fj_n = 0;
+    fade_unknown = fade_any = 0xFFFFu;
+}
+
+// Column col's ids go to its ring slot, drawn full (a column comes in off the screen)
 void fade_hide(uint16_t col, uint8_t *ids, uint8_t n) BANKED {
-    if (col > fade_upto) return;
+    uint16_t bit = (uint16_t)1 << ((uint8_t)col & 15u);
+    fade_on &= ~bit;
+    fade_unknown &= ~bit;
+    fade_any &= ~bit;
     do {
-        if ((uint8_t)(*ids - fade_first) < fade_n) *ids += fade_n;
+        if (IS_FADE(*ids)) fade_any |= bit;
         ids++;
     } while (--n);
 }
 
-// A row of ring slots: each slot's own column decides (get_map_row_slots)
+// A row of ring slots: each cell at its slot's look
 void fade_row(uint8_t first, uint8_t n, uint16_t loaded_r, uint8_t reversed, uint8_t *ids) BANKED {
+    (void)loaded_r;
     for (uint8_t i = 0; i < n; i++) {
+        if (!IS_FADE(ids[i])) continue;
         uint8_t s = (uint8_t)(first + i);
-        if (reversed) s = (uint8_t)(-(int8_t)s & 15u);
-        fade_hide(loaded_r - (uint8_t)((uint8_t)((uint8_t)loaded_r - s) & 15u), ids + i, 1);
+        if (reversed) s = (uint8_t)-(int8_t)s;
+        uint16_t bit = (uint16_t)1 << (s & 15u);
+        fade_any |= bit;
+        if (fade_on & bit) ids[i] += fade_n;
     }
 }
 
-// The next column to draw (0: none), in *cur. Tiles backing up (heavy frames leave VBlank no time
-// for them): the next column can wait a little, columns are drawn ~3 ahead of the screen. The
-// queue must not fill: the game would stop until it drains, a freeze. With nothing else to do, the
-// next column with fading objects the player got to is drawn once more.
-uint16_t col_job_next(uint16_t *cur, uint16_t loaded_r, uint16_t px, const uint8_t *map, uint8_t map_bank) BANKED {
-    if (col_back) { *cur = col_back; col_back = 0; }
-    if (*cur < loaded_r && (bs_q_n < 8u || (uint16_t)(loaded_r - *cur) >= 2u)) return ++*cur;
-    if (!fade_n || bs_q_n >= 4u) return 0;      // (tiles first)
-    uint16_t t = (uint16_t)(px + FADE_AHEAD) >> 4;
-    if (fade_upto >= t) return 0;
-    if (fade_upto + 16u < t) fade_upto = t - 16u;       // a checkpoint further on
-    fade_upto++;
-    uint8_t ids[BKG_MT_H];
-    get_map_column(fade_upto, map, map_bank, ids, mt_band);
-    for (uint8_t r = 0; r < BKG_MT_H; r++) {
-        if ((uint8_t)(ids[r] - fade_first) < fade_n) {
-            col_back = *cur;
-            *cur = fade_upto;
-            return fade_upto;
+// The cell job's list from the cells built in mj_out (row r: tiles at 4r, attributes at 64 + 4r) of
+// the rows set in `rows`: per cell its row and the 4 bytes the handler writes (CGB attributes, the
+// tiles are the same; DMG tiles), packed over bytes already read: CGB from mj_out up, DMG from
+// mj_out + 128 down.
+static void fade_pack(uint16_t rows) {
+    uint8_t n = 0;
+    if (bg_gdma_isr_on) {
+        uint8_t *e = mj_out;
+        for (uint8_t r = 0; r < 16u; r++, rows >>= 1) {
+            if (!(rows & 1u)) continue;
+            const uint8_t *a = mj_out + 64u + (uint8_t)(r << 2);
+            e[0] = r; e[1] = a[0]; e[2] = a[1]; e[3] = a[2]; e[4] = a[3];
+            e += 5; n++;
         }
+        bg_fj_start = 0;
+    } else {
+        uint8_t *e = mj_out + 128u;
+        for (uint8_t r = 16u; r--; rows <<= 1) {
+            if (!(rows & 0x8000u)) continue;
+            const uint8_t *t = mj_out + (uint8_t)(r << 2);
+            e -= 5;
+            e[1] = t[0]; e[2] = t[1]; e[3] = t[2]; e[4] = t[3]; e[0] = r;
+            n++;
+        }
+        bg_fj_start = (uint8_t)(e - mj_out);
+    }
+    bg_fj_n = n;
+}
+
+// Once a frame in levels with fading objects: the first ring slot whose cells are not at the look
+// for where it is now gets them rewritten, by the VBlank handler. One slot at a time.
+void fade_update(uint8_t scx) BANKED {
+    if (bg_fj_n) return;
+    uint8_t reversed = view_rev;
+    uint16_t want = 0, bit = 1;
+    for (uint8_t s = 0; s < 16u; s++, bit <<= 1) {
+        uint8_t sx = (uint8_t)((uint8_t)((reversed ? (uint8_t)-(int8_t)s : s) << 4) - scx);
+        if (sx >= FADE_FROM && sx < FADE_TO) want |= bit;
+    }
+    // (a slot without fading cells just follows)
+    fade_on = (fade_on & fade_any) | (want & ~fade_any);
+    uint16_t todo = ((want ^ fade_on) | fade_unknown) & fade_any;
+    if (!todo) return;
+    uint8_t s = 0;
+    for (bit = 1; !(todo & bit); bit <<= 1) s++;
+    uint16_t c = loaded_r - (uint8_t)((uint8_t)((uint8_t)loaded_r - s) & 15u);
+    uint8_t on = (want & bit) != 0;
+    if (on) fade_on |= bit; else fade_on &= ~bit;
+    fade_unknown &= ~bit;
+    uint16_t rows = 0, rb = 1;
+    uint8_t lo = 0, hi = 0;
+    if (c < level_map_w) {
+        get_map_column(c, level_map, level_map_bank, mj_col, mt_band);
+        for (uint8_t r = 0; r < BKG_MT_H; r++, rb <<= 1) {
+            if (!IS_FADE(mj_col[r])) continue;
+            if (on) mj_col[r] += fade_n;
+            if (!rows) lo = r;
+            hi = r;
+            rows |= rb;
+        }
+    }
+    if (!rows) {
+        fade_any &= ~bit;
+        return;
+    }
+    fade_build(c, reversed, lo, (uint8_t)(hi + 1u));
+    bg_fj_x = (uint8_t)(((reversed ? (uint8_t)-(int8_t)s : s) & 15u) << 1);
+    fade_pack(rows);
+}
+
+// The VBlank handler (bank switched in): the list's cells, from the last one, to map column bg_fj_x
+// of the BG map shown while LY is 144 .. ly_end - 1 (a cell takes well under a line); leaves bg_fj_n
+// at the cells not written. VRAM bank: CGB 1 (attributes), DMG 0 (tiles).
+BANKREF(fade_cells_copy)
+void fade_cells_copy(uint8_t ly_end) __naked {
+    (void)ly_end;
+    __asm
+        ld      e, a                    ; e = ly_end
+        ld      a, (_bg_fj_n)
+        or      a, a
+        ret     Z
+        ld      d, a                    ; d = cells left: entries 0 .. d - 1
+        ld      a, (_bg_gdma_isr_on)
+        ldh     (_VBK_REG + 0), a
+        ldh     a, (_LCDC_REG + 0)
+        and     a, #0x08                ; the map shown: 0x9800, or 0x9C00 when set
+        rrca
+        or      a, #0x98
+        ld      c, a                    ; c = its high byte
+        ld      a, (_bg_fj_x)
+        ld      b, a                    ; b = tile x
+        ld      a, d
+        dec     a
+        ld      l, a
+        add     a, a
+        add     a, a
+        add     a, l                    ; 5 (d - 1)
+        ld      hl, #_bg_fj_start
+        add     a, (hl)                 ; the last entry (< 128)
+        add     a, #<_mj_out
+        ld      l, a
+        ld      a, #>_mj_out
+        adc     a, #0
+        ld      h, a                    ; hl = the last entry
+    1$:
+        ldh     a, (_LY_REG + 0)
+        cp      a, #144
+        jr      C, 9$                   ; past VBlank: the rest next time
+        cp      a, e
+        jr      NC, 9$
+        push    de
+        ld      a, (hl+)                ; r
+        rrca
+        rrca
+        ld      d, a
+        and     a, #0xC0
+        add     a, b                    ; (64r + x: no carry, x < 32)
+        ld      e, a
+        ld      a, d
+        and     a, #0x03
+        or      a, c
+        ld      d, a                    ; de = map + 64r + x: tile row 2r
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        ld      a, e
+        add     a, #31
+        ld      e, a
+        jr      NC, 2$
+        inc     d
+    2$:
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        ld      a, l
+        sub     a, #10                  ; the entry before
+        ld      l, a
+        jr      NC, 4$
+        dec     h
+    4$:
+        pop     de
+        dec     d
+        jr      NZ, 1$
+    9$:
+        ld      a, d
+        ld      (_bg_fj_n), a
+        ret
+    __endasm;
+}
+
+// The column job takes the next column? Tiles backing up (heavy frames leave VBlank no time for
+// them): it can wait a little, columns are drawn ~3 ahead of the screen. The queue must not fill:
+// the game would stop until it drains, a freeze.
+uint8_t col_job_next(void) BANKED {
+    if (col_job_col < loaded_r && (bs_q_n < 8u || (uint16_t)(loaded_r - col_job_col) >= 2u)) {
+        col_job_col++;
+        return 1;
     }
     return 0;
 }

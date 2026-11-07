@@ -50,7 +50,7 @@ static const uint8_t saw_mt_tiles[SAW_MT_COUNT][4] = {
 BANKREF_EXTERN(bg_level_lists)
 extern const uint8_t * const bg_level_lists[];
 extern const uint16_t bg_level_list_len[];
-#define BG_LEVEL_COUNT 22
+#define BG_LEVEL_COUNT 23
 #define SAW_CENTER_MT 120
 // Saw animation: frame f of the saw tiles is bg_extra_tiles tile saw_frame_first[f] + 0..SAW_TILES-1
 // (CGB streams the 3 frames from saw_anim_tiles.bin: SAW_TILES tiles of 16 bytes per frame)
@@ -58,20 +58,22 @@ extern const uint16_t bg_level_list_len[];
 #define SAW_ANIM_TILES 52
 static const uint8_t saw_frame_first[SAW_ANIM_FRAMES] = { 1, 101, 153 };
 // 1 = the level has saws (animate them)
-static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
+static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 // 1 = the level has big saws, so metatile SAW_CENTER_MT is their centre (CGB)
-static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
+static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 // DMG baked sheets (levels with mirror portals): BG_BASE_TILE_COUNT tiles normal, then mirrored;
 // bank 0 = none (the base sheet, then the load list)
 // and the extra tiles outside the sheet: n, n x (slot, count, first bg_extra_tiles tile)
-static const uint8_t * const bg_dmg_sheet_rest[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+static const uint8_t * const bg_dmg_sheet_rest[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 // each level's collision table (player.c col_tab): famidash_metatile_collision, or its own
 extern const uint8_t level_col_test[256];
-static const uint8_t * const bg_level_col[BG_LEVEL_COUNT] = { famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, level_col_test };
+extern const uint8_t level_col_test2[256];
+static const uint8_t * const bg_level_col[BG_LEVEL_COUNT] = { famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, famidash_metatile_collision, level_col_test, level_col_test2 };
 // ... and its CGB palette table (mt_renderer.c bm_info): famidash_metatile_palettes, or its own
 extern const uint8_t level_pal_test[256];
-static const uint8_t * const bg_level_pal[BG_LEVEL_COUNT] = { famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, level_pal_test };
-static const uint8_t * const bg_dmg_sheet[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-static const uint8_t bg_dmg_sheet_bank[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+extern const uint8_t level_pal_test2[256];
+static const uint8_t * const bg_level_pal[BG_LEVEL_COUNT] = { famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, famidash_metatile_palettes, level_pal_test, level_pal_test2 };
+static const uint8_t * const bg_dmg_sheet[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+static const uint8_t bg_dmg_sheet_bank[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 #endif

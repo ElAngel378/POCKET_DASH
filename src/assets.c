@@ -53,6 +53,8 @@ BANKREF_EXTERN(thelightningroad_map)
 extern const uint8_t thelightningroad_map[];
 BANKREF_EXTERN(test_map)
 extern const uint8_t test_map[];
+BANKREF_EXTERN(test2_map)
+extern const uint8_t test2_map[];
 
 // External sprite data definitions
 extern const SpDef stereomadness_sp[];
@@ -121,6 +123,9 @@ BANKREF_EXTERN(thelightningroad_sp)
 extern const SpDef test_sp[];
 extern const SpDef test_sp_dmg[];
 BANKREF_EXTERN(test_sp)
+extern const SpDef test2_sp[];
+extern const SpDef test2_sp_dmg[];
+BANKREF_EXTERN(test2_sp)
 
 // Music songs
 extern const hUGESong_t stereomadness;
@@ -161,6 +166,7 @@ const hUGESong_t * const level_songs[] = {
   &timemachine, // level_dp
   &dryout, // level_tlr
   NULL, // level_test (silent)
+  NULL, // level_test2 (silent)
 };
 
 // Per-level song banks: matches level_songs[]; 0 = silent
@@ -187,6 +193,7 @@ const uint8_t song_bank[] = {
   207u, // level_dp
   203u, // level_tlr
   0u, // level_test
+  0u, // level_test2
 };
 
 // Level definitions with dimensions and bank info
@@ -564,6 +571,23 @@ const Level level_test = {
   0
 };
 
+const Level level_test2 = {
+  "TEST2",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  test2_map,
+  BG_BASE_TILE_COUNT, 256, 64, 0, 0,
+  BANK(test2_map),
+  180,
+  test2_sp,
+  BANK(test2_sp),
+  test2_sp_dmg,
+  37,
+  17,
+  17,
+  0
+};
+
 // Global level list used by the menu and gameplay systems
 const Level* const game_levels[] = {
   &level_sm,
@@ -588,6 +612,7 @@ const Level* const game_levels[] = {
   &level_dp,
   &level_tlr,
   &level_test,
+  &level_test2,
 };
 const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);
 
@@ -618,4 +643,5 @@ const uint8_t level_save_slot[] = {
   19u, // level_dp
   21u, // level_tlr
   255u, // level_test
+  255u, // level_test2
 };

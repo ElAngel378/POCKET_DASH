@@ -31,6 +31,7 @@ COL_TOP, COL_BOTTOM, COL_ALL, COL_DEATH, COL_QUAD_BASE = 0x05, 0x06, 0x07, 0x08,
 SOLID_CODES = {0x05, 0x06, 0x07, 0x09}
 SPECIAL_CODES = set(range(0x0A, 0x10))   # orbs, pads
 # fills: no collision, but opaque like the blocks they fill
+FADED_PAL = 7       # the faded look of fading cells on CGB (famidash_bg.c): their tiles, nearer the sky
 FILLS = {"gd5", "gd120", "fd_x_none", "fd_black_none", "fd_bg5", "fd_bg6"}
 
 
@@ -290,8 +291,8 @@ class Composer:
                 hidden = (tuple(self.spin_look(rest)), tuple(self.look(0, rest)),
                           self.palette(rest) if rest else pal, col)
             todo.append((cx, cy, k, hidden, sorted({p[0] for p in parts if p[0] in self.spin})))
-        # cells with fading objects: ids in one block, each with its hidden look n ids further, so
-        # the game finds them without a table (mt_renderer.c fade_*)
+        # cells with fading objects: ids in one block, each with its faded look n ids further, so
+        # the game finds them without a table (bg_stream.c fade_*)
         fading = list(dict.fromkeys(t[2] for t in todo if t[3] is not None))
         if fading:
             n = len(fading)
@@ -307,7 +308,7 @@ class Composer:
                     m = cells[t[2]]
                     out[m] = (t[2][0], t[2][1], t[2][3], t[2][2], t[4], m + n)
                     h = t[3]
-                    out[m + n] = (h[0], h[1], h[3], h[2], t[4], None)
+                    out[m + n] = (t[2][0], h[1], h[3], FADED_PAL, t[4], None)
         for cx, cy, k, hidden, spin in todo:
             if k not in cells:
                 if not free:

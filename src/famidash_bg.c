@@ -148,6 +148,15 @@ static void shadow_fake_spike_palette(void) {
     shadow_bkg_palettes[22] = shadow_bkg_palettes[26] = 0;
     shadow_bkg_palettes[23] = 0;
     shadow_bkg_palettes[27] = famidash_bg_accent2;
+    // palette 7, the fading objects' faded look (bg_stream.c): palette 0 three quarters of the way
+    // to the sky
+    const uint8_t *s = (const uint8_t *)famidash_bg_palettes;
+    uint8_t sr = s[0] & 31u, sg = (uint8_t)((s[0] >> 5) | (s[1] << 3)) & 31u, sb = (s[1] >> 2) & 31u;
+    palette_color_t *d = &shadow_bkg_palettes[28];
+    for (uint8_t i = 0; i < 4; i++, s += 2, d++) {
+        uint8_t r = s[0] & 31u, g = (uint8_t)((s[0] >> 5) | (s[1] << 3)) & 31u, b = (s[1] >> 2) & 31u;
+        *d = RGB((uint8_t)((sr + sr + sr + r) >> 2), (uint8_t)((sg + sg + sg + g) >> 2), (uint8_t)((sb + sb + sb + b) >> 2));
+    }
 }
 
 // Once per frame (CGB): next step of a running fade
@@ -175,6 +184,7 @@ void famidash_bg_fade_step(void) BANKED {
             p[0] = c[0].val | g_to_lo[g];
             p[1] = g_to_hi[g] | (uint8_t)(c[2].val << 2);
         }
+        shadow_fake_spike_palette();   // (palette 7 follows the sky: it is uploaded from there)
     }
     famidash_bkg_palettes_dirty = 1;
 }
@@ -267,6 +277,7 @@ void famidash_apply_outline_trigger(uint8_t n) BANKED {
     famidash_bg_palettes[7] = c;
     shadow_bkg_palettes[3] = c;
     shadow_bkg_palettes[7] = c;
+    shadow_fake_spike_palette();
     famidash_bkg_palettes_dirty = 1;
 }
 
@@ -312,7 +323,7 @@ void famidash_reset_bg_palettes(uint8_t idx) BANKED {
         // through the fade module: it fades what it knows (it only dimmed the sprites leaving a
         // level, and the level popped in at full brightness after the fade in)
         fade_set_bkg_palette(0, 5, famidash_bg_palettes);
-        fade_set_bkg_palette(5, 2, &shadow_bkg_palettes[20]);
+        fade_set_bkg_palette(5, 3, &shadow_bkg_palettes[20]);
     }
     famidash_bkg_palettes_dirty = 0;
 }

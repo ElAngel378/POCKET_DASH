@@ -190,7 +190,7 @@ void fade_apply_pause_box_palettes(void) BANKED {
 
 void fade_restore_pause_box_palettes(void) BANKED {
     if (_cpu == CGB_TYPE) {
-        set_bkg_palette(0, 7, shadow_bkg_palettes);
+        set_bkg_palette(0, 8, shadow_bkg_palettes);
     }
 }
 

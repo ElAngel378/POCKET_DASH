@@ -198,17 +198,17 @@ volatile uint8_t gpdeaths;  // deaths (in god mode: the ones that did not happen
 
 static const Level* l;
 static const uint8_t* level_tiles;
-static const uint8_t* level_map;
+const uint8_t* level_map;
 static uint16_t level_tile_count;
-static uint16_t level_map_w;
+uint16_t level_map_w;
 static uint16_t level_map_h;
 static uint8_t level_tiles_bank;
-static uint8_t level_map_bank;
+uint8_t level_map_bank;
 
 static uint16_t cam_px;
 static uint16_t cam_py;
 static uint16_t cam_py_max;
-static uint16_t loaded_r;
+uint16_t loaded_r;
 
 // A newly streamed map column is built and uploaded in COL_JOB_STEPS slices, one
 // per frame (4 metatile rows built before VBlank, the matching 8 tile rows
@@ -225,7 +225,7 @@ static uint8_t col_job_step = COL_JOB_STEPS; // == COL_JOB_STEPS: idle
 static uint8_t col_job_slot;
 static uint8_t col_job_issued;  // slice handed to the VBlank handler, not yet acknowledged
 static uint8_t row0_job_issued;
-static uint16_t col_job_col;    // column being / last written (columns up to loaded_r are wanted)
+uint16_t col_job_col;    // column being / last written (columns up to loaded_r are wanted)
 static uint16_t max_scroll_px;
 
 // No column or row job: the ring holds the columns up to loaded_r and the band's rows
@@ -233,7 +233,7 @@ static void stream_jobs_reset(void) {
     col_job_col = loaded_r;
     col_job_step = COL_JOB_STEPS;
     row0_job_pos = 16;
-    col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
+    col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0; bg_fj_n = 0;
     band_cam_row = 0xFF;
 }
 
@@ -244,7 +244,7 @@ static uint16_t sp_stream_idx;
 static uint16_t sp_cache_col;
 static uint8_t sp_fill_pending;
 static uint16_t cached_collision_col;
-static uint8_t view_rev;   // the orientation on screen (player.reversed: the one the game is in)
+uint8_t view_rev;   // the orientation on screen (player.reversed: the one the game is in)
 
 // CGB seamless mirror portal (mt_cgb_flip levels): the mirrored picture is built into the BG map
 // that is not shown while the game runs (a few columns per frame, in the time left before
@@ -745,6 +745,7 @@ static uint8_t pause_menu(uint8_t idx) {
 
     if (_cpu == CGB_TYPE) {
         fade_apply_pause_box_palettes();
+        bg_fj_n = 0;
         apply_pause_box_attributes(1);
         static const palette_color_t pause_pal[4] = {
             RGB8(0, 0, 0), RGB8(0, 0, 0), RGB8(180, 215, 255), RGB8(255, 255, 255)
@@ -875,6 +876,7 @@ static uint8_t pause_menu(uint8_t idx) {
     if (_cpu == CGB_TYPE) {
         wait_vbl_done();
         apply_pause_box_attributes(0);
+        fade_reset_view();   // the box took the fading cells' palette
         fade_restore_pause_box_palettes();
         set_sprite_palette(0, 8, gbc_sprite_palettes);
         apply_custom_player_palette();
@@ -1012,12 +1014,14 @@ static void mirror_job(uint16_t px) {
     if (!mj_active) {
         if (!needed && !mirror_portal_ahead()) return;
         mj_active = 1;
+        bg_fj_n = 0;     // (its list is in the buffer the job builds in)
         mj_target = !view_rev;
         mj_map_hi = (LCDC_REG & LCDCF_BG9C00) ? 0x98u : 0x9Cu;
         mj_next = 0;
         mj_row_pending = 0xFF;
     } else if (!needed && !mirror_portal_ahead()) {
         mj_active = 0;   // the portal was missed
+        fade_reset_view();
         return;
     }
     uint16_t col0 = RING_COL0(px);
@@ -1051,6 +1055,7 @@ static void mirror_switch(uint16_t px) {
     mj_wait = 0;
     loaded_r = RING_COL0(px) + 15u;
     stream_jobs_reset();
+    fade_reset_view();   // the other map's fading cells were built full
     bg_lcdc_map = (mj_map_hi == 0x9Cu) ? LCDCF_BG9C00 : LCDCF_BG9800;
 }
 
@@ -1154,6 +1159,7 @@ static void mirror_reflect(uint8_t idx) {
         ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
         : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
     move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
+    fade_reset_view();   // the map moved: fading cells are drawn full
     SHOW_BKG;
     SHOW_SPRITES;
     SPRITES_8x16;
@@ -1194,7 +1200,7 @@ static void practice_respawn(uint8_t idx) {
         load_menu_ground_tiles();
         flush_ground_row();
         famidash_bg_set_now(cp->bg_palettes);
-        set_bkg_palette(0, 7, shadow_bkg_palettes);
+        set_bkg_palette(0, 8, shadow_bkg_palettes);
         fade_set_sprite_palette(0, 8, gbc_sprite_palettes);
         apply_custom_player_palette();
     } else {
@@ -1893,8 +1899,7 @@ void play_level(uint8_t idx) BANKED {
         // last slice was still unacknowledged its acknowledgement skipped the new job's step 0
         // (the map fetch): the new ring column showed the previous column. At 2.8 px a frame a
         // column comes every 5-6 frames, so 1-2 slices put off by late VBlanks were enough.
-        if (col_job_step >= COL_JOB_STEPS && (col_job_col < loaded_r || fade_n)
-            && col_job_next(&col_job_col, loaded_r, cam_px, level_map, level_map_bank)) {
+        if (col_job_step >= COL_JOB_STEPS && col_job_next()) {
             col_job_slot = (uint8_t)(col_job_col & 15);
             if (view_rev) col_job_slot = (uint8_t)(-(int8_t)col_job_slot & 15);
             col_job_step = 0;
@@ -1932,6 +1937,7 @@ void play_level(uint8_t idx) BANKED {
                 row0_job_pos = 0;
                 row0_job_issued = 0;
                 bg_rj_pending = 0;
+                if (fade_n) fade_reset_view();   // (a pending list has rows of the old band)
                 if (mj_active) {
                     // the other map needs the row too (two moves before it got the first: rebuild)
                     if (mj_row_pending != 0xFF) mj_next = 0;
@@ -1980,6 +1986,10 @@ void play_level(uint8_t idx) BANKED {
         if (row0_job_pos < 16 && !row0_job_issued && !mj_switched) {
             request_row_slots(row0_job_pos, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, view_rev);
             row0_job_issued = 1;
+        }
+        // fading objects whose look changed with the scroll
+        if (fade_n && !mj_active && !mj_switched) {
+            fade_update((uint8_t)scroll_px);
         }
         if (bg_gdma_isr_on) {
             famidash_bg_fade_step();

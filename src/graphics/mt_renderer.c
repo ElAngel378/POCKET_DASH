@@ -1250,8 +1250,13 @@ void ground_below_fill(uint8_t scy) BANKED {
 static const uint8_t *mjw_src;
 static uint8_t *mjw_dst;
 static uint8_t mjw_n;
-static uint8_t mj_col[16];
-static uint8_t mj_out[BKG_MT_H * 8];
+uint8_t mj_col[16];
+uint8_t mj_out[BKG_MT_H * 8];
+
+// Fading cells (bg_stream.c): rows r_start .. r_end - 1 of the ids in mj_col into mj_out
+void fade_build(uint16_t col, uint8_t reversed, uint8_t r_start, uint8_t r_end) BANKED {
+    build_mt_rows(col, mj_col, mj_out, reversed, r_start, r_end);
+}
 
 // Returns at the start of an HBlank with interrupts disabled (the caller enables them again).
 // Interrupts stay enabled while waiting for mode 3.

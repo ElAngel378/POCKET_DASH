@@ -54,6 +54,8 @@ static const uint8_t bg_cgb_thelightningroad[] = { 2, 129, 64, 52, 1, 0, 26, 1, 
 static const uint8_t bg_dmg_thelightningroad[] = { 0, 0, 0, 0 };
 static const uint8_t bg_cgb_test[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0, 0 };
 static const uint8_t bg_dmg_test[] = { 0, 0, 0, 0 };
+static const uint8_t bg_cgb_test2[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0, 0 };
+static const uint8_t bg_dmg_test2[] = { 0, 0, 0, 0 };
 
 const uint8_t * const bg_level_lists[] = {
     bg_cgb_stereomadness, bg_dmg_stereomadness,
@@ -78,6 +80,7 @@ const uint8_t * const bg_level_lists[] = {
     bg_cgb_demonpark, bg_dmg_demonpark,
     bg_cgb_thelightningroad, bg_dmg_thelightningroad,
     bg_cgb_test, bg_dmg_test,
+    bg_cgb_test2, bg_dmg_test2,
 };
 const uint16_t bg_level_list_len[] = {
     12, 4,
@@ -94,6 +97,7 @@ const uint16_t bg_level_list_len[] = {
     12, 380,
     12, 380,
     12, 380,
+    12, 4,
     12, 4,
     12, 4,
     12, 4,
