@@ -1893,12 +1893,8 @@ void play_level(uint8_t idx) BANKED {
         // last slice was still unacknowledged its acknowledgement skipped the new job's step 0
         // (the map fetch): the new ring column showed the previous column. At 2.8 px a frame a
         // column comes every 5-6 frames, so 1-2 slices put off by late VBlanks were enough.
-        // Tiles backing up (heavy frames leave VBlank no time for them): the next column can wait
-        // a little, columns are drawn ~3 ahead of the screen. The queue must not fill: the game
-        // would stop until it drains, a freeze.
-        if (col_job_step >= COL_JOB_STEPS && col_job_col < loaded_r
-            && (bs_q_n < 8u || (uint16_t)(loaded_r - col_job_col) >= 2u)) {
-            col_job_col++;
+        if (col_job_step >= COL_JOB_STEPS && (col_job_col < loaded_r || fade_n)
+            && col_job_next(&col_job_col, loaded_r, cam_px, level_map, level_map_bank)) {
             col_job_slot = (uint8_t)(col_job_col & 15);
             if (view_rev) col_job_slot = (uint8_t)(-(int8_t)col_job_slot & 15);
             col_job_step = 0;

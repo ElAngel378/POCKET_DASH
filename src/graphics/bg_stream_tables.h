@@ -126,6 +126,8 @@ static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
     bs_thelightningroad_cgb_recs, bs_thelightningroad_dmg_recs,
     bs_test_cgb_recs, bs_test_dmg_recs,
 };
+// per level: its fading cells (tools/compose.py): first metatile, how many; each one's hidden look is that many further
+static const uint8_t bs_fade[BS_LEVEL_COUNT * 2] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 10 };
 static const uint8_t bs_banks[BS_LEVEL_COUNT] = {
     248,   // stereomadness
     248,   // backontrack

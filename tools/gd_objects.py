@@ -99,6 +99,9 @@ DRAWN = {
     "gd139": ("Gear ring, small", (16, 16)),
     # 1.6 (phase 4)
     "gd143": ("Breakable brick", (16, 16)),
+    "gd144": ("Fading spike", (16, 16)),
+    "gd145": ("Fading small spike", (16, 16)),
+    "gd146": ("Fading block", (16, 16)),
     "gd151": ("Spiky art, tall", (8, 24)),
     "gd152": ("Spiky art, medium", (8, 16)),
     "gd153": ("Spiky art, small", (8, 16)),
@@ -140,9 +143,9 @@ DRAWN = {
     "gd197": ("1.6 block, narrow", (16, 16)),
 }
 # DRAWN objects that are not decoration: their quarters collide. Palette 0, like blocks and spikes.
-DRAWN_KIND = {k: "solid" for k in ("gd143", "gd164", "gd170", "gd171", "gd173", "gd174", "gd175",
+DRAWN_KIND = {k: "solid" for k in ("gd143", "gd146", "gd164", "gd170", "gd171", "gd173", "gd174", "gd175",
                                    "gd176", "gd192", "gd193", "gd194", "gd197")}
-DRAWN_KIND.update({k: "deadly" for k in ("gd177", "gd178", "gd179", "gd183", "gd184", "gd185", "gd186",
+DRAWN_KIND.update({k: "deadly" for k in ("gd144", "gd145", "gd177", "gd178", "gd179", "gd183", "gd184", "gd185", "gd186",
                                          "gd187", "gd188")})
 # The 1.6 outlines are solid blocks (GDA: COL_FULL) though only their lines are drawn: they fill their
 # whole cell for collision, and what is under them shows
@@ -155,13 +158,17 @@ SPIN = {"gd85": 4, "gd86": 1, "gd87": 1, "gd97": 1, "gd137": 2, "gd138": 1, "gd1
         "gd155": 1, "gd180": 4, "gd181": 1, "gd182": 1, "gd183": 4, "gd184": 1, "gd185": 1, "gd186": 4,
         "gd187": 1, "gd188": 1}
 SPIN_FRAMES = 3
+# Fading objects vanish as the player reaches them (still solid / deadly): the cell has a second
+# metatile without them, drawn once its column is near the player (mt_renderer.c fade_*)
+FADE = {"gd144", "gd145", "gd146"}
 # Hitboxes. Ice spikes collide like these spikes (key -> key, dy to add when not turned):
-HIT_LIKE = {"gd177": ("gd8", 0), "gd178": ("gd39", -8), "gd179": ("gd39", 0)}
+HIT_LIKE = {"gd144": ("gd8", 0), "gd145": ("gd39", 0), "gd177": ("gd8", 0), "gd178": ("gd39", -8),
+            "gd179": ("gd39", 0)}
 # Saws are GDA's circles, radius in px: the 8x8 quarters of the object inside it are deadly
 HIT_RADIUS = {"gd183": 8, "gd184": 10, "gd185": 2, "gd186": 16, "gd187": 12, "gd188": 8}
 # Black is colour 2 on CGB, 3 on DMG, and an outline on it the other way round: the files hold the
 # CGB colours, DMG swaps 2 and 3 in these
-DMG_SWAP = {"gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd167", "gd169", "gd183", "gd184",
+DMG_SWAP = {"gd146", "gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd167", "gd169", "gd183", "gd184",
             "gd185", "gd193"}
 
 

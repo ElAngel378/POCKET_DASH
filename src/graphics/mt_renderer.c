@@ -804,10 +804,13 @@ static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, ui
     }
 }
 
+static uint8_t rt_ids[16];
+
 void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED {
     BG_STREAM_TO(map_col);
     cur_map_col = map_col;
     get_map_column(map_col, map, map_bank, col_buf, mt_band);
+    if (fade_n) fade_hide(map_col, col_buf, BKG_MT_H);
     build_mt_rows(map_col, col_buf, metatile_column_buf, reversed, 0, BKG_MT_H);
 }
 
@@ -825,6 +828,7 @@ void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_b
         BG_STREAM_TO(map_col);
         cur_map_col = map_col;
         get_map_column(map_col, map, map_bank, col_buf, mt_band);
+        if (fade_n) fade_hide(map_col, col_buf, BKG_MT_H);
     }
     PROF_MARK(12);
 #ifdef DEBUG_PROFILE_NOINT
@@ -843,6 +847,7 @@ void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_b
 // column is rebuilt).
 void refetch_mt_column(const uint8_t* map, uint8_t map_bank) BANKED {
     get_map_column(cur_map_col, map, map_bank, col_buf, mt_band);
+    if (fade_n) fade_hide(cur_map_col, col_buf, BKG_MT_H);
 }
 
 // Display off: the 2 x 32 bytes at fc_src to the 2 map columns at fc_dst (32 rows, 32 bytes apart)
@@ -931,7 +936,6 @@ static uint8_t row_attrs[2][16];
 
 // DMG: row_tiles from the metatile ids rt_ids[0 .. rt_n-1] through the table rt_mt
 // (hand-written: in C it took ~0.8k dots per position)
-static uint8_t rt_ids[16];
 static uint8_t rt_n;
 static const uint8_t *rt_mt;
 static void row_tiles_dmg(void) __naked {
@@ -1128,6 +1132,7 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
     if (_cpu != CGB_TYPE) {
         // DMG: tiles straight from the metatile table (no attributes, parallax or saw tiles)
         get_map_row_slots(first, n, row, loaded_r, reversed, map, map_w, map_bank, rt_ids);
+        if (fade_n) fade_row(first, n, loaded_r, reversed, rt_ids);
         rt_n = n;
         rt_mt = mt_table[0];
         row_tiles_dmg();
@@ -1147,6 +1152,7 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
         return;
     }
     get_map_row_slots(first, n, row, loaded_r, reversed, map, map_w, map_bank, rt_ids);
+    if (fade_n) fade_row(first, n, loaded_r, reversed, rt_ids);
     uint8_t r0 = row_ty0[row];
     rt_n = n;
     rt_mt = mt_table[0];

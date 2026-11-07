@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="64" tileheight="48" tilecount="169" columns="0">
+<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="64" tileheight="48" tilecount="172" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="1" type="gd1">
   <properties>
@@ -330,6 +330,24 @@
    <property name="name" value="Breakable brick"/>
   </properties>
   <image width="16" height="16" source="tiles/gd143.png"/>
+ </tile>
+ <tile id="144" type="gd144">
+  <properties>
+   <property name="name" value="Fading spike"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd144.png"/>
+ </tile>
+ <tile id="145" type="gd145">
+  <properties>
+   <property name="name" value="Fading small spike"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd145.png"/>
+ </tile>
+ <tile id="146" type="gd146">
+  <properties>
+   <property name="name" value="Fading block"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd146.png"/>
  </tile>
  <tile id="151" type="gd151">
   <properties>

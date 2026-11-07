@@ -12,6 +12,8 @@
 #include "furplayer.h"
 #include "bg_stream_tables.h"
 #include "bg_parallax.h"
+#include "collision.h"
+#define BKG_MT_H 16
 
 #define BS_QUEUE 16                     // a power of 2
 static uint8_t bs_q_slot[BS_QUEUE];
@@ -26,6 +28,11 @@ uint8_t bs_q_n;                         // queued tiles (gameplay.c calls bg_str
 uint8_t bs_spin_n;                      // the level's spinning tiles (0: none, DMG)
 static uint16_t bs_spin_tile;
 static uint8_t bs_spin_frame, bs_spin_pos, bs_spin_timer, bs_spin_issued;
+
+uint8_t fade_n;                     // 0: a level without them, nothing here runs
+static uint8_t fade_first;
+static uint16_t fade_upto;
+static uint16_t col_back;           // the column job's column to go back to after a redrawn one
 
 volatile uint8_t bs_up_i, bs_up_n;
 uint8_t bs_up_slot[BS_UP_MAX];
@@ -104,7 +111,12 @@ void bg_stream_reset(uint8_t level, uint8_t reversed, uint8_t tables_kept) BANKE
     bs_reached = 0;
     bs_bi = bs_bn = 0;
     bs_spin_n = 0;
+    fade_n = 0;
+    fade_upto = 0;
+    col_back = 0;
     if (level >= BS_LEVEL_COUNT) return;
+    fade_first = bs_fade[level << 1];
+    fade_n = bs_fade[(level << 1) + 1u];
     bs_dmg = (_cpu != CGB_TYPE);
     if (!bs_dmg) {
         // starts idle at frame 0, the frame the records load
@@ -183,6 +195,52 @@ void bg_stream_to(uint16_t col) BANKED {
 
 void bg_stream_resume(void) BANKED {
     if (bs_resume) bg_stream_to(bs_resume - 1u);
+}
+
+// Fading objects: a column reached by the player shows its cells' hidden looks. The cells are
+// metatiles fade_first .. + fade_n - 1, each hidden look fade_n ids further (tools/compose.py);
+// columns up to fade_upto are hidden. Collision comes from the map: they stay solid and deadly.
+#define FADE_AHEAD 40               // px ahead of the player
+
+void fade_hide(uint16_t col, uint8_t *ids, uint8_t n) BANKED {
+    if (col > fade_upto) return;
+    do {
+        if ((uint8_t)(*ids - fade_first) < fade_n) *ids += fade_n;
+        ids++;
+    } while (--n);
+}
+
+// A row of ring slots: each slot's own column decides (get_map_row_slots)
+void fade_row(uint8_t first, uint8_t n, uint16_t loaded_r, uint8_t reversed, uint8_t *ids) BANKED {
+    for (uint8_t i = 0; i < n; i++) {
+        uint8_t s = (uint8_t)(first + i);
+        if (reversed) s = (uint8_t)(-(int8_t)s & 15u);
+        fade_hide(loaded_r - (uint8_t)((uint8_t)((uint8_t)loaded_r - s) & 15u), ids + i, 1);
+    }
+}
+
+// The next column to draw (0: none), in *cur. Tiles backing up (heavy frames leave VBlank no time
+// for them): the next column can wait a little, columns are drawn ~3 ahead of the screen. The
+// queue must not fill: the game would stop until it drains, a freeze. With nothing else to do, the
+// next column with fading objects the player got to is drawn once more.
+uint16_t col_job_next(uint16_t *cur, uint16_t loaded_r, uint16_t px, const uint8_t *map, uint8_t map_bank) BANKED {
+    if (col_back) { *cur = col_back; col_back = 0; }
+    if (*cur < loaded_r && (bs_q_n < 8u || (uint16_t)(loaded_r - *cur) >= 2u)) return ++*cur;
+    if (!fade_n || bs_q_n >= 4u) return 0;      // (tiles first)
+    uint16_t t = (uint16_t)(px + FADE_AHEAD) >> 4;
+    if (fade_upto >= t) return 0;
+    if (fade_upto + 16u < t) fade_upto = t - 16u;       // a checkpoint further on
+    fade_upto++;
+    uint8_t ids[BKG_MT_H];
+    get_map_column(fade_upto, map, map_bank, ids, mt_band);
+    for (uint8_t r = 0; r < BKG_MT_H; r++) {
+        if ((uint8_t)(ids[r] - fade_first) < fade_n) {
+            col_back = *cur;
+            *cur = fade_upto;
+            return fade_upto;
+        }
+    }
+    return 0;
 }
 
 void bg_stream_spin(void) BANKED {

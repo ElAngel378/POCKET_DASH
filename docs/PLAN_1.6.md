@@ -187,7 +187,14 @@ compiles what changed.
 Hitboxes: ice spikes collide like spikes (`HIT_LIKE`), saws by GDA's circles, as the 8x8 quarters
 inside them (`HIT_RADIUS`, GDA's radii). No new engine code.
 
-Still to do: fading, breakable bricks, pulsing.
+Fading objects 144–146 (`GO.FADE`, GDA's art): they vanish 40 px ahead of the player and stay solid /
+deadly. A cell with one has a second metatile without it; the cells take a block of ids with the
+hidden looks right after them, so the game needs no table. The column job redraws a column when the
+player reaches it, only when it holds such a cell (`col_job_next`, `fade_hide`, `fade_row` in
+`bg_stream.c`). The old code (a VBlank job per cell, extra palettes) was not ported: costly for 71
+objects, Clubstep only. No half-faded stage; a crash does not reveal them yet.
+
+Still to do: breakable bricks, pulsing.
 
 Order agreed 2026-11-07: spinning, hitboxes, fading, breakable bricks, pulsing last. Fading and
 breakable bricks exist in the old code (main's history, gda-objects): review that it is good and worth

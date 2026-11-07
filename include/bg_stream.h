@@ -19,6 +19,12 @@ extern uint8_t bs_up_buf[BS_UP_MAX * 16];
 extern uint8_t bs_spin_n;    // the level's spinning tiles (CGB; 0: none)
 void bg_stream_spin(void) BANKED;
 
+// Fading objects (bg_stream.c)
+extern uint8_t fade_n;
+void fade_hide(uint16_t col, uint8_t *ids, uint8_t n) BANKED;
+void fade_row(uint8_t first, uint8_t n, uint16_t loaded_r, uint8_t reversed, uint8_t *ids) BANKED;
+uint16_t col_job_next(uint16_t *cur, uint16_t loaded_r, uint16_t px, const uint8_t *map, uint8_t map_bank) BANKED;
+
 // The calls below are banked: callers check these first, so a frame with nothing to stream pays
 // nothing (DMG frames are full)
 extern uint8_t bs_q_n;       // tiles queued for bg_stream_feed

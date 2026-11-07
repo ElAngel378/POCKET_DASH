@@ -275,6 +275,7 @@ class Composer:
         used = {m for row in grid for m in row if m >= 0}
         cells, out, warn = {}, {}, []
         free = [m for m in range(256) if m not in used and m not in RESERVED]
+        todo = []
         for cx, cy, parts in novel:
             col, w = self.collision(parts, lookup)
             if w:
@@ -283,12 +284,37 @@ class Composer:
                 col = 0
             pal = self.palette(parts)
             k = (tuple(self.spin_look(parts)), tuple(self.look(0, parts)), pal, col)
+            rest = [p for p in parts if p[0] not in GO.FADE]
+            hidden = None
+            if len(rest) != len(parts):
+                hidden = (tuple(self.spin_look(rest)), tuple(self.look(0, rest)),
+                          self.palette(rest) if rest else pal, col)
+            todo.append((cx, cy, k, hidden, sorted({p[0] for p in parts if p[0] in self.spin})))
+        # cells with fading objects: ids in one block, each with its hidden look n ids further, so
+        # the game finds them without a table (mt_renderer.c fade_*)
+        fading = list(dict.fromkeys(t[2] for t in todo if t[3] is not None))
+        if fading:
+            n = len(fading)
+            block = next((f for f in free if all(f + i in free for i in range(2 * n))), None)
+            if block is None:
+                raise SystemExit("%s: no %d metatile ids in a row left for fading objects" % (name, 2 * n))
+            for i, k in enumerate(fading):
+                cells[k] = block + i
+            for f in range(block, block + 2 * n):
+                free.remove(f)
+            for t in todo:
+                if t[3] is not None:
+                    m = cells[t[2]]
+                    out[m] = (t[2][0], t[2][1], t[2][3], t[2][2], t[4], m + n)
+                    h = t[3]
+                    out[m + n] = (h[0], h[1], h[3], h[2], t[4], None)
+        for cx, cy, k, hidden, spin in todo:
             if k not in cells:
                 if not free:
                     raise SystemExit("%s: no metatile id left (cell %d, %d): too many different cells"
                                      % (name, cx, cy))
                 m = free.pop(0)
                 cells[k] = m
-                out[m] = (k[0], k[1], col, pal, sorted({p[0] for p in parts if p[0] in self.spin}))
+                out[m] = (k[0], k[1], k[3], k[2], spin, None)
             grid[cy][cx] = cells[k]
         return out, warn
