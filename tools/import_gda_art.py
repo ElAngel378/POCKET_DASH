@@ -41,6 +41,15 @@ ART = {
     "gd137": ("BIG_CIRCUNFERENCE_SAW_DECO", (8, 8, 32, 56)),     # left half of the ring
     "gd138": ("MED_CIRCUNFERENCE_SAW_DECO", None),
     "gd139": ("SMA_CIRCUNFERENCE_SAW_DECO", None),
+    "gd151": ("BIG_DECO_TRIANGLE", (4, 8, 12, 32)),
+    "gd152": ("MEDIUM_DECO_TRIANGLE", (4, 0, 12, 16)),
+    "gd153": ("SMALL_DECO_TRIANGLE", (4, 0, 12, 16)),
+    "gd154": ("BIG_SPIKE_SAW_DECO", (8, 8, 32, 32)),             # top left quarter
+    "gd155": ("MEDIUM_SPIKE_SAW_DECO", (0, 0, 32, 24)),
+    "gd180": ("BIG_CIRCLE_SAW_DECO", (0, 0, 16, 16)),            # top left quarter
+    "gd181": ("MEDIUM_CIRCLE_SAW_DECO", (4, 4, 28, 28)),
+    "gd182": ("SMALL_CIRCLE_SAW_DECO", None),
+    "gd190": ("DIAMOND_BG_CHAINS", (4, 0, 12, 32)),
 }
 
 # key -> (your .chr file in levels/objects/incoming_art, NES format?, box in its 128 px sheet)
@@ -54,7 +63,6 @@ USER_ART = {
     "gd157": ("1p6blocks", False, (0, 32, 16, 48)),
     "gd158": ("1p6blocks", False, (0, 32, 16, 48), "H"),
     "gd159": ("1p6blocks", False, (0, 32, 16, 48)),
-    "gd164": ("1p6blocks", False, (0, 16, 16, 32)),
     "gd170": ("1p6blocks", False, (0, 0, 16, 16)),
     "gd171": ("1p6blocks", False, (16, 0, 32, 16)),
     "gd173": ("1p6blocks", False, (80, 0, 96, 16)),
@@ -77,6 +85,12 @@ EDGE_T, EDGE_L, EDGE_R, EDGE_B = (0, 0, 16, 1), (0, 0, 1, 16), (15, 0, 16, 16), 
 OUTLINES = {"gd161": [EDGE_T], "gd162": [EDGE_T, EDGE_L], "gd163": [(0, 0, 1, 1)],
             "gd165": [EDGE_T, EDGE_L, EDGE_R], "gd166": [EDGE_L], "gd167": [(0, 0, 2, 1)],
             "gd169": [EDGE_T, EDGE_L, EDGE_R, EDGE_B]}
+
+# hazards from GDA: spikes keep their shades, black saws are black with a light edge
+SPIKES = {"gd177": ("ONE_POINT_SIX_SPIKE_V", None), "gd178": ("ONE_POINT_SIX_SPIKE_V", "half height"),
+          "gd179": ("ONE_POINT_SIX_MEDIUM_SPIKE_V", None)}
+BLACK_SAWS = {"gd183": ("ALT_BIG_OUTLINE_SAW", (8, 8, 32, 32)),      # top left quarter
+              "gd184": ("ALT_MEDIUM_OUTLINE_SAW", None), "gd185": ("ALT_SMALL_OUTLINE_SAW", (12, 4, 20, 28))}
 
 GREYS = [255, 255, 255, 170, 170, 170, 85, 85, 85, 0, 0, 0]
 
@@ -124,7 +138,10 @@ def main():
         for box in boxes:
             img.paste(3, box)
         save(key, img)
-    save("gd193", Image.new("L", (16, 16), 3))
+    save("gd193", Image.new("L", (16, 16), 2))
+    img = Image.new("L", (16, 16), 2)       # the striped fill: light on top, black below
+    img.paste(1, (0, 0, 16, 6))
+    save("gd164", img)
     names = gda.sprite_types()
     for key, (sprite, box) in ART.items():
         if key not in GO.DRAWN:
@@ -133,6 +150,17 @@ def main():
         if box:
             img = img.crop(box)
         save(key, gb_colours(img))
+    for key, (sprite, box) in SPIKES.items():
+        img = gda.sprite_art(names.index(sprite))[0]
+        print(key, sprite, img.size, img.getbbox())
+        if box:     # GD's low wide spike: GDA's has none, the spike squashed
+            img = img.resize((16, 8), Image.NEAREST)
+        save(key, img.point([0 if not c else 3 if c >= 11 else 2 if c >= 5 else 1 for c in range(256)]))
+    for key, (sprite, box) in BLACK_SAWS.items():
+        img = gda.sprite_art(names.index(sprite))[0]
+        img = img.crop(box) if box else img
+        top = max(img.getdata())
+        save(key, img.point([0 if not c else 2 if c == top else 3 for c in range(256)]))
 
 
 if __name__ == "__main__":

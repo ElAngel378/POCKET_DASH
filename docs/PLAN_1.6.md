@@ -162,8 +162,16 @@ tiles: tile numbers are 16 bits in the records and all levels' tiles are one spa
 banks (`bg_stream_tiles_<n>.c`). Streaming never makes the game wait: the build limits what a column
 brings in play (`PER_COLUMN`: 4 tiles CGB, 2 DMG, loading earlier when slots allow), the next column
 waits a little while tiles back up, and backed-up tiles go before the DMG cube frame in VBlank. Test
-level: no stall of 2 frames or more, CGB and DMG, running or jumping. Still to do: the 15 objects without art (151–155, 177–185, 190), the
-mechanics.
+level: no stall of 2 frames or more, CGB and DMG, running or jumping.
+
+The 15 objects without art are in with GDA's art for now (your call, 2026-11-06; `import_gda_art.py`):
+spiky art 151–153, spiked wheels 154 (a quarter), 155, cart wheels 180 (a quarter), 181, 182, chain
+art 190 (decoration); ice spikes 177–179, black saws 183 (a quarter), 184, 185 (deadly). 178 is GDA's
+spike squashed: GDA has no low wide one. Every object of the official levels now has art. GD's 1.0
+deco spikes 18–21 stay sprites 46–49.
+
+Still to do: the mechanics (breakable bricks, fading, pulsing, spinning), outline collision, finer
+hitboxes for ice spikes and saws.
 
 ### Phase 5 — Electroman and Clubstep as 1.6
 - Built by hand in Tiled with the full object set, GD's levels as the reference.

@@ -95,7 +95,7 @@ static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {
     3944, 4002,
     4118, 4193,
     4355, 4417,
-    4541, 4891,
+    4541, 5001,
 };
 static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
     bs_stereomadness_cgb_recs, bs_stereomadness_dmg_recs,
@@ -143,7 +143,7 @@ static const uint8_t bs_banks[BS_LEVEL_COUNT] = {
     247,   // everymadness
     247,   // demonpark
     247,   // thelightningroad
-    247,   // test
+    246,   // test
 };
 
 #endif

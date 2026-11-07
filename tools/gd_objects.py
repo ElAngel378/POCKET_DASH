@@ -99,6 +99,11 @@ DRAWN = {
     "gd139": ("Gear ring, small", (16, 16)),
     # 1.6 (phase 4)
     "gd143": ("Breakable brick", (16, 16)),
+    "gd151": ("Spiky art, tall", (8, 24)),
+    "gd152": ("Spiky art, medium", (8, 16)),
+    "gd153": ("Spiky art, small", (8, 16)),
+    "gd154": ("Spiked wheel (a quarter)", (24, 24)),
+    "gd155": ("Spiked wheel, three points", (32, 24)),
     "gd157": ("Wave hill, middle", (16, 16)),
     "gd158": ("Wave hill, rising", (16, 16)),
     "gd159": ("Wave hill, falling", (16, 16)),
@@ -116,9 +121,19 @@ DRAWN = {
     "gd174": ("1.6 block, corner 2", (16, 16)),
     "gd175": ("1.6 block, whole", (16, 16)),
     "gd176": ("1.6 block, small", (16, 16)),
+    "gd177": ("Ice spike", (16, 16)),
+    "gd178": ("Ice spike, half", (16, 8)),
+    "gd179": ("Ice spike, small", (16, 16)),
+    "gd180": ("Cart wheel, big (a quarter)", (16, 16)),
+    "gd181": ("Cart wheel, medium", (24, 24)),
+    "gd182": ("Cart wheel, small", (16, 16)),
+    "gd183": ("Black saw, big (a quarter)", (24, 24)),
+    "gd184": ("Black saw, medium", (32, 32)),
+    "gd185": ("Black saw, small", (8, 24)),
     "gd186": ("1.6 saw, big (a quarter)", (24, 24)),
     "gd187": ("1.6 saw, medium", (32, 32)),
     "gd188": ("1.6 saw, star", (32, 32)),
+    "gd190": ("Chain art", (8, 32)),
     "gd192": ("1.6 block, middle", (16, 16)),
     "gd193": ("1.6 dark fill", (16, 16)),
     "gd194": ("1.6 block, narrow corner", (16, 16)),
@@ -127,7 +142,12 @@ DRAWN = {
 # DRAWN objects that are not decoration: their quarters collide. Palette 0, like blocks and spikes.
 DRAWN_KIND = {k: "solid" for k in ("gd143", "gd164", "gd170", "gd171", "gd173", "gd174", "gd175",
                                    "gd176", "gd192", "gd193", "gd194", "gd197")}
-DRAWN_KIND.update({k: "deadly" for k in ("gd186", "gd187", "gd188")})
+DRAWN_KIND.update({k: "deadly" for k in ("gd177", "gd178", "gd179", "gd183", "gd184", "gd185", "gd186",
+                                         "gd187", "gd188")})
+# Black is colour 2 on CGB, 3 on DMG, and an outline on it the other way round: the files hold the
+# CGB colours, DMG swaps 2 and 3 in these
+DMG_SWAP = {"gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd167", "gd169", "gd183", "gd184",
+            "gd185", "gd193"}
 
 
 def drawn_pal(key):

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="64" tileheight="48" tilecount="154" columns="0">
+<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="64" tileheight="48" tilecount="169" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="1" type="gd1">
   <properties>
@@ -331,6 +331,36 @@
   </properties>
   <image width="16" height="16" source="tiles/gd143.png"/>
  </tile>
+ <tile id="151" type="gd151">
+  <properties>
+   <property name="name" value="Spiky art, tall"/>
+  </properties>
+  <image width="8" height="24" source="tiles/gd151.png"/>
+ </tile>
+ <tile id="152" type="gd152">
+  <properties>
+   <property name="name" value="Spiky art, medium"/>
+  </properties>
+  <image width="8" height="16" source="tiles/gd152.png"/>
+ </tile>
+ <tile id="153" type="gd153">
+  <properties>
+   <property name="name" value="Spiky art, small"/>
+  </properties>
+  <image width="8" height="16" source="tiles/gd153.png"/>
+ </tile>
+ <tile id="154" type="gd154">
+  <properties>
+   <property name="name" value="Spiked wheel (a quarter)"/>
+  </properties>
+  <image width="24" height="24" source="tiles/gd154.png"/>
+ </tile>
+ <tile id="155" type="gd155">
+  <properties>
+   <property name="name" value="Spiked wheel, three points"/>
+  </properties>
+  <image width="32" height="24" source="tiles/gd155.png"/>
+ </tile>
  <tile id="157" type="gd157">
   <properties>
    <property name="name" value="Wave hill, middle"/>
@@ -433,6 +463,60 @@
   </properties>
   <image width="16" height="16" source="tiles/gd176.png"/>
  </tile>
+ <tile id="177" type="gd177">
+  <properties>
+   <property name="name" value="Ice spike"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd177.png"/>
+ </tile>
+ <tile id="178" type="gd178">
+  <properties>
+   <property name="name" value="Ice spike, half"/>
+  </properties>
+  <image width="16" height="8" source="tiles/gd178.png"/>
+ </tile>
+ <tile id="179" type="gd179">
+  <properties>
+   <property name="name" value="Ice spike, small"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd179.png"/>
+ </tile>
+ <tile id="180" type="gd180">
+  <properties>
+   <property name="name" value="Cart wheel, big (a quarter)"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd180.png"/>
+ </tile>
+ <tile id="181" type="gd181">
+  <properties>
+   <property name="name" value="Cart wheel, medium"/>
+  </properties>
+  <image width="24" height="24" source="tiles/gd181.png"/>
+ </tile>
+ <tile id="182" type="gd182">
+  <properties>
+   <property name="name" value="Cart wheel, small"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd182.png"/>
+ </tile>
+ <tile id="183" type="gd183">
+  <properties>
+   <property name="name" value="Black saw, big (a quarter)"/>
+  </properties>
+  <image width="24" height="24" source="tiles/gd183.png"/>
+ </tile>
+ <tile id="184" type="gd184">
+  <properties>
+   <property name="name" value="Black saw, medium"/>
+  </properties>
+  <image width="32" height="32" source="tiles/gd184.png"/>
+ </tile>
+ <tile id="185" type="gd185">
+  <properties>
+   <property name="name" value="Black saw, small"/>
+  </properties>
+  <image width="8" height="24" source="tiles/gd185.png"/>
+ </tile>
  <tile id="186" type="gd186">
   <properties>
    <property name="name" value="1.6 saw, big (a quarter)"/>
@@ -450,6 +534,12 @@
    <property name="name" value="1.6 saw, star"/>
   </properties>
   <image width="32" height="32" source="tiles/gd188.png"/>
+ </tile>
+ <tile id="190" type="gd190">
+  <properties>
+   <property name="name" value="Chain art"/>
+  </properties>
+  <image width="8" height="32" source="tiles/gd190.png"/>
  </tile>
  <tile id="191" type="gd191">
   <properties>

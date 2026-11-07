@@ -108,12 +108,11 @@ class Composer:
         for key, qs in LO.drawn_art().items():
             for cgb in (1, 0):
                 self.art[cgb][(key, "")] = dict(qs)
+                if not cgb and key in GO.DMG_SWAP:
+                    self.art[0][(key, "")] = {q: tuple({2: 3, 3: 2}.get(v, v) for v in p) for q, p in qs.items()}
             self.opal[key] = GO.drawn_pal(key)
             if key in GO.DRAWN_KIND:
                 self.kind[key] = GO.DRAWN_KIND[key]
-        # black is colour 2 on CGB, 3 on DMG: the dark fill shows what Famidash's black fill shows
-        for cgb in (1, 0):
-            self.art[cgb][("gd193", "")] = self.art[cgb][("fd_black_none", "")]
         for key in GO.OBJECTS:
             self.kind.setdefault(key, "none")
 
