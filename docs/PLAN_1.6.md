@@ -223,6 +223,11 @@ GDA LBG (light BG), ours white or player colour 1. The GDA check compared palett
 mean different things (GDA 2 = LBG, ours 2 = player colour). Idea: use the parallax palette (3),
 which has lighter / darker BG shades, with the art remapped; test on CGB and DMG.
 
+To do (user, 2026-11-08): the Tiled sprite sheet (levels/chr_data/graphics/sprites.png) as an
+edited copy of Famidash's: a cross over every sprite our game does not have, and our own art in
+the cells where Pocket Dash differs from Famidash or Famidash's is a placeholder (like the
+pulsing ring and heart now, and the mirror portals), so Tiled shows what the game draws.
+
 Order agreed 2026-11-07: spinning, hitboxes, fading, breakable bricks, pulsing last. Fading and
 breakable bricks exist in the old code (main's history, gda-objects): review that it is good and worth
 taking before porting it.
