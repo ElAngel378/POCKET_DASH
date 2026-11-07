@@ -146,6 +146,9 @@ DRAWN_KIND.update({k: "deadly" for k in ("gd177", "gd178", "gd179", "gd183", "gd
                                          "gd187", "gd188")})
 # Black is colour 2 on CGB, 3 on DMG, and an outline on it the other way round: the files hold the
 # CGB colours, DMG swaps 2 and 3 in these
+# Decorations are dark, like GD's: on CGB their colour 3 is black (colour 2 of the decoration palette:
+# its colour 3 is the cube's colour); these keep it: lines, which are light
+DECO_LIGHT = {"gd76", "gd77", "gd78", "gd81", "gd82"}
 DMG_SWAP = {"gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd167", "gd169", "gd183", "gd184",
             "gd185", "gd193"}
 

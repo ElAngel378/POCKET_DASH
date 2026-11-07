@@ -108,6 +108,8 @@ class Composer:
         for key, qs in LO.drawn_art().items():
             for cgb in (1, 0):
                 self.art[cgb][(key, "")] = dict(qs)
+                if cgb and key not in GO.DRAWN_KIND and key not in GO.DMG_SWAP and key not in GO.DECO_LIGHT:
+                    self.art[1][(key, "")] = {q: tuple(2 if v == 3 else v for v in p) for q, p in qs.items()}
                 if not cgb and key in GO.DMG_SWAP:
                     self.art[0][(key, "")] = {q: tuple({2: 3, 3: 2}.get(v, v) for v in p) for q, p in qs.items()}
             self.opal[key] = GO.drawn_pal(key)
