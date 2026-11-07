@@ -37,6 +37,11 @@ rhombus $E1, ? $E3, ! $E5, arrow $E7, X $ED, the line's ball $F1 (a small star),
 $EB. sp_draw.c shows them between the music's hits (deco_tile_sets). Bank 1 tiles 36..65 are the
 attempt text's (percent_hud.c), 66..127 were free.
 
+PULSE_GDP (from levels/objects/incoming_art/GDP_Pulsing_Obj.chr, not in the image): the pulsing
+ring and heart (engine ids 65, 66; sprites.png cells 112, 113), left halves (drawn mirrored), big
+(on the music's hits) in CGB bank 1 tiles 82..85, small in 86..89, in the order of their D_ ids
+(include/famidash_sprites.h). paint_pulse_cells draws them into sprites.png for Tiled.
+
 Only the ranges in LOADS are loaded; the other slots are empty in the image because
 gameplay fills them from the font at runtime ("PAUSED" 76..87, debug HUD and % 90..115)
 or they are background tiles (bank 0 128..159; DMG coins use 144..159), or the coin
@@ -49,6 +54,31 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 PNG = ROOT / "levels" / "chr_data" / "sprite_tiles.png"
+GDP_CHR = ROOT / "levels" / "objects" / "incoming_art" / "GDP_Pulsing_Obj.chr"
+SHEET = ROOT / "levels" / "chr_data" / "graphics" / "sprites.png"
+# PULSE_GDP: x of each shape's 16 x 16 cell in GDP_Pulsing_Obj.chr (big at y 0, small at y 16) and
+# its sprites.png cell, in D_ id order
+PULSE_GDP = [(16, 112), (32, 113)]      # ring, heart
+PULSE_COLOUR = (123, 255, 0, 255)       # the decorations' colour in the default player colours
+
+
+def gdp_pixel(d, x, y):
+    t = (y // 8) * 16 + x // 8
+    return (d[t * 16 + 2 * (y % 8)] | d[t * 16 + 2 * (y % 8) + 1]) >> (7 - x % 8) & 1
+
+
+def paint_pulse_cells():
+    """The shapes (big) in their sprites.png cells, so Tiled shows them"""
+    d = GDP_CHR.read_bytes()
+    sheet = Image.open(SHEET).convert("RGBA")
+    for x0, cell in PULSE_GDP:
+        art = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+        for y in range(16):
+            for x in range(16):
+                if gdp_pixel(d, x0 + x, y):
+                    art.putpixel((x, y), PULSE_COLOUR)
+        sheet.paste(art, (cell % 16 * 16, cell // 16 * 16))
+    sheet.save(SHEET)
 
 SECTION_ROW = {"BANK0": 0, "BANK1": 8, "DECO_CLOUD": 16, "CGB_MIRROR_EXIT": 18}
 # load conditions (must match src/sprites/famidash_sprite_tiles.c)
@@ -73,6 +103,7 @@ LOADS = [  # condition, VRAM bank, first tile, count, source section, first tile
     (CGB, 1, 222, 12, "ROD_PULSE", 0),     # rod balls between beats (both deco sets draw the same rods)
     (CGB, 1, 250, 6, "PULSE_BALL", 0),     # pulsing ball decoration, 7 / 5 / 3 px
     (CGB, 1, 66, 16, "BANK1", 66),         # PULSE_SMALL: pulsing decorations between beats
+    (CGB, 1, 82, 8, "PULSE_GDP", 0),       # the pulsing ring and heart, big then small
     (CGB, 1, 234, 16, "BANK1", 234),       # pad / orb animation frames 2, 3 (Famidash $FB $FD, $9D $9F, $BD $BF, $5D $5F)
     # coins: levels/chr_data/coin.chr (tools/make_coin_tiles.py), loaded by famidash_sprite_tiles.c
 ]
@@ -141,7 +172,26 @@ def main():
         return out
     pulse_ball = pulse_ball_tiles()
 
+    def pulse_gdp_tiles():
+        """PULSE_GDP as tiles: each shape's left half (2 tiles), big ones, then small ones, in
+        colour 2 like the other pulsing decorations"""
+        d = GDP_CHR.read_bytes()
+        out = []
+        for y0 in (0, 16):
+            for x0, _ in PULSE_GDP:
+                for half in (0, 8):
+                    t = bytearray()
+                    for r in range(8):
+                        bits = sum(gdp_pixel(d, x0 + x, y0 + half + r) << (7 - x) for x in range(8))
+                        t += bytes([0, bits])
+                    out.append(bytes(t))
+        return out
+    pulse_gdp = pulse_gdp_tiles()
+    paint_pulse_cells()
+
     def tile(section, i):
+        if section == "PULSE_GDP":
+            return pulse_gdp[i]
         if section == "ROD_PULSE":
             return rod_pulse[i]
         if section == "PULSE_BALL":
@@ -169,7 +219,7 @@ def main():
     rows = []
     for cond, bank, first, count, section, src in LOADS:
         rows.append((cond, bank, first, count, len(blob) // 16))
-        deco = (cond in (CGB_DECO, CGB_DECO_CLOUD) or section in ("ROD_PULSE", "PULSE_BALL")
+        deco = (cond in (CGB_DECO, CGB_DECO_CLOUD) or section in ("ROD_PULSE", "PULSE_BALL", "PULSE_GDP")
                 or (bank, first) == (1, 66))
         for i in range(count):
             blob += deco_colours(tile(section, src + i)) if deco else tile(section, src + i)

@@ -78,6 +78,12 @@ extern const metasprite_t * const famidash_sprite_table[38];
 #define D_E9 36
 #define D_EB 38
 #define D_PB 40   // pulsing ball: CGB bank 1 tiles 250..255 (7 / 5 / 3 px), see deco_tile_sets in sp_draw.c
+// your pulsing shapes (levels/objects/incoming_art/GDP_Pulsing_Obj.chr), engine ids 65, 66: CGB
+// bank 1 tiles 82..85 big, 86..89 small (tools/build_sprite_tiles.py PULSE_GDP); left halves,
+// the right half is drawn mirrored
+#define D_RING  42
+#define D_HEART 44
+#define D_LAST  D_HEART
 
 typedef struct {
     uint8_t count;
