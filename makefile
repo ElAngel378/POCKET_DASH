@@ -47,7 +47,10 @@ $(TEMPDIR)/%.o: %.s
 
 # No automatic header tracking: list generated headers / INCBIN data explicitly
 $(TEMPDIR)/mt_renderer.o: src/graphics/bg_level_tables.h
-$(TEMPDIR)/bg_stream.o: src/graphics/bg_stream_tables.h levels/chr_data/bg_extra_tiles.bin
+$(TEMPDIR)/bg_stream.o: src/graphics/bg_stream_tables.h
+# each level wrapper INCBINs its map chunks
+$(shell mkdir -p $(TEMPDIR); grep -o 'levels/level_data/[^"]*' src/levels/level_*.c | sed -e 's|^src/levels/|$(TEMPDIR)/|' -e 's|\.c:|.o: |' > $(TEMPDIR)/levels.d)
+include $(TEMPDIR)/levels.d
 $(TEMPDIR)/tileset.o: levels/chr_data/bg_base_tiles.bin levels/chr_data/bg_base_tiles_flipped.bin
 $(TEMPDIR)/saw_anim_data.o: levels/chr_data/saw_anim_tiles.bin
 $(TEMPDIR)/assets.o: include/bg_tiles.h

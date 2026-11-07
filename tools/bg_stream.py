@@ -90,7 +90,7 @@ def quarters(art, name, m, cgb, big_saw, sets=None):
 
 class Stream:
     """One level on one platform: pool, slots, records"""
-    def __init__(self, art, name, grid, cgb, slots, novel=None):
+    def __init__(self, art, name, grid, cgb, slots, novel=None, spin_max=SPIN_MAX):
         """novel: the level's own metatiles (tools/compose.py): id -> {"cgb": 4 quarters, "dmg": ...}"""
         self.name, self.cgb = name, cgb
         self.own = sorted(novel or {})
@@ -109,9 +109,9 @@ class Stream:
         for m in dict.fromkeys(m for col in grid for m in col):      # from the left of the level
             for q, px in enumerate(self.mq[m]):
                 if px is not None and len(px) == SPIN_FRAMES:
-                    if px not in moving and len(moving) >= SPIN_MAX:
+                    if px not in moving and len(moving) >= spin_max:
                         if not over:
-                            print("  %s: more than %d spinning tiles, the rest stands still" % (name, SPIN_MAX))
+                            print("  %s: more than %d spinning tiles, the rest stands still" % (name, spin_max))
                         over = True
                         self.mq[m][q] = px[0]
                     elif px not in moving:
@@ -302,7 +302,14 @@ def write(pools):
              "#include <stdint.h>", "", "BANKREF(bs_%s)" % name, ""]
         size = 0
         for cgb, slots in ((1, cgb_slots), (0, dmg_slots)):
-            st = Stream(art, name, cols, cgb, test_slots(slots), novel)
+            # the spinning tiles' slots can leave too few for the columns: fewer of them then
+            for limit in range(SPIN_MAX, -1, -13):
+                try:
+                    st = Stream(art, name, cols, cgb, test_slots(slots), novel, limit)
+                    break
+                except SystemExit:
+                    if not limit:
+                        raise
             st.simulate(cols)
             # DMG: all the tiles, then all of them mirrored (runs of tiles copy in one go)
             tiles = b"".join(tile_bytes(px[0] if len(px) == SPIN_FRAMES else px) for px in st.pool)
