@@ -30,26 +30,31 @@ from gen_famidash_bg_tables import NES
 TMX = ROOT / "levels" / "chr_data" / "tmx"
 PICS = ROOT / "levels" / "chr_data" / "objects" / "tiles"
 
-# our object -> GDA metatile (placed as a sprite) or ("S", sprite type). The 1.6 block pieces
-# (170..197) are GDA's Electroman set, matched by eye: GDA draws them differently from your art.
+# our object -> GDA metatile (placed as a sprite) or ("S", sprite type). From the levels themselves,
+# not by eye: what GDA has in the cell where GD's own Electroman, Clubstep, Clutterfunk place the
+# object unturned (GD's Resources/levels/*.txt against GDA's levels/*.tmx). GDA's outlines and light
+# lines come with their fill: one piece for what GD stacks (see FILL_UNDER).
 METATILE = {
     "gd1": "BASIC_BLOCK", "gd5": "CHK_FILLER", "gd8": "SPIKE_UP", "gd39": "SMALL_SPIKE_BOTTOM",
-    "gd40": "SLAB_UP", "gd76": "OUTLINE_TOP", "gd77": "OUTLINE_TOP", "gd78": "OUTLINE_TOP",
-    "gd81": "OUTLINE_TOP", "gd82": "OUTLINE_LEFT", "gd83": "CHK_FULL", "gd103": "MEDIUM_SPIKE_BOTTOM",
+    "gd40": "SLAB_UP", "gd76": "+_FULL", "gd77": "+_SIDE_UP", "gd78": "+_CORNER_TL",
+    "gd81": "+_DB_CRN_TOP", "gd82": "+_DB_SIDE_V", "gd83": "CHK_FULL", "gd103": "MEDIUM_SPIKE_BOTTOM",
     "gd143": "BREAKABLE_BRICK", "gd146": "FADING_BLOCK",
     "gd157": "1.6_WAVE_DECO_MIDDLE", "gd158": "1.6_WAVE_DECO_LFT", "gd159": "1.6_WAVE_DECO_RGT",
-    "gd161": "OUTLINE_TOP", "gd162": "OUTLINE_LEFT_TOP", "gd163": "OUTLINE_DOT_TOP_LEFT",
-    "gd164": "1.6_FILLER", "gd165": "OUTLINE_LEFT_TOP_RIGHT", "gd166": "OUTLINE_LEFT",
-    "gd167": "OUTLINE_DOT_TOP_LEFT", "gd169": "OUTLINE_BLOCK",
-    "gd170": "1.6_EA_MIDDLE_SLAB", "gd171": "1.6_EA_SLAB", "gd173": "1.6_EA_CORNER_TL",
-    "gd174": "1.6_EA_INS_CRN_TL", "gd175": "1.6_BLOCK", "gd176": "1.6_EA_ALIGNER_TL",
-    "gd192": "1.6_EA_MIDDLE_SLAB_UD", "gd193": "1.6_FILLER", "gd194": "1.6_EA_INS_CRN_ALT_TL",
-    "gd197": "1.6_EA_SLAB_UD",
+    "gd161": "1.6_SIDE_TOP", "gd162": "1.6_CORNER_TL", "gd163": "1.6_INS_CRN_TL",
+    "gd164": "1.6_SIDE_TOP_NO_OUT", "gd165": "1.6_DBL_CRN_TOP", "gd166": "1.6_DBL_SIDE_V",
+    "gd167": "1.6_DBL_INS_CRN_TOP", "gd169": "1.6_BLOCK_ALT",
+    "gd170": "1.6_EA_SLAB", "gd171": "1.6_SLAB_SIDE_H_TR_ALT", "gd173": "1.6_EA_CORNER_BR",
+    "gd174": "1.6_EA_INS_CRN_BR", "gd175": "1.6_SLAB_BLOCK_TOP", "gd176": "1.6_EA_MIDDLE_SLAB",
+    "gd192": "1.6_SLAB_SINGLE_TOP", "gd193": "1.6_FILLER", "gd194": "1.6_EA_INS_CRN_ALT_BR",
+    "gd197": "1.6_EA_ALIGNER_BL",
 }
+# fills GDA's outlines already contain: an outline on one of these replaces it
+FILL_UNDER = {"gd193"}
 SPRITE = {k: v[0] for k, v in IA.ART.items()}
 SPRITE.update({k: v[0] for k, v in IA.SPIKES.items()})
 SPRITE.update({k: v[0] for k, v in IA.BLACK_SAWS.items()})
-SPRITE.update({"gd48": "BIG_BG_CLOUDS", "gd49": "SMALL_BG_CLOUDS", "gd113": "BIG_BG_SQUARES",
+SPRITE.update({"gd129": "MEDIUM_CLOUD", "gd130": "BIG_CLOUD",   # as GD: 130 is the big one (our art is swapped)
+               "gd48": "BIG_BG_CLOUDS", "gd49": "SMALL_BG_CLOUDS", "gd113": "BIG_BG_SQUARES",
                "gd114": "MEDIUM_BG_SQUARES", "gd115": "SMALL_BG_SQUARES",
                "gd187": "MEDIUM_OUTLINE_SAW", "gd188": "SMALL_OUTLINE_SAW",
                "gd178": "ONE_POINT_SIX_HALF_SPIKE_V"})
@@ -126,6 +131,7 @@ def convert(name):
     mt_names = {n: i for i, (n, _, _) in reversed(list(enumerate(gda.metatiles())))}
     types = gda.sprite_types()
     objs, missing = [], set()
+    fills = {mt_names[METATILE[k]] + 1 for k in FILL_UNDER}
     tiles = {"l1": [0] * (w * h), "l2": [0] * (w * h)}
     oid = 1
     for key, x, y, fl in LO.tmx_objects(root):
@@ -135,6 +141,9 @@ def convert(name):
             mid = mt_names[METATILE[key]]
             if not tf and mb == (16, 16) and not x % 16 and not y % 16 and 0 <= y < h * 16:
                 i = (y // 16) * w + x // 16
+                if key in GO.OUTLINE and tiles["l1"][i] in fills:
+                    tiles["l1"][i] = mid + 1
+                    continue
                 layer = "l1" if not tiles["l1"][i] else "l2" if not tiles["l2"][i] else None
                 if layer:
                     tiles[layer][i] = mid + 1

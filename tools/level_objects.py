@@ -582,9 +582,9 @@ def csv(vals, w):
 # ---------------------------------------------------------------- tileset
 
 GREY = [(255, 255, 255, 0), (170, 170, 170, 255), (85, 85, 85, 255), (0, 0, 0, 255)]
-# palette tints for the Tiled pictures (CGB palette 1 = ground, 2 = background deco, 3 = dark
-# fills, 5 = fake, 6 = background shades, 7 = player colour 2)
-TINT = {0: (1, 1, 1), 1: (0.85, 0.7, 0.5), 2: (0.6, 0.75, 1.0), 3: (0.5, 0.6, 0.9), 5: (1.0, 0.6, 0.6),
+# palette tints for the Tiled pictures (CGB palette 1 = ground, 2 = background deco, 5 = fake,
+# 6 = background shades, 7 = player colour 2)
+TINT = {0: (1, 1, 1), 1: (0.85, 0.7, 0.5), 2: (0.6, 0.75, 1.0), 5: (1.0, 0.6, 0.6),
         6: (0.55, 0.8, 1.0), 7: (0.6, 1.0, 0.8)}
 
 

@@ -177,22 +177,18 @@ DMG_SWAP = {"gd146", "gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd16
 DRAWN_P2 = {"gd48", "gd49", "gd106", "gd107", "gd137", "gd138", "gd139", "gd180", "gd181", "gd182", "gd190"}
 # GDA's background shades (palette 6, famidash_bg.c): colour 1 the object colour (white), 2 a dark
 # shade of the sky, 3 a light one. The art's colours are in that order. Wave hills are all light.
-SHADES = {"gd157", "gd158", "gd159", "gd170", "gd171", "gd173", "gd174", "gd175", "gd176", "gd192", "gd193",
+SHADES = {"gd157", "gd158", "gd159", "gd164", "gd170", "gd171", "gd173", "gd174", "gd175", "gd176", "gd192", "gd193",
           "gd194", "gd197"}
 # Light lines: the object colour, as in GDA
 OBJECT_COLOUR = {"gd76", "gd77", "gd78", "gd81", "gd82"}
-# The striped fill: the parallax palette's dark shades (palette 3: colours 1 and 3)
-STRIPES = {"gd164"}
 # CGB only, art colour -> tile colour
 CGB_RECOLOUR = {k: {3: 1} for k in DRAWN_P2}
-CGB_RECOLOUR["gd164"] = {2: 3}
+CGB_RECOLOUR["gd164"] = {1: 3}     # the striped fill's light band
 
 
 def drawn_pal(key):
     if key in SHADES:
         return 6
-    if key in STRIPES:
-        return 3
     if key in DRAWN_P2:
         return 7
     return 0 if key in DRAWN_KIND or key in OBJECT_COLOUR else DRAWN_PAL

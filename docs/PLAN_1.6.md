@@ -223,6 +223,10 @@ hills (light), and any cell mixing them with outlines or spikes. Light lines are
 fill uses the parallax palette's dark shades. Player colour 2 decorations moved to colour 1 of
 palette 7 (the faded palette only needs colours 2 and 3). DMG is unchanged.
 
+GD / GDA / Pocket Dash pairing (tools/gda_compare.py) now comes from the levels: what GDA has in the cell
+where GD's own levels place each object. Open: GD 129 is the medium cloud and 130 the big one; our art and
+sizes have them swapped.
+
 To do (user, 2026-11-08): the Tiled sprite sheet (levels/chr_data/graphics/sprites.png) as an
 edited copy of Famidash's: a cross over every sprite our game does not have, and our own art in
 the cells where Pocket Dash differs from Famidash or Famidash's is a placeholder (like the
