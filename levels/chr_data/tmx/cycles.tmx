@@ -4,6 +4,11 @@
   <chunksize width="16" height="27" />
   <export target="cycles.csv" format="csv" />
  </editorsettings>
+ <properties>
+  <property name="BG colour" type="color" value="#ff5c007e"/>
+  <property name="Ground colour" type="color" value="#ffa01acc"/>
+  <property name="Max fall" type="int" value="7"/>
+ </properties>
  <tileset firstgid="1" source="../objects/gd_objects.tsx" />
  <tileset firstgid="10001" source="../objects/sprites.tsx"/>
  <layer id="7" name="Layer 1" width="823" height="27">

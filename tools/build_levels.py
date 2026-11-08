@@ -51,39 +51,17 @@ KNOWN_LEVELS = {
 # Save slots (include/save_manager.h NUM_SAVE_LEVELS); a level not listed above has none
 NO_SAVE_SLOT = 255
 
-def load_level_colors(level_name, metadata_dir=None):
-    if metadata_dir is None:
-        metadata_dir = REPO_ROOT / "levels" / "metadata"
-    target = level_name.lower().replace("_", "").replace("-", "")
-    for mf in metadata_dir.glob("*.json"):
-        try:
-            with open(mf, "r", encoding="utf-8") as fp:
-                data = json.load(fp)
-            all_lvls = data.get("official_levels", []) + data.get("community_levels", [])
-            for lvl in all_lvls:
-                cur_name = lvl.get("level", "").lower().replace("_", "").replace("-", "")
-                if cur_name == target:
-                    return (lvl.get("startingBackgroundColor", 17), lvl.get("startingGroundColor", 17))
-        except Exception:
-            continue
-    return (17, 17)
+def level_settings(tmx_path):
+    """(BG colour, ground colour, 1 if the cube falls up to 7 px a frame) from the TMX's map properties"""
+    from tmx2sprites import TRIGGER_COLOURS, nearest_colour
+    from gen_famidash_bg_tables import NES
+    props = {p.get('name'): p.get('value') for p in ET.parse(tmx_path).getroot().findall('properties/property')}
+    def colour(name):
+        if name not in props:
+            return 17
+        return TRIGGER_COLOURS[nearest_colour(props[name], TRIGGER_COLOURS, lambda n: NES[n])]
+    return colour('BG colour'), colour('Ground colour'), 1 if props.get('Max fall') == '7' else 0
 
-def level_max_fall_7(level_name, metadata_dir=None):
-    """1 when the level's Famidash header sets max fall speed $07 (metadata maxFallSpeed 7; no
-    value = $06): the cube falls up to 7 px a frame instead of 6"""
-    if metadata_dir is None:
-        metadata_dir = REPO_ROOT / "levels" / "metadata"
-    target = level_name.lower().replace("_", "").replace("-", "")
-    for mf in metadata_dir.glob("*.json"):
-        try:
-            with open(mf, "r", encoding="utf-8") as fp:
-                data = json.load(fp)
-        except Exception:
-            continue
-        for lvl in data.get("official_levels", []) + data.get("community_levels", []):
-            if lvl.get("level", "").lower().replace("_", "").replace("-", "") == target:
-                return 1 if lvl.get("maxFallSpeed") == 7 else 0
-    return 0
 
 def read_uge_tempo(uge_path):
     """
@@ -541,8 +519,7 @@ def build_all():
             has_music = False
             print(f"  - Music: Not found for {stem} (Will play silent)")
 
-        bg_color, g_color = load_level_colors(stem)
-        max_fall_7 = level_max_fall_7(stem)
+        bg_color, g_color, max_fall_7 = level_settings(TMX_DIR / f"{stem}.tmx")
 
         levels_info.append({
             "stem": stem,

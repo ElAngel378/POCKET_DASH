@@ -4,6 +4,11 @@
   <chunksize width="16" height="27" />
   <export target="polargeist.csv" format="csv" />
  </editorsettings>
+ <properties>
+  <property name="BG colour" type="color" value="#ff5ce430"/>
+  <property name="Ground colour" type="color" value="#ff0d9300"/>
+  <property name="Max fall" type="int" value="7"/>
+ </properties>
  <tileset firstgid="1" source="../objects/gd_objects.tsx" />
  <tileset firstgid="10001" source="../objects/sprites.tsx"/>
  <imagelayer id="3" name="Image Layer 1" parallaxx="0.9" parallaxy="0.9" repeatx="1" repeaty="1">
