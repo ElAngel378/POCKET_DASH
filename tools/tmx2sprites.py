@@ -2,71 +2,7 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 import argparse
-import json
 from pathlib import Path
-
-def load_metadata_for_level(level_name, metadata_dir=None):
-    """Searches levels/metadata/*.json for the specified level and returns its offset dictionary."""
-    if metadata_dir is None:
-        metadata_dir = Path(__file__).resolve().parent.parent / "levels" / "metadata"
-
-    if not metadata_dir.is_dir():
-        return {}
-
-    target = level_name.lower().replace("_", "").replace("-", "")
-
-    for mf in metadata_dir.glob("*.json"):
-        try:
-            with open(mf, 'r', encoding='utf-8') as fp:
-                data = json.load(fp)
-            g_offsets = data.get('globalObjectOffsets', [])
-            all_lvls = data.get('official_levels', []) + data.get('community_levels', [])
-            for lvl in all_lvls:
-                cur_name = lvl.get('level', '').lower().replace("_", "").replace("-", "")
-                if cur_name == target:
-                    l_offsets = lvl.get('objectOffsets', [])
-                    return build_offset_dict(g_offsets, l_offsets)
-        except Exception:
-            continue
-    return {}
-
-def build_offset_dict(global_settings, level_settings):
-    """Builds offset dictionary matching FamiDash export_levels.py getDictFromOffsetSettings."""
-    out = {}
-    for setting_list in [global_settings, level_settings]:
-        for s in setting_list:
-            # FamiDash adds +8px to pads (NES 8x8 sprites). Our pads are already drawn
-            # low in their 8x16 tile, so the +8px would sink them into the floor.
-            if s.get('objectID'):
-                oids = s['objectID'] if isinstance(s['objectID'], list) else [s['objectID']]
-                if any(o in [10, 13, 37, 82, 86, 253] for o in oids) and s.get('offsetY', 0) == 8:
-                    continue
-
-            off = s.get('offset')
-            if not off:
-                off = [s.get('offsetX', 0), s.get('offsetY', 0)]
-            if off == [0, 0]:
-                continue
-            if 'coordinates' in s:
-                coords = s['coordinates']
-                if len(coords) == 2 and isinstance(coords[0], int):
-                    coords = [coords]
-                for c in coords:
-                    c = tuple(c)
-                    if c not in out or s.get('override'):
-                        out[c] = (off, s.get('override', False))
-                    else:
-                        prev = out[c][0]
-                        out[c] = ([prev[0] + off[0], prev[1] + off[1]], False)
-            elif 'objectID' in s:
-                oids = s['objectID'] if isinstance(s['objectID'], list) else [s['objectID']]
-                for o in oids:
-                    if o not in out or s.get('override'):
-                        out[o] = off
-                    else:
-                        prev = out[o]
-                        out[o] = [prev[0] + off[0], prev[1] + off[1]]
-    return out
 
 def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, skip=None):
     """skip(x_px, y_px, obj_id) -> True drops that object"""
@@ -88,14 +24,12 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
 
     sprites_firstgid = None
     for tileset in root.findall('tileset'):
-        if tileset.get('name') == 'sprites':
-            firstgid_attr = tileset.get('firstgid')
-            if firstgid_attr is not None:
-                sprites_firstgid = int(firstgid_attr)
+        if tileset.get('source', '').endswith('sprites.tsx'):
+            sprites_firstgid = int(tileset.get('firstgid'))
             break
 
     if sprites_firstgid is None:
-        print(f"Error: Could not find a tileset named 'sprites' in {tmx_filepath}.")
+        print(f"Error: {tmx_filepath} does not use objects/sprites.tsx.")
         sys.exit(1)
 
     # TMX global id -> engine object id
@@ -162,71 +96,38 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
     }
     fade_of_col = {}
 
-    offset_dict = load_metadata_for_level(file_base_name)
-    if offset_dict:
-        print(f"  - Loaded {len(offset_dict)} FamiDash offset rules for {file_base_name}")
-
     portal_data = []
 
+    # Maps are MAP_ROWS (64) rows tall and bottom-aligned (tools/build_levels.py)
+    rows_above = (64 - map_height) * 16
     sp_layer_found = False
-    for layer in root.findall('layer'):
-        if layer.get('name') == 'SP':
-            sp_layer_found = True
-            data_element = layer.find('data')
-
-            if data_element is not None and data_element.get('encoding') == 'csv':
-                csv_data = data_element.text.replace('\n', '').replace('\r', '') if data_element.text else ""
-                tiles = csv_data.split(',')
-
-                # Maps are MAP_ROWS (64) rows tall and bottom-aligned (tools/build_levels.py)
-                start_y = map_height - 64
-
-                for index, tile_str in enumerate(tiles):
-                    if not tile_str.strip():
-                        continue
-
-                    try:
-                        tile_id = int(tile_str.strip())
-                    except ValueError:
-                        continue
-
-                    if tile_id in fade_markers:
-                        col = index % map_width
-                        if fade_of_col.get(col, fade_markers[tile_id]) != fade_markers[tile_id]:
-                            print(f"Error: {tmx_filepath}: two different fade time markers in column {col}")
-                            sys.exit(1)
-                        fade_of_col[col] = fade_markers[tile_id]
-                        continue
-
-                    if tile_id in portals_map:
-                        col = index % map_width
-                        row = index // map_width
-                        obj_id = portals_map[tile_id]
-
-                        offsetA = offset_dict.get(obj_id, [0, 0])
-                        offsetB, override = offset_dict.get((col, row), [[0, 0], False])
-                        if override:
-                            dx = offsetB[0]
-                            dy = offsetB[1]
-                        else:
-                            dx = offsetA[0] + offsetB[0]
-                            dy = offsetA[1] + offsetB[1]
-
-                        row_16 = row - start_y
-
-                        x_px = col * 16 + dx
-                        if row_16 < 0:
-                            y_px = 0
-                        else:
-                            y_px = max(0, row_16 * 16 + dy)
-
-                        if 128 <= obj_id < 176 or 192 <= obj_id < 240:
-                            y_px = ('fade', col)   # the column's fade time, once every marker is read
-                        portal_data.append((x_px, y_px, obj_id))
-            break
+    for group in root.findall('objectgroup'):
+        if group.get('name') != 'SP':
+            continue
+        sp_layer_found = True
+        for obj in group.findall('object'):
+            if obj.get('gid') is None:
+                continue
+            gid = int(obj.get('gid')) & 0x1FFFFFFF
+            x_px = int(float(obj.get('x')))
+            top = int(float(obj.get('y'))) - int(float(obj.get('height', 16)))
+            col = x_px // 16
+            if gid in fade_markers:
+                if fade_of_col.get(col, fade_markers[gid]) != fade_markers[gid]:
+                    print(f"Error: {tmx_filepath}: two different fade time markers in column {col}")
+                    sys.exit(1)
+                fade_of_col[col] = fade_markers[gid]
+                continue
+            if gid not in portals_map:
+                continue
+            obj_id = portals_map[gid]
+            y_px = max(0, top + rows_above)
+            if 128 <= obj_id < 176 or 192 <= obj_id < 240:
+                y_px = ('fade', col)   # the column's fade time, once every marker is read
+            portal_data.append((x_px, y_px, obj_id))
 
     if not sp_layer_found:
-        print(f"Warning: 'SP' layer was not found in {tmx_filepath}. Outputting terminator only.")
+        print(f"Warning: 'SP' object layer was not found in {tmx_filepath}. Outputting terminator only.")
 
     portal_data = [(x, fade_of_col.get(y[1], 0) if isinstance(y, tuple) else y, o) for x, y, o in portal_data]
 
@@ -271,7 +172,7 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
     print(f"Success! Extracted {len(portal_data)} portals into {output_c_filepath}")
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert the Tiled SP layer into portal and object data.")
+    parser = argparse.ArgumentParser(description="Convert the Tiled SP object layer into portal and object data.")
     parser.add_argument("input", type=Path, help="Input TMX map")
     parser.add_argument("-o", "--out-dir", type=Path, help="Output directory for .c file")
     parser.add_argument("-n", "--name", help="Output file stem name")

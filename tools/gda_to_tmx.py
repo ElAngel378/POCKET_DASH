@@ -292,6 +292,8 @@ def main(level, target, spans, add=False):
         high = 0
     final, placed, snapped, full = build(set(rarest[:high]))
     count.update(placed)
+    if not add:
+        final = re.sub(r'(<objectgroup [^>]*name="SP"[^>]*>).*?(</objectgroup>)', r'\1\2', final, flags=re.S)
     with path.open("w", newline="") as f:
         f.write(final)
     flag_names = {FLIP_H: "H", FLIP_V: "V", FLIP_D: "D"}

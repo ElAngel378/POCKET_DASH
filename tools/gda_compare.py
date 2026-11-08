@@ -163,17 +163,16 @@ def convert(name):
     # sprites: colour triggers, our pulsing decorations
     first = None
     for ts in root.findall("tileset"):
-        if ts.get("name") == "sprites":
+        if ts.get("source", "").endswith("sprites.tsx"):
             first = int(ts.get("firstgid"))
-    for layer in root.findall("layer"):
-        if layer.get("name") != "SP":
+    for group in root.findall("objectgroup"):
+        if group.get("name") != "SP":
             continue
-        vals = [int(v) for v in layer.find("data").text.replace("\n", "").split(",") if v.strip()]
-        for i, g in enumerate(vals):
-            if not g:
+        for o in group.findall("object"):
+            if o.get("gid") is None:
                 continue
-            s = g - first
-            x, y = (i % w) * 16, (i // w) * 16
+            s = int(o.get("gid")) - first
+            x, y = int(float(o.get("x"))), int(float(o.get("y"))) - 16
             if 128 <= s < 176:
                 objs.append(obj(gda.SPRITE_GID + types.index("COL_TRIGGER"), x, y, [
                     {"name": "Channel", "type": "string", "value": "BG"},
