@@ -82,9 +82,14 @@ LINES = {"gd76": (3, 0, 13, 1), "gd77": (3, 0, 13, 1), "gd78": (3, 0, 13, 1), "g
 # the 1.6 outlines: lines in colour 3 (blocks' outline colour) along a block's edges, to stack on
 # fills and blocks
 EDGE_T, EDGE_L, EDGE_R, EDGE_B = (0, 0, 16, 1), (0, 0, 1, 16), (15, 0, 16, 16), (0, 15, 16, 16)
-OUTLINES = {"gd161": [EDGE_T], "gd162": [EDGE_T, EDGE_L], "gd163": [(0, 0, 1, 1)],
-            "gd165": [EDGE_T, EDGE_L, EDGE_R], "gd166": [EDGE_L], "gd167": [(0, 0, 2, 1)],
-            "gd169": [EDGE_T, EDGE_L, EDGE_R, EDGE_B], "gd146": [EDGE_T, EDGE_L, EDGE_R, EDGE_B]}
+OUTLINES = {"gd146": [EDGE_T, EDGE_L, EDGE_R, EDGE_B]}
+# GD's 1.6 outlines are the outline and a shaded fill (GD's square_g frames, a child sprite): GDA's
+# 16 px pieces of them. Its colours -> ours, palette 6 (famidash_bg.c): white, light; the two
+# navies are one dark, the palette has no room for a second
+FILLED = {"gd161": "1.6_SIDE_TOP", "gd162": "1.6_CORNER_TL", "gd163": "1.6_INS_CRN_TL",
+          "gd164": "1.6_SIDE_TOP_NO_OUT", "gd165": "1.6_DBL_CRN_TOP", "gd166": "1.6_DBL_SIDE_V",
+          "gd167": "1.6_DBL_INS_CRN_TOP", "gd169": "1.6_BLOCK_ALT"}
+FILLED_COLOURS = {0: 0, 5: 2, 6: 2, 9: 3, 10: 3, 11: 1}
 
 # hazards from GDA: spikes keep their shades, black saws are all one colour (GDA's shades speckle)
 SPIKES = {"gd144": ("FADING_SPIKE_V", None), "gd145": ("FADING_MEDIUM_SPIKE_V", None), "gd177": ("ONE_POINT_SIX_SPIKE_V", None), "gd178": ("ONE_POINT_SIX_SPIKE_V", "half height"),
@@ -135,6 +140,25 @@ def chr_sheet(name, nes):
     return img
 
 
+def filled_art(name):
+    """GDA metatile `name` in our colours (FILLED_COLOURS), 16 x 16"""
+    tiles = next(t for n, t, _ in gda.metatiles() if n == name)
+    chr_data = (gda.GDA / "graphics" / "tileset.chr").read_bytes()
+    img = Image.new("L", (16, 16))
+    for q, (tile, h, v, _) in enumerate(tiles):
+        d = chr_data[tile * 32:tile * 32 + 32]
+        for y in range(8):
+            for x in range(8):
+                c = d[y * 4 + x // 2] >> (4 * (x & 1)) & 15
+                img.putpixel(((q & 1) * 8 + (7 - x if h else x), (q >> 1) * 8 + (7 - y if v else y)), FILLED_COLOURS[c])
+    return img
+
+
+def save_filled():
+    for key, name in FILLED.items():
+        save(key, filled_art(name))
+
+
 def save(key, img):
     if img.size != GO.OBJECTS[key][2]:
         raise SystemExit("%s: art %s, object %s" % (key, img.size, GO.OBJECTS[key][2]))
@@ -159,9 +183,7 @@ def main():
             img.paste(3, box)
         save(key, img)
     save("gd193", Image.new("L", (16, 16), 2))
-    img = Image.new("L", (16, 16), 2)       # the striped fill: light on top, black below
-    img.paste(1, (0, 0, 16, 6))
-    save("gd164", img)
+    save_filled()
     names = gda.sprite_types()
     for key, (sprite, box) in ART.items():
         if key not in GO.DRAWN:

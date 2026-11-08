@@ -104,7 +104,7 @@ static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {
     4118, 4193,
     4355, 4417,
     4541, 5273,
-    6121, 6137,
+    6125, 6141,
 };
 static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
     bs_stereomadness_cgb_recs, bs_stereomadness_dmg_recs,

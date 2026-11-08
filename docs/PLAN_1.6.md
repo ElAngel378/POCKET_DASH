@@ -224,8 +224,10 @@ fill uses the parallax palette's dark shades. Player colour 2 decorations moved 
 palette 7 (the faded palette only needs colours 2 and 3). DMG is unchanged.
 
 GD / GDA / Pocket Dash pairing (tools/gda_compare.py) now comes from the levels: what GDA has in the cell
-where GD's own levels place each object. Open: GD 129 is the medium cloud and 130 the big one; our art and
-sizes have them swapped.
+where GD's own levels place each object. Clouds 129 / 130 are the other way round from GD (130 is GD's big one); left as they are, user's call.
+
+GD's 161-169 are an outline plus a square_g fill (a child sprite): their art is GDA's 16 px pieces of them,
+in palette 6, GDA's two navies as one dark (user chose this over dithering). 168 is not in the game.
 
 To do (user, 2026-11-08): the Tiled sprite sheet (levels/chr_data/graphics/sprites.png) as an
 edited copy of Famidash's: a cross over every sprite our game does not have, and our own art in
