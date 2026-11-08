@@ -74,12 +74,12 @@ extern const uint8_t bs_test_dmg_recs[];
 BANKREF_EXTERN(bs_test2)
 extern const uint8_t bs_test2_cgb_recs[];
 extern const uint8_t bs_test2_dmg_recs[];
-#define BS_TILE_BANK 248
+#define BS_TILE_BANK 250
 #define BS_SPIN_BASE 28
 #define BS_SPIN_FRAMES 3
 // per level: its spinning tiles (CGB): first tile in the space, number
-static const uint16_t bs_spin_first[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5120, 0 };
-static const uint8_t bs_spin_count[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 51, 0 };
+static const uint16_t bs_spin_first[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+static const uint8_t bs_spin_count[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 // per level: the CGB data, then the DMG data (DMG: the tiles, then the same tiles mirrored)
 static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {
     0, 48,
@@ -103,8 +103,8 @@ static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {
     3944, 4002,
     4118, 4193,
     4355, 4417,
-    4541, 5273,
-    6135, 6151,
+    4541, 4660,
+    4900, 4916,
 };
 static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
     bs_stereomadness_cgb_recs, bs_stereomadness_dmg_recs,
@@ -134,29 +134,29 @@ static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
 // per level: its fading cells (tools/compose.py): first metatile, how many; each one's hidden look is that many further
 static const uint8_t bs_fade[BS_LEVEL_COUNT * 2] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 3 };
 static const uint8_t bs_banks[BS_LEVEL_COUNT] = {
-    247,   // stereomadness
-    247,   // backontrack
-    247,   // polargeist
-    247,   // dryout
-    247,   // baseafterbase
-    247,   // cantletgo
-    247,   // jumper
-    247,   // timemachine
-    247,   // cycles
-    247,   // xstep
-    247,   // clutterfunk
-    247,   // theoryofeverything
-    246,   // electromanadventures
-    246,   // clubstep
-    246,   // bestautomaticlvl
-    246,   // leveleasy
-    246,   // subzero
-    246,   // ultiatedestruction
-    246,   // everymadness
-    246,   // demonpark
-    246,   // thelightningroad
-    245,   // test
-    245,   // test2
+    249,   // stereomadness
+    249,   // backontrack
+    249,   // polargeist
+    249,   // dryout
+    249,   // baseafterbase
+    249,   // cantletgo
+    249,   // jumper
+    249,   // timemachine
+    249,   // cycles
+    249,   // xstep
+    249,   // clutterfunk
+    249,   // theoryofeverything
+    248,   // electromanadventures
+    248,   // clubstep
+    248,   // bestautomaticlvl
+    248,   // leveleasy
+    248,   // subzero
+    248,   // ultiatedestruction
+    248,   // everymadness
+    248,   // demonpark
+    248,   // thelightningroad
+    248,   // test
+    248,   // test2
 };
 
 #endif

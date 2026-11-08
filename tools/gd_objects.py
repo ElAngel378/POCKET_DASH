@@ -119,12 +119,6 @@ DRAWN = {
     "gd167": ("1.6 outline, dot 2", (16, 16)),
     "gd168": ("1.6 outline, block", (16, 16)),
     "gd169": ("1.6 outline, square", (16, 16)),
-    "gd170": ("1.6 block", (16, 16)),
-    "gd171": ("1.6 block, edge", (16, 16)),
-    "gd173": ("1.6 block, corner", (16, 16)),
-    "gd174": ("1.6 block, corner 2", (16, 16)),
-    "gd175": ("1.6 block, whole", (16, 16)),
-    "gd176": ("1.6 block, small", (16, 16)),
     "gd177": ("Ice spike", (16, 16)),
     "gd178": ("Ice spike, half", (16, 8)),
     "gd179": ("Ice spike, small", (16, 16)),
@@ -138,14 +132,10 @@ DRAWN = {
     "gd187": ("1.6 saw, medium", (32, 32)),
     "gd188": ("1.6 saw, star", (32, 32)),
     "gd190": ("Chain art", (8, 32)),
-    "gd192": ("1.6 block, middle", (16, 16)),
     "gd193": ("1.6 dark fill", (16, 16)),
-    "gd194": ("1.6 block, narrow corner", (16, 16)),
-    "gd197": ("1.6 block, narrow", (16, 16)),
 }
 # DRAWN objects that are not decoration: their quarters collide. Palette 0, like blocks and spikes.
-DRAWN_KIND = {k: "solid" for k in ("gd143", "gd146", "gd164", "gd170", "gd171", "gd173", "gd174", "gd175",
-                                   "gd176", "gd192", "gd193", "gd194", "gd197")}
+DRAWN_KIND = {k: "solid" for k in ("gd143", "gd146", "gd164", "gd193")}
 DRAWN_KIND.update({k: "deadly" for k in ("gd144", "gd145", "gd177", "gd178", "gd179", "gd183", "gd184", "gd185", "gd186",
                                          "gd187", "gd188")})
 # The 1.6 outlines are solid blocks (GDA: COL_FULL) though only their lines are drawn: they fill their
@@ -178,8 +168,7 @@ DMG_SWAP = {"gd146", "gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd16
 DRAWN_P2 = {"gd48", "gd49", "gd106", "gd107", "gd137", "gd138", "gd139", "gd180", "gd181", "gd182", "gd190"}
 # GDA's background shades (palette 6, famidash_bg.c): colour 1 the object colour (white), 2 a dark
 # shade of the sky, 3 a light one. The art's colours are in that order. Wave hills are all light.
-SHADES = {"gd157", "gd158", "gd159", "gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd167", "gd168", "gd169", "gd170", "gd171", "gd173", "gd174", "gd175", "gd176", "gd192", "gd193",
-          "gd194", "gd197"}
+SHADES = {"gd157", "gd158", "gd159", "gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd167", "gd168", "gd169", "gd193"}
 # Light lines: the object colour, as in GDA
 OBJECT_COLOUR = {"gd76", "gd77", "gd78", "gd81", "gd82"}
 # CGB only, art colour -> tile colour
@@ -196,6 +185,47 @@ def drawn_pal(key):
 
 for _k, (_name, _size) in DRAWN.items():
     OBJECTS[_k] = (int(_k[2:]), _name, _size, None)
+
+# GDA's 1.6 slab pieces (levels/chr_data/objects/art, from its metatiles): GD can place its slabs 4 px
+# apart, on a grid they are drawn merged, so these are not GD objects. Rotate and flip them in Tiled.
+# Append only (6000 + the position is the tile id): (key, GDA metatile, name, solid 8x8 quarters).
+_T, _B, _L = {(0, 0), (1, 0)}, {(0, 1), (1, 1)}, {(0, 0), (0, 1)}
+_L_SHAPE = {(1, 0), (0, 1), (1, 1)}     # all but the top left
+GDA_BASE = 6000
+GDA_PIECES = [
+    ("gda_slab_side", "1.6_SLAB_SIDE_TOP", "Slab, side", _T),
+    ("gda_slab_block", "1.6_SLAB_BLOCK_TOP", "Slab block", None),
+    ("gda_slab_corner", "1.6_SLAB_CRN_TL", "Slab corner", None),
+    ("gda_slab_unaligned", "1.6_EA_UNALIGNED_SLAB_H_TL", "Slab, joined to the next", _T),
+    ("gda_slab_med", "1.6_SLAB_MED_TOP", "Slab, medium", _T),
+    ("gda_slab_side_h", "1.6_SLAB_SIDE_H_TL", "Slab, side end", _T),
+    ("gda_ea_slab", "1.6_EA_SLAB", "Low slab", _B),
+    ("gda_slab_single", "1.6_SLAB_SINGLE_TOP", "Slab, single", _T),
+    ("gda_ea_corner", "1.6_EA_CORNER_TL", "Low slab corner", {(0, 0)}),
+    ("gda_slab_corner_h", "1.6_SLAB_CORNER_H_TL", "Slab corner, small", _T),
+    ("gda_ea_ins_alt", "1.6_EA_INS_CRN_ALT_BR", "Low slab inner corner 2", _L_SHAPE),
+    ("gda_slab_side_h_alt", "1.6_SLAB_SIDE_H_TL_ALT", "Slab, side end 2", _T),
+    ("gda_ea_middle", "1.6_EA_MIDDLE_SLAB", "Low slab, middle", _B),
+    ("gda_ea_ins", "1.6_EA_INS_CRN_BR", "Low slab inner corner", _L_SHAPE),
+    ("gda_slab_corner_v", "1.6_SLAB_CORNER_V_TL", "Slab corner, narrow", _L),
+    ("gda_slab_corner_big", "1.6_SLAB_CORNER_BIG_H_TL", "Slab corner, big", _T),
+    ("gda_side_inner", "1.6_SID_INS_CRN_H_TL", "1.6 side, inner corner", None),
+    ("gda_ea_aligner", "1.6_EA_ALIGNER_BL", "Low slab, aligner", _B),
+    ("gda_side_block", "1.6_SIDE_BLOCK_TOP", "1.6 side block", None),
+    ("gda_slab_tiny", "1.6_SLAB_TINY_TOP", "Slab, tiny", _T),
+    ("gda_slab_tiny_side", "1.6_SLAB_TINY_LFT", "Slab, tiny (side)", _L),
+]
+# Quarters of these that collide (object space, not turned); the art decides the others
+HIT_QUARTERS = {}
+for _n, (_k, _gda, _name, _solid) in enumerate(GDA_PIECES):
+    OBJECTS[_k] = (GDA_BASE + _n, _name, (16, 16), None)
+    DRAWN[_k] = (_name, (16, 16))
+    DRAWN_KIND[_k] = "solid"
+    SHADES.add(_k)
+    DMG_SWAP.add(_k)
+    if _solid:
+        HIT_QUARTERS[_k] = _solid
+GDA_KEYS = {_p[0] for _p in GDA_PIECES}
 
 # Famidash's own pieces: append only (the position is the tile id)
 FD = [

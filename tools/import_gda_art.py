@@ -63,18 +63,9 @@ USER_ART = {
     "gd157": ("1p6blocks", False, (0, 32, 16, 48)),
     "gd158": ("1p6blocks", False, (0, 32, 16, 48), "H"),
     "gd159": ("1p6blocks", False, (0, 32, 16, 48)),
-    "gd170": ("1p6blocks", False, (0, 0, 16, 16)),
-    "gd171": ("1p6blocks", False, (16, 0, 32, 16)),
-    "gd173": ("1p6blocks", False, (80, 0, 96, 16)),
-    "gd174": ("1p6blocks", False, (96, 0, 112, 16)),
-    "gd175": ("1p6blocks", False, (48, 0, 64, 16)),
-    "gd176": ("1p6blocks", False, (112, 0, 128, 16)),
     "gd186": ("1p6blocks", False, (16, 32, 40, 56)),     # top left quarter of the saw
     "gd187": ("1p6blocks", False, (64, 32, 96, 64)),
     "gd188": ("1p6blocks", False, (96, 32, 128, 64)),
-    "gd192": ("1p6blocks", False, (32, 0, 48, 16)),
-    "gd194": ("1p6blocks", False, (96, 0, 112, 16)),
-    "gd197": ("1p6blocks", False, (64, 0, 80, 16)),
 }
 # Clutterfunk's thin lines: a line along the block's edge, nothing to draw (x0, y0, x1, y1)
 LINES = {"gd76": (3, 0, 13, 1), "gd77": (3, 0, 13, 1), "gd78": (3, 0, 13, 1), "gd81": (3, 0, 13, 1),
@@ -89,7 +80,7 @@ OUTLINES = {"gd146": [EDGE_T, EDGE_L, EDGE_R, EDGE_B]}
 FILLED = {"gd161": "1.6_SIDE_TOP", "gd162": "1.6_CORNER_TL", "gd163": "1.6_INS_CRN_TL",
           "gd164": "1.6_SIDE_TOP_NO_OUT", "gd165": "1.6_DBL_CRN_TOP", "gd166": "1.6_DBL_SIDE_V",
           "gd167": "1.6_DBL_INS_CRN_TOP", "gd168": "1.6_BLOCK", "gd169": "1.6_BLOCK_ALT"}
-FILLED_COLOURS = {0: 0, 5: 2, 6: 2, 9: 3, 10: 3, 11: 1}
+FILLED_COLOURS = {0: 0, 4: 2, 5: 2, 6: 2, 9: 3, 10: 3, 11: 1, 12: 1}
 
 # hazards from GDA: spikes keep their shades, black saws are all one colour (GDA's shades speckle)
 SPIKES = {"gd144": ("FADING_SPIKE_V", None), "gd145": ("FADING_MEDIUM_SPIKE_V", None), "gd177": ("ONE_POINT_SIX_SPIKE_V", None), "gd178": ("ONE_POINT_SIX_SPIKE_V", "half height"),
@@ -159,6 +150,11 @@ def save_filled():
         save(key, filled_art(name))
 
 
+def save_pieces():
+    for key, name, _shown, _solid in GO.GDA_PIECES:
+        save(key, filled_art(name))
+
+
 def save(key, img):
     if img.size != GO.OBJECTS[key][2]:
         raise SystemExit("%s: art %s, object %s" % (key, img.size, GO.OBJECTS[key][2]))
@@ -184,6 +180,7 @@ def main():
         save(key, img)
     save("gd193", Image.new("L", (16, 16), 2))
     save_filled()
+    save_pieces()
     names = gda.sprite_types()
     for key, (sprite, box) in ART.items():
         if key not in GO.DRAWN:

@@ -206,9 +206,16 @@ def mask(key, flags=0):
     elif m is None and key in GO.DRAWN and key not in GO.OUTLINE:
         m = set(drawn_art()[key])
     qs = m if m is not None else {(x, y) for x in range(w // 8) for y in range(h // 8)}
+    out = turned(qs, w // 8, h // 8, flags)
+    _masks[(key, flags)] = out
+    return out
+
+
+def turned(quarters, cols, rows, flags):
+    """8x8 quarters of an object of cols x rows quarters, after the transform"""
     out = set()
-    for x, y in qs:
-        W, H = w // 8, h // 8
+    for x, y in quarters:
+        W, H = cols, rows
         if flags & GO.FLIP_D:
             x, y, W, H = y, x, H, W
         if flags & GO.FLIP_H:
@@ -216,7 +223,6 @@ def mask(key, flags=0):
         if flags & GO.FLIP_V:
             y = H - 1 - y
         out.add((x, y))
-    _masks[(key, flags)] = out
     return out
 
 

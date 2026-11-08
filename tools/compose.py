@@ -196,7 +196,7 @@ class Composer:
                     px = tuple(GO.CGB_RECOLOUR[key].get(v, v) for v in px)
                 if shade and key not in GO.SHADES:
                     px = tuple({3: 1, 1: 2}.get(v, v) for v in px)   # white and dark, in palette 6
-                opaque = (self.kind[key] == "solid" and key not in GO.OUTLINE) or key in FILLS
+                opaque = (self.kind[key] == "solid" and key not in GO.OUTLINE and key not in GO.GDA_KEYS) or key in FILLS
                 for i in range(64):
                     if opaque or px[i]:
                         acc[i] = px[i]
@@ -259,6 +259,8 @@ class Composer:
         for key, dx, dy, tf in hit:
             for qx, qy in self.LO.mask(key, flags_of(tf)):
                 if key in GO.HIT_RADIUS and not self.in_radius(key, tf, qx, qy):
+                    continue
+                if key in GO.HIT_QUARTERS and (qx, qy) not in self.LO.turned(GO.HIT_QUARTERS[key], 2, 2, flags_of(tf)):
                     continue
                 cx, cy = (dx + 8 * qx) // 8, (dy + 8 * qy) // 8
                 if 0 <= cx < 2 and 0 <= cy < 2:

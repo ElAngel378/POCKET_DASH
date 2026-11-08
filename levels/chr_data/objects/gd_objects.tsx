@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="64" tileheight="48" tilecount="173" columns="0">
+<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="64" tileheight="48" tilecount="185" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="1" type="gd1">
   <properties>
@@ -451,42 +451,6 @@
   </properties>
   <image width="16" height="16" source="tiles/gd169.png"/>
  </tile>
- <tile id="170" type="gd170">
-  <properties>
-   <property name="name" value="1.6 block"/>
-  </properties>
-  <image width="16" height="16" source="tiles/gd170.png"/>
- </tile>
- <tile id="171" type="gd171">
-  <properties>
-   <property name="name" value="1.6 block, edge"/>
-  </properties>
-  <image width="16" height="16" source="tiles/gd171.png"/>
- </tile>
- <tile id="173" type="gd173">
-  <properties>
-   <property name="name" value="1.6 block, corner"/>
-  </properties>
-  <image width="16" height="16" source="tiles/gd173.png"/>
- </tile>
- <tile id="174" type="gd174">
-  <properties>
-   <property name="name" value="1.6 block, corner 2"/>
-  </properties>
-  <image width="16" height="16" source="tiles/gd174.png"/>
- </tile>
- <tile id="175" type="gd175">
-  <properties>
-   <property name="name" value="1.6 block, whole"/>
-  </properties>
-  <image width="16" height="16" source="tiles/gd175.png"/>
- </tile>
- <tile id="176" type="gd176">
-  <properties>
-   <property name="name" value="1.6 block, small"/>
-  </properties>
-  <image width="16" height="16" source="tiles/gd176.png"/>
- </tile>
  <tile id="177" type="gd177">
   <properties>
    <property name="name" value="Ice spike"/>
@@ -571,29 +535,11 @@
   </properties>
   <image width="16" height="16" source="tiles/gd191.png"/>
  </tile>
- <tile id="192" type="gd192">
-  <properties>
-   <property name="name" value="1.6 block, middle"/>
-  </properties>
-  <image width="16" height="16" source="tiles/gd192.png"/>
- </tile>
  <tile id="193" type="gd193">
   <properties>
    <property name="name" value="1.6 dark fill"/>
   </properties>
   <image width="16" height="16" source="tiles/gd193.png"/>
- </tile>
- <tile id="194" type="gd194">
-  <properties>
-   <property name="name" value="1.6 block, narrow corner"/>
-  </properties>
-  <image width="16" height="16" source="tiles/gd194.png"/>
- </tile>
- <tile id="197" type="gd197">
-  <properties>
-   <property name="name" value="1.6 block, narrow"/>
-  </properties>
-  <image width="16" height="16" source="tiles/gd197.png"/>
  </tile>
  <tile id="198" type="gd198">
   <properties>
@@ -1038,5 +984,131 @@
    <property name="name" value="Big saw piece, bottom right"/>
   </properties>
   <image width="16" height="16" source="tiles/fd_big_saw_br.png"/>
+ </tile>
+ <tile id="6000" type="gda_slab_side">
+  <properties>
+   <property name="name" value="Slab, side"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_slab_side.png"/>
+ </tile>
+ <tile id="6001" type="gda_slab_block">
+  <properties>
+   <property name="name" value="Slab block"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_slab_block.png"/>
+ </tile>
+ <tile id="6002" type="gda_slab_corner">
+  <properties>
+   <property name="name" value="Slab corner"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_slab_corner.png"/>
+ </tile>
+ <tile id="6003" type="gda_slab_unaligned">
+  <properties>
+   <property name="name" value="Slab, joined to the next"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_slab_unaligned.png"/>
+ </tile>
+ <tile id="6004" type="gda_slab_med">
+  <properties>
+   <property name="name" value="Slab, medium"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_slab_med.png"/>
+ </tile>
+ <tile id="6005" type="gda_slab_side_h">
+  <properties>
+   <property name="name" value="Slab, side end"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_slab_side_h.png"/>
+ </tile>
+ <tile id="6006" type="gda_ea_slab">
+  <properties>
+   <property name="name" value="Low slab"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_ea_slab.png"/>
+ </tile>
+ <tile id="6007" type="gda_slab_single">
+  <properties>
+   <property name="name" value="Slab, single"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_slab_single.png"/>
+ </tile>
+ <tile id="6008" type="gda_ea_corner">
+  <properties>
+   <property name="name" value="Low slab corner"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_ea_corner.png"/>
+ </tile>
+ <tile id="6009" type="gda_slab_corner_h">
+  <properties>
+   <property name="name" value="Slab corner, small"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_slab_corner_h.png"/>
+ </tile>
+ <tile id="6010" type="gda_ea_ins_alt">
+  <properties>
+   <property name="name" value="Low slab inner corner 2"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_ea_ins_alt.png"/>
+ </tile>
+ <tile id="6011" type="gda_slab_side_h_alt">
+  <properties>
+   <property name="name" value="Slab, side end 2"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_slab_side_h_alt.png"/>
+ </tile>
+ <tile id="6012" type="gda_ea_middle">
+  <properties>
+   <property name="name" value="Low slab, middle"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_ea_middle.png"/>
+ </tile>
+ <tile id="6013" type="gda_ea_ins">
+  <properties>
+   <property name="name" value="Low slab inner corner"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_ea_ins.png"/>
+ </tile>
+ <tile id="6014" type="gda_slab_corner_v">
+  <properties>
+   <property name="name" value="Slab corner, narrow"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_slab_corner_v.png"/>
+ </tile>
+ <tile id="6015" type="gda_slab_corner_big">
+  <properties>
+   <property name="name" value="Slab corner, big"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_slab_corner_big.png"/>
+ </tile>
+ <tile id="6016" type="gda_side_inner">
+  <properties>
+   <property name="name" value="1.6 side, inner corner"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_side_inner.png"/>
+ </tile>
+ <tile id="6017" type="gda_ea_aligner">
+  <properties>
+   <property name="name" value="Low slab, aligner"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_ea_aligner.png"/>
+ </tile>
+ <tile id="6018" type="gda_side_block">
+  <properties>
+   <property name="name" value="1.6 side block"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_side_block.png"/>
+ </tile>
+ <tile id="6019" type="gda_slab_tiny">
+  <properties>
+   <property name="name" value="Slab, tiny"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_slab_tiny.png"/>
+ </tile>
+ <tile id="6020" type="gda_slab_tiny_side">
+  <properties>
+   <property name="name" value="Slab, tiny (side)"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_slab_tiny_side.png"/>
  </tile>
 </tileset>

@@ -43,11 +43,8 @@ METATILE = {
     "gd161": "1.6_SIDE_TOP", "gd162": "1.6_CORNER_TL", "gd163": "1.6_INS_CRN_TL",
     "gd164": "1.6_SIDE_TOP_NO_OUT", "gd165": "1.6_DBL_CRN_TOP", "gd166": "1.6_DBL_SIDE_V",
     "gd167": "1.6_DBL_INS_CRN_TOP", "gd168": "1.6_BLOCK", "gd169": "1.6_BLOCK_ALT",
-    "gd170": "1.6_EA_SLAB", "gd171": "1.6_SLAB_SIDE_H_TR_ALT", "gd173": "1.6_EA_CORNER_BR",
-    "gd174": "1.6_EA_INS_CRN_BR", "gd175": "1.6_SLAB_BLOCK_TOP", "gd176": "1.6_EA_MIDDLE_SLAB",
-    "gd192": "1.6_SLAB_SINGLE_TOP", "gd193": "1.6_FILLER", "gd194": "1.6_EA_INS_CRN_ALT_BR",
-    "gd197": "1.6_EA_ALIGNER_BL",
-}
+    "gd193": "1.6_FILLER", }
+METATILE.update({_k: _g for _k, _g, _n, _s in GO.GDA_PIECES})
 # fills GDA's outlines already contain: an outline on one of these replaces it
 FILL_UNDER = {"gd193"}
 SPRITE = {k: v[0] for k, v in IA.ART.items()}
