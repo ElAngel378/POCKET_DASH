@@ -1,8 +1,41 @@
 import xml.etree.ElementTree as ET
 import os
+import re
 import sys
 import argparse
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from gen_famidash_bg_tables import NES
+
+SPRITES_FIRSTGID = 10001
+# Colour trigger tiles of objects/sprites.tsx (properties Colour, Fade) -> engine ids: base + colour
+BG_TRIGGER, GROUND_TRIGGER, OUTLINE_TRIGGER = 256, 257, 258
+# Fade property -> include/famidash_bg.h FAMIDASH_FADE_* (written as the trigger's y: the engine
+# never reads a colour trigger's position other than its x)
+FADE_NAMES = {"0.3 s": 0, "instant": 1, "0.5 s": 2, "1 s": 3, "2 s": 4, "4 s": 5, "10 s": 6}
+# Colours the BG and ground triggers can be: not Famidash's repeated blacks and its toggles
+TRIGGER_COLOURS = [i for i in range(48) if i not in (13, 14, 29, 30, 31, 45, 46, 47)]
+OUTLINE_NES = [int(v, 0) for v in re.search(r'outline_nes_color\[16\] = \{(.*?)\}',
+    (Path(__file__).resolve().parent.parent / 'src' / 'famidash_bg.c').read_text(), re.S).group(1).replace(' ', '').replace('\n', '').split(',') if v]
+
+
+def nearest_colour(value, choices, nes_of):
+    """'#ffRRGGBB' -> the position in choices of the closest NES colour"""
+    wanted = int(value[-6:], 16)
+    def distance(i):
+        have = nes_of(choices[i])
+        return sum((((wanted >> s) & 255) - ((have >> s) & 255)) ** 2 for s in (16, 8, 0))
+    return min(range(len(choices)), key=distance)
+
+
+def trigger_id(tile, props, tmx):
+    """The engine id of a colour trigger object"""
+    colour = props.get('Colour', '#ff%06x' % NES[0x20])
+    if tile == OUTLINE_TRIGGER:
+        return 176 + nearest_colour(colour, OUTLINE_NES, lambda n: NES[n])
+    i = TRIGGER_COLOURS[nearest_colour(colour, TRIGGER_COLOURS, lambda n: NES[n])]
+    return (128 if tile == BG_TRIGGER else 192) + i
 
 def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, skip=None):
     """skip(x_px, y_px, obj_id) -> True drops that object"""
@@ -75,27 +108,6 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
     for i in range(42, 64):
         portals_map[sprites_firstgid + i] = i
 
-    # bg colour triggers (128..175), block outline colour triggers (176..191, CGB only) and
-    # ground colour triggers (192..239) keep their ids
-    for i in range(128, 192):
-        portals_map[sprites_firstgid + i] = i
-    for i in range(192, 240):
-        portals_map[sprites_firstgid + i] = i
-
-    # colour trigger fade time markers (sprites.png 246..251, tools/make_fade_time_icons.py): a
-    # marker anywhere in a column sets the fade time of the colour triggers of that column (no
-    # marker: 0.3 s). Written as the triggers' y (include/famidash_bg.h FAMIDASH_FADE_*): the
-    # engine never reads a colour trigger's position other than its x.
-    fade_markers = {
-        sprites_firstgid + 246: 1,  # instant
-        sprites_firstgid + 247: 2,  # 0.5 s
-        sprites_firstgid + 248: 3,  # 1 s
-        sprites_firstgid + 249: 4,  # 2 s
-        sprites_firstgid + 250: 5,  # 4 s
-        sprites_firstgid + 251: 6,  # 10 s
-    }
-    fade_of_col = {}
-
     portal_data = []
 
     # Maps are MAP_ROWS (64) rows tall and bottom-aligned (tools/build_levels.py)
@@ -112,24 +124,24 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
             x_px = int(float(obj.get('x')))
             top = int(float(obj.get('y'))) - int(float(obj.get('height', 16)))
             col = x_px // 16
-            if gid in fade_markers:
-                if fade_of_col.get(col, fade_markers[gid]) != fade_markers[gid]:
-                    print(f"Error: {tmx_filepath}: two different fade time markers in column {col}")
-                    sys.exit(1)
-                fade_of_col[col] = fade_markers[gid]
+            tile = gid - sprites_firstgid
+            props = {p.get('name'): p.get('value') for p in obj.findall('properties/property')}
+            y_px = max(0, top + rows_above)
+            if tile in (BG_TRIGGER, GROUND_TRIGGER, OUTLINE_TRIGGER):
+                obj_id = trigger_id(tile, props, tmx_filepath)
+                if tile != OUTLINE_TRIGGER:
+                    y_px = FADE_NAMES.get(props.get('Fade', '0.3 s'))
+                    if y_px is None:
+                        print(f"Error: {tmx_filepath}: unknown Fade {props.get('Fade')!r} at x {x_px}")
+                        sys.exit(1)
+                portal_data.append((x_px, y_px, obj_id))
                 continue
             if gid not in portals_map:
                 continue
-            obj_id = portals_map[gid]
-            y_px = max(0, top + rows_above)
-            if 128 <= obj_id < 176 or 192 <= obj_id < 240:
-                y_px = ('fade', col)   # the column's fade time, once every marker is read
-            portal_data.append((x_px, y_px, obj_id))
+            portal_data.append((x_px, y_px, portals_map[gid]))
 
     if not sp_layer_found:
         print(f"Warning: 'SP' object layer was not found in {tmx_filepath}. Outputting terminator only.")
-
-    portal_data = [(x, fade_of_col.get(y[1], 0) if isinstance(y, tuple) else y, o) for x, y, o in portal_data]
 
     if skip is not None:
         portal_data = [p for p in portal_data if not skip(*p)]

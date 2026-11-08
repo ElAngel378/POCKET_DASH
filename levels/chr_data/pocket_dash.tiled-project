@@ -1,0 +1,27 @@
+{
+    "automappingRulesFile": "",
+    "commands": [],
+    "compatibilityVersion": 1100,
+    "extensionsPath": "extensions",
+    "folders": [
+        "."
+    ],
+    "propertyTypes": [
+        {
+            "id": 1,
+            "name": "FadeTime",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "0.3 s",
+                "instant",
+                "0.5 s",
+                "1 s",
+                "2 s",
+                "4 s",
+                "10 s"
+            ],
+            "valuesAsFlags": false
+        }
+    ]
+}

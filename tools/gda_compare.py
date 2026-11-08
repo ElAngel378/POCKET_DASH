@@ -173,10 +173,11 @@ def convert(name):
                 continue
             s = int(o.get("gid")) - first
             x, y = int(float(o.get("x"))), int(float(o.get("y"))) - 16
-            if 128 <= s < 176:
+            if s == 256:
+                props = {p.get("name"): p.get("value") for p in o.findall("properties/property")}
                 objs.append(obj(gda.SPRITE_GID + types.index("COL_TRIGGER"), x, y, [
                     {"name": "Channel", "type": "string", "value": "BG"},
-                    {"name": "Color", "type": "color", "value": colour(s - 128)},
+                    {"name": "Color", "type": "color", "value": props.get("Colour", "#fffffeff")},
                     {"name": "Frames", "type": "int", "value": 18}], oid))
             elif s in SP_DECO:
                 objs.append(obj(gda.SPRITE_GID + types.index(SP_DECO[s]), x, y, [], oid))

@@ -31,16 +31,12 @@ NAMES = {
     15: "Level end", 24: "Mini portal", 25: "Growth portal",
     121: "Mirror portal, exit", 126: "Mirror portal",
     73: "Pulsing ball", 74: "Music note", 112: "Pulsing ring", 113: "Pulsing heart",
-    246: "Colour fade: instant", 247: "Colour fade: 0.5 s", 248: "Colour fade: 1 s",
-    249: "Colour fade: 2 s", 250: "Colour fade: 4 s", 251: "Colour fade: 10 s",
 }
 NAMES.update({i: "Decoration %d" % i for i in range(42, 64)})
-NAMES.update({128 + i: "BG colour %02X" % i for i in range(48)})
-NAMES.update({176 + i: "Outline colour %02X" % i for i in range(16)})
-NAMES.update({192 + i: "Ground colour %02X" % i for i in range(48)})
-# Cells in those ranges that are not colours and no level places: Famidash's crosses and toggles
-for i in (141, 142, 157, 158, 159, 173, 174, 175, 205, 206, 221, 222, 223, 237, 238, 239):
-    del NAMES[i]
+# Colour triggers: properties instead of one sprite per colour. Their icons are the sheet's cells
+TRIGGERS = {256: ("BG colour trigger", 160, True), 257: ("Ground colour trigger", 224, True),
+            258: ("Outline colour trigger", 176, False)}
+NAMES.update({tile: value[0] for tile, value in TRIGGERS.items()})
 
 # Mirror portals: 16 tile pairs of the game's art (top row, middle row; the bottom is the top
 # flipped), first pair of each -> ring colour (tools/make_mirror_portal_gfx.py)
@@ -74,10 +70,17 @@ def main():
         if cell in MIRRORS:
             icon = mirror_icon(*MIRRORS[cell])
         else:
-            x, y = (cell % 16) * 16, (cell // 16) * 16
+            source = TRIGGERS[cell][1] if cell in TRIGGERS else cell
+            x, y = (source % 16) * 16, (source // 16) * 16
             icon = sheet.crop((x, y, x + 16, y + 16))
         icon.save(OUT_DIR / ("s%d.png" % cell))
         lines.append(' <tile id="%d" type="%s">' % (cell, NAMES[cell]))
+        if cell in TRIGGERS:
+            lines.append('  <properties>')
+            lines.append('   <property name="Colour" type="color" value="#fffffeff"/>')
+            if TRIGGERS[cell][2]:
+                lines.append('   <property name="Fade" propertytype="FadeTime" value="0.3 s"/>')
+            lines.append('  </properties>')
         lines.append('  <image width="16" height="16" source="sprites/s%d.png"/>' % cell)
         lines.append(' </tile>')
     lines.append('</tileset>')

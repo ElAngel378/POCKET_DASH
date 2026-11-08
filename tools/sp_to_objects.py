@@ -1,7 +1,7 @@
 """One-time conversion: every level's SP tile layer and Famidash offsets (levels/metadata) into a
 Tiled object layer that uses levels/chr_data/objects/sprites.tsx.
 
-    python tools/sp_to_objects.py
+    python tools/sp_to_objects.py     (then tools/sp_props.py)
 
 Objects sit at their real pixel position, offsets included, so tools/tmx2sprites.py needs no
 offsets file. Levels already converted are left alone. Cells the game ignores are dropped and
@@ -37,7 +37,7 @@ def convert(path):
         if not gid:
             continue
         cell = (gid & ~FLAGS) - first
-        if cell not in NAMES:
+        if cell not in NAMES and not 128 <= cell < 240 and not 246 <= cell <= 251:
             dropped[cell] += 1
             continue
         col, row = i % w, i // w
