@@ -20,8 +20,8 @@ const fur_song_t fs_xstep = {
     3, /* chunks */
     2, /* wave pool chunk */
     1, /* anti-click */
-    40642, /* anti-click step at 51.6 Hz */
-    1300559UL, /* tick period in 1/16 cycles */
+    40329, /* anti-click step at 52 Hz */
+    1290555UL, /* tick period in 1/16 cycles */
     { { 0, 0 }, { 0, 458 }, { 0, 3377 }, { 0, 11355 }, { 1, 8917 } }, /* stream entry points */
     fs_xstep_chunks
 };
