@@ -2,8 +2,8 @@
     "automappingRulesFile": "",
     "commands": [
         {
-            "arguments": "\"%mapfile\"",
-            "command": "%projectpath/../../tools/tiled_play.bat",
+            "arguments": "/c tools\\tiled_play.bat %mapfile",
+            "command": "cmd",
             "enabled": true,
             "name": "Build and play this level",
             "saveBeforeExecute": true,
@@ -12,8 +12,8 @@
             "workingDirectory": "%projectpath/../.."
         },
         {
-            "arguments": "\"%mapfile\"",
-            "command": "%projectpath/../../tools/tiled_previews.bat",
+            "arguments": "/c tools\\tiled_previews.bat %mapfile",
+            "command": "cmd",
             "enabled": true,
             "name": "Redraw the sky and ground",
             "saveBeforeExecute": true,

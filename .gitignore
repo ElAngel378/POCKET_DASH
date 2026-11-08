@@ -47,3 +47,5 @@ bin/POCKETDASH_test.*
 docs/gda_ours.png
 docs/gda_sprites.png
 docs/user_art.png
+# Tiled remembers open files and zoom here
+*.tiled-session

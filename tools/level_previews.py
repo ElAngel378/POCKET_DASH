@@ -55,7 +55,7 @@ def master(path):
     """A pattern as colour indices (captured from the game: 0, 85, 170, 255 = colours 0..3)"""
     grey = Image.open(path).convert("L")
     out = Image.new("P", grey.size)
-    out.putdata([v // 85 for v in grey.getdata()])
+    out.putdata([v // 85 for v in grey.tobytes()])
     return out
 
 
