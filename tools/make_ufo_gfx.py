@@ -1,4 +1,4 @@
-"""Draws the UFO player (1.5) into levels/chr_data/sprite_tiles.png (then run build_sprite_tiles.py).
+"""Draws the UFO player (1.5) into levels/chr_data/game_art/sprite_tiles.png (then run build_sprite_tiles.py).
 
     python tools/make_ufo_gfx.py
 
@@ -18,7 +18,7 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-PNG = ROOT / "levels" / "chr_data" / "sprite_tiles.png"
+PNG = ROOT / "levels" / "chr_data" / "game_art" / "sprite_tiles.png"
 FD = {"1": "3", "2": "2", "3": "1", ".": "."}
 
 RIDER = [                     # left half of a 8x7 cube centred in the 16 px (cols 4..7)

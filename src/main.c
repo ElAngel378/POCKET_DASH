@@ -16,6 +16,8 @@ uint8_t music_ready = 0;
 volatile uint16_t music_ticks;   // hUGE_dosound calls since init_music_banked (music_beats.c)
 uint8_t redraw = 1;
 uint8_t selected = 0;
+// build.bat <level> sets this in a copy of the ROM (tools/build.py): start straight in that level
+volatile const uint8_t boot_level = 0xFFu;
 volatile uint8_t current_song_bank = 0;
 volatile uint8_t current_music_divider = 176;
 volatile uint8_t cgb_music_tick = 0;
@@ -323,6 +325,11 @@ void main(void) {
   while (gplevel == 0) wait_vbl_done();
   selected = (uint8_t)(gplevel - 1u);
 #endif
+
+  if (boot_level != 0xFFu) {
+    selected = boot_level;
+    current_state = STATE_PLAY_LEVEL;
+  }
 
   setting_legacy_music = 0;   // not saved: off at every boot (init_save_system also runs at each menu entry)
   init_save_system();

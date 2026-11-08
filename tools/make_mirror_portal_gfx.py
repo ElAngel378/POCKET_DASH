@@ -1,4 +1,4 @@
-"""Draws the mirror portals into levels/chr_data/sprite_tiles.png (then run build_sprite_tiles.py).
+"""Draws the mirror portals into levels/chr_data/game_art/sprite_tiles.png (then run build_sprite_tiles.py).
 
     python tools/make_mirror_portal_gfx.py
 
@@ -19,7 +19,7 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-PNG = ROOT / "levels" / "chr_data" / "sprite_tiles.png"
+PNG = ROOT / "levels" / "chr_data" / "game_art" / "sprite_tiles.png"
 W, H = 32, 48
 INK = 1
 # back to front: (cx, rx, ry, stroke)

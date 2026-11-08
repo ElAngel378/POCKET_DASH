@@ -18,6 +18,7 @@ extern const hUGESong_t menuloop;
 
 // The extra levels (the wrench in the main menu): game_levels[NUM_MAIN_LEVELS..], one per row
 #define FIRST_ROW 2
+#define LIST_ROWS 14    // the rest of the list scrolls in
 #define CURSOR_TILE (FONT_PUSAB_START + 40)   // after the font, like the settings' cursor
 static const uint8_t cursor_tile[16] = {     // right arrow > (state_settings.c)
     0x00,0x00, 0x20,0x30, 0x38,0x3C, 0x3E,0x3F, 0x3E,0x3F, 0x38,0x3C, 0x20,0x30, 0x00,0x00
@@ -44,8 +45,10 @@ void draw_levels(void) {
     fade_set_dmg_palettes(0x2F, 0xE4, 0xE4);
     fill_bkg_rect(0, 0, 20, 18, 0x00);
     draw_text_here(0, 0, "EXTRA LEVELS");
-    for (uint8_t i = NUM_MAIN_LEVELS; i < MAX_LEVELS; i++) {
-        uint8_t row = (uint8_t)(FIRST_ROW + i - NUM_MAIN_LEVELS);
+    uint8_t first = NUM_MAIN_LEVELS;
+    if (selected >= first + LIST_ROWS) first = (uint8_t)(selected - LIST_ROWS + 1);
+    for (uint8_t i = first; i < MAX_LEVELS && i < first + LIST_ROWS; i++) {
+        uint8_t row = (uint8_t)(FIRST_ROW + i - first);
         if (i == selected) set_bkg_tile_xy(0, row, CURSOR_TILE);
         draw_text(2, row, game_levels[i]->name);   // up to 18 letters
     }
@@ -68,6 +71,7 @@ GameState update_level_select_state(void) BANKED {
     SCX_REG = 0;
     SCY_REG = 0;
 
+    if (selected < NUM_MAIN_LEVELS || selected >= MAX_LEVELS) selected = NUM_MAIN_LEVELS;
     draw_levels();
 
     SHOW_BKG;
@@ -75,7 +79,6 @@ GameState update_level_select_state(void) BANKED {
     DISPLAY_ON;
     fade_from_black(2);
 
-    if (selected < NUM_MAIN_LEVELS || selected >= MAX_LEVELS) selected = NUM_MAIN_LEVELS;
     uint8_t prev_joy = joypad();
     while (1) {
         if (redraw) draw_levels();

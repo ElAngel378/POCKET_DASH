@@ -4,7 +4,7 @@ toggles it ignores.
 
     python tools/make_sprite_tileset.py
 
-The tile id is the sprite's cell in levels/chr_data/graphics/sprites.png (tools/tmx2sprites.py
+The tile id is the sprite's cell in levels/chr_data/game_art/sprites.png (tools/tmx2sprites.py
 turns it into the engine's object id), so never renumber one. Each tile's Class in Tiled says
 what it is. The mirror portals have no art in sprites.png: theirs comes from the game's tiles.
 """
@@ -14,8 +14,8 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 GFX = ROOT / "levels" / "chr_data"
-SHEET = GFX / "graphics" / "sprites.png"
-GAME_TILES = GFX / "sprite_tiles.png"
+SHEET = GFX / "game_art" / "sprites.png"
+GAME_TILES = GFX / "game_art" / "sprite_tiles.png"
 OUT_DIR = GFX / "objects" / "sprites"
 TSX = GFX / "objects" / "sprites.tsx"
 

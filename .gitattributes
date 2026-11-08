@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+# Windows runs these, and needs CRLF even from a zip download
+*.bat text eol=crlf
+*.sh text eol=lf

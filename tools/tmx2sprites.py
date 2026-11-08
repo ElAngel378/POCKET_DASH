@@ -147,6 +147,10 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
     if skip is not None:
         portal_data = [p for p in portal_data if not skip(*p)]
 
+    # A level with no Level end object ends at its last column, where the real levels have it
+    if not any(p[2] == 15 for p in portal_data):
+        portal_data.append(((map_width - 1) * 16, map_height * 16 - 144 + rows_above, 15))
+
     portal_data.sort(key=lambda p: p[0])
 
     c_var_name = file_base_name.lower().replace(" ", "_").replace("-", "_")

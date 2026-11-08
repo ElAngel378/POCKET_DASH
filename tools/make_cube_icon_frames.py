@@ -3,14 +3,14 @@
     python tools/make_cube_icon_frames.py            # frames PNG -> C (creates the PNG if missing)
     python tools/make_cube_icon_frames.py --regen    # (re)make the frames PNG
 
-levels/chr_data/cube_icon_frames.png: icon 0, the original cube, 24 frames of 16x16: 0, 7.5, ...
+levels/chr_data/game_art/cube_icon_frames.png: icon 0, the original cube, 24 frames of 16x16: 0, 7.5, ...
 172.5 degrees clockwise (the game draws 180..352.5 as these flipped both ways). Grey level =
 sprite colour: white transparent, light grey 1 (secondary colour), dark grey 2 (primary
 colour), black 3. Its hand-drawn 15 degree frames from sprite_tiles.png; in between, the frame
 before turned 7.5 degrees (RotSprite) with its outline cleaned up (between). Can be touched up by
 hand: --regen overwrites it.
 
-levels/chr_data/fd_cube_frames.png: icons 1..26, the Famidash cubes (famidash-main next to this
+levels/chr_data/game_art/fd_cube_frames.png: icons 1..26, the Famidash cubes (famidash-main next to this
 repo: GRAPHICS/Icons/bankicon01..0E.chr - not 00, its default cube -, the 10 contest winners,
 starfox.chr, cat.chr), one 16 px row each, 24 frames of 16x16 like icon 0: 0, 7.5, ... 172.5
 degrees clockwise (cat.chr: an 8 KB sheet with 22.5 degree frames, see fd_sheet_frames). The 15 degree ones: 0..75 are Famidash's hand-drawn quarter turn, 90..165 the same
@@ -19,19 +19,19 @@ turned or spins in 3D (see fd_frames). The ones in between like icon 0's, or the
 again for the icons drawn spinning in 3D (FD_3D). 14x14 at
 (1, 1) like the original cube. Made when missing or with --regen (needs famidash-main then).
 
-levels/chr_data/ship_frames.png: the ship, 31 frames of 16x16 from 45 degrees nose down to 45 up
+levels/chr_data/game_art/ship_frames.png: the ship, 31 frames of 16x16 from 45 degrees nose down to 45 up
 in 3 degree steps (same colours). The old hand-drawn ship frames at 45, 24, 0, -24, -45 degrees,
 RotSprite of the level one in between; made when missing or with --regen.
 
-levels/chr_data/ball_frames.png: the ball, 24 frames like a cube icon. Its old hand-drawn frames at
+levels/chr_data/game_art/ball_frames.png: the ball, 24 frames like a cube icon. Its old hand-drawn frames at
 0 and 30 degrees, RotSprite in between; made when missing or with --regen.
 
-levels/chr_data/ufo_frames.png: the UFO, Famidash's (GRAPHICS/Icons/bankicon00.chr tiles $3E/$3F,
+levels/chr_data/game_art/ufo_frames.png: the UFO, Famidash's (GRAPHICS/Icons/bankicon00.chr tiles $3E/$3F,
 the left half of an 8x16 pair it draws mirrored for the right), 5 frames: 15 and 8 degrees nose
 down, level, 8 and 15 up (same colours): RotSprite of the level one; made when missing or with
 --regen (needs famidash-main then).
 
-levels/chr_data/mini_frames.png: the mini ship, ball and UFO, frames of 8x8 (same colours), RotSprite
+levels/chr_data/game_art/mini_frames.png: the mini ship, ball and UFO, frames of 8x8 (same colours), RotSprite
 of their 8x8 images in sprite_tiles.png (pairs 61, 62, 9: the top halves): the ship 30, 15, 0, -15,
 -30 degrees clockwise (45 does not fit 8x8; its black outline weighted down, see mini_frames), the
 ball 0, 22.5 .. 157.5 (like a cube icon, the other half turn flipped both ways), the UFO level, 8 and
@@ -51,20 +51,20 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-FRAMES = ROOT / "levels" / "chr_data" / "cube_icon_frames.png"
-FD_PNG = ROOT / "levels" / "chr_data" / "fd_cube_frames.png"
+FRAMES = ROOT / "levels" / "chr_data" / "game_art" / "cube_icon_frames.png"
+FD_PNG = ROOT / "levels" / "chr_data" / "game_art" / "fd_cube_frames.png"
 FD_ROOT = ROOT.parent / "famidash-main"
 FD_CHR = [f"GRAPHICS/Icons/bankicon{i:02X}.chr" for i in range(1, 15)] + \
          [f"fan icon collection/CONTEST WINNERS/contest{i:X}.chr" for i in range(1, 11)] + \
          ["fan icon collection/starfox.chr"]
 CUSTOM_ICONS = [
-    (ROOT / "levels" / "chr_data" / "improved_cat_icon.chr", [0, 1, 16, 17]),
-    (ROOT / "levels" / "chr_data" / "pbaxx.chr", [0, 1, 16, 17]),
-    (ROOT / "levels" / "chr_data" / "tiny_coins_cube_3.chr", [32, 33, 48, 49]),
+    (ROOT / "levels" / "chr_data" / "game_art" / "improved_cat_icon.chr", [0, 1, 16, 17]),
+    (ROOT / "levels" / "chr_data" / "game_art" / "pbaxx.chr", [0, 1, 16, 17]),
+    (ROOT / "levels" / "chr_data" / "game_art" / "tiny_coins_cube_3.chr", [32, 33, 48, 49]),
 ]
 # tiny_coins_more_cubes.chr: 18 cubes in 2x2 tile blocks, 5 / 5 / 4 / 4 per row at tile rows 2, 4, 6, 8;
 # the first one is tiny_coins_cube_3.chr above
-MORE_CHR = ROOT / "levels" / "chr_data" / "tiny_coins_more_cubes.chr"
+MORE_CHR = ROOT / "levels" / "chr_data" / "game_art" / "tiny_coins_more_cubes.chr"
 for _r, _n in ((2, 5), (4, 5), (6, 4), (8, 4)):
     for _c in range(_n):
         if (_r, _c) != (2, 0):
@@ -78,15 +78,15 @@ OUT_C = ROOT / "src" / "graphics" / "cube_icon_frames.c"
 OUT_FD_C = ROOT / "src" / "graphics" / "cube_fd_frames_{}.c"
 OUT_H = ROOT / "include" / "cube_icon_frames.h"
 NUM_FRAMES = 24
-SHIP_PNG = ROOT / "levels" / "chr_data" / "ship_frames.png"
+SHIP_PNG = ROOT / "levels" / "chr_data" / "game_art" / "ship_frames.png"
 SHIP_FRAMES = 31                     # 45 .. -45 degrees in 3 degree steps
 SHIP_IDX = lambda deg: (45 - deg) // 3
 HAND_SHIP = {0: 45, 1: 24, 3: 0, 5: -24, 6: -45}   # old hand-drawn frame: its angle (2, 4 were generated)
-BALL_PNG = ROOT / "levels" / "chr_data" / "ball_frames.png"
-UFO_PNG = ROOT / "levels" / "chr_data" / "ufo_frames.png"
+BALL_PNG = ROOT / "levels" / "chr_data" / "game_art" / "ball_frames.png"
+UFO_PNG = ROOT / "levels" / "chr_data" / "game_art" / "ufo_frames.png"
 UFO_ANGLES = [15, 8, 0, -8, -15]   # frame k: degrees clockwise (nose down .. level .. up)
 UFO_FRAMES = len(UFO_ANGLES)
-MINI_PNG = ROOT / "levels" / "chr_data" / "mini_frames.png"
+MINI_PNG = ROOT / "levels" / "chr_data" / "game_art" / "mini_frames.png"
 MINI_SHIP_ANGLES = [30, 15, 0, -15, -30]
 MINI_BALL_ANGLES = [22.5 * k for k in range(8)]
 MINI_UFO_ANGLES = [0, 8, 15]
@@ -165,7 +165,7 @@ def ship_frames():
     """The ship: frame k is tilted 45 - 3k degrees clockwise (0: nose steep down, 15: level, 30:
     steep up). The hand-drawn frames of sprite_tiles.png (pairs 18.. of tiles 36..63) at their
     angles, RotSprite of the level one in between."""
-    st = Image.open(ROOT / "levels" / "chr_data" / "sprite_tiles.png").convert("L")
+    st = Image.open(ROOT / "levels" / "chr_data" / "game_art" / "sprite_tiles.png").convert("L")
     idx = lambda v: min(range(4), key=lambda i: abs(v - SHADE[i]))
 
     def hand(f):   # old ship frame f (0 steep down .. 3 level .. 6 steep up), 16x16
@@ -196,7 +196,7 @@ def ufo_frames():
 def mini_frames():
     """The mini ship, ball and UFO (MINI_*_ANGLES): their 8x8 image in sprite_tiles.png (top half
     of pairs 61, 62, 9) turned clockwise (RotSprite) on a 16x16 canvas, cropped back to 8x8."""
-    st = Image.open(ROOT / "levels" / "chr_data" / "sprite_tiles.png").convert("L")
+    st = Image.open(ROOT / "levels" / "chr_data" / "game_art" / "sprite_tiles.png").convert("L")
     idx = lambda v: min(range(4), key=lambda i: abs(v - SHADE[i]))
 
     def mini(pr):
@@ -250,7 +250,7 @@ def default_cube():
     """Icon 0, the original cube: its hand-drawn 15 degree frames from sprite_tiles.png (the
     metasprites of src/graphics/icon1.c composed into 16x16), each followed by itself turned 7.5
     degrees (between)."""
-    st = Image.open(ROOT / "levels" / "chr_data" / "sprite_tiles.png").convert("L")
+    st = Image.open(ROOT / "levels" / "chr_data" / "game_art" / "sprite_tiles.png").convert("L")
     idx = lambda v: min(range(4), key=lambda i: abs(v - SHADE[i]))
 
     def pair(n, fx, fy):   # 8x16 image of tile pair n
@@ -274,7 +274,7 @@ def ball_frames():
     """The ball: 24 frames, 0..172.5 degrees clockwise (the game draws the other half flipped
     both ways). Its old hand-drawn frames (left half; the right half is it turned 180 degrees)
     at 0 and 30 degrees, RotSprite of the first one in between."""
-    st = Image.open(ROOT / "levels" / "chr_data" / "sprite_tiles.png").convert("L")
+    st = Image.open(ROOT / "levels" / "chr_data" / "game_art" / "sprite_tiles.png").convert("L")
     idx = lambda v: min(range(4), key=lambda i: abs(v - SHADE[i]))
 
     def hand(pr):
@@ -528,7 +528,7 @@ def main():
             for k in range(FD_FRAMES):
                 add_frame(fd_img, k * 16, r * 16)
         Path(str(OUT_FD_C).format(b)).write_text(f"""#pragma bank {FD_BANKS[b]}
-// Generated by tools/make_cube_icon_frames.py from levels/chr_data/fd_cube_frames.png. Do not edit.
+// Generated by tools/make_cube_icon_frames.py from levels/chr_data/game_art/fd_cube_frames.png. Do not edit.
 // The only thing in its bank (no code either), so 16 byte aligned: GDMA source.
 
 #include <gb/gb.h>
@@ -542,7 +542,7 @@ const uint8_t cube_fd_frames_{b}[{len(data)}] = {{
 """)
 
     OUT_C.write_text(f"""#pragma bank 61
-// Generated by tools/make_cube_icon_frames.py from levels/chr_data/cube_icon_frames.png,
+// Generated by tools/make_cube_icon_frames.py from levels/chr_data/game_art/cube_icon_frames.png,
 // ship_frames.png, ball_frames.png, ufo_frames.png and mini_frames.png. Do not edit.
 // The only thing in its bank (no code either), so 16 byte aligned: GDMA source.
 

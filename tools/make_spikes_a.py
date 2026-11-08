@@ -1,4 +1,4 @@
-"""Famidash's background spikes as the game shows them (spike set A, frame 0) in levels/chr_data/bg_tiles.png.
+"""Famidash's background spikes as the game shows them (spike set A, frame 0) in levels/chr_data/game_art/bg_tiles.png.
 
 The tiles of metatiles 12 / 13 (and the half spikes 19 / 20) were the ones of Famidash's Tiled tileset;
 the game loads GRAPHICS/Level Tiles/SpikesA.chr. Their NES colours are ours. Two of the tiles have art
@@ -11,7 +11,7 @@ from pathlib import Path
 
 from PIL import Image
 
-SHEET = Path(__file__).resolve().parent.parent / "levels" / "chr_data" / "bg_tiles.png"
+SHEET = Path(__file__).resolve().parent.parent / "levels" / "chr_data" / "game_art" / "bg_tiles.png"
 TILES = {23: 0x0D, 24: 0x0E, 25: 0x0F, 37: 0x1C, 38: 0x1D, 39: 0x1F}    # BASE slot -> NES tile
 EXTRA = [0x0C, 0x1E]
 EXTRA_ROW = 35

@@ -205,15 +205,12 @@ def used_banks(generated=()):
 
 
 def allocate_banks(count, start, taken):
-    """First run of `count` consecutive free banks at or after `start`."""
-    b = start
-    while True:
-        run = list(range(b, b + count))
-        if run[-1] > LAST_BANK:
-            raise SystemExit("no %d consecutive free ROM banks for a level map" % count)
-        if not taken & set(run):
-            return b
-        b += 1
+    """First run of `count` consecutive free banks at or after `start`, then the gaps lower down."""
+    for first in (start, 2):
+        for b in range(first, LAST_BANK - count + 2):
+            if not taken & set(range(b, b + count)):
+                return b
+    raise SystemExit("no %d consecutive free ROM banks for a level map" % count)
 
 
 def write_map_wrappers(ident, short_name, out_bin, width, first_bank):
@@ -379,6 +376,9 @@ def generate_assets_c(levels):
 def level_files():
     """The levels' TMX files in game order (a level's index is its position here)."""
     tmx_files = [p for p in TMX_DIR.glob("*.tmx") if p.stem.lower() != "template"]
+    for p in tmx_files:
+        if re.search(r"_\d+$", p.stem):     # the build names a long level's pieces like that
+            raise SystemExit(f"Level file name '{p.name}' can't end in _ and a number.")
 
     def sort_key(p):
         stem = p.stem.lower()
@@ -388,8 +388,22 @@ def level_files():
 
     return sorted(tmx_files, key=sort_key)
 
+def map_properties(stem):
+    return {p.get("name"): p.get("value") for p in ET.parse(TMX_DIR / (stem + ".tmx")).getroot().findall("properties/property")}
+
 def level_title(stem):
-    return KNOWN_LEVELS[stem]["title"] if stem in KNOWN_LEVELS else format_title(stem)
+    """A community level's title is its "Title" map property; what the font and the list can show"""
+    if stem in KNOWN_LEVELS:
+        return KNOWN_LEVELS[stem]["title"]
+    title = map_properties(stem).get("Title") or format_title(stem)
+    return re.sub(r"[^A-Z0-9 ]", "", title.upper())[:18].strip() or format_title(stem)[:18]
+
+def level_song(stem):
+    """The level whose song this level plays (a community level's "Song" map property), or None"""
+    if stem in KNOWN_LEVELS:
+        return KNOWN_LEVELS[stem].get("song")
+    song = (map_properties(stem).get("Song") or "").strip().lower()
+    return None if song in ("", "none") else song
 
 def build_all():
     print("=== Pocket Dash Automated Level Pipeline ===")
@@ -444,7 +458,7 @@ def build_all():
             short_name = meta["short"]
             save_slot = meta.get("save", meta["order"] - 1)
         else:
-            title = format_title(stem)
+            title = level_title(stem)
             divider = 180
             short_name = ident
             save_slot = NO_SAVE_SLOT
@@ -473,7 +487,10 @@ def build_all():
 
         music_file = MUSIC_DIR / f"{ident}.c"
         uge_file = find_uge_file(stem)
-        song_of = next((l for l in levels_info if l["stem"] == meta.get("song")), None)
+        song = level_song(stem)
+        song_of = next((l for l in levels_info if l["stem"] == song), None)
+        if song and not song_of:
+            raise SystemExit(f"Level '{stem}': there's no song called '{song}'. Pick one from the Song property in Tiled.")
         music_ident = ident
         if song_of or (uge_file and UGE2SOURCE_BIN.exists()) or music_file.exists():
             if not song_of:
@@ -564,11 +581,11 @@ def build_all():
         print("Converting level complete SFX...")
         subprocess.run([sys.executable, "tools/convert_end_sfx.py"], cwd=str(REPO_ROOT), check=True)
 
-    # Background tiles of every level, from levels/chr_data/bg_tiles.png (needs assets.c)
+    # Background tiles of every level, from levels/chr_data/game_art/bg_tiles.png (needs assets.c)
     print("Building level background tiles from bg_tiles.png...")
     subprocess.run([sys.executable, "tools/build_bg_tiles.py"], cwd=str(REPO_ROOT), check=True)
 
-    # Gameplay sprite tiles, from levels/chr_data/sprite_tiles.png
+    # Gameplay sprite tiles, from levels/chr_data/game_art/sprite_tiles.png
     print("Building sprite tiles from sprite_tiles.png...")
     subprocess.run([sys.executable, "tools/build_sprite_tiles.py"], cwd=str(REPO_ROOT), check=True)
 

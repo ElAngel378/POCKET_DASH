@@ -51,17 +51,18 @@ $(TEMPDIR)/bg_stream.o: src/graphics/bg_stream_tables.h
 # each level wrapper INCBINs its map chunks
 $(shell mkdir -p $(TEMPDIR); grep -o 'levels/level_data/[^"]*' src/levels/level_*.c | sed -e 's|^src/levels/|$(TEMPDIR)/|' -e 's|\.c:|.o: |' > $(TEMPDIR)/levels.d)
 include $(TEMPDIR)/levels.d
-$(TEMPDIR)/tileset.o: levels/chr_data/bg_base_tiles.bin levels/chr_data/bg_base_tiles_flipped.bin
-$(TEMPDIR)/saw_anim_data.o: levels/chr_data/saw_anim_tiles.bin
+$(TEMPDIR)/tileset.o: levels/chr_data/game_art/bg_base_tiles.bin levels/chr_data/game_art/bg_base_tiles_flipped.bin
+$(TEMPDIR)/saw_anim_data.o: levels/chr_data/game_art/saw_anim_tiles.bin
+$(TEMPDIR)/mt_renderer.o: levels/chr_data/game_art/bg_extra_tiles.bin
 $(TEMPDIR)/assets.o: include/bg_tiles.h
-$(TEMPDIR)/famidash_sprite_tiles.o: src/sprites/sprite_tile_tables.h src/sprites/dmg_object_icons.h src/sprites/coin_tiles.h levels/chr_data/sprite_tiles.bin
+$(TEMPDIR)/famidash_sprite_tiles.o: src/sprites/sprite_tile_tables.h src/sprites/dmg_object_icons.h src/sprites/coin_tiles.h levels/chr_data/game_art/sprite_tiles.bin
 $(TEMPDIR)/pause_button_tiles.o: src/sprites/sprite_blob_offsets.h src/graphics/practice_button_cgb.inc src/graphics/pause_buttons_cgb.inc
 # icon counts and frame banks (tools/build_icon_select_gfx.py, tools/make_cube_icon_frames.py: a
 # stale object kept the icon select menu at the old icon count)
 $(TEMPDIR)/state_icon_select.o $(TEMPDIR)/save_manager.o $(TEMPDIR)/gameplay.o $(TEMPDIR)/icon_pages.o $(TEMPDIR)/icon_previews.o $(TEMPDIR)/icon_catalog.o: include/icon_catalog.h include/cube_icon_frames.h
 # the metatile and collision tables (a stale object kept the old square saw hitboxes in the ROM)
 $(TEMPDIR)/famidash_metatiles.o: include/famidash_metatiles_dmg.c include/famidash_metatiles.h include/collision.h
-$(TEMPDIR)/menu_bg.o: levels/chr_data/menu_ground_tiles.bin
+$(TEMPDIR)/menu_bg.o: levels/chr_data/game_art/menu_ground_tiles.bin
 # title menu big buttons (tools/gen_title_buttons.py): tile / palette counts in the header
 $(TEMPDIR)/state_menu.o $(TEMPDIR)/title_buttons.o: include/title_buttons.h
 # Furnace songs: song ids and the setting

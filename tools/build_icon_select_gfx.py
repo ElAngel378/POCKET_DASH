@@ -3,12 +3,12 @@
     python tools/build_icon_select_gfx.py
 
 Sources:
-    levels/chr_data/cube_icon_frames.png the cube icons as in the game (frame 0, 0 degrees, 14x14
-    levels/chr_data/fd_cube_frames.png   at (1, 1) in 16x16): icon 0 the original cube, 1..26
+    levels/chr_data/game_art/cube_icon_frames.png the cube icons as in the game (frame 0, 0 degrees, 14x14
+    levels/chr_data/game_art/fd_cube_frames.png   at (1, 1) in 16x16): icon 0 the original cube, 1..26
                                          the Famidash ones (tools/make_cube_icon_frames.py).
                                          White transparent, light grey secondary, dark grey
                                          primary, black outline
-    levels/chr_data/gamemode_icons.chr   GD icon pack (NES 2bpp): 9x9 mini gamemode icons at
+    levels/chr_data/game_art/gamemode_icons.chr   GD icon pack (NES 2bpp): 9x9 mini gamemode icons at
                                          y 23..31, one per 16 px column (cube, ship, ufo, robot,
                                          wave, spider, swing, ball)
     src/graphics/menu_select_bg.c        level select tiles reused here: back arrow, rounded box,
@@ -36,9 +36,9 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-ICON0_PNG = ROOT / "levels" / "chr_data" / "cube_icon_frames.png"
-FD_PNG = ROOT / "levels" / "chr_data" / "fd_cube_frames.png"
-GM_CHR = ROOT / "levels" / "chr_data" / "gamemode_icons.chr"
+ICON0_PNG = ROOT / "levels" / "chr_data" / "game_art" / "cube_icon_frames.png"
+FD_PNG = ROOT / "levels" / "chr_data" / "game_art" / "fd_cube_frames.png"
+GM_CHR = ROOT / "levels" / "chr_data" / "game_art" / "gamemode_icons.chr"
 MENU_SELECT = ROOT / "src" / "graphics" / "menu_select_bg.c"
 
 NUM_ICONS = 46

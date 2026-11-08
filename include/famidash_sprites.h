@@ -31,7 +31,7 @@
 extern const uint8_t famidash_deco_tiles[FAMIDASH_DECO_TILE_COUNT * 16];
 
 // deco_cloud: use the DECOCLOUD decoration art (Famidash picks the deco type per level)
-// All gameplay sprite tiles from levels/chr_data/sprite_tiles.png (tools/build_sprite_tiles.py)
+// All gameplay sprite tiles from levels/chr_data/game_art/sprite_tiles.png (tools/build_sprite_tiles.py)
 void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED;
 // Only the sprite tiles that share VRAM with background tiles 128..159
 void reload_bg_shared_sprite_tiles(void) BANKED;

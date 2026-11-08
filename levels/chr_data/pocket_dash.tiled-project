@@ -1,6 +1,27 @@
 {
     "automappingRulesFile": "",
-    "commands": [],
+    "commands": [
+        {
+            "arguments": "\"%mapfile\"",
+            "command": "%projectpath/../../tools/tiled_play.bat",
+            "enabled": true,
+            "name": "Build and play this level",
+            "saveBeforeExecute": true,
+            "shortcut": "F5",
+            "showOutput": true,
+            "workingDirectory": "%projectpath/../.."
+        },
+        {
+            "arguments": "\"%mapfile\"",
+            "command": "%projectpath/../../tools/tiled_previews.bat",
+            "enabled": true,
+            "name": "Redraw the sky and ground",
+            "saveBeforeExecute": true,
+            "shortcut": "F6",
+            "showOutput": true,
+            "workingDirectory": "%projectpath/../.."
+        }
+    ],
     "compatibilityVersion": 1100,
     "extensionsPath": "extensions",
     "folders": [
@@ -20,6 +41,37 @@
                 "2 s",
                 "4 s",
                 "10 s"
+            ],
+            "valuesAsFlags": false
+        },
+        {
+            "id": 2,
+            "name": "Song",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "none",
+                "stereomadness",
+                "backontrack",
+                "polargeist",
+                "dryout",
+                "baseafterbase",
+                "cantletgo",
+                "jumper",
+                "timemachine",
+                "cycles",
+                "xstep",
+                "clutterfunk",
+                "theoryofeverything",
+                "electromanadventures",
+                "clubstep",
+                "bestautomaticlvl",
+                "leveleasy",
+                "subzero",
+                "ultiatedestruction",
+                "everymadness",
+                "demonpark",
+                "thelightningroad"
             ],
             "valuesAsFlags": false
         }

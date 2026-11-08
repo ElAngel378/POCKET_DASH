@@ -1,5 +1,5 @@
 """Draws the colour trigger fade time markers into the Tiled sprite sheet
-(levels/chr_data/graphics/sprites.png, cells 246..251; tools/tmx2sprites.py reads them):
+(levels/chr_data/game_art/sprites.png, cells 246..251; tools/tmx2sprites.py reads them):
 a clock over the time, like the speed markers next to them.
 
     python tools/make_fade_time_icons.py
@@ -8,7 +8,7 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-PNG = ROOT / "levels" / "chr_data" / "graphics" / "sprites.png"
+PNG = ROOT / "levels" / "chr_data" / "game_art" / "sprites.png"
 
 # 3x5 digits; '.' is one pixel wide
 GLYPHS = {

@@ -36,12 +36,13 @@ Unlike GB Dash by TiTi, this one features a Famidash-style gameplay with the act
 This game is being actively developed (coding and music) by Sotospro24 and ElAngel378
 
 # Features (as of now)
-- All levels up to Xstep
-- Gameplay (Cube, Ship, Ball)
+- All levels up to Xstep, and more Extra Levels
+- Gameplay (Cube, Ship, Ball, UFO)
 - Accurate Physics
 - Collision (Death and block collision)
 - Music Covers, played by a Furnace-accurate Game Boy driver ([more info](docs/MUSIC.md))
-- All 1.0 - 1.2 mechanics including inverted gravity, mirror mode
+- Mechanics and objects up to Geometry Dash 1.6, including inverted gravity, mirror mode, fading blocks
+- Make your own levels in Tiled ([guide](docs/MAKING_LEVELS.md))
 - Level End screen
 - Game Boy Original and Color support!
 
@@ -55,19 +56,23 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 
 # Building from source
 
-Requires **GBDK-2020** (`gbdk-2020` v4.2.x or newer) and GNU Make.
+**Windows:** double-click **`build.bat`**. That's it. It downloads what it needs the first time (Python, Pillow and GBDK 4.5.0, all inside the project's `.tools` folder), and the ROM ends up at `bin/POCKETDASH.gb`.
 
-- **Windows:** download the latest [GBDK releases](https://github.com/gbdk-2020/gbdk-2020/releases), unzip it, and point the build at it. The default search path is `C:/gbdk`; override it with the `GBDK` variable (e.g. `make GBDK=C:/dev/gbdk-2020`).
-- **Linux/macOS** (and GitHub Actions): fetch and extract the `gbdk-linux64` release from the [GBDK releases](https://github.com/gbdk-2020/gbdk-2020/releases), then run `make` with `GBDK=/path/to/gbdk` exported.
+**Linux and macOS:** run `./build.sh` (only `python3` has to be installed already).
 
-Build the ROM:
+Useful extras:
 
 ```
-make clean
-make -j8
+build my_level     builds the game and starts that level in your emulator
+build --clean      throws away the temp files and builds everything again
+build --jobs 4     compiles fewer files at once, if your computer struggles
 ```
 
-The output is `bin/POCKETDASH.gb`.
+If you already have GBDK, set the `GBDK` environment variable or keep it in `C:/gbdk` and it will be used instead. Developers can still use `make` (it needs GBDK and GNU Make), after running `python tools/build_levels.py` if the levels changed.
+
+## Making levels
+
+Levels are made in [Tiled](https://www.mapeditor.org). Double-click **`new_level.bat`**, build your level, and press **F5** in Tiled to play it. The full guide, with pictures: **[docs/MAKING_LEVELS.md](docs/MAKING_LEVELS.md)**.
 
 ## Music
 
@@ -100,10 +105,9 @@ How to add songs and how the driver works: **[docs/MUSIC.md](docs/MUSIC.md)**.
 
 ---
 
-# TODO (for 1.0 release)
-- Add all objects, mechanics, levels up to 1.5
-- A proper menu and level select
-- Decoration (supported only in GBC mode)
+# TODO
+- Electroman Adventures and Clubstep as their 1.6 versions
+- The rest of the 1.6 sprite objects
 - Graphical improvements
 
 ---

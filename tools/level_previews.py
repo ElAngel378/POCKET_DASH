@@ -5,8 +5,8 @@ by the level's start colours and colour triggers.
     python tools/level_previews.py             every level (tools/build_levels.py runs this)
     python tools/level_previews.py stereomadness
 
-Each TMX's two image layers point at them. Reload the level in Tiled after a build to see changed
-triggers. The sky scrolls 1:1 with the map here, so a colour change is where its trigger is; a
+In Tiled, press F6 (Project > Commands) to redraw the open level's; every build does it too. Each
+TMX's two image layers point at them, and a level with neither is left alone. The sky scrolls 1:1 with the map here, so a colour change is where its trigger is; a
 fade's length assumes normal speed.
 """
 import re
@@ -138,7 +138,7 @@ def point_layers(path, name, height):
 
 
 def main(names=None):
-    parallax, ground = master(GFX / "parallax_preview.png"), master(GFX / "ground_preview.png")
+    parallax, ground = master(GFX / "game_art" / "parallax_preview.png"), master(GFX / "game_art" / "ground_preview.png")
     for folder in TMX_DIRS:
         for path in sorted(folder.glob("*.tmx")):
             if not names or path.stem in names:

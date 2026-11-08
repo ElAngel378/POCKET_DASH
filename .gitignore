@@ -36,6 +36,11 @@ bin/POCKETDASH_prof.*
 .cache/
 # Build objects (make)
 temp/
+# What build.bat downloads, and its logs
+.tools/
+build_error.log
+build_warnings.log
+bin/POCKETDASH_test.*
 # Emulator save files (bin/POCKETDASH.sav changes whenever the game is played)
 *.sav
 # Review sheets the tools draw to check by eye (tools/gda_match.py, tools/apply_user_art.py)

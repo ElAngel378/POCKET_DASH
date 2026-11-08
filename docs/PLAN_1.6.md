@@ -63,8 +63,8 @@ How a level is built now, in Tiled:
   object, whatever its size (a big saw is one 48×48 tile).
 - Rotate / flip with Tiled's buttons (Z, X, Y).
 - Stacking: more tile layers. Half a block off the grid: a layer with Offset X or Y = 8 (Layer
-  Properties). The converter named them `Objects +8x`, `Objects +8y`, ...; any names work, only the
-  `SP` layer is special (sprites, as before).
+  Properties). They are named `Layer 1 +8x`, `Layer 1 +8y`, ...; any names work, only the
+  `SP` layer is special (sprites: an object layer now, with real pixel positions).
 - Objects bigger than a block are on `Layer 1` layers under the others: where a block and a saw
   overlap, the block shows (in game too).
 - `template.tmx` has all these layers ready (big objects and objects, each on the grid and +8 px
@@ -196,7 +196,7 @@ ring slot a frame at the wrong look, and the VBlank handler rewrites its cells f
 (`fade_cells_copy`, attributes on CGB, tiles on DMG). Nothing depends on the path taken: checkpoints
 and respawns just ask where a column is. One faded step, not GDA's three: palette 7 is the only one
 free (palettes 5, 6: fake spikes, player colour 2). Demo: level `test2`. Mirror portals and the pause
-box with faded cells on screen are not tested yet; on the level complete screen palette 7 is text.
+screen with faded cells on screen are not tested yet; on the level complete screen palette 7 is text.
 
 Breakable bricks (gd143, collision COL_BREAKABLE): solid, broken by the wall probe that would kill
 the player on a block (GDA breaks them with the centre hitbox); only on the grid, off it a plain
@@ -227,12 +227,11 @@ GD / GDA / Pocket Dash pairing (tools/gda_compare.py) now comes from the levels:
 where GD's own levels place each object. Clouds 129 / 130 are the other way round from GD (130 is GD's big one); left as they are, user's call.
 
 GD's 161-169 are an outline plus a square_g fill (a child sprite): their art is GDA's 16 px pieces of them,
-in palette 6, GDA's two navies as one dark (user chose this over dithering). 168 is not in the game.
+in palette 6, GDA's two navies as one dark (user chose this over dithering).
 
-To do (user, 2026-11-08): the Tiled sprite sheet (levels/chr_data/graphics/sprites.png) as an
-edited copy of Famidash's: a cross over every sprite our game does not have, and our own art in
-the cells where Pocket Dash differs from Famidash or Famidash's is a placeholder (like the
-pulsing ring and heart now, and the mirror portals), so Tiled shows what the game draws.
+Done 2026-11-08: our own Tiled sprite tileset (`levels/chr_data/objects/sprites.tsx`, only what the
+game has), colour triggers with Colour and Fade properties, level settings as map properties
+(`levels/metadata` is gone), sky and ground previews in Tiled, and 3 empty rows below every level.
 
 Order agreed 2026-11-07: spinning, hitboxes, fading, breakable bricks, pulsing last. Fading and
 breakable bricks exist in the old code (main's history, gda-objects): review that it is good and worth
@@ -262,5 +261,5 @@ all, and that objects show up as they should). GDA's 1.6 objects are the same as
 
 ## After that
 
-Make building levels easier (building, compiling, testing in game): many people in the community
-have trouble with it.
+Done 2026-11-08: building and testing levels for the community, see `docs/MAKING_LEVELS.md`.
+`build.bat` / `build.sh` set everything up and run `tools/build.py`; `new_level.bat` starts a level.

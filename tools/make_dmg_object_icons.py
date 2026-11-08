@@ -10,7 +10,7 @@ a badge with the mode symbol on their side, since on DMG they only differ by col
 (the bottom tile is empty); orbs and badges are 8x16.
 
 Writes src/sprites/dmg_object_icons.h (tile data, included by famidash_sprite_tiles.c) and a
-preview, levels/chr_data/dmg_object_icons.png.
+preview, levels/chr_data/game_art/dmg_object_icons.png.
 """
 from pathlib import Path
 from PIL import Image
@@ -146,7 +146,7 @@ def main():
         for y, r in enumerate(p):
             for x, ch in enumerate(r):
                 im.putpixel((i * 10 + x, y), shade[ch])
-    im.save(ROOT / "levels" / "chr_data" / "dmg_object_icons.png")
+    im.save(ROOT / "levels" / "chr_data" / "game_art" / "dmg_object_icons.png")
 
 
 if __name__ == "__main__":
