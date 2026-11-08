@@ -179,12 +179,12 @@ static void write_cgb_fade_step(void) {
 
 void fade_apply_pause_box_palettes(void) BANKED {
     if (_cpu == CGB_TYPE) {
-        palette_color_t temp_bkg[16];
+        // All eight palettes are in use in a level, so the whole screen dims, as on DMG
         uint8_t i;
-        for (i = 0; i < 16; i++) {
-            temp_bkg[i] = dim_color(shadow_bkg_palettes[i], 1);
+        for (i = 0; i < 32; i++) {
+            step_bkg[i] = dim_color(shadow_bkg_palettes[i], 1);
         }
-        set_bkg_palette(4, 4, temp_bkg);
+        set_bkg_palette(0, 8, step_bkg);
     }
 }
 

@@ -1,6 +1,5 @@
 #pragma bank 11
 
-#include "collision.h"
 #include <stdint.h>
 #include <gb/gb.h>
 #include <gb/cgb.h>
@@ -8,7 +7,6 @@
 #include "death_effect.h"
 #include "ship1.h"
 #include "../sprites/sprite_blob_offsets.h"
-#include "scratch.h"
 
 extern const unsigned char FontPusab[];
 
@@ -20,51 +18,6 @@ static const uint8_t pause_glyph_indices[6] = {
     13 + ('E' - 'A'),
     13 + ('D' - 'A')
 };
-
-// The box's cells (rows 2..16, columns 1..18) in fake spikes' palette 5: 5 | 4 is still 5, so the
-// unpause must not clear bit 2 there (that would make them palette 1, the real spikes'). In
-// scratch_buf (WRAM is full): the level's collision table, which nothing reads while the game is
-// paused (it is copied in again on unpause)
-#define pause_fake_spike_cells (scratch_buf + 192)   // 15 rows of 3 bytes
-
-void apply_pause_box_attributes(uint8_t apply) BANKED {
-    if (_cpu != CGB_TYPE) return;
-    uint8_t *fake = pause_fake_spike_cells;
-    uint8_t scx_tile = (SCX_REG >> 3);
-    uint8_t scy_tile = (SCY_REG >> 3);
-    uint16_t map = (LCDC_REG & LCDCF_BG9C00) ? 0x9C00u : 0x9800u;   // mirror portals switch maps
-
-    VBK_REG = 1;
-    for (uint8_t sy = 2; sy < 17; sy++) {
-        uint8_t my = (uint8_t)(scy_tile + sy) & 31;
-        for (uint8_t sx = 1; sx < 19; sx++) {
-            uint8_t mx = (uint8_t)(scx_tile + sx) & 31;
-            uint8_t *addr = (uint8_t *)(map + ((uint16_t)my << 5) + mx);
-            // the read and the write each wait for the mode 2 / 3 gap: the bookkeeping in between
-            // does not fit in one HBlank
-            uint8_t bit = (uint8_t)(1u << ((sx - 1) & 7));
-            uint8_t *f = &fake[(uint8_t)((sx - 1) >> 3)];
-            uint8_t a, n;
-            if (apply) {
-                // palettes 4..7 show palettes 0..3 dimmed
-                while (STAT_REG & 0x02);
-                a = *addr;
-                n = (uint8_t)(a | 0x04);
-                if ((a & 0x07) == 0x05) *f |= bit; else *f &= (uint8_t)~bit;
-            } else {
-                if (*f & bit) continue;
-                while (STAT_REG & 0x02);
-                n = *addr & 0xFB;
-            }
-            while (STAT_REG & 0x02);
-            *addr = n;
-        }
-        fake += 3;
-    }
-    VBK_REG = 0;
-    // unpause: the collision table shared scratch_buf with the box's cells (collision.h)
-    if (!apply) load_level_collision();
-}
 
 #include <gbdk/incbin.h>
 

@@ -747,7 +747,6 @@ static uint8_t pause_menu(uint8_t idx) {
     if (_cpu == CGB_TYPE) {
         fade_apply_pause_box_palettes();
         bg_fj_n = 0;
-        apply_pause_box_attributes(1);
         static const palette_color_t pause_pal[4] = {
             RGB8(0, 0, 0), RGB8(0, 0, 0), RGB8(180, 215, 255), RGB8(255, 255, 255)
         };
@@ -876,8 +875,7 @@ static uint8_t pause_menu(uint8_t idx) {
 
     if (_cpu == CGB_TYPE) {
         wait_vbl_done();
-        apply_pause_box_attributes(0);
-        fade_reset_view();   // the box took the fading cells' palette
+        fade_reset_view();   // the pause dropped the fading cells' pending writes
         fade_restore_pause_box_palettes();
         set_sprite_palette(0, 8, gbc_sprite_palettes);
         apply_custom_player_palette();
