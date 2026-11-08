@@ -569,6 +569,9 @@ def build_all():
     print("Building sprite tiles from sprite_tiles.png...")
     subprocess.run([sys.executable, "tools/build_sprite_tiles.py"], cwd=str(REPO_ROOT), check=True)
 
+    # The sky and ground each level shows in Tiled, coloured by its triggers
+    subprocess.run([sys.executable, "tools/level_previews.py"], cwd=str(REPO_ROOT), check=True)
+
     print("\n=== Level Pipeline Completed Successfully! ===")
 
 if __name__ == "__main__":

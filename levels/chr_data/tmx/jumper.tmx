@@ -11,11 +11,11 @@
  </properties>
  <tileset firstgid="1" source="../objects/gd_objects.tsx" />
  <tileset firstgid="10001" source="../objects/sprites.tsx"/>
- <imagelayer id="3" name="Image Layer 1" parallaxx="0.9" parallaxy="0.9" repeatx="1" repeaty="1">
-  <image source="../../../GRAPHICS/Old/parallax Blue.bmp" />
+ <imagelayer id="3" name="BG preview">
+  <image source="../previews/jumper_bg.png"/>
  </imagelayer>
- <imagelayer id="4" name="Image Layer 2" offsetx="0" offsety="432" repeatx="1">
-  <image source="../../../GRAPHICS/ground.bmp" />
+ <imagelayer id="4" name="Ground preview" offsetx="0" offsety="432">
+  <image source="../previews/jumper_ground.png"/>
  </imagelayer>
  <layer id="8" name="Layer 1" width="897" height="27">
   <data encoding="csv">
