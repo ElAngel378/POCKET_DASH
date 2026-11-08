@@ -30,7 +30,8 @@ def main(path):
         for y in range(8):
             for x in range(8):
                 v = ((data[y] >> (7 - x)) & 1) | (((data[y + 8] >> (7 - x)) & 1) << 1)
-                img.putpixel((x0 + x, y0 + y), 255 - 85 * v)
+                # colour 1 is Famidash's vertical stripes around the spikes: plain background here
+                img.putpixel((x0 + x, y0 + y), 255 - 85 * (0 if v == 1 else v))
 
     for slot, tile in TILES.items():
         put(tile, (slot % 16) * 8, (slot // 16) * 8)
