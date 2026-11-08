@@ -117,6 +117,7 @@ DRAWN = {
     "gd165": ("1.6 outline, U", (16, 16)),
     "gd166": ("1.6 outline, side", (16, 16)),
     "gd167": ("1.6 outline, dot 2", (16, 16)),
+    "gd168": ("1.6 outline, block", (16, 16)),
     "gd169": ("1.6 outline, square", (16, 16)),
     "gd170": ("1.6 block", (16, 16)),
     "gd171": ("1.6 block, edge", (16, 16)),
@@ -149,7 +150,7 @@ DRAWN_KIND.update({k: "deadly" for k in ("gd144", "gd145", "gd177", "gd178", "gd
                                          "gd187", "gd188")})
 # The 1.6 outlines are solid blocks (GDA: COL_FULL) though only their lines are drawn: they fill their
 # whole cell for collision, and what is under them shows
-OUTLINE = {"gd146", "gd161", "gd162", "gd163", "gd165", "gd166", "gd167", "gd169"}
+OUTLINE = {"gd146", "gd161", "gd162", "gd163", "gd165", "gd166", "gd167", "gd168", "gd169"}
 DRAWN_KIND.update({k: "solid" for k in OUTLINE})
 # Objects that spin (CGB): key -> how many of them make the whole wheel (1, 2 or 4: rotate them in
 # Tiled, a flipped piece would turn the other way). The build rotates the art (tools/level_objects.py
@@ -168,7 +169,7 @@ HIT_LIKE = {"gd144": ("gd8", 0), "gd145": ("gd39", 0), "gd177": ("gd8", 0), "gd1
 HIT_RADIUS = {"gd183": 8, "gd184": 10, "gd185": 2, "gd186": 16, "gd187": 12, "gd188": 8}
 # Black is colour 2 on CGB, 3 on DMG, and an outline on it the other way round: the files hold the
 # CGB colours, DMG swaps 2 and 3 in these
-DMG_SWAP = {"gd146", "gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd167", "gd169", "gd183", "gd184",
+DMG_SWAP = {"gd146", "gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd167", "gd168", "gd169", "gd183", "gd184",
             "gd185", "gd193"}
 
 
@@ -177,7 +178,7 @@ DMG_SWAP = {"gd146", "gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd16
 DRAWN_P2 = {"gd48", "gd49", "gd106", "gd107", "gd137", "gd138", "gd139", "gd180", "gd181", "gd182", "gd190"}
 # GDA's background shades (palette 6, famidash_bg.c): colour 1 the object colour (white), 2 a dark
 # shade of the sky, 3 a light one. The art's colours are in that order. Wave hills are all light.
-SHADES = {"gd157", "gd158", "gd159", "gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd167", "gd169", "gd170", "gd171", "gd173", "gd174", "gd175", "gd176", "gd192", "gd193",
+SHADES = {"gd157", "gd158", "gd159", "gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd167", "gd168", "gd169", "gd170", "gd171", "gd173", "gd174", "gd175", "gd176", "gd192", "gd193",
           "gd194", "gd197"}
 # Light lines: the object colour, as in GDA
 OBJECT_COLOUR = {"gd76", "gd77", "gd78", "gd81", "gd82"}

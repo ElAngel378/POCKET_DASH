@@ -88,7 +88,7 @@ OUTLINES = {"gd146": [EDGE_T, EDGE_L, EDGE_R, EDGE_B]}
 # navies are one dark, the palette has no room for a second
 FILLED = {"gd161": "1.6_SIDE_TOP", "gd162": "1.6_CORNER_TL", "gd163": "1.6_INS_CRN_TL",
           "gd164": "1.6_SIDE_TOP_NO_OUT", "gd165": "1.6_DBL_CRN_TOP", "gd166": "1.6_DBL_SIDE_V",
-          "gd167": "1.6_DBL_INS_CRN_TOP", "gd169": "1.6_BLOCK_ALT"}
+          "gd167": "1.6_DBL_INS_CRN_TOP", "gd168": "1.6_BLOCK", "gd169": "1.6_BLOCK_ALT"}
 FILLED_COLOURS = {0: 0, 5: 2, 6: 2, 9: 3, 10: 3, 11: 1}
 
 # hazards from GDA: spikes keep their shades, black saws are all one colour (GDA's shades speckle)
