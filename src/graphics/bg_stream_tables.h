@@ -74,7 +74,7 @@ extern const uint8_t bs_test_dmg_recs[];
 BANKREF_EXTERN(bs_test2)
 extern const uint8_t bs_test2_cgb_recs[];
 extern const uint8_t bs_test2_dmg_recs[];
-#define BS_TILE_BANK 250
+#define BS_TILE_BANK 249
 #define BS_SPIN_BASE 28
 #define BS_SPIN_FRAMES 3
 // per level: its spinning tiles (CGB): first tile in the space, number
@@ -103,8 +103,8 @@ static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {
     3944, 4002,
     4118, 4193,
     4355, 4417,
-    4541, 4660,
-    4900, 4916,
+    4541, 4891,
+    5577, 5593,
 };
 static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
     bs_stereomadness_cgb_recs, bs_stereomadness_dmg_recs,
@@ -134,29 +134,29 @@ static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
 // per level: its fading cells (tools/compose.py): first metatile, how many; each one's hidden look is that many further
 static const uint8_t bs_fade[BS_LEVEL_COUNT * 2] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 3 };
 static const uint8_t bs_banks[BS_LEVEL_COUNT] = {
-    249,   // stereomadness
-    249,   // backontrack
-    249,   // polargeist
-    249,   // dryout
-    249,   // baseafterbase
-    249,   // cantletgo
-    249,   // jumper
-    249,   // timemachine
-    249,   // cycles
-    249,   // xstep
-    249,   // clutterfunk
-    249,   // theoryofeverything
-    248,   // electromanadventures
-    248,   // clubstep
-    248,   // bestautomaticlvl
-    248,   // leveleasy
-    248,   // subzero
-    248,   // ultiatedestruction
-    248,   // everymadness
-    248,   // demonpark
-    248,   // thelightningroad
-    248,   // test
-    248,   // test2
+    248,   // stereomadness
+    248,   // backontrack
+    248,   // polargeist
+    248,   // dryout
+    248,   // baseafterbase
+    248,   // cantletgo
+    248,   // jumper
+    248,   // timemachine
+    248,   // cycles
+    248,   // xstep
+    248,   // clutterfunk
+    248,   // theoryofeverything
+    247,   // electromanadventures
+    247,   // clubstep
+    247,   // bestautomaticlvl
+    247,   // leveleasy
+    247,   // subzero
+    247,   // ultiatedestruction
+    247,   // everymadness
+    247,   // demonpark
+    247,   // thelightningroad
+    246,   // test
+    246,   // test2
 };
 
 #endif

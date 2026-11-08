@@ -559,7 +559,7 @@ const Level level_test = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   test_map,
-  BG_BASE_TILE_COUNT, 128, 64, 0, 0,
+  BG_BASE_TILE_COUNT, 879, 64, 0, 0,
   BANK(test_map),
   180,
   test_sp,
