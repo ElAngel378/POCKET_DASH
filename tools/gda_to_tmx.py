@@ -151,15 +151,16 @@ def choose(piece, raw):
     global _drawn
     if _drawn is None:
         _drawn = [(k, our_art(k)) for k in GO.DRAWN if our_art(k)]
+    # names first: a family piece can have the same pattern as another colour's object (black / dark fill)
+    found = family(piece)
+    if found is not None and found[0] in GO.OBJECTS:
+        return found[0], found[1], "family"
     art = [[IA.FILLED_COLOURS.get(v, 2) for v in r] for r in raw]
     for key, rows in _drawn:
         for flags in ORIENTATIONS:
             if oriented(rows, flags) == art:
                 return key, flags, "exact"
-    found = family(piece)
-    if found is None or found[0] not in GO.OBJECTS:
-        return None, 0, ""
-    return found[0], found[1], "family"
+    return None, 0, ""
 
 
 def main(level, target, spans):
