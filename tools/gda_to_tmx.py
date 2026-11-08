@@ -4,7 +4,7 @@ sprites yet: only GDA's tile layers and the metatiles on its object layer.
     python tools/gda_to_tmx.py electromanadventures test                    the whole level
     python tools/gda_to_tmx.py electromanadventures test 282-322:12         columns 282..321 to column 12
 
-Replaces everything in every layer of the TMX. The whole level also sets the TMX's width to GDA's.
+Replaces everything in every layer of the TMX (--add keeps what is there). The whole level also sets the TMX's width to GDA's.
 Rows count from the bottom of the level.
 
 A GDA piece becomes the object whose art is exactly the same, in any rotation or flip. Pieces of
@@ -55,9 +55,13 @@ BLOCK_FAMILIES = {
 NAMED = ((r"^1\.6_SMALL_SPIKE_(\w+)$", "gd179", ATTACHED),
          (r"^1\.6_SPIKE_(\w+)$", "gd177", {"UP": "", "DOWN": "R180", "LEFT": "R90", "RIGHT": "R270"}),
          (r"^FAKE_SPIKE_(\w+)$", "gd191", SIDES), (r"^GROUND_WAVY_SPIKE_(\w+)$", "gd61", ATTACHED),
-         (r"^SPIKE_(\w+)$", "gd8", SIDES), (r"^1\.6_WAVE_DECO_MIDDLE(_UD)?$", "gd157", {"_UD": "V"}),
+         (r"^GROUND_SPIKE_(\w+)$", "gda_ground_spikes", ATTACHED), (r"^MEDIUM_SPIKE_(\w+)$", "gd103", ATTACHED), (r"^SMALL_SPIKE_(\w+)$", "gd39", ATTACHED), (r"^BASIC_BLOCK$", "gd1", None), (r"^SPIKE_(\w+)$", "gd8", SIDES), (r"^1\.6_WAVE_DECO_MIDDLE(_UD)?$", "gd157", {"_UD": "V"}),
          (r"^1\.6_WAVE_DECO_LFT(_UD)?$", "gd158", {"_UD": "V"}), (r"^1\.6_WAVE_DECO_RGT(_UD)?$", "gd159", {"_UD": "V"}),
          (r"^BREAKABLE_BRICK$", "gd143", None), (r"^WAVY_SLAB_SINGLE_TOP$", "fd_wavy_top_s", None))
+# GDA sprites that are objects here: sprite -> (object, cell of GDA's position from the canvas's left)
+DECO_SPRITES = {"BIG_BG_SPIKES": ("gd18", 32), "MEDIUM_BG_SPIKES": ("gd19", 32), "SMALL_BG_SPIKES": ("gd20", 16),
+                "TINY_BG_SPIKES": ("gd21", 0)}
+DECO_LAYERS = ["Layer 1", "Layer 2", "Layer 3"]
 # position (8 px steps) -> the layers objects can go on, first choice first
 OBJECT_LAYERS = {(0, 0): ["Layer 3", "Layer 2", "Layer 1"], (1, 0): ["Layer 1 +8x", "Layer 2 +8x"],
                  (0, 1): ["Layer 1 +8y", "Layer 2 +8y"], (1, 1): ["Layer 1 +8x +8y", "Layer 2 +8x +8y"]}
@@ -163,7 +167,7 @@ def choose(piece, raw):
     return None, 0, ""
 
 
-def main(level, target, spans):
+def main(level, target, spans, add=False):
     w, h, layers, sprites = gda.read_level(level)
     table = gda.metatiles()
     names = [n for n, _, _ in table]
@@ -181,6 +185,9 @@ def main(level, target, spans):
     drop = root_h - h
     out = {n: [0] * (root_w * root_h) for n in re.findall(r'<layer [^>]*name="([^"]+)"', text)}
     chosen, count, missing, snapped, full = {}, Counter(), Counter(), Counter(), Counter()
+    if add:
+        for m in re.finditer(r'<layer [^>]*name="([^"]+)"[^>]*>\s*<data encoding="csv">(.*?)</data>', text, flags=re.S):
+            out[m.group(1)] = [int(v) for v in m.group(2).replace(chr(10), "").replace(chr(13), "").split(",") if v.strip()]
 
     def piece_of(g):
         piece = names[g - 1]
@@ -203,7 +210,20 @@ def main(level, target, spans):
                     out[dst][(row + drop) * root_w + to + col - a] = (GO.OBJECTS[key][0] + 1) | flags
 
     objects = []
+    sprite_names = gda.sprite_types()
     for o in sprites:
+        name = sprite_names[o["gid"] - gda.SPRITE_GID] if o["gid"] >= gda.SPRITE_GID else None
+        if name in DECO_SPRITES:
+            span = next(((a, b, to) for a, b, to in spans if a <= o["x"] // 16 < b), None)
+            if span is None:
+                continue
+            key, cell = DECO_SPRITES[name]
+            chosen[name] = (key, 0, "deco")
+            h2 = GO.OBJECTS[key][2][1]
+            flags = (FLIP_H if o["props"].get("hflip") == "true" else 0) | (FLIP_V if o["props"].get("vflip") == "true" else 0)
+            y = o["y"] + drop * 16 + (h2 - 16 if flags & FLIP_V else 0)
+            objects.append((name, key, flags, o["x"] - cell + (span[2] - span[0]) * 16, y, True))
+            continue
         if o["gid"] >= gda.SPRITE_GID or o["gid"] <= 1:
             continue
         x, y = o["x"], o["y"] + drop * 16
@@ -215,13 +235,13 @@ def main(level, target, spans):
             missing[piece] += 1
             continue
         flags = combine(o["raw_gid"] & (FLIP_H | FLIP_V | FLIP_D), flags)
-        objects.append((piece, key, flags, x + (span[2] - span[0]) * 16, y))
+        objects.append((piece, key, flags, x + (span[2] - span[0]) * 16, y, False))
 
     def build(on_grid):
         """the TMX text with the tile layers and these objects; those in on_grid go on whole cells"""
         layer_data = {n: list(d) for n, d in out.items()}
         placed, moved, no_layer = Counter(), Counter(), Counter()
-        for i, (piece, key, flags, x, y) in enumerate(objects):
+        for i, (piece, key, flags, x, y, deco) in enumerate(objects):
             step = 16 if i in on_grid else 8
             x2, y2 = round(x / step) * step // 8, round(y / step) * step // 8
             moved[int(max(abs(x2 * 8 - x), abs(y2 * 8 - y)))] += 1
@@ -229,7 +249,7 @@ def main(level, target, spans):
             if not (0 <= col < root_w and 0 <= row < root_h):
                 no_layer[piece] += 1
                 continue
-            for layer in OBJECT_LAYERS[(x2 & 1, y2 & 1)]:
+            for layer in (DECO_LAYERS if deco and not (x2 & 1 or y2 & 1) else OBJECT_LAYERS[(x2 & 1, y2 & 1)]):
                 if not layer_data[layer][row * root_w + col]:
                     layer_data[layer][row * root_w + col] = (GO.OBJECTS[key][0] + 1) | flags
                     placed[piece] += 1
@@ -257,8 +277,8 @@ def main(level, target, spans):
 
     # A level has 256 cell types and off-grid objects make the most: the rarest ones go on whole cells
     # until the level fits
-    how_common = Counter((key, flags, round(x / 8) & 1, round(y / 8) & 1) for _p, key, flags, x, y in objects)
-    rarest = sorted((i for i, (_p, _k, _f, x, y) in enumerate(objects) if x % 16 or y % 16),
+    how_common = Counter((key, flags, round(x / 8) & 1, round(y / 8) & 1) for _p, key, flags, x, y, _d in objects)
+    rarest = sorted((i for i, (_p, _k, _f, x, y, _d) in enumerate(objects) if x % 16 or y % 16),
                     key=lambda i: how_common[(objects[i][1], objects[i][2], round(objects[i][3] / 8) & 1, round(objects[i][4] / 8) & 1)])
     low, high = 0, len(rarest)
     if not fits(build(set())[0]):
@@ -287,7 +307,8 @@ def main(level, target, spans):
 
 if __name__ == "__main__":
     spans = []
-    for arg in sys.argv[3:]:
+    add = "--add" in sys.argv
+    for arg in [a for a in sys.argv[3:] if a != "--add"]:
         a, b, to = re.fullmatch(r"(\d+)-(\d+):(\d+)", arg).groups()
         spans.append((int(a), int(b), int(to)))
-    main(sys.argv[1], sys.argv[2], spans)
+    main(sys.argv[1], sys.argv[2], spans, add)

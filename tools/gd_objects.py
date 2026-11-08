@@ -97,6 +97,11 @@ DRAWN = {
     "gd137": ("Gear ring, big (a half)", (24, 48)),
     "gd138": ("Gear ring, medium", (32, 32)),
     "gd139": ("Gear ring, small", (16, 16)),
+    # GD 1.0 ground decoration, as GDA (a layer of its own: under ground spikes)
+    "gd18": ("Ground deco 1.0, big", (80, 32)),
+    "gd19": ("Ground deco 1.0, medium", (80, 32)),
+    "gd20": ("Ground deco 1.0, small", (48, 16)),
+    "gd21": ("Ground deco 1.0, tiny", (16, 16)),
     # 1.6 (phase 4)
     "gd143": ("Breakable brick", (16, 16)),
     "gd144": ("Fading spike", (16, 16)),
@@ -226,6 +231,16 @@ for _n, (_k, _gda, _name, _solid) in enumerate(GDA_PIECES):
     if _solid:
         HIT_QUARTERS[_k] = _solid
 GDA_KEYS = {_p[0] for _p in GDA_PIECES}
+
+# GD 1.0 ground decoration: a cell with it and ground spikes uses the decoration palette (it has black too)
+GROUND_DECO = {"gd18", "gd19", "gd20", "gd21"}
+# GD 1.0 ground spikes, as GDA: 6100 + the position is the tile id, append only
+GDA_OTHER_BASE = 6100
+OBJECTS["gda_ground_spikes"] = (GDA_OTHER_BASE, "Ground spikes 1.0", (16, 16), None)
+DRAWN["gda_ground_spikes"] = ("Ground spikes 1.0", (16, 16))
+DRAWN_KIND["gda_ground_spikes"] = "deadly"
+HIT_LIKE["gda_ground_spikes"] = ("gd9", 0)
+DMG_SWAP.add("gda_ground_spikes")
 
 # Famidash's own pieces: append only (the position is the tile id)
 FD = [

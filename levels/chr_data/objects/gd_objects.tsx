@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="64" tileheight="48" tilecount="185" columns="0">
+<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="80" tileheight="48" tilecount="190" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="1" type="gd1">
   <properties>
@@ -54,6 +54,30 @@
    <property name="name" value="Ground spikes (pit)"/>
   </properties>
   <image width="16" height="16" source="tiles/gd9.png"/>
+ </tile>
+ <tile id="18" type="gd18">
+  <properties>
+   <property name="name" value="Ground deco 1.0, big"/>
+  </properties>
+  <image width="80" height="32" source="tiles/gd18.png"/>
+ </tile>
+ <tile id="19" type="gd19">
+  <properties>
+   <property name="name" value="Ground deco 1.0, medium"/>
+  </properties>
+  <image width="80" height="32" source="tiles/gd19.png"/>
+ </tile>
+ <tile id="20" type="gd20">
+  <properties>
+   <property name="name" value="Ground deco 1.0, small"/>
+  </properties>
+  <image width="48" height="16" source="tiles/gd20.png"/>
+ </tile>
+ <tile id="21" type="gd21">
+  <properties>
+   <property name="name" value="Ground deco 1.0, tiny"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd21.png"/>
  </tile>
  <tile id="39" type="gd39">
   <properties>
@@ -1110,5 +1134,11 @@
    <property name="name" value="Slab, tiny (side)"/>
   </properties>
   <image width="16" height="16" source="tiles/gda_slab_tiny_side.png"/>
+ </tile>
+ <tile id="6100" type="gda_ground_spikes">
+  <properties>
+   <property name="name" value="Ground spikes 1.0"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gda_ground_spikes.png"/>
  </tile>
 </tileset>

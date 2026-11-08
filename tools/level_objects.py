@@ -88,6 +88,8 @@ def quarter_tiles(m, flags):
             px = tiles[11 * 16 + st]            # SAWS_0, as drawn (CGB)
         elif "SB" in flags and any(o[:2] == (m, q) for o in BG.SPIKES_B_OVERRIDES):
             px = sec["SPIKES_B_CGB"][[o for o in BG.SPIKES_B_OVERRIDES if o[:2] == (m, q)][0][2]]
+        elif "SB" not in flags and any(o[:2] == (m, q) for o in BG.SPIKES_A_OVERRIDES):
+            px = sec["SPIKES_A_EXTRA"][[o for o in BG.SPIKES_A_OVERRIDES if o[:2] == (m, q)][0][2]]
         elif "B" in flags and t in BG.BLOCKS_B_SLOTS:
             px = sec["BLOCKS_B_CGB"][BG.BLOCKS_B_SLOTS.index(t)]
         elif "B" in flags and t in BG.BLOCKS_B2_SLOTS:

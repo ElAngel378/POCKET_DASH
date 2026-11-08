@@ -150,6 +150,28 @@ def save_filled():
         save(key, filled_art(name))
 
 
+# GD 1.0 ground decoration: key -> (GDA sprite, how far right of the canvas the cell GDA places it on is)
+GROUND_DECO = {"gd18": ("BIG_BG_SPIKES", 32), "gd19": ("MEDIUM_BG_SPIKES", 32), "gd20": ("SMALL_BG_SPIKES", 16),
+               "gd21": ("TINY_BG_SPIKES", 0)}
+GROUND_SPIKE_COLOURS = {0: 0, 2: 1, 3: 1, 4: 1, 5: 2, 6: 2, 7: 2}
+
+
+def save_ground_deco():
+    names = gda.sprite_types()
+    for key, (sprite, cell) in GROUND_DECO.items():
+        art, ox, oy = gda.sprite_art(names.index(sprite))
+        w, h = GO.OBJECTS[key][2]
+        out = Image.new("L", (w, h))
+        out.paste(gb_colours(art), (cell - ox, h - 16 - oy))
+        save(key, out)
+    filled = FILLED_COLOURS.copy()
+    FILLED_COLOURS.clear()
+    FILLED_COLOURS.update(GROUND_SPIKE_COLOURS)
+    save("gda_ground_spikes", filled_art("GROUND_SPIKE_BOTTOM"))
+    FILLED_COLOURS.clear()
+    FILLED_COLOURS.update(filled)
+
+
 def save_pieces():
     for key, name, _shown, _solid in GO.GDA_PIECES:
         save(key, filled_art(name))
@@ -181,6 +203,7 @@ def main():
     save("gd193", Image.new("L", (16, 16), 2))
     save_filled()
     save_pieces()
+    save_ground_deco()
     names = gda.sprite_types()
     for key, (sprite, box) in ART.items():
         if key not in GO.DRAWN:

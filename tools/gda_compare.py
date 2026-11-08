@@ -45,10 +45,12 @@ METATILE = {
     "gd167": "1.6_DBL_INS_CRN_TOP", "gd168": "1.6_BLOCK", "gd169": "1.6_BLOCK_ALT",
     "gd193": "1.6_FILLER", }
 METATILE.update({_k: _g for _k, _g, _n, _s in GO.GDA_PIECES})
+METATILE["gda_ground_spikes"] = "GROUND_SPIKE_BOTTOM"
 # fills GDA's outlines already contain: an outline on one of these replaces it
 FILL_UNDER = {"gd193"}
 SPRITE = {k: v[0] for k, v in IA.ART.items()}
 SPRITE.update({k: v[0] for k, v in IA.SPIKES.items()})
+SPRITE.update({k: v[0] for k, v in IA.GROUND_DECO.items()})
 SPRITE.update({k: v[0] for k, v in IA.BLACK_SAWS.items()})
 SPRITE.update({"gd129": "MEDIUM_CLOUD", "gd130": "BIG_CLOUD",   # as GD: 130 is the big one (our art is swapped)
                "gd48": "BIG_BG_CLOUDS", "gd49": "SMALL_BG_CLOUDS", "gd113": "BIG_BG_SQUARES",

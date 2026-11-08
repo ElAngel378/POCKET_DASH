@@ -78,6 +78,7 @@ SECTIONS = [  # name, first row, tile count
     ("SPIKES_C", 30, 4),
     ("BLOCKS_B2_CGB", 31, 20),
     ("BLOCKS_B2_DMG", 33, 20),
+    ("SPIKES_A_EXTRA", 35, 2),
 ]
 BLOCKS_B_SLOTS = [82, 83, 84, 85, 86, 87, 98, 99, 100, 101, 102, 103, 110, 111, 112, 113, 122, 123, 124, 125]
 # plain blocks (NES $40..$49, $50..$59): Theory of Everything's bricks
@@ -86,6 +87,8 @@ SPIKES_B_SLOTS = [0, 1, 23, 24, 25, 37, 38, 39]
 # Metatiles 12 / 13 (background spikes) have the transparent tile 12 where spike set B has
 # art: on CGB those quarters use tiles 0 / 1 of SPIKES_B_SLOTS.
 SPIKES_B_OVERRIDES = [(12, 0, 0), (13, 2, 1)]
+# The same for the default set (tools/make_spikes_a.py), and the half spikes on top of them: tile of SPIKES_A_EXTRA
+SPIKES_A_OVERRIDES = [(12, 0, 0), (13, 2, 1), (19, 0, 0), (20, 2, 1)]
 SPIKES_C_SLOTS = [19, 20, 33, 34]   # pit spikes left / right (NES $08, $09, $18, $19)
 BLACK_FILL_SLOT = 26
 

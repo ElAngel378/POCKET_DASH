@@ -221,6 +221,8 @@ class Composer:
     def palette(self, parts):
         if self.shade_cell(parts):
             return 6
+        if any(p[0] in GO.GROUND_DECO for p in parts):
+            return GO.DRAWN_PAL
         hit = [p for p in parts if self.kind[p[0]] != "none"]
         return self.opal.get((hit or parts)[-1][0], 0)
 

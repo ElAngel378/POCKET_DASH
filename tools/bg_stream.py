@@ -65,6 +65,9 @@ def quarters(art, name, m, cgb, big_saw, sets=None):
         if spikes == "B" and any(o[:2] == (m, q) for o in BG.SPIKES_B_OVERRIDES):
             out.append(art.sec["SPIKES_B_CGB"][[o for o in BG.SPIKES_B_OVERRIDES if o[:2] == (m, q)][0][2]])
             continue
+        if spikes != "B" and any(o[:2] == (m, q) for o in BG.SPIKES_A_OVERRIDES):
+            out.append(art.sec["SPIKES_A_EXTRA"][[o for o in BG.SPIKES_A_OVERRIDES if o[:2] == (m, q)][0][2]])
+            continue
         t = art.mt[m][q]
         if t == TRANSPARENT:
             out.append(None)
