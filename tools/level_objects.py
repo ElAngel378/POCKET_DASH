@@ -436,7 +436,7 @@ def tmx_objects(root):
 def compile_tmx(path, novel=None):
     """The metatile rows of an object TMX (novel: see compile_objects)"""
     root = ET.parse(path).getroot()
-    w, h = int(root.get("width")), int(root.get("height"))
+    w, h = int(root.get("width")), int(root.get("height")) - GO.ROWS_BELOW
     grid, errors = compile_objects(path.stem.lower(), tmx_objects(root), w, h, novel)
     if errors:
         raise SystemExit("%s:\n  %s" % (path.name, "\n  ".join(errors[:20])))

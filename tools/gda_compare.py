@@ -126,7 +126,7 @@ def colour(i):
 
 def convert(name):
     root = ET.parse(TMX / ("%s.tmx" % name)).getroot()
-    w, h = int(root.get("width")), int(root.get("height"))
+    w, h = int(root.get("width")), int(root.get("height")) - GO.ROWS_BELOW
     mt_names = {n: i for i, (n, _, _) in reversed(list(enumerate(gda.metatiles())))}
     types = gda.sprite_types()
     objs, missing = [], set()

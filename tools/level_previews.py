@@ -19,6 +19,7 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import gen_famidash_bg_tables as BG
 import tmx2sprites as T
+from gd_objects import ROWS_BELOW
 
 ROOT = Path(__file__).resolve().parent.parent
 GFX = ROOT / "levels" / "chr_data"
@@ -99,7 +100,7 @@ def paint(master, spans):
 def preview(path, parallax, ground):
     name = path.stem
     root = ET.parse(path).getroot()
-    w, h = int(root.get("width")) * 16, int(root.get("height")) * 16
+    w, h = int(root.get("width")) * 16, (int(root.get("height")) - ROWS_BELOW) * 16
     props = {p.get("name"): p.get("value") for p in root.findall("properties/property")}
     first = next(int(t.get("firstgid")) for t in root.findall("tileset") if t.get("source", "").endswith("sprites.tsx"))
 

@@ -182,7 +182,7 @@ def main(level, target, spans, add=False):
         spans = [(0, w, 0)]
         text = re.sub(r'(<map [^>]*?\bwidth=")\d+', r"\g<1>%d" % w, text, count=1)
         text = re.sub(r'(<layer [^>]*?\bwidth=")\d+', r"\g<1>%d" % w, text)
-    drop = root_h - h
+    drop = root_h - GO.ROWS_BELOW - h
     out = {n: [0] * (root_w * root_h) for n in re.findall(r'<layer [^>]*name="([^"]+)"', text)}
     chosen, count, missing, snapped, full = {}, Counter(), Counter(), Counter(), Counter()
     if add:
@@ -268,7 +268,7 @@ def main(level, target, spans, add=False):
     def fits(tmx_text):
         root = ET.fromstring(tmx_text)
         try:
-            LO.compile_objects(target, LO.tmx_objects(root), int(root.get("width")), int(root.get("height")), {})
+            LO.compile_objects(target, LO.tmx_objects(root), int(root.get("width")), int(root.get("height")) - GO.ROWS_BELOW, {})
         except SystemExit as e:
             if "no metatile id left" in str(e):
                 return False

@@ -8,6 +8,9 @@ import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from gd_objects import ROWS_BELOW
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TMX_DIR = REPO_ROOT / "levels" / "chr_data" / "tmx"
 LEVEL_DATA_DIR = REPO_ROOT / "levels" / "level_data"
@@ -111,7 +114,7 @@ def get_map_dimensions(tmx_path):
     tree = ET.parse(tmx_path)
     root = tree.getroot()
     width = int(root.attrib.get('width', 0))
-    height = int(root.attrib.get('height', 0))
+    height = int(root.attrib.get('height', 0)) - ROWS_BELOW
     return width, height
 
 def export_binary_map(tmx_path, out_bin_path):
@@ -119,7 +122,7 @@ def export_binary_map(tmx_path, out_bin_path):
     root = tree.getroot()
 
     width = int(root.attrib['width'])
-    height = int(root.attrib['height'])
+    height = int(root.attrib['height']) - ROWS_BELOW   # the level's rows
 
     import level_objects
     novel = {}

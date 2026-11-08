@@ -26,6 +26,10 @@ TRANSFORMS = {"": 0, "H": FLIP_H, "V": FLIP_V, "R90": FLIP_D | FLIP_H,
 
 FD_BASE = 5000
 
+# Every TMX has this many empty rows under the level: an object can hang below the level's last row
+# without an offset layer. They are not part of the level: only what is drawn in the level's rows counts.
+ROWS_BELOW = 3
+
 TOP = {(0, 0), (1, 0)}
 BOTTOM = {(0, 1), (1, 1)}
 

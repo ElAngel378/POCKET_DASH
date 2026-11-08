@@ -7,6 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gen_famidash_bg_tables import NES
+from gd_objects import ROWS_BELOW
 
 SPRITES_FIRSTGID = 10001
 # Colour trigger tiles of objects/sprites.tsx (properties Colour, Fade) -> engine ids: base + colour
@@ -53,7 +54,7 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
         print(f"Error: TMX file {tmx_filepath} is missing width or height attributes.")
         sys.exit(1)
     map_width = int(root.attrib['width'])
-    map_height = int(root.attrib['height'])
+    map_height = int(root.attrib['height']) - ROWS_BELOW
 
     sprites_firstgid = None
     for tileset in root.findall('tileset'):
