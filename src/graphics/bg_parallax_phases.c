@@ -173,27 +173,12 @@ static void upload_palette(void) __naked {
         .rept 4
         ldh     (c), a
         .endm
-        ; palette 6: sky, darker sky, black, the cube's colour 2
-        ld      hl, #_famidash_bg_palettes
-        .rept 4
+        ; palettes 6 (background shades) and 7 (faded look, player colour 2): famidash_bg.c
+        ld      hl, #(_shadow_bkg_palettes + 48)
+        .rept 16
         ld      a, (hl+)
         ldh     (c), a
         .endm
-        xor     a, a
-        ldh     (c), a
-        ldh     (c), a
-        ld      a, (_famidash_bg_accent2)
-        ldh     (c), a
-        ld      a, (_famidash_bg_accent2 + 1)
-        ldh     (c), a
-        ; palette 7: the fading objects' faded look (famidash_bg.c)
-        ld      hl, #(_shadow_bkg_palettes + 56)
-        ld      b, #8
-    2$:
-        ld      a, (hl+)
-        ldh     (c), a
-        dec     b
-        jr      NZ, 2$
         ret
     __endasm;
 }

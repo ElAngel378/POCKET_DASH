@@ -179,6 +179,7 @@ class Composer:
     def look(self, cgb, parts, frame=0):
         """parts: [(key, dx, dy, tf)] bottom to top -> 4 quarters: pixels or None (empty)"""
         out = []
+        shade = cgb and self.shade_cell(parts)
         for q in range(4):
             cqx, cqy = q % 2, q // 2
             acc = [None] * 64
@@ -191,6 +192,10 @@ class Composer:
                     raise SystemExit("%s: saws and the ground strip cannot share a cell with other objects yet" % key)
                 if px is None:
                     continue
+                if cgb and key in GO.CGB_RECOLOUR:
+                    px = tuple(GO.CGB_RECOLOUR[key].get(v, v) for v in px)
+                if shade and key not in GO.SHADES:
+                    px = tuple({3: 1, 1: 2}.get(v, v) for v in px)   # white and dark, in palette 6
                 opaque = (self.kind[key] == "solid" and key not in GO.OUTLINE) or key in FILLS
                 for i in range(64):
                     if opaque or px[i]:
@@ -207,7 +212,15 @@ class Composer:
         zero = (0,) * 64
         return [q[0] if len(set(q)) == 1 else tuple(p or zero for p in q) for q in zip(*looks)]
 
+    def shade_cell(self, parts):
+        """A background shade piece with only white / black objects (palette 0: outlines, spikes)
+        in the cell: palette 6 has the white and a dark shade too, so all of it looks right"""
+        return (any(p[0] in GO.SHADES for p in parts)
+                and all(p[0] in GO.SHADES or self.opal.get(p[0], 0) == 0 for p in parts))
+
     def palette(self, parts):
+        if self.shade_cell(parts):
+            return 6
         hit = [p for p in parts if self.kind[p[0]] != "none"]
         return self.opal.get((hit or parts)[-1][0], 0)
 

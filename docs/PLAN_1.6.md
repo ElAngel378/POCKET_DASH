@@ -216,12 +216,12 @@ fire a little earlier; 1.6 block pieces and light lines have no exact GDA object
 **Phase 4 done** (user approved 2026-11-07). Left over: black spots on some saws, untested
 cases (fading / bricks with mirror portals, pause, level complete).
 
-To do (found by the user after the push): palettes of the background pieces GDA draws in
-background shades. 1.6 blocks and fills (170-197, 164, 193): GDA light blue / navy from the BG
-colour, ours white / black. 1.6 outlines (161-169), light lines (76-82), wave hills (157-159):
-GDA LBG (light BG), ours white or player colour 1. The GDA check compared palette numbers that
-mean different things (GDA 2 = LBG, ours 2 = player colour). Idea: use the parallax palette (3),
-which has lighter / darker BG shades, with the art remapped; test on CGB and DMG.
+Background shades, as GDA (2026-11-08; the first check compared palette numbers that mean different
+things). CGB palette 6 is now sky, object colour, dark sky, light sky: 1.6 blocks and fills, wave
+hills (light), and any cell mixing them with outlines or spikes. Light lines are the object colour
+(palette 0), outlines already were (GDA's LBG palette draws them in its object colour). The striped
+fill uses the parallax palette's dark shades. Player colour 2 decorations moved to colour 1 of
+palette 7 (the faded palette only needs colours 2 and 3). DMG is unchanged.
 
 To do (user, 2026-11-08): the Tiled sprite sheet (levels/chr_data/graphics/sprites.png) as an
 edited copy of Famidash's: a cross over every sprite our game does not have, and our own art in

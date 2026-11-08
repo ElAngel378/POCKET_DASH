@@ -136,27 +136,31 @@ static void fade_channels(void) __naked {
     __endasm;
 }
 
-// The cube's colour 2: colour 3 of palette 6 (decorations GDA draws in the player's colour 2)
+// The cube's colour 2: colour 1 of palette 7 (decorations GDA draws in the player's colour 2)
 palette_color_t famidash_bg_accent2 = RGB(0, 31, 31);
 
-// shadow_bkg_palettes' palette 5 (fake spikes, Famidash PAL_3): sky, darker sky, black, black, and
-// palette 6: sky, darker sky, black, accent 2, from the level palettes (not stored there, see
-// upload_palette)
+// shadow_bkg_palettes' palettes 5..7, from the level palettes (not stored there, see upload_palette):
+// 5 (fake spikes, Famidash PAL_3): sky, darker sky, black, black
+// 6 (GDA's background shades: 1.6 blocks, wave hills): sky, outline colour, sky at a quarter, 3/8 of
+//   the way from the sky to the outline colour (GDA: 30..50 %, tools/gd_objects.py SHADES)
+// 7 (the fading objects' faded look, bg_stream.c: colours 2, 3 of palette 0 most of the way to the
+//   sky): sky, accent 2 (the decorations in the player's colour 2: tools/compose.py), 3/4 sky, and
+//   the outline colour a quarter of the way from the sky
 static void shadow_fake_spike_palette(void) {
-    shadow_bkg_palettes[20] = shadow_bkg_palettes[24] = famidash_bg_palettes[0];
-    shadow_bkg_palettes[21] = shadow_bkg_palettes[25] = famidash_bg_palettes[1];
-    shadow_bkg_palettes[22] = shadow_bkg_palettes[26] = 0;
-    shadow_bkg_palettes[23] = 0;
-    shadow_bkg_palettes[27] = famidash_bg_accent2;
-    // palette 7, the fading objects' faded look (bg_stream.c): palette 0 three quarters of the way
-    // to the sky
+    shadow_bkg_palettes[20] = shadow_bkg_palettes[24] = shadow_bkg_palettes[28] = famidash_bg_palettes[0];
+    shadow_bkg_palettes[21] = famidash_bg_palettes[1];
+    shadow_bkg_palettes[22] = shadow_bkg_palettes[23] = 0;
+    shadow_bkg_palettes[25] = famidash_bg_palettes[3];
+    shadow_bkg_palettes[29] = famidash_bg_accent2;
     const uint8_t *s = (const uint8_t *)famidash_bg_palettes;
     uint8_t sr = s[0] & 31u, sg = (uint8_t)((s[0] >> 5) | (s[1] << 3)) & 31u, sb = (s[1] >> 2) & 31u;
-    palette_color_t *d = &shadow_bkg_palettes[28];
-    for (uint8_t i = 0; i < 4; i++, s += 2, d++) {
-        uint8_t r = s[0] & 31u, g = (uint8_t)((s[0] >> 5) | (s[1] << 3)) & 31u, b = (s[1] >> 2) & 31u;
-        *d = RGB((uint8_t)((sr + sr + sr + r) >> 2), (uint8_t)((sg + sg + sg + g) >> 2), (uint8_t)((sb + sb + sb + b) >> 2));
-    }
+    uint8_t r = s[6] & 31u, g = (uint8_t)((s[6] >> 5) | (s[7] << 3)) & 31u, b = (s[7] >> 2) & 31u;
+    uint8_t r3 = (uint8_t)(sr + sr + sr), g3 = (uint8_t)(sg + sg + sg), b3 = (uint8_t)(sb + sb + sb);
+    shadow_bkg_palettes[26] = RGB((uint8_t)(sr >> 2), (uint8_t)(sg >> 2), (uint8_t)(sb >> 2));
+    shadow_bkg_palettes[30] = RGB((uint8_t)(r3 >> 2), (uint8_t)(g3 >> 2), (uint8_t)(b3 >> 2));
+    shadow_bkg_palettes[31] = RGB((uint8_t)((r3 + r) >> 2), (uint8_t)((g3 + g) >> 2), (uint8_t)((b3 + b) >> 2));
+    r = (uint8_t)(r + r + r); g = (uint8_t)(g + g + g); b = (uint8_t)(b + b + b);
+    shadow_bkg_palettes[27] = RGB((uint8_t)((r3 + sr + sr + r) >> 3), (uint8_t)((g3 + sg + sg + g) >> 3), (uint8_t)((b3 + sb + sb + b) >> 3));
 }
 
 // Once per frame (CGB): next step of a running fade
@@ -205,7 +209,7 @@ static palette_color_t bg_accent = RGB(15, 31, 0);
 
 void famidash_set_bg_accent(palette_color_t c, palette_color_t c2) BANKED {
     famidash_bg_accent2 = c2;
-    shadow_bkg_palettes[27] = c2;
+    shadow_bkg_palettes[29] = c2;
     bg_accent = c;
     famidash_bg_target[11] = c;
     famidash_bg_palettes[11] = c;
