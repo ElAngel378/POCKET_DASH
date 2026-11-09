@@ -269,6 +269,7 @@ def level_inputs():
     gfx = ROOT / "levels" / "chr_data"
     files = sorted((ROOT / "tools").glob("*.py")) + sorted((gfx / "tmx").glob("*.tmx"))
     files += sorted((gfx / "objects" / "art").glob("*.png")) + sorted((gfx / "game_art").glob("*.png"))
+    files += sorted((ROOT / "music" / "Furnace").glob("*.fur")) + sorted((ROOT / "music" / "Legacy").glob("*.uge"))
     return hash_bytes(*[f.name.encode() + f.read_bytes() for f in files])
 
 
