@@ -24,6 +24,12 @@ import bg_stream as BS
 import gd_objects as GO
 
 GROUND = "ground"
+# What the colours of the CGB palettes that objects use are (src/famidash_bg.c)
+COLOURS = {0: ("sky", "dark", "black", "white"), 2: ("sky", "dark", "black", "player"),
+           5: ("sky", "dark", "black", "black"), 6: ("sky", "white", "deep sky", "light sky"),
+           7: ("sky", "player2", "mid sky", "faded")}
+# A cell has one palette: a colour it hasn't becomes the nearest one it has
+NEAR = {"player2": ("player", "white"), "player": ("player2", "white"), "white": ("player", "player2")}
 VARIANT_SETS = {None: (None, None), "B": ("B", None), "SB": (None, "B"), "SC": (None, "C"), "NS": (None, None)}
 # metatile ids the engine treats by id: never given another look
 RESERVED = ({0, 12, 24, BG.SAW_CENTER_MT} | set(BG.SAW_METATILES) | BS.CGB_GROUND_LOOK)
@@ -94,6 +100,7 @@ class Composer:
         self.art = {0: {}, 1: {}}      # cgb -> (key, tf) -> {object quarter: pixels | None | GROUND}
         self.opal = {}
         self.kind = {}
+        self.mixed = {}
         entries = list(GO.FAMIDASH.items()) + list(GO.FAMIDASH_ALT.items())
         for (m, v), parts in entries:
             big = (m in BG.BIG_SAW_PARTS or m == BG.SAW_CENTER_MT) and v != "NS"
@@ -192,6 +199,7 @@ class Composer:
         """parts: [(key, dx, dy, tf)] bottom to top -> 4 quarters: pixels or None (empty)"""
         out = []
         shade = cgb and self.shade_cell(parts)
+        target = self.mixed_palette(parts) if cgb and not shade else None
         for q in range(4):
             cqx, cqy = q % 2, q // 2
             acc = [None] * 64
@@ -208,6 +216,8 @@ class Composer:
                     px = tuple(GO.CGB_RECOLOUR[key].get(v, v) for v in px)
                 if shade and key not in GO.SHADES:
                     px = tuple({3: 1, 1: 2}.get(v, v) for v in px)   # white and dark, in palette 6
+                elif target is not None and self.opal[key] != target:
+                    px = tuple(self.in_palette(v, self.opal[key], target) for v in px)
                 opaque = (self.kind[key] == "solid" and key not in GO.OUTLINE and key not in GO.GDA_KEYS) or key in FILLS
                 for i in range(64):
                     if opaque or px[i]:
@@ -230,13 +240,63 @@ class Composer:
         return (any(p[0] in GO.SHADES for p in parts)
                 and all(p[0] in GO.SHADES or self.opal.get(p[0], 0) == 0 for p in parts))
 
+    def plain_palette(self, parts):
+        if not parts:
+            return 0
+        hit = [p for p in parts if self.kind[p[0]] != "none"]
+        return self.opal.get((hit or parts)[-1][0], 0)
+
     def palette(self, parts):
         if self.shade_cell(parts):
             return 6
         if any(p[0] in GO.GROUND_DECO for p in parts):
             return GO.DRAWN_PAL
-        hit = [p for p in parts if self.kind[p[0]] != "none"]
-        return self.opal.get((hit or parts)[-1][0], 0)
+        return self.mixed_palette(parts)
+
+    @staticmethod
+    def in_palette(v, own, target):
+        """Colour v of palette own, as a colour of palette target"""
+        role, to = COLOURS[own][v], COLOURS[target]
+        for wanted in (role,) + NEAR.get(role, ()):
+            if wanted in to:
+                return to.index(wanted)
+        return v
+
+    def mixed_palette(self, parts):
+        """The palette that shows the cell's objects best: most of the pixels they show in their own
+        colour, then in the nearest; ties (one palette in the cell) as before"""
+        plain = self.plain_palette(parts)
+        pals = {self.opal.get(p[0], 0) for p in parts if p[0] not in GO.INVISIBLE}
+        if len(pals) < 2 or not all(p in COLOURS for p in pals):
+            return plain
+        key = tuple(parts)
+        if key in self.mixed:
+            return self.mixed[key]
+        shown = []
+        for q in range(4):
+            cqx, cqy = q % 2, q // 2
+            top = {}
+            for k, dx, dy, tf in parts:
+                oq = ((cqx * 8 - dx) // 8, (cqy * 8 - dy) // 8)
+                if oq not in self.LO.mask(k, flags_of(tf)) or k in GO.INVISIBLE:
+                    continue
+                px = self.quarter(1, k, tf, oq)
+                if px is None or px == GROUND:
+                    continue
+                if k in GO.CGB_RECOLOUR:
+                    px = tuple(GO.CGB_RECOLOUR[k].get(v, v) for v in px)
+                for i, v in enumerate(px):
+                    if v:
+                        top[i] = COLOURS[self.opal[k]][v]
+            shown += top.values()
+
+        def score(pal):
+            have = COLOURS[pal]
+            return sum(2 if r in have else 1 if any(n in have for n in NEAR.get(r, ())) else 0 for r in shown)
+
+        best = max(COLOURS, key=lambda p: (score(p), p == plain, p in pals))
+        self.mixed[key] = best
+        return best
 
     def in_radius(self, key, tf, qx, qy):
         """Is quarter (qx, qy) of a placed saw inside its hitbox (GO.HIT_RADIUS)? Its centre is the
