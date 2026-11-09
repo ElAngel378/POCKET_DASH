@@ -167,9 +167,9 @@ HIT_LIKE = {"gd144": ("gd8", 0), "gd145": ("gd39", 0), "gd177": ("gd8", 0), "gd1
 # Saws are GDA's circles, radius in px: the 8x8 quarters of the object inside it are deadly
 HIT_RADIUS = {"gd183": 8, "gd184": 10, "gd185": 2, "gd186": 16, "gd187": 12, "gd188": 8}
 # Black is colour 2 on CGB, 3 on DMG, and an outline on it the other way round: the files hold the
-# CGB colours, DMG swaps 2 and 3 in these
-DMG_SWAP = {"gd146", "gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd167", "gd168", "gd169", "gd183", "gd184",
-            "gd185", "gd193"}
+# CGB colours, DMG swaps 2 and 3 in these. Not the fading block (146) and the black saws (183-185):
+# they are only an outline, and on a black DMG sky colour 3 is the one colour that isn't black
+DMG_SWAP = {"gd161", "gd162", "gd163", "gd164", "gd165", "gd166", "gd167", "gd168", "gd169", "gd193"}
 
 
 # As GDA colours them: most decorations in the player's colour 1 (palette 2), these in colour 2
