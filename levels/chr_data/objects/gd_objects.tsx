@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="80" tileheight="48" tilecount="190" columns="0">
+<tileset version="1.10" tiledversion="1.11.2" name="gd_objects" tilewidth="80" tileheight="48" tilecount="191" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="1" type="gd1">
   <properties>
@@ -1140,5 +1140,11 @@
    <property name="name" value="Ground spikes 1.0"/>
   </properties>
   <image width="16" height="16" source="tiles/gda_ground_spikes.png"/>
+ </tile>
+ <tile id="6101" type="pd_saw_star_small">
+  <properties>
+   <property name="name" value="1.6 saw, small star"/>
+  </properties>
+  <image width="16" height="16" source="tiles/pd_saw_star_small.png"/>
  </tile>
 </tileset>

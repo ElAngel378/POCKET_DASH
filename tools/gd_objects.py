@@ -245,6 +245,12 @@ DRAWN["gda_ground_spikes"] = ("Ground spikes 1.0", (16, 16))
 DRAWN_KIND["gda_ground_spikes"] = "deadly"
 HIT_LIKE["gda_ground_spikes"] = ("gd9", 0)
 DMG_SWAP.add("gda_ground_spikes")
+# Pocket Dash's own: the small four-point saw (1p6blocks.chr)
+OBJECTS["pd_saw_star_small"] = (GDA_OTHER_BASE + 1, "1.6 saw, small star", (16, 16), None)
+DRAWN["pd_saw_star_small"] = ("1.6 saw, small star", (16, 16))
+DRAWN_KIND["pd_saw_star_small"] = "deadly"
+SPIN["pd_saw_star_small"] = 1
+HIT_RADIUS["pd_saw_star_small"] = 4
 
 # Famidash's own pieces: append only (the position is the tile id)
 FD = [

@@ -66,6 +66,7 @@ USER_ART = {
     "gd186": ("1p6blocks", False, (16, 32, 40, 56)),     # top left quarter of the saw
     "gd187": ("1p6blocks", False, (64, 32, 96, 64)),
     "gd188": ("1p6blocks", False, (96, 32, 128, 64)),
+    "pd_saw_star_small": ("1p6blocks", False, (0, 48, 16, 64)),
 }
 # Clutterfunk's thin lines: a line along the block's edge, nothing to draw (x0, y0, x1, y1)
 LINES = {"gd76": (3, 0, 13, 1), "gd77": (3, 0, 13, 1), "gd78": (3, 0, 13, 1), "gd81": (3, 0, 13, 1),
