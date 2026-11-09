@@ -127,6 +127,7 @@ class Composer:
             if key in GO.DRAWN_KIND:
                 self.kind[key] = GO.DRAWN_KIND[key]
         self.spin = {key: LO.spin_frames(key) for key in GO.SPIN}
+        self.ground_keys = {k for k, _tf in self.art[1] for a in [self.art[1][(k, _tf)]] if GROUND in a.values()}
         for key in GO.OBJECTS:
             self.kind.setdefault(key, "none")
 
@@ -267,6 +268,8 @@ class Composer:
     @staticmethod
     def in_palette(v, own, target):
         """Colour v of palette own, as a colour of palette target"""
+        if own not in COLOURS or target not in COLOURS:
+            return v
         role, to = COLOURS[own][v], COLOURS[target]
         for wanted in (role,) + NEAR.get(role, ()):
             if wanted in to:

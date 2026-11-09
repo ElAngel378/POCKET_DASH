@@ -350,8 +350,6 @@ def compile_objects(name, objs, w, h, novel=None):
                 found = [m]
         return found
 
-    import build_levels
-    famidash_level = name in build_levels.KNOWN_LEVELS    # hides what its original metatiles hid
     grid = [[0] * w for _ in range(h)]
     errors = []
     new = []
@@ -360,17 +358,16 @@ def compile_objects(name, objs, w, h, novel=None):
             continue        # the part of an object hanging off the map
         parts = set(zs)
         found = lookup(frozenset(parts))
-        if not found and famidash_level:
-            # An object poking into this cell from a neighbour (a saw, a spike half a block off)
-            # is hidden by the objects that are wholly in it, and of two such objects the one on
-            # top shows: keep the most parts that match, the topmost ones first
+        if not found and any(q[0] in composer().ground_keys for q in parts):
+            # The ground strip can't be mixed with anything (every level): what pokes in from a
+            # neighbouring cell is hidden behind it, and of two such objects the one on top shows
             loose = [p for p in parts if cells_of(p[0], p[1], p[2], GO.TRANSFORMS[p[3]]).keys() != {(0, 0)}]
             whole = parts - set(loose)
             for n in range(len(loose) - 1, -1, -1):
                 hits = []
                 for keep in combinations(loose, n):
                     if not whole and not keep:
-                        continue    # nothing left to hide the rest: not hidden, a cell of its own
+                        continue
                     for m in lookup(frozenset(whole | set(keep))):
                         hits.append((max([zs[p] for p in keep], default=-1), m))
                 if hits:
