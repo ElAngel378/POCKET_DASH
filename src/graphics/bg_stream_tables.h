@@ -78,8 +78,8 @@ extern const uint8_t bs_test2_dmg_recs[];
 #define BS_SPIN_BASE 28
 #define BS_SPIN_FRAMES 3
 // per level: its spinning tiles (CGB): first tile in the space, number
-static const uint16_t bs_spin_first[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5045, 0 };
-static const uint8_t bs_spin_count[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0 };
+static const uint16_t bs_spin_first[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2530, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5253, 0 };
+static const uint8_t bs_spin_count[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0 };
 // per level: the CGB data, then the DMG data (DMG: the tiles, then the same tiles mirrored)
 static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {
     0, 50,
@@ -93,18 +93,18 @@ static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {
     1410, 1493,
     1667, 1794,
     2060, 2148,
-    2352, 2481,
-    2743, 2852,
-    3086, 3195,
-    3441, 3499,
-    3623, 3687,
-    3827, 3889,
-    4025, 4077,
-    4181, 4244,
-    4370, 4447,
-    4613, 4676,
-    4802, 5057,
-    5545, 5561,
+    2352, 2605,
+    2951, 3060,
+    3294, 3403,
+    3649, 3707,
+    3831, 3895,
+    4035, 4097,
+    4233, 4285,
+    4389, 4452,
+    4578, 4655,
+    4821, 4884,
+    5010, 5265,
+    5753, 5769,
 };
 static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
     bs_stereomadness_cgb_recs, bs_stereomadness_dmg_recs,
@@ -145,7 +145,7 @@ static const uint8_t bs_banks[BS_LEVEL_COUNT] = {
     248,   // cycles
     248,   // xstep
     248,   // clutterfunk
-    248,   // theoryofeverything
+    247,   // theoryofeverything
     247,   // electromanadventures
     247,   // clubstep
     247,   // bestautomaticlvl
@@ -155,7 +155,7 @@ static const uint8_t bs_banks[BS_LEVEL_COUNT] = {
     247,   // everymadness
     247,   // demonpark
     247,   // thelightningroad
-    247,   // test
+    246,   // test
     246,   // test2
 };
 

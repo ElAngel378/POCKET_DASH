@@ -3,7 +3,7 @@
 
 BANKREF(theoryofeverything_sp)
 
-// Extracted 456 objects from SP layer
+// Extracted 460 objects from SP layer
 const SpDef theoryofeverything_sp[] = {
     {192, 992, 11},
     {256, 976, 37},
@@ -173,6 +173,7 @@ const SpDef theoryofeverything_sp[] = {
     {5952, 896, 16},
     {6016, 944, 9},
     {6048, 896, 2},
+    {6056, 896, 126},
     {6064, 896, 8},
     {6128, 0, 145},
     {6128, 0, 193},
@@ -208,6 +209,7 @@ const SpDef theoryofeverything_sp[] = {
     {6992, 880, 5},
     {7016, 944, 5},
     {7040, 896, 16},
+    {7093, 894, 121},
     {7128, 928, 43},
     {7136, 896, 50},
     {7200, 928, 50},
@@ -328,6 +330,7 @@ const SpDef theoryofeverything_sp[] = {
     {9824, 480, 50},
     {9856, 1, 148},
     {9936, 432, 24},
+    {9951, 432, 126},
     {9968, 0, 164},
     {9984, 448, 188},
     {10016, 0, 148},
@@ -366,6 +369,7 @@ const SpDef theoryofeverything_sp[] = {
     {11072, 448, 188},
     {11104, 3, 148},
     {11120, 520, 25},
+    {11143, 519, 121},
     {11168, 520, 0},
     {11216, 592, 54},
     {11232, 496, 54},
@@ -464,7 +468,7 @@ const SpDef theoryofeverything_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 203 gameplay-critical objects for DMG mode
+// Extracted 207 gameplay-critical objects for DMG mode
 const SpDef theoryofeverything_sp_dmg[] = {
     {192, 992, 11},
     {256, 976, 37},
@@ -536,6 +540,7 @@ const SpDef theoryofeverything_sp_dmg[] = {
     {5952, 896, 16},
     {6016, 944, 9},
     {6048, 896, 2},
+    {6056, 896, 126},
     {6064, 896, 8},
     {6128, 0, 145},
     {6176, 0, 168},
@@ -553,6 +558,7 @@ const SpDef theoryofeverything_sp_dmg[] = {
     {6992, 880, 5},
     {7016, 944, 5},
     {7040, 896, 16},
+    {7093, 894, 121},
     {7296, 896, 16},
     {7344, 896, 1},
     {7352, 896, 24},
@@ -603,6 +609,7 @@ const SpDef theoryofeverything_sp_dmg[] = {
     {9808, 1, 164},
     {9856, 1, 148},
     {9936, 432, 24},
+    {9951, 432, 126},
     {9968, 0, 164},
     {10016, 0, 148},
     {10144, 0, 132},
@@ -622,6 +629,7 @@ const SpDef theoryofeverything_sp_dmg[] = {
     {11056, 0, 164},
     {11104, 3, 148},
     {11120, 520, 25},
+    {11143, 519, 121},
     {11168, 520, 0},
     {11264, 2, 132},
     {11344, 0, 130},
