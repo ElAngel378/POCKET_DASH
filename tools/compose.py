@@ -23,7 +23,7 @@ import build_bg_tiles as BG
 import bg_stream as BS
 import gd_objects as GO
 
-SAW, GROUND = "saw", "ground"
+GROUND = "ground"
 VARIANT_SETS = {None: (None, None), "B": ("B", None), "SB": (None, "B"), "SC": (None, "C"), "NS": (None, None)}
 # metatile ids the engine treats by id: never given another look
 RESERVED = ({0, 12, 24, BG.SAW_CENTER_MT} | set(BG.SAW_METATILES) | BS.CGB_GROUND_LOOK)
@@ -91,7 +91,7 @@ class Composer:
         self.LO = LO
         self.t = Tables()
         self.bs = BS.Art()
-        self.art = {0: {}, 1: {}}      # cgb -> (key, tf) -> {object quarter: pixels | None | SAW | GROUND}
+        self.art = {0: {}, 1: {}}      # cgb -> (key, tf) -> {object quarter: pixels | None | GROUND}
         self.opal = {}
         self.kind = {}
         entries = list(GO.FAMIDASH.items()) + list(GO.FAMIDASH_ALT.items())
@@ -135,10 +135,22 @@ class Composer:
         out = []
         for q, p in enumerate(px):
             if p is None:
-                saw = BG.SAW_METATILES.get(m, (None,) * 4)[q] is not None and (m != BG.SAW_CENTER_MT or big)
-                p = SAW if saw else GROUND if (cgb and m in BS.CGB_GROUND_LOOK) else None
+                tile = BG.SAW_METATILES.get(m, (None,) * 4)[q]
+                if tile is not None and (m != BG.SAW_CENTER_MT or big):
+                    p = self.saw_tile(tile, cgb)
+                elif cgb and m in BS.CGB_GROUND_LOOK:
+                    p = GROUND
             out.append(p)
         return out
+
+    def saw_tile(self, tile, cgb):
+        """An old saw's tile in its first frame: a cell with a saw and something else is an ordinary
+        tile that stands still, only the saw's free cells use the shared spinning tiles"""
+        px = self.bs.sec["SAWS_0"][tile]
+        if not cgb:
+            rows = BG.dmg_saw_outline([list(px[y * 8:y * 8 + 8]) for y in range(8)])
+            px = tuple(v for r in rows for v in r)
+        return px if any(px) else None
 
     def quarter(self, cgb, key, tf, oq, frame=0):
         """pixels (64) of object quarter oq placed with tf (spinning objects: in that frame; DMG only
@@ -165,8 +177,8 @@ class Composer:
             fl0 = flags_of(tf0[1])
             img = {}
             for (qx, qy), p in a0.items():
-                if p in (SAW, GROUND):
-                    raise SystemExit("%s cannot be turned (saw / ground art)" % key)
+                if p == GROUND:
+                    raise SystemExit("%s cannot be turned (ground art)" % key)
                 for i in range(64):
                     img[(qx * 8 + i % 8, qy * 8 + i // 8)] = 0 if p is None else p[i]
             img = transform_img(untransform_img(img, w, h, fl0), w, h, flags_of(tf))
@@ -188,8 +200,8 @@ class Composer:
                 if oq not in self.LO.mask(key, flags_of(tf)) or key in GO.INVISIBLE:
                     continue
                 px = self.quarter(cgb, key, tf, oq, frame)
-                if px in (SAW, GROUND):
-                    raise SystemExit("%s: saws and the ground strip cannot share a cell with other objects yet" % key)
+                if px == GROUND:
+                    raise SystemExit("%s: the ground strip cannot share a cell with other objects yet" % key)
                 if px is None:
                     continue
                 if cgb and key in GO.CGB_RECOLOUR:
