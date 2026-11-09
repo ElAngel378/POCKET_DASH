@@ -30,6 +30,9 @@ COLOURS = {0: ("sky", "dark", "black", "white"), 2: ("sky", "dark", "black", "pl
            7: ("sky", "player2", "mid sky", "faded")}
 # A cell has one palette: a colour it hasn't becomes the nearest one it has
 NEAR = {"player2": ("player", "white"), "player": ("player2", "white"), "white": ("player", "player2")}
+# A cell whose objects fit no one palette: its 8x8 quarters choose between two palettes. Its palette
+# byte is 0x81 | a bit per quarter (1: the pair's second) << 1 | pair << 5. src/graphics/quarter_pals.c
+QUARTER_PAIRS = ((0, 2), (0, 7), (2, 7), (0, 6))
 VARIANT_SETS = {None: (None, None), "B": ("B", None), "SB": (None, "B"), "SC": (None, "C"), "NS": (None, None)}
 # metatile ids the engine treats by id: never given another look
 RESERVED = ({0, 12, 24, BG.SAW_CENTER_MT} | set(BG.SAW_METATILES) | BS.CGB_GROUND_LOOK)
@@ -101,6 +104,7 @@ class Composer:
         self.opal = {}
         self.kind = {}
         self.mixed = {}
+        self.split = {}
         entries = list(GO.FAMIDASH.items()) + list(GO.FAMIDASH_ALT.items())
         for (m, v), parts in entries:
             big = (m in BG.BIG_SAW_PARTS or m == BG.SAW_CENTER_MT) and v != "NS"
@@ -199,9 +203,10 @@ class Composer:
         """parts: [(key, dx, dy, tf)] bottom to top -> 4 quarters: pixels or None (empty)"""
         out = []
         shade = cgb and self.shade_cell(parts)
-        target = self.mixed_palette(parts) if cgb and not shade else None
+        targets = self.targets(parts) if cgb and not shade else None
         for q in range(4):
             cqx, cqy = q % 2, q // 2
+            target = targets[q] if targets else None
             acc = [None] * 64
             for key, dx, dy, tf in parts:
                 oq = ((cqx * 8 - dx) // 8, (cqy * 8 - dy) // 8)
@@ -251,7 +256,13 @@ class Composer:
             return 6
         if any(p[0] in GO.GROUND_DECO for p in parts):
             return GO.DRAWN_PAL
-        return self.mixed_palette(parts)
+        split = self.quarter_split(parts)
+        return split[0] if split else self.mixed_palette(parts)
+
+    def targets(self, parts):
+        """The palette of each quarter of this cell"""
+        split = self.quarter_split(parts)
+        return split[1] if split else [self.mixed_palette(parts)] * 4
 
     @staticmethod
     def in_palette(v, own, target):
@@ -262,17 +273,34 @@ class Composer:
                 return to.index(wanted)
         return v
 
-    def mixed_palette(self, parts):
-        """The palette that shows the cell's objects best: most of the pixels they show in their own
-        colour, then in the nearest; ties (one palette in the cell) as before"""
-        plain = self.plain_palette(parts)
-        pals = {self.opal.get(p[0], 0) for p in parts if p[0] not in GO.INVISIBLE}
-        if len(pals) < 2 or not all(p in COLOURS for p in pals):
-            return plain
+    def quarter_split(self, parts):
+        """(palette byte, palette of each quarter) if letting the quarters differ shows more of the
+        cell's objects in their own colours than any one palette, else None"""
         key = tuple(parts)
-        if key in self.mixed:
-            return self.mixed[key]
-        shown = []
+        if key in self.split:
+            return self.split[key]
+        self.split[key] = None
+        pals = {self.opal.get(p[0], 0) for p in parts if p[0] not in GO.INVISIBLE}
+        if len(pals) < 2 or not all(p in COLOURS for p in pals) or any(p[0] in GO.FADE for p in parts):
+            return None
+        shown = self.shown(parts)
+        exact = lambda pal, q: sum(r in COLOURS[pal] for r in shown[q])
+        one = self.mixed_palette(parts)
+        best = max(sum(exact(one, q) for q in range(4)), 0)
+        for n, (a, b) in enumerate(QUARTER_PAIRS):
+            mask, total = 0, 0
+            for q in range(4):
+                if exact(b, q) > exact(a, q):
+                    mask |= 1 << q
+                total += max(exact(a, q), exact(b, q))
+            if total > best and 0 < mask < 15:
+                best = total
+                self.split[key] = (0x81 | mask << 1 | n << 5, [(b if mask >> q & 1 else a) for q in range(4)])
+        return self.split[key]
+
+    def shown(self, parts):
+        """For each quarter, what colour each pixel it shows is meant to be"""
+        out = []
         for q in range(4):
             cqx, cqy = q % 2, q // 2
             top = {}
@@ -288,7 +316,20 @@ class Composer:
                 for i, v in enumerate(px):
                     if v:
                         top[i] = COLOURS[self.opal[k]][v]
-            shown += top.values()
+            out.append(list(top.values()))
+        return out
+
+    def mixed_palette(self, parts):
+        """The palette that shows the cell's objects best: most of the pixels they show in their own
+        colour, then in the nearest; ties (one palette in the cell) as before"""
+        plain = self.plain_palette(parts)
+        pals = {self.opal.get(p[0], 0) for p in parts if p[0] not in GO.INVISIBLE}
+        if len(pals) < 2 or not all(p in COLOURS for p in pals):
+            return plain
+        key = tuple(parts)
+        if key in self.mixed:
+            return self.mixed[key]
+        shown = [r for q in self.shown(parts) for r in q]
 
         def score(pal):
             have = COLOURS[pal]

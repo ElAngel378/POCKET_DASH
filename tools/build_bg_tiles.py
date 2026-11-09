@@ -350,12 +350,12 @@ def main():
     C += ["", "// game_levels order", "const BgLevelInfo bg_level_info[] = {"]
     for s in streams:
         own, sheet = s[1] in col_tabs, s[1] in sheets
-        C.append("    { %s, %s, %s, %s, %d, %d, %d }," % (
+        C.append("    { %s, %s, %s, %s, %d, %d, %d, %d }," % (
             ("level_col_%s" % s[1]) if own else "famidash_metatile_collision",
             ("level_pal_%s" % s[1]) if own else "famidash_metatile_palettes",
             ("bg_sheet_%s" % s[1]) if sheet else "0",
             ("BANK(bg_sheet_%s)" % s[1]) if sheet else "0",
-            int(s[5]), int(s[4]), rest_of.get(s[1], 0)))
+            int(s[5]), int(s[4]), rest_of.get(s[1], 0), int(own and any(v & 0x81 == 0x81 for v in pal_tabs[s[1]]))))
     C.append("};")
     (ROOT / "src" / "level_collision.c").write_text("\n".join(C) + "\n", encoding="utf-8")
 

@@ -16,8 +16,14 @@ typedef struct {
     uint8_t saws;           // 1 = the level has saws (animate them)
     uint8_t big_saws;       // 1 = big saws, so metatile SAW_CENTER_MT is their centre (CGB)
     uint8_t rest;           // index in bg_sheet_rests: the baked sheet's other extra tiles
+    uint8_t mixed;          // 1 = the level has cells with a palette per quarter
 } BgLevelInfo;
 
 extern const BgLevelInfo bg_level_info[];
+
+extern uint8_t bm_info[256], rt_ids[16], mt_cgb_flip, row_attrs[2][16];
+extern const uint8_t (*mt_tab)[4], (*mt_tab_rev)[4];
+void quarter_pals_column(uint8_t *attrs, const uint8_t *ids, uint8_t reversed, uint8_t r_start, uint8_t r_end, uint8_t skip) BANKED;
+void quarter_pals_row(uint8_t n, uint8_t reversed) BANKED;
 
 #endif

@@ -28,8 +28,8 @@ static uint8_t mt_big_saws;   // the level has big saws: SAW_CENTER_MT is their 
 // the level moves sheet tiles or overrides metatile tiles.
 // The metatile tables the renderer reads: mt_ram (built per level by apply_level_bg_tiles), the
 // mirrored one (mt_tab_rev) has each metatile's tiles swapped left / right
-static const uint8_t (*mt_tab)[4] = metatiles;
-static const uint8_t (*mt_tab_rev)[4] = metatiles;
+const uint8_t (*mt_tab)[4] = metatiles;
+const uint8_t (*mt_tab_rev)[4] = metatiles;
 uint8_t mt_ram[2][FAMIDASH_NUM_METATILES][4];   // + the streamed tiles' slots (bg_stream.c)
 static uint8_t mt_ram_level = 0xFF;   // level mt_ram was built for (it depends on the level only)
 static uint8_t gnd_tab_key = 0xFF;    // strip column | reversed << 3 the ground looks in mt_ram are for
@@ -528,7 +528,8 @@ static const uint8_t *bm_r0p;       // row_r0 of the first row
 static uint8_t bm_n;                // rows
 static uint8_t bm_pal, bm_r0cur;
 static uint8_t bm_off[4];           // parallax tile = row base + bm_off[tile of the metatile]
-static uint8_t bm_info[256];        // per metatile: attributes | 0x80 if it is drawn as a saw (C fix-up); 0x10 (a bit
+static uint8_t bm_mixed;            // the level has cells with a palette per quarter (quarter_pals.c)
+uint8_t bm_info[256];        // per metatile: attributes | 0x80 if it is drawn as a saw (C fix-up); 0x10 (a bit
                                     // CGB ignores): never X flipped (ground looks)
 static uint8_t bm_saw;              // the asm saw a saw metatile
 static uint8_t bm_flip;             // 0x20 (X flip) in CGB flip mirror mode, else 0
@@ -760,7 +761,9 @@ static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, ui
         // the level's palette table: Famidash's, or its own (levels with metatiles of their own)
         BgLevelInfo info;
         info.pal = famidash_metatile_palettes;
+        info.mixed = 0;
         if (col_level < BG_LEVEL_COUNT) read_level_info(col_level, &info);
+        bm_mixed = info.mixed;
         fur_copy_banked(bm_info, info.pal, 256, LEVEL_TABLES_BANK);
         uint8_t n = 0;
         do {
@@ -795,6 +798,7 @@ static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, ui
         d[2] = ground_bot[tl_x]; d[3] = ground_bot[tr_x];
         da[0] = da[1] = da[2] = da[3] = 0x0C;   // Bank 1 + Palette 4
     }
+    if (bm_mixed) quarter_pals_column(out + BKG_MT_H * 4, ids, reversed, r_start, r_end, has_ground ? gr : 0xFFu);
     // Saw metatiles: bank 1 tiles (mirrored when reversed)
     if (!bm_saw) return;
     for (uint8_t r = r_start; r < r_end; r++) {
@@ -809,7 +813,7 @@ static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, ui
     }
 }
 
-static uint8_t rt_ids[16];
+uint8_t rt_ids[16];
 
 void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED {
     BG_STREAM_TO(map_col);
@@ -937,7 +941,7 @@ void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_
 // first .. first+n-1, reading the level map for the CURRENT loaded_r. Because it always uses the
 // current state it never overwrites a freshly streamed column with stale data.
 static uint8_t row_tiles[2][16];   // top / bottom tile row of ROW_JOB_SLOTS ring positions
-static uint8_t row_attrs[2][16];
+uint8_t row_attrs[2][16];
 
 // DMG: row_tiles from the metatile ids rt_ids[0 .. rt_n-1] through the table rt_mt
 // (hand-written: in C it took ~0.8k dots per position)
@@ -1166,6 +1170,7 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
     rt_r0 = r0;
     rt_pf = (reversed && mt_cgb_flip) ? 0x20 : 0;
     row_tiles_cgb();
+    if (bm_mixed) quarter_pals_row(n, reversed);
     // saw parts and the ground look metatiles: from the plain tiles just built
     uint8_t ram_tab = (&mt_tab[0][0] == &mt_ram[0][0][0]);
     for (uint8_t i = 0; i < n; i++) {
