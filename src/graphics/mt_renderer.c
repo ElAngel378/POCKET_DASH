@@ -528,7 +528,7 @@ static const uint8_t *bm_r0p;       // row_r0 of the first row
 static uint8_t bm_n;                // rows
 static uint8_t bm_pal, bm_r0cur;
 static uint8_t bm_off[4];           // parallax tile = row base + bm_off[tile of the metatile]
-static uint8_t bm_mixed;            // the level has cells with a palette per quarter (quarter_pals.c)
+uint8_t bm_mixed;                   // the level has cells with a palette per quarter (quarter_pals.c)
 uint8_t bm_info[256];        // per metatile: attributes | 0x80 if it is drawn as a saw (C fix-up); 0x10 (a bit
                                     // CGB ignores): never X flipped (ground looks)
 static uint8_t bm_saw;              // the asm saw a saw metatile
@@ -1352,14 +1352,18 @@ static void mj_write_run_asm(void) __naked {
     __endasm;
 }
 
-// Map column map_col for `reversed` (current mt_band) into its ring slot of the BG map at
-// map_hi << 8 (0x98 / 0x9C). CGB, display on.
-void mj_build_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t map_hi) BANKED {
-    uint8_t slot = (uint8_t)(map_col & 15u);
-    if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
+// Map column map_col for `reversed` (current mt_band), in two steps that can be in different
+// frames (mj_out keeps it: the fading cells stop while the job runs): working it out, then
+// writing it into its ring slot of the BG map at map_hi << 8 (0x98 / 0x9C). CGB, display on.
+void mj_prepare_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED {
     get_map_column(map_col, map, map_bank, mj_col, mt_band);
     if (broken_n) broken_fix_ring(map_col, mj_col);
     build_mt_rows(map_col, mj_col, mj_out, reversed, 0, BKG_MT_H);
+}
+
+void mj_write_column(uint16_t map_col, uint8_t reversed, uint8_t map_hi) BANKED {
+    uint8_t slot = (uint8_t)(map_col & 15u);
+    if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
     uint8_t *dst = (uint8_t *)((uint16_t)map_hi << 8) + (uint8_t)(slot << 1);
     VBK_REG = 0;
     mjw_src = mj_out; mjw_dst = dst;

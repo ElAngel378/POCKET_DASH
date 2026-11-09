@@ -253,10 +253,12 @@ uint8_t view_rev;   // the orientation on screen (player.reversed: the one the g
 // scroll. Elsewhere (DMG) mirror_reload() redraws everything with the display off.
 #define OBJ_MIRROR_PORTAL 126
 #define OBJ_MIRROR_EXIT   121
-#define MJ_LY_LIMIT 96u        // start a column / row only before this line (one takes ~45 lines)
+#define MJ_LY_LIMIT 96u        // work out a column / build a row only before this line
+#define MJ_LY_LIMIT_MIXED 72u  // the same with palettes per quarter (up to ~70 lines)
+#define MJ_LY_WRITE 112u       // write a worked out column only before this line (~20 lines)
 #define MJ_MAX_WAIT 90u        // frames the switch may wait (then mirror_reload)
 static uint8_t seamless;       // this level uses the seamless switch
-static uint8_t mj_active;      // building the other map
+static uint8_t mj_active;      // building the other map (2: column mj_next is worked out, not written)
 static uint8_t mj_target;      // its orientation (!view_rev)
 static uint8_t mj_map_hi;      // its address >> 8 (0x98 / 0x9C)
 static uint16_t mj_next;       // next map column to build into it
@@ -1026,14 +1028,24 @@ static void mirror_job(uint16_t px) {
     uint16_t col0 = RING_COL0(px);
     uint16_t end = col0 + 16u;
     if (end > level_map_w) end = level_map_w;
-    if (mj_next < col0) mj_next = col0;
-    while (bg_vbl_frames == mj_frame && LY_REG < MJ_LY_LIMIT) {
-        if (mj_row_pending != 0xFF) {
+    if (mj_next < col0) { mj_next = col0; mj_active = 1; }
+    uint8_t limit = bm_mixed ? MJ_LY_LIMIT_MIXED : MJ_LY_LIMIT;
+    while (bg_vbl_frames == mj_frame) {
+        if (mj_active == 2) {
+            if (mj_row_pending == 0xFF) {
+                if (LY_REG >= MJ_LY_WRITE) break;
+                mj_write_column(mj_next, mj_target, mj_map_hi);
+                mj_next++;
+            }
+            mj_active = 1;
+        } else if (LY_REG >= limit) {
+            break;
+        } else if (mj_row_pending != 0xFF) {
             mj_build_row(mj_row_pending, mj_next ? mj_next - 1u : 0, level_map, level_map_w, level_map_bank, mj_target, mj_map_hi);
             mj_row_pending = 0xFF;
         } else if (mj_next < end) {
-            mj_build_column(mj_next, level_map, level_map_bank, mj_target, mj_map_hi);
-            mj_next++;
+            mj_prepare_column(mj_next, level_map, level_map_bank, mj_target);
+            mj_active = 2;
         } else {
             break;
         }
@@ -1940,6 +1952,7 @@ void play_level(uint8_t idx) BANKED {
                 if (mj_active) {
                     // the other map needs the row too (two moves before it got the first: rebuild)
                     if (mj_row_pending != 0xFF) mj_next = 0;
+                    mj_active = 1;   // (a column already worked out has the old band)
                     mj_row_pending = row_job_row;
                 }
                 // a column slice already built is uploaded before the row job, which fixes it
