@@ -632,16 +632,69 @@ def picture(key, art, opal):
     return placed
 
 
+# Tiled's Tilesets panel, in reading order. Block families have 7 pieces: two to a row of small objects
+TILESET_GROUPS = """
+gd2 gd3 gd4 gd5 gd6 gd7 gd83
+gd116 gd117 gd118 gd119 gd120 gd121 gd122
+fd_x_full fd_x_line fd_x_corner fd_x_dot fd_x_opp fd_x_none fd_x_three
+fd_black_full fd_black_line fd_black_corner fd_black_dot fd_black_opp fd_black_none fd_black_three
+gd161 gd162 gd163 gd165 gd166 gd167 gd168 gd169 gd164 gd193 gda_side_inner gda_side_block gd1 gd143
+gd146 fd_fake_block fd_chipped_block fd_invis_block fd_small_block fd_invis_small_block fd_block_end_l
+fd_block_end_r fd_cb8_everyend fd_cb5_everyend fd_cb6_polargeist fd_xstep_special fd_xstep_special_b fd_xstep_diamond
+gd40 gda_slab_single gda_slab_block gda_slab_med gda_slab_side gda_slab_side_h gda_slab_side_h_alt
+gda_slab_corner gda_slab_corner_big gda_slab_corner_h gda_slab_corner_v gda_slab_unaligned gda_slab_tiny gda_slab_tiny_side
+gda_ea_slab gda_ea_middle gda_ea_corner gda_ea_ins gda_ea_ins_alt gda_ea_aligner fd_top_slab_checkered
+fd_bottom_slab_checkered fd_bottom_slab_checkered_b gd157 gd158 gd159
+gd8 gd39 gd103 gd9 gd61 gd135 gda_ground_spikes gd144 gd145 gd177 gd178 gd179 gd191 gd198 gd199
+fd_spike_colshift_r fd_spike_colshift_l fd_diag_spikes
+fd_bg_spikes fd_bg_spikes_top fd_bg_spikes_b fd_bg_spikes_top_b
+fd_half_left_spike_bg fd_half_right_spike_bg fd_half_spike_bg fd_half_spike_bg_top fd_orb_ring fd_pad
+fd_ground_edge_top fd_ground_top fd_ground_edge_bottom fd_ground_bottom fd_bg5 fd_bg6
+fd_wavy_top_l fd_wavy_top_m fd_wavy_top_r fd_wavy_top_s fd_wavy_bot_l fd_wavy_bot_m fd_wavy_bot_r fd_wavy_bot_s
+gd76 gd77 gd78 gd81 gd82
+fd_cloud_top_up fd_cloud_top_down fd_cloud_left fd_cloud_left_top fd_cloud_right fd_cloud_right_top
+gd48 gd49 gd129 gd130 gd131
+gd123 gd124 gd125 gd126 gd127 gd128
+gd98 pd_saw_star_small fd_big_saw_tl fd_big_saw_tm fd_big_saw_tr fd_big_saw_ml fd_big_saw_m fd_big_saw_mr
+fd_big_saw_bl fd_big_saw_bm fd_big_saw_br gd88 gd89 gd183 gd184 gd185 gd186 gd187 gd188
+gd97 gd139 gd180 gd182 gd85 gd86 gd87 gd137 gd138 gd154 gd155 gd181
+gd106 gd107 gd110 gd190 gd151 gd152 gd153
+gd18 gd19 gd20 gd21 gd113 gd114 gd115
+""".split()
+TILESET_SMALL_COLUMNS, TILESET_BIG_COLUMNS = 14, 3
+TILESET_COLUMNS = TILESET_SMALL_COLUMNS + TILESET_BIG_COLUMNS
+
+
+def tileset_order(keys):
+    """The order Tiled shows the objects in. Its Tilesets panel is a table: a column is as wide as
+    its widest object, a row as tall as its tallest. Small objects fill the left columns in
+    TILESET_GROUPS order, bigger ones the right columns, narrow to wide, so they stretch nothing
+    else. The tile ids don't change, only the order in the file."""
+    rank = {k: i for i, k in enumerate(TILESET_GROUPS)}
+    ordered = sorted(keys, key=lambda k: (rank.get(k, len(rank)), GO.OBJECTS[k][0]))
+    small = [k for k in ordered if max(GO.OBJECTS[k][2]) <= 16]
+    big = sorted((k for k in ordered if max(GO.OBJECTS[k][2]) > 16), key=lambda k: GO.OBJECTS[k][2][0])
+    # every row has to be full, or the next one would shift: what doesn't make full rows goes last
+    L, B = TILESET_SMALL_COLUMNS, TILESET_BIG_COLUMNS
+    rows = min(len(small) // L, len(big) // B)
+    columns = [sorted(big[c * rows:(c + 1) * rows], key=ordered.index) for c in range(B)]
+    out = []
+    for r in range(rows):
+        out += small[r * L:(r + 1) * L] + [c[r] for c in columns]
+    return out + small[rows * L:] + big[B * rows:]
+
+
 def write_tileset(art, opal):
     (OBJ_DIR / "tiles").mkdir(parents=True, exist_ok=True)
     keys = sorted(GO.OBJECTS, key=lambda k: GO.OBJECTS[k][0])
     for k in keys:
         picture(k, art, opal).save(OBJ_DIR / "tiles" / ("%s.png" % k))
+    keys = tileset_order(keys)
     mw = max(GO.OBJECTS[k][2][0] for k in keys)
     mh = max(GO.OBJECTS[k][2][1] for k in keys)
     L = ['<?xml version="1.0" encoding="UTF-8"?>',
-         '<tileset version="1.10" tiledversion="1.11.2" name="%s" tilewidth="%d" tileheight="%d" tilecount="%d" columns="0" backgroundcolor="%s">'
-         % (TILESET_NAME, mw, mh, len(keys), TILESET_BACKGROUND),
+         '<tileset version="1.10" tiledversion="1.11.2" name="%s" tilewidth="%d" tileheight="%d" tilecount="%d" columns="%d" backgroundcolor="%s">'
+         % (TILESET_NAME, mw, mh, len(keys), TILESET_COLUMNS, TILESET_BACKGROUND),
          ' <grid orientation="orthogonal" width="1" height="1"/>']
     for k in keys:
         tid, name, (w, h), _ = GO.OBJECTS[k]
