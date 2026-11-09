@@ -13,6 +13,36 @@ static const uint8_t mod6_table[24] = {
     0, 1, 2, 3, 4, 5
 };
 
+uint8_t player_draw_dy;   // player.h
+static uint8_t draw_was_flipped;
+
+// Flipped gravity: 2 px down for the cube / ball, 1 mini; ship / UFO 2 mini, 5 full size. The full
+// size ship's art is 1 px off centre in its cell, so its mirrored image shows 1 px higher: that
+// pixel is taken up at once at the flip, the picture must not jump.
+static uint8_t draw_dy_wanted(void) {
+    if (!player.gravity_flipped) return 0;
+    if (player.mode != MODE_SHIP && player.mode != MODE_UFO) return (uint8_t)(2u - player.mini);
+    return player.mini ? 2 : 5;
+}
+
+void player_draw_dy_snap(void) BANKED {
+    player_draw_dy = draw_dy_wanted();
+    draw_was_flipped = player.gravity_flipped;
+}
+
+// Each physics frame (portals have already run this frame)
+static void player_draw_dy_step(void) {
+    uint8_t want = draw_dy_wanted();
+    uint8_t flipped = player.gravity_flipped;
+    if (flipped != draw_was_flipped && player.mode == MODE_SHIP && !player.mini) {
+        if (flipped) player_draw_dy++;
+        else if (player_draw_dy) player_draw_dy--;
+    }
+    if (player_draw_dy < want) player_draw_dy++;
+    else if (player_draw_dy > want) player_draw_dy--;
+    draw_was_flipped = flipped;
+}
+
 void player_init(Player* p, uint16_t start_x, int16_t start_y) BANKED {
     p->world_x = start_x;
     p->world_y.w = (uint16_t)start_y << 8;
@@ -231,6 +261,7 @@ uint8_t player_update(
     // always &player: fixed addresses instead of pointer + offset for every field
     (void)p_arg;
 #define p (&player)
+    player_draw_dy_step();
     if (p->dead) return 1;
     if (p->level_complete) return 0;
 

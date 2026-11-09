@@ -151,8 +151,8 @@ static uint16_t level_top_px;
 #define PLAYER_WORLD_Y() ((uint16_t)(player.y_base + player.world_y.b.h))
 // Drawn y offset: on a ceiling (flipped gravity) the player rests with its box in the ceiling's
 // last rows, like Famidash's (player.c ceiling collision: cube / ball 2 px, ship / UFO 3, mini
-// 1 less); drawn flush with it
-#define PLAYER_DRAW_DY() (player.gravity_flipped ? (uint8_t)(((player.mode == MODE_SHIP || player.mode == MODE_UFO) ? 3u : 2u) - player.mini) : 0u)
+// 1 less); drawn flush with it. It slides in a pixel a frame (player_draw_dy, player.c), so a
+// gravity flip doesn't make the player snap.
 // VRAM band (see mt_renderer.c): 16 rows around the (up to) 10 visible ones. It only moves when
 // the screen comes within 2 rows of its edge, and then so that 3 rows are left on that side.
 #define BAND_MAX ((_cpu == CGB_TYPE) ? (uint8_t)(GROUND_ROW - 15u) : (uint8_t)(MAP_ROWS - 16u))
@@ -377,6 +377,7 @@ static void cube_icon_reset(void) {
     cube_req = 0xFF;
     bg_cube_pending = 0;
     cube_mirror = cube_img_mir = CUBE_MIRROR();
+    player_draw_dy_snap();
     cube_front = 0;
     ship_tilt = SHIP_FRAME_LEVEL;
     ufo_tilt = UFO_FRAME_LEVEL;
@@ -973,7 +974,7 @@ static void start_end_anim(void) {
         : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
     locked_cam_py = cam_py;
     end_start_x = view_rev ? MIRROR_PLAYER_SCREEN_X : ((cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X);
-    end_start_y = (int16_t)PLAYER_WORLD_Y() + PLAYER_DRAW_DY() - (int16_t)cam_py;
+    end_start_y = (int16_t)PLAYER_WORLD_Y() + player_draw_dy - (int16_t)cam_py;
 
     if (!view_rev) {
         end_target_x = 168; // Exit off the right edge of the screen before disappearing
@@ -1685,7 +1686,7 @@ void play_level(uint8_t idx) BANKED {
                 scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
                 sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
             }
-            final_py = (int16_t)PLAYER_WORLD_Y() + PLAYER_DRAW_DY() - (int16_t)cam_py;
+            final_py = (int16_t)PLAYER_WORLD_Y() + player_draw_dy - (int16_t)cam_py;
             if (final_py < 0) final_py = 0;
             else if (final_py > 144) final_py = 144;
         } else if (end_anim_state == END_ANIM_PULL) {
@@ -1837,8 +1838,8 @@ void play_level(uint8_t idx) BANKED {
                 else { ufo_tilt_update(); id = (uint8_t)(PL_UFO + ufo_tilt); }
                 const metasprite_t *ship_ms = player_frame_metasprite(id);
                 if (player.gravity_flipped) {
-                    if (view_rev) oam_index += move_metasprite_hvflip(ship_ms, 0, oam_index, sprite_x_final + 24, final_py + 24);
-                    else oam_index += move_metasprite_hflip(ship_ms, 0, oam_index, sprite_x_final + 8, final_py + 32);
+                    if (view_rev) oam_index += move_metasprite_hvflip(ship_ms, 0, oam_index, sprite_x_final + 24, final_py + 30);
+                    else oam_index += move_metasprite_hflip(ship_ms, 0, oam_index, sprite_x_final + 8, final_py + 30);
                 } else {
                     if (view_rev) oam_index += move_metasprite_vflip(ship_ms, 0, oam_index, sprite_x_final + 24, final_py + 16);
                     else oam_index += move_metasprite(ship_ms, 0, oam_index, sprite_x_final + 8, final_py + 16);

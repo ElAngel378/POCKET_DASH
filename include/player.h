@@ -127,6 +127,11 @@ extern Player player;
 // Reset player state to starting position
 void player_init(Player* p, uint16_t start_x, int16_t start_y) BANKED;
 
+// How far down the player is drawn with flipped gravity: player_update slides it a pixel a frame,
+// the snap sets it at once (respawn, level start).
+extern uint8_t player_draw_dy;
+void player_draw_dy_snap(void) BANKED;
+
 uint8_t player_update(
     Player* p,
     uint8_t joy,
