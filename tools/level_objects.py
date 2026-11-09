@@ -62,14 +62,8 @@ def sheet():
 
 
 def level_flags(name, grid=None):
-    """The Famidash tile sets a level uses (tools/build_bg_tiles.py LEVEL_SETS), and "NS" when it
-    has no big saws (metatile 120 is then not a saw centre)"""
-    sets = BG.LEVEL_SETS.get(name, {})
+    """"NS" when a level has no big saws (metatile 120 is then not a saw centre)"""
     f = set()
-    if sets.get("blocks") == "B":
-        f.add("B")
-    if sets.get("spikes") in ("B", "C"):
-        f.add("S" + sets["spikes"])
     if grid is not None and not any(m in BG.BIG_SAW_PARTS for row in grid for m in row):
         f.add("NS")
     return f

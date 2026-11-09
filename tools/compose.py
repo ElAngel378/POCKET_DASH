@@ -106,7 +106,9 @@ class Composer:
         self.mixed = {}
         self.split = {}
         entries = list(GO.FAMIDASH.items()) + list(GO.FAMIDASH_ALT.items())
+        self.exact_col = {}           # objects in a cell -> the collision of the metatile they are
         for (m, v), parts in entries:
+            self.exact_col.setdefault(frozenset(parts), self.t.col[m])
             big = (m in BG.BIG_SAW_PARTS or m == BG.SAW_CENTER_MT) and v != "NS"
             for cgb in (1, 0):
                 qs = self.cell_quarters(m, v, cgb, big)
@@ -371,6 +373,8 @@ class Composer:
         found = lookup(frozenset(like))
         if len(found) == 1:
             return self.t.col[found[0]], None
+        if frozenset(like) in self.exact_col:
+            return self.exact_col[frozenset(like)], None
         if any(self.kind[p[0]] == "special" for p in hit):
             return None, "an orb or pad shares its cell with other solid / deadly objects"
         solid = deadly = 0

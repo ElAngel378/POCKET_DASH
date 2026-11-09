@@ -26,7 +26,6 @@ Sections (first tile row, tile count). Tile rows are 8 px:
                                tools/make_blocks_b2.py), replaces BLOCKS_B2_SLOTS
     row 33  BLOCKS_B2_DMG  20  the same for DMG
 
-Which Famidash tile sets a level uses: LEVEL_SETS below.
 
 Outputs:
     levels/chr_data/game_art/bg_base_tiles.bin          BASE, and the mirrored copy
@@ -93,16 +92,6 @@ SPIKES_C_SLOTS = [19, 20, 33, 34]   # pit spikes left / right (NES $08, $09, $18
 BLACK_FILL_SLOT = 26
 
 # Famidash tile sets per level (by level map name), defaults: spikes A, blocks A
-LEVEL_SETS = {
-    "xstep": {"spikes": "B"},
-    "clutterfunk": {"blocks": "B"},
-    "theoryofeverything": {"spikes": "C", "blocks": "B"},
-    "electromanadventures": {"blocks": "B"},
-    "clubstep": {"blocks": "B"},
-    "demonpark": {"spikes": "C"},
-    "thelightningroad": {"spikes": "C"},
-}
-
 # Fake spike metatiles (CGB palette 5, see FAKE SPIKES above)
 FAKE_SPIKE_MTS = [197, 198] + list(range(203, 211))
 BLANK_TILE = 12

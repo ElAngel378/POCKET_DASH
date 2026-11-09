@@ -145,7 +145,7 @@ static const uint8_t bs_banks[BS_LEVEL_COUNT] = {
     248,   // cycles
     248,   // xstep
     248,   // clutterfunk
-    247,   // theoryofeverything
+    248,   // theoryofeverything
     247,   // electromanadventures
     247,   // clubstep
     247,   // bestautomaticlvl
@@ -155,7 +155,7 @@ static const uint8_t bs_banks[BS_LEVEL_COUNT] = {
     247,   // everymadness
     247,   // demonpark
     247,   // thelightningroad
-    246,   // test
+    247,   // test
     246,   // test2
 };
 

@@ -45,15 +45,10 @@ class Art:
         self.mt = [list(map(int, m)) for m in re.findall(r'\{ (\d+), (\d+), (\d+), (\d+) \}', src[a:src.index("};", a)])]
 
 
-def level_sets(name):
-    s = BG.LEVEL_SETS.get(name, {})
-    return s.get("blocks"), s.get("spikes")
-
-
 def quarters(art, name, m, cgb, big_saw, sets=None):
     """The 4 quarters of metatile m in this level: None (not streamed: transparent, saw, ground
-    look) or the tile's pixels. sets: (blocks, spikes) instead of the level's"""
-    blocks, spikes = sets if sets is not None else level_sets(name)
+    look) or the tile's pixels. sets: the Famidash variant art (blocks, spikes)"""
+    blocks, spikes = sets if sets is not None else (None, None)
     out = []
     for q in range(4):
         saw = BG.SAW_METATILES.get(m, (None,) * 4)[q]
