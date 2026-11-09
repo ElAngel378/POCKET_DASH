@@ -256,7 +256,7 @@ uint8_t view_rev;   // the orientation on screen (player.reversed: the one the g
 #define MJ_LY_LIMIT 96u        // work out a column / build a row only before this line
 #define MJ_LY_LIMIT_MIXED 72u  // the same with palettes per quarter (up to ~70 lines)
 #define MJ_LY_WRITE 112u       // write a worked out column only before this line (~20 lines)
-#define MJ_MAX_WAIT 90u        // frames the switch may wait (then mirror_reload)
+#define MJ_MAX_WAIT 30u        // frames the switch may wait (then mirror_reload, screen off)
 static uint8_t seamless;       // this level uses the seamless switch
 static uint8_t mj_active;      // building the other map (2: column mj_next is worked out, not written)
 static uint8_t mj_target;      // its orientation (!view_rev)
@@ -265,6 +265,9 @@ static uint16_t mj_next;       // next map column to build into it
 static uint8_t mj_row_pending; // map row to write into it (the band moved), 0xFF: none
 static uint8_t mj_wait;        // frames player.reversed != view_rev
 static uint8_t mj_frame;       // bg_vbl_frames when this game loop iteration started
+
+// (one call site for the banked call: this bank is full)
+static void fade_view_again(void) { fade_reset_view(); }
 static uint8_t dmg_mirror_due; // DMG: mirror the picture right after the coming VBlank
 static void bg_map_reset(void);
 static uint8_t reduce_flash;
@@ -877,7 +880,7 @@ static uint8_t pause_menu(uint8_t idx) {
 
     if (_cpu == CGB_TYPE) {
         wait_vbl_done();
-        fade_reset_view();   // the pause dropped the fading cells' pending writes
+        fade_view_again();   // the pause dropped the fading cells' pending writes
         fade_restore_pause_box_palettes();
         set_sprite_palette(0, 8, gbc_sprite_palettes);
         apply_custom_player_palette();
@@ -1022,7 +1025,7 @@ static void mirror_job(uint16_t px) {
         mj_row_pending = 0xFF;
     } else if (!needed && !mirror_portal_ahead()) {
         mj_active = 0;   // the portal was missed
-        fade_reset_view();
+        fade_view_again();
         return;
     }
     uint16_t col0 = RING_COL0(px);
@@ -1066,7 +1069,7 @@ static void mirror_switch(uint16_t px) {
     mj_wait = 0;
     loaded_r = RING_COL0(px) + 15u;
     stream_jobs_reset();
-    fade_reset_view();   // the other map's fading cells were built full
+    fade_view_again();   // the other map's fading cells were built full
     bg_lcdc_map = (mj_map_hi == 0x9Cu) ? LCDCF_BG9C00 : LCDCF_BG9800;
 }
 
@@ -1123,6 +1126,7 @@ static void mirror_reload(uint8_t idx, uint8_t enable_display) {
 
     loaded_r = (uint16_t)(col_start + 15);
     col_job_col = loaded_r;
+    fade_view_again();   // the redraw drew the fading cells full
 }
 
 // DMG mirror portal, right after VBlank (so turning the display off does not wait): the
@@ -1170,7 +1174,7 @@ static void mirror_reflect(uint8_t idx) {
         ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
         : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
     move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
-    fade_reset_view();   // the map moved: fading cells are drawn full
+    fade_view_again();   // the map moved: fading cells are drawn full
     SHOW_BKG;
     SHOW_SPRITES;
     SPRITES_8x16;
@@ -1948,7 +1952,7 @@ void play_level(uint8_t idx) BANKED {
                 row0_job_pos = 0;
                 row0_job_issued = 0;
                 bg_rj_pending = 0;
-                if (fade_n | broken_n) fade_reset_view();   // (a pending list has rows of the old band)
+                if (fade_n | broken_n) fade_view_again();   // (a pending list has rows of the old band)
                 if (mj_active) {
                     // the other map needs the row too (two moves before it got the first: rebuild)
                     if (mj_row_pending != 0xFF) mj_next = 0;
