@@ -193,11 +193,11 @@
   </properties>
   <image width="24" height="24" source="tiles/gd183.png"/>
  </tile>
- <tile id="89" type="gd89">
+ <tile id="154" type="gd154">
   <properties>
-   <property name="name" value="Saw, medium"/>
+   <property name="name" value="Spiked wheel (a quarter)"/>
   </properties>
-  <image width="32" height="32" source="tiles/gd89.png"/>
+  <image width="24" height="24" source="tiles/gd154.png"/>
  </tile>
  <tile id="49" type="gd49">
   <properties>
@@ -295,17 +295,17 @@
   </properties>
   <image width="24" height="24" source="tiles/gd185.png"/>
  </tile>
- <tile id="184" type="gd184">
+ <tile id="181" type="gd181">
   <properties>
-   <property name="name" value="Black saw, medium"/>
+   <property name="name" value="Cart wheel, medium"/>
   </properties>
-  <image width="40" height="40" source="tiles/gd184.png"/>
+  <image width="24" height="24" source="tiles/gd181.png"/>
  </tile>
- <tile id="129" type="gd129">
+ <tile id="130" type="gd130">
   <properties>
-   <property name="name" value="Cloud, big"/>
+   <property name="name" value="Cloud, medium"/>
   </properties>
-  <image width="64" height="32" source="tiles/gd129.png"/>
+  <image width="48" height="16" source="tiles/gd130.png"/>
  </tile>
  <tile id="146" type="gd146">
   <properties>
@@ -397,17 +397,17 @@
   </properties>
   <image width="24" height="24" source="tiles/gd186.png"/>
  </tile>
- <tile id="187" type="gd187">
+ <tile id="89" type="gd89">
   <properties>
-   <property name="name" value="1.6 saw, medium"/>
+   <property name="name" value="Saw, medium"/>
   </properties>
-  <image width="32" height="32" source="tiles/gd187.png"/>
+  <image width="32" height="32" source="tiles/gd89.png"/>
  </tile>
- <tile id="130" type="gd130">
+ <tile id="20" type="gd20">
   <properties>
-   <property name="name" value="Cloud, medium"/>
+   <property name="name" value="Ground deco 1.0, small"/>
   </properties>
-  <image width="48" height="16" source="tiles/gd130.png"/>
+  <image width="48" height="16" source="tiles/gd20.png"/>
  </tile>
  <tile id="40" type="gd40">
   <properties>
@@ -499,17 +499,17 @@
   </properties>
   <image width="24" height="24" source="tiles/gd85.png"/>
  </tile>
- <tile id="188" type="gd188">
+ <tile id="187" type="gd187">
   <properties>
-   <property name="name" value="1.6 saw, star"/>
+   <property name="name" value="1.6 saw, medium"/>
   </properties>
-  <image width="32" height="32" source="tiles/gd188.png"/>
+  <image width="32" height="32" source="tiles/gd187.png"/>
  </tile>
- <tile id="88" type="gd88">
+ <tile id="113" type="gd113">
   <properties>
-   <property name="name" value="Saw, big"/>
+   <property name="name" value="Stepped ground hill, big"/>
   </properties>
-  <image width="48" height="48" source="tiles/gd88.png"/>
+  <image width="64" height="16" source="tiles/gd113.png"/>
  </tile>
  <tile id="6006" type="gda_ea_slab">
   <properties>
@@ -565,23 +565,53 @@
   </properties>
   <image width="16" height="16" source="tiles/fd_bottom_slab_checkered_b.png"/>
  </tile>
- <tile id="157" type="gd157">
+ <tile id="76" type="gd76">
   <properties>
-   <property name="name" value="Wave hill, middle"/>
+   <property name="name" value="Light line 1"/>
   </properties>
-  <image width="16" height="16" source="tiles/gd157.png"/>
+  <image width="16" height="16" source="tiles/gd76.png"/>
  </tile>
- <tile id="158" type="gd158">
+ <tile id="77" type="gd77">
   <properties>
-   <property name="name" value="Wave hill, rising"/>
+   <property name="name" value="Light line 2"/>
   </properties>
-  <image width="16" height="16" source="tiles/gd158.png"/>
+  <image width="16" height="16" source="tiles/gd77.png"/>
  </tile>
- <tile id="159" type="gd159">
+ <tile id="78" type="gd78">
   <properties>
-   <property name="name" value="Wave hill, falling"/>
+   <property name="name" value="Light line 3"/>
   </properties>
-  <image width="16" height="16" source="tiles/gd159.png"/>
+  <image width="16" height="16" source="tiles/gd78.png"/>
+ </tile>
+ <tile id="81" type="gd81">
+  <properties>
+   <property name="name" value="Light line 4"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd81.png"/>
+ </tile>
+ <tile id="82" type="gd82">
+  <properties>
+   <property name="name" value="Light side line"/>
+  </properties>
+  <image width="16" height="16" source="tiles/gd82.png"/>
+ </tile>
+ <tile id="87" type="gd87">
+  <properties>
+   <property name="name" value="Cogwheel, small"/>
+  </properties>
+  <image width="24" height="24" source="tiles/gd87.png"/>
+ </tile>
+ <tile id="188" type="gd188">
+  <properties>
+   <property name="name" value="1.6 saw, star"/>
+  </properties>
+  <image width="32" height="32" source="tiles/gd188.png"/>
+ </tile>
+ <tile id="114" type="gd114">
+  <properties>
+   <property name="name" value="Stepped ground hill, medium"/>
+  </properties>
+  <image width="48" height="16" source="tiles/gd114.png"/>
  </tile>
  <tile id="8" type="gd8">
   <properties>
@@ -594,24 +624,6 @@
    <property name="name" value="Small spike"/>
   </properties>
   <image width="16" height="16" source="tiles/gd39.png"/>
- </tile>
- <tile id="87" type="gd87">
-  <properties>
-   <property name="name" value="Cogwheel, small"/>
-  </properties>
-  <image width="24" height="24" source="tiles/gd87.png"/>
- </tile>
- <tile id="86" type="gd86">
-  <properties>
-   <property name="name" value="Cogwheel, medium"/>
-  </properties>
-  <image width="32" height="32" source="tiles/gd86.png"/>
- </tile>
- <tile id="18" type="gd18">
-  <properties>
-   <property name="name" value="Ground deco 1.0, big"/>
-  </properties>
-  <image width="80" height="32" source="tiles/gd18.png"/>
  </tile>
  <tile id="103" type="gd103">
   <properties>
@@ -685,6 +697,24 @@
   </properties>
   <image width="16" height="16" source="tiles/gd198.png"/>
  </tile>
+ <tile id="107" type="gd107">
+  <properties>
+   <property name="name" value="Chain, short"/>
+  </properties>
+  <image width="16" height="24" source="tiles/gd107.png"/>
+ </tile>
+ <tile id="86" type="gd86">
+  <properties>
+   <property name="name" value="Cogwheel, medium"/>
+  </properties>
+  <image width="32" height="32" source="tiles/gd86.png"/>
+ </tile>
+ <tile id="115" type="gd115">
+  <properties>
+   <property name="name" value="Stepped ground hill, small"/>
+  </properties>
+  <image width="40" height="16" source="tiles/gd115.png"/>
+ </tile>
  <tile id="199" type="gd199">
   <properties>
    <property name="name" value="Fake medium spike"/>
@@ -696,24 +726,6 @@
    <property name="name" value="Spike, hitbox shifted right"/>
   </properties>
   <image width="16" height="16" source="tiles/fd_spike_colshift_r.png"/>
- </tile>
- <tile id="106" type="gd106">
-  <properties>
-   <property name="name" value="Chain, long"/>
-  </properties>
-  <image width="16" height="40" source="tiles/gd106.png"/>
- </tile>
- <tile id="137" type="gd137">
-  <properties>
-   <property name="name" value="Gear ring, big (a half)"/>
-  </properties>
-  <image width="24" height="48" source="tiles/gd137.png"/>
- </tile>
- <tile id="19" type="gd19">
-  <properties>
-   <property name="name" value="Ground deco 1.0, medium"/>
-  </properties>
-  <image width="80" height="32" source="tiles/gd19.png"/>
  </tile>
  <tile id="5043" type="fd_spike_colshift_l">
   <properties>
@@ -787,6 +799,24 @@
   </properties>
   <image width="16" height="16" source="tiles/fd_pad.png"/>
  </tile>
+ <tile id="110" type="gd110">
+  <properties>
+   <property name="name" value="Chain, thin"/>
+  </properties>
+  <image width="16" height="24" source="tiles/gd110.png"/>
+ </tile>
+ <tile id="138" type="gd138">
+  <properties>
+   <property name="name" value="Gear ring, medium"/>
+  </properties>
+  <image width="32" height="32" source="tiles/gd138.png"/>
+ </tile>
+ <tile id="129" type="gd129">
+  <properties>
+   <property name="name" value="Cloud, big"/>
+  </properties>
+  <image width="64" height="32" source="tiles/gd129.png"/>
+ </tile>
  <tile id="5002" type="fd_ground_edge_top">
   <properties>
    <property name="name" value="Ground strip edge (top)"/>
@@ -798,24 +828,6 @@
    <property name="name" value="Ground strip (top)"/>
   </properties>
   <image width="16" height="16" source="tiles/fd_ground_top.png"/>
- </tile>
- <tile id="107" type="gd107">
-  <properties>
-   <property name="name" value="Chain, short"/>
-  </properties>
-  <image width="16" height="24" source="tiles/gd107.png"/>
- </tile>
- <tile id="138" type="gd138">
-  <properties>
-   <property name="name" value="Gear ring, medium"/>
-  </properties>
-  <image width="32" height="32" source="tiles/gd138.png"/>
- </tile>
- <tile id="20" type="gd20">
-  <properties>
-   <property name="name" value="Ground deco 1.0, small"/>
-  </properties>
-  <image width="48" height="16" source="tiles/gd20.png"/>
  </tile>
  <tile id="5000" type="fd_ground_edge_bottom">
   <properties>
@@ -889,53 +901,41 @@
   </properties>
   <image width="16" height="16" source="tiles/fd_wavy_bot_s.png"/>
  </tile>
- <tile id="76" type="gd76">
+ <tile id="151" type="gd151">
   <properties>
-   <property name="name" value="Light line 1"/>
+   <property name="name" value="Spiky art, tall"/>
   </properties>
-  <image width="16" height="16" source="tiles/gd76.png"/>
+  <image width="8" height="24" source="tiles/gd151.png"/>
  </tile>
- <tile id="77" type="gd77">
+ <tile id="184" type="gd184">
   <properties>
-   <property name="name" value="Light line 2"/>
+   <property name="name" value="Black saw, medium"/>
   </properties>
-  <image width="16" height="16" source="tiles/gd77.png"/>
+  <image width="40" height="40" source="tiles/gd184.png"/>
  </tile>
- <tile id="110" type="gd110">
+ <tile id="18" type="gd18">
   <properties>
-   <property name="name" value="Chain, thin"/>
+   <property name="name" value="Ground deco 1.0, big"/>
   </properties>
-  <image width="16" height="24" source="tiles/gd110.png"/>
+  <image width="80" height="32" source="tiles/gd18.png"/>
  </tile>
- <tile id="154" type="gd154">
+ <tile id="157" type="gd157">
   <properties>
-   <property name="name" value="Spiked wheel (a quarter)"/>
+   <property name="name" value="Wave hill, middle"/>
   </properties>
-  <image width="24" height="24" source="tiles/gd154.png"/>
+  <image width="16" height="16" source="tiles/gd157.png"/>
  </tile>
- <tile id="113" type="gd113">
+ <tile id="158" type="gd158">
   <properties>
-   <property name="name" value="Stepped ground hill, big"/>
+   <property name="name" value="Wave hill, rising"/>
   </properties>
-  <image width="64" height="16" source="tiles/gd113.png"/>
+  <image width="16" height="16" source="tiles/gd158.png"/>
  </tile>
- <tile id="78" type="gd78">
+ <tile id="159" type="gd159">
   <properties>
-   <property name="name" value="Light line 3"/>
+   <property name="name" value="Wave hill, falling"/>
   </properties>
-  <image width="16" height="16" source="tiles/gd78.png"/>
- </tile>
- <tile id="81" type="gd81">
-  <properties>
-   <property name="name" value="Light line 4"/>
-  </properties>
-  <image width="16" height="16" source="tiles/gd81.png"/>
- </tile>
- <tile id="82" type="gd82">
-  <properties>
-   <property name="name" value="Light side line"/>
-  </properties>
-  <image width="16" height="16" source="tiles/gd82.png"/>
+  <image width="16" height="16" source="tiles/gd159.png"/>
  </tile>
  <tile id="5029" type="fd_cloud_top_up">
   <properties>
@@ -1015,11 +1015,11 @@
   </properties>
   <image width="40" height="40" source="tiles/gd155.png"/>
  </tile>
- <tile id="114" type="gd114">
+ <tile id="19" type="gd19">
   <properties>
-   <property name="name" value="Stepped ground hill, medium"/>
+   <property name="name" value="Ground deco 1.0, medium"/>
   </properties>
-  <image width="48" height="16" source="tiles/gd114.png"/>
+  <image width="80" height="32" source="tiles/gd19.png"/>
  </tile>
  <tile id="98" type="gd98">
   <properties>
@@ -1105,23 +1105,23 @@
   </properties>
   <image width="16" height="16" source="tiles/gd180.png"/>
  </tile>
- <tile id="151" type="gd151">
+ <tile id="106" type="gd106">
   <properties>
-   <property name="name" value="Spiky art, tall"/>
+   <property name="name" value="Chain, long"/>
   </properties>
-  <image width="8" height="24" source="tiles/gd151.png"/>
+  <image width="16" height="40" source="tiles/gd106.png"/>
  </tile>
- <tile id="181" type="gd181">
+ <tile id="137" type="gd137">
   <properties>
-   <property name="name" value="Cart wheel, medium"/>
+   <property name="name" value="Gear ring, big (a half)"/>
   </properties>
-  <image width="24" height="24" source="tiles/gd181.png"/>
+  <image width="24" height="48" source="tiles/gd137.png"/>
  </tile>
- <tile id="115" type="gd115">
+ <tile id="88" type="gd88">
   <properties>
-   <property name="name" value="Stepped ground hill, small"/>
+   <property name="name" value="Saw, big"/>
   </properties>
-  <image width="40" height="16" source="tiles/gd115.png"/>
+  <image width="48" height="48" source="tiles/gd88.png"/>
  </tile>
  <tile id="182" type="gd182">
   <properties>
