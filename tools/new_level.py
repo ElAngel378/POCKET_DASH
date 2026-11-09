@@ -30,7 +30,7 @@ def main():
         return 1
     target = TMX / (name + ".tmx")
     if target.exists() or name == "template":
-        print("There's already a level called '%s'. Pick another name, or open %s in Tiled." % (name, target))
+        print("There's already a level called '%s'. Pick another name, or open levels/chr_data/pocket_dash.tiled-project in Tiled and find it in the Project panel." % name)
         return 1
     title = re.sub(r"[^A-Z0-9 ]", "", (sys.argv[2] if len(sys.argv) > 2 else name.replace("_", " ")).upper())[:TITLE_LETTERS].strip()
 
@@ -58,7 +58,8 @@ def main():
     if tiled:
         subprocess.Popen([tiled, "--project", str(ROOT / "levels" / "chr_data" / "pocket_dash.tiled-project"), str(target)])
     else:
-        print("Install Tiled from https://www.mapeditor.org and open that file to start building.")
+        print("Install Tiled from https://www.mapeditor.org, then use File > Open File or Project to open")
+        print("levels/chr_data/pocket_dash.tiled-project. Don't double-click the level file: F5 needs the project.")
     return 0
 
 

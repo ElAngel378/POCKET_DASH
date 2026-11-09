@@ -61,11 +61,19 @@ The sky and the ground behind your level are only a preview. They aren't part of
 
 **Press F5 in Tiled.** It saves, builds the game and starts your level straight away. The first build takes a few minutes, and after that about half a minute.
 
+> **Does F5 do nothing?** Tiled needs the project open, not just the level. Double-clicking a `.tmx` file doesn't open the project. See [Coming back to your level](#coming-back-to-your-level).
+
 To open it automatically, your computer needs a Game Boy emulator set as the program for `.gb` files. Otherwise, open `bin/POCKETDASH_test.gb` yourself, in any emulator.
 
 ![Your level in the game](images/in_game.png)
 
 In the full game (`bin/POCKETDASH.gb`), your level is in the **Extra Levels** list: the wrench on the main menu. Community levels don't save your best percentage or coins.
+
+## Coming back to your level
+
+Start Tiled, choose **File > Open File or Project**, and pick `levels/chr_data/pocket_dash.tiled-project`. Your levels are in the **Project** panel, in the `tmx` folder. Tiled remembers the project the next time you start it.
+
+Don't double-click a `.tmx` file to open it. Tiled then opens only the map, without the project, so F5, F6 and the dropdown lists in Map Properties won't work.
 
 ## If something goes wrong
 

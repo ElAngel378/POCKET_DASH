@@ -1,4 +1,4 @@
-#pragma bank 191
+#pragma bank 176
 #include <gbdk/incbin.h>
 
 // Columns 768.. of subzero (read through subzero_map's address)

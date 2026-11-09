@@ -334,7 +334,7 @@ def test_rom(rom, name):
 
 
 def launch(rom):
-    """Opens the ROM with whatever program the computer uses for .gb files"""
+    """Opens the ROM with whatever program the computer uses for .gb files. False if it couldn't"""
     try:
         if os.name == "nt":
             os.startfile(str(rom))
@@ -343,8 +343,29 @@ def launch(rom):
         else:
             subprocess.run(["xdg-open", str(rom)], check=True)
         say("Opening it in your emulator...")
+        return True
     except (OSError, subprocess.CalledProcessError):
         say("I couldn't open it automatically. Open this file in a Game Boy emulator:\n  %s" % rom)
+        return False
+
+
+def only_one_build():
+    """Two builds at once overwrite each other's files. Returns the lock to hold, or None if another
+    build has it. The system drops the lock when this process ends, however it ends."""
+    TOOLS.mkdir(exist_ok=True)
+    lock = open(TOOLS / "build.lock", "a+")
+    try:
+        if os.name == "nt":
+            import msvcrt
+            lock.seek(0)
+            msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        lock.close()
+        return None
+    return lock
 
 
 def main():
@@ -354,6 +375,10 @@ def main():
     parser.add_argument("--no-run", action="store_true", help="with a level: make the test ROM, don't open it")
     parser.add_argument("--jobs", type=int, default=min(os.cpu_count() or 4, 8))
     args = parser.parse_args()
+    lock = only_one_build()
+    if lock is None:
+        say("A build is already running. Wait for it to finish.")
+        return 2
     if LOG.exists():
         LOG.unlink()
     try:
@@ -373,8 +398,8 @@ def main():
         if args.level:
             test = test_rom(rom, args.level)
             say("Test ROM, starts in '%s': %s" % (args.level, test.relative_to(ROOT)))
-            if not args.no_run:
-                launch(test)
+            if not args.no_run and not launch(test):
+                return 1
     except Failed as e:
         say()
         say("Build failed.")

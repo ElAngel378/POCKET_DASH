@@ -1,4 +1,4 @@
-#pragma bank 195
+#pragma bank 180
 #include <gbdk/incbin.h>
 
 // Columns 0..255; the rest are in level_everymadness_1.c.. (next banks, same address)

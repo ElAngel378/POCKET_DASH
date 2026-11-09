@@ -1,4 +1,4 @@
-#pragma bank 223
+#pragma bank 188
 #include <gbdk/incbin.h>
 
 // Columns 0..255; the rest are in level_thelightningroad_1.c.. (next banks, same address)

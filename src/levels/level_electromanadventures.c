@@ -1,4 +1,4 @@
-#pragma bank 173
+#pragma bank 141
 #include <gbdk/incbin.h>
 
 // Columns 0..255; the rest are in level_electromanadventures_1.c.. (next banks, same address)

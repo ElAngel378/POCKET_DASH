@@ -582,11 +582,19 @@ def csv(vals, w):
 
 # ---------------------------------------------------------------- tileset
 
-GREY = [(255, 255, 255, 0), (170, 170, 170, 255), (85, 85, 85, 255), (0, 0, 0, 255)]
-# palette tints for the Tiled pictures (CGB palette 1 = ground, 2 = background deco, 5 = fake,
-# 6 = background shades, 7 = player colour 2)
-TINT = {0: (1, 1, 1), 1: (0.85, 0.7, 0.5), 2: (0.6, 0.75, 1.0), 5: (1.0, 0.6, 0.6),
-        6: (0.55, 0.8, 1.0), 7: (0.6, 1.0, 0.8)}
+# The CGB palettes (src/famidash_bg.c) for the Tiled pictures: one picture serves every level, so
+# what follows the sky is see-through and shows the preview behind it. Ground and cube colours
+# are the defaults, and outlines are white: they change per level, by triggers or by player.
+BLACK, WHITE = (0, 0, 0, 255), (255, 255, 255, 255)
+DARKER_SKY = (0, 0, 0, 64)          # the game's darker sky is about 3/4 of the sky
+GROUND, GROUND_DARK, CUBE_1, CUBE_2 = (74, 205, 32, 255), (41, 115, 0, 255), (74, 205, 32, 255), (0, 255, 255, 255)
+PALETTES = {0: (DARKER_SKY, BLACK, WHITE),
+            1: (GROUND, GROUND_DARK, WHITE),                    # ground
+            2: (DARKER_SKY, BLACK, CUBE_1),                     # background deco
+            5: (DARKER_SKY, BLACK, BLACK),                      # fake
+            6: (WHITE, (0, 0, 0, 191), (255, 255, 255, 96)),    # background shades
+            7: (CUBE_2, DARKER_SKY, (255, 255, 255, 64))}       # player colour 2
+TILESET_BACKGROUND = "#084ac5"      # the default sky, in Tiled's Tilesets panel
 
 
 def picture(key, art, opal):
@@ -606,11 +614,10 @@ def picture(key, art, opal):
     fl = GO.TRANSFORMS[tf]
     pw, ph = size(key, fl)
     placed = Image.new("RGBA", (pw, ph), (0, 0, 0, 0))
-    t = TINT.get(opal.get(key, 0), (1, 1, 1))
+    colours = ((0, 0, 0, 0),) + PALETTES.get(opal.get(key, 0), PALETTES[0])
     for (qx, qy), px in art[(key, tf)].items():
         for i, v in enumerate(px):
-            r, g, b, a = GREY[v]
-            placed.putpixel((qx * 8 + i % 8, qy * 8 + i // 8), (int(r * t[0]), int(g * t[1]), int(b * t[2]), a))
+            placed.putpixel((qx * 8 + i % 8, qy * 8 + i // 8), colours[v])
     for q in mask(key, fl) - set(art[(key, tf)]):      # never seen (always covered): grey hatching
         for i in range(64):
             if (i % 8 + i // 8) % 3 == 0:
@@ -633,8 +640,8 @@ def write_tileset(art, opal):
     mw = max(GO.OBJECTS[k][2][0] for k in keys)
     mh = max(GO.OBJECTS[k][2][1] for k in keys)
     L = ['<?xml version="1.0" encoding="UTF-8"?>',
-         '<tileset version="1.10" tiledversion="1.11.2" name="%s" tilewidth="%d" tileheight="%d" tilecount="%d" columns="0">'
-         % (TILESET_NAME, mw, mh, len(keys)),
+         '<tileset version="1.10" tiledversion="1.11.2" name="%s" tilewidth="%d" tileheight="%d" tilecount="%d" columns="0" backgroundcolor="%s">'
+         % (TILESET_NAME, mw, mh, len(keys), TILESET_BACKGROUND),
          ' <grid orientation="orthogonal" width="1" height="1"/>']
     for k in keys:
         tid, name, (w, h), _ = GO.OBJECTS[k]
