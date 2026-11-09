@@ -675,6 +675,19 @@ def level_grids(paths, old_only=False):
     return out
 
 
+def add_table_art(art, opal):
+    """Art for the Tiled pictures that no level's metatile map gave: levels are made of objects now,
+    so a metatile variant (Xstep's spikes, ...) no longer shows up in them. From the object table."""
+    pal = sheet()[3]
+    for (m, v), parts in GO.FAMIDASH.items():
+        qt = quarter_tiles(m, {v} if v else set())
+        for cq, (i, oq) in parts_quarters(parts).items():
+            key, _, _, tf = parts[i]
+            if key not in GO.INVISIBLE:
+                art.setdefault((key, tf), {}).setdefault(oq, qt[cq[0] + 2 * cq[1]])
+                opal.setdefault(key, pal[m])
+
+
 def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else "check"
     names = [n.lower() for n in sys.argv[2:]]
@@ -682,6 +695,7 @@ def main():
         art, opal, problems = object_art(level_grids(level_paths([])))
         for p in problems:
             print("  " + p)
+        add_table_art(art, opal)
         write_tileset(art, opal)
         print("%s: %d objects" % (TSX.relative_to(ROOT), len(GO.OBJECTS)))
         return
