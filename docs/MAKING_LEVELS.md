@@ -42,8 +42,11 @@ Your level ends at its last column by itself. To end it sooner, place a **Level 
 
 | Property | What it does |
 |---|---|
-| `Title` | The name in the game's list |
-| `Song` | Plays the song of that level. `none` means silence |
+| `Title` | The name in the game's list: up to 18 letters and numbers (21 on the Main menu) |
+| `Menu` | `Main` is the PLAY menu, `Extra` is the wrench menu |
+| `Order` | Its place in that menu: lower numbers come first |
+| `Song` | The song it plays, by file name. `none` means silence |
+| `Save slot` | Where its progress and coins are saved. It's filled in for you, leave it alone |
 | `BG colour` | The sky's colour at the start |
 | `Ground colour` | The ground's colour at the start |
 | `Max fall` | How fast the cube falls: 6 for most levels, 7 for the later ones |
@@ -80,7 +83,7 @@ To start over from nothing, delete the `temp` folder (or run `build --clean`). T
 
 ## Your own song
 
-Put a Furnace song named after your level (`my_level.fur`) in `music/Furnace/`, then build. On Windows the song converter downloads itself the first time, and a new song can take a few minutes. More in [MUSIC.md](MUSIC.md).
+Put a Furnace song with any name in `music/Furnace/` and build once. It then shows up in the `Song` list in Tiled, and any level can pick it. On Windows the song converter downloads itself the first time, and a new song can take a few minutes. More in [MUSIC.md](MUSIC.md).
 
 ## Linux and macOS
 

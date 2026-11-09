@@ -10,7 +10,7 @@ BANKREF(save_manager)
 #define SAVE_MAGIC_1 'D'
 #define SAVE_MAGIC_2 'S'
 #define SAVE_MAGIC_3 'H'
-#define SAVE_VERSION 12
+#define SAVE_VERSION 13
 // Level count of the version 3 layout (progress arrays were 11 entries long)
 #define V3_NUM_SAVE_LEVELS 11
 #define NUM_SETTINGS_BYTES 6
@@ -63,7 +63,8 @@ uint8_t selected_dmg_secondary = 1;
 #if V10_SAVE_LEVELS != NUM_RAM_SAVE_LEVELS
 #error the version 1..10 slots are the ones in WRAM
 #endif
-#define V11_MORE (NUM_SAVE_LEVELS - V10_SAVE_LEVELS)
+#define V11_SAVE_LEVELS 24
+#define V11_MORE (V11_SAVE_LEVELS - V10_SAVE_LEVELS)
 #define V11_NORMAL_OFS   (5 + V10_DATA_LEN)
 #define V11_PRACTICE_OFS (V11_NORMAL_OFS + V11_MORE)
 #define V11_COINS_OFS    (V11_PRACTICE_OFS + V11_MORE)
@@ -72,6 +73,18 @@ uint8_t selected_dmg_secondary = 1;
 // (SRAM only) to 15 (WRAM; before, Madness's, a removed level). Older saves: slot 20 -> 15.
 #define V12_CLUBSTEP_OLD_SLOT 20
 #define V12_CLUBSTEP_SLOT     15
+// Version 13: the version 12 layout, and further into the SRAM a block of its own (normal, practice
+// and coins of the slots V11_SAVE_LEVELS.. , then a checksum: calc_checksum counts up to 255 bytes)
+#define V13_MORE (NUM_SAVE_LEVELS - V11_SAVE_LEVELS)
+#define V13_OFS  0x100
+#define V13_DATA_LEN (V13_MORE * 3)
+#if V13_DATA_LEN > 255
+#error calc_checksum counts up to 255 bytes
+#endif
+// The three values of a slot
+#define SLOT_NORMAL   0
+#define SLOT_PRACTICE 1
+#define SLOT_COINS    2
 
 uint8_t setting_music_enabled   = 1;
 uint8_t setting_sfx_enabled     = 1;
@@ -92,9 +105,19 @@ static uint8_t calc_checksum(const uint8_t *data, uint8_t len) {
     return sum;
 }
 
-// The extra slots (version 11) of a save without them: all 0
+#define V13_CHECKSUM(sram) calc_checksum((const uint8_t *)&(sram)[V13_OFS], V13_DATA_LEN)
+
+// The version 13 block of a save without it: all 0
+static void clear_v13_slots(volatile uint8_t *sram) {
+    volatile uint8_t *p = sram + V13_OFS;   // (sram[V13_OFS + k] miscompiles: SDCC 4.5 loses the high byte)
+    for (uint8_t k = 0; k < V13_DATA_LEN; k++) *p++ = 0;
+    sram[V13_OFS + V13_DATA_LEN] = V13_CHECKSUM(sram);
+}
+
+// Every slot that is only in SRAM: all 0
 static void clear_extra_slots(volatile uint8_t *sram) {
     for (uint8_t k = 0; k < V11_MORE * 3; k++) sram[V11_NORMAL_OFS + k] = 0;
+    clear_v13_slots(sram);
 }
 
 // A save older than version 12: Clubstep's slot 20 (version 11) to 15, Madness's progress there
@@ -111,24 +134,37 @@ static void move_clubstep_slot(volatile uint8_t *sram, uint8_t v11) {
     sram[V11_COINS_OFS + k] = 0;
 }
 
-// Slots NUM_RAM_SAVE_LEVELS.. (only in SRAM): one byte, and storing one (with the checksum)
-static uint8_t extra_get(uint8_t ofs) {
+// Slots NUM_RAM_SAVE_LEVELS.. (only in SRAM): where a value is, reading it and storing it (with
+// the checksums)
+static volatile uint8_t *extra_addr(uint8_t slot, uint8_t what) {
+    if (slot < V11_SAVE_LEVELS)
+        return SRAM_BASE_ADDR + V11_NORMAL_OFS + what * V11_MORE + (uint8_t)(slot - NUM_RAM_SAVE_LEVELS);
+    return SRAM_BASE_ADDR + V13_OFS + what * V13_MORE + (uint8_t)(slot - V11_SAVE_LEVELS);
+}
+static uint8_t extra_get(uint8_t slot, uint8_t what) {
     ENABLE_RAM;
-    uint8_t v = SRAM_BASE_ADDR[ofs];
+    uint8_t v = *extra_addr(slot, what);
     DISABLE_RAM;
     return v;
 }
-static void extra_set(uint8_t ofs, uint8_t v) {
+static void extra_set(uint8_t slot, uint8_t what, uint8_t v) {
     ENABLE_RAM;
     volatile uint8_t *sram = SRAM_BASE_ADDR;
-    sram[ofs] = v;
+    *extra_addr(slot, what) = v;
     sram[5 + V11_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V11_DATA_LEN);
+    sram[V13_OFS + V13_DATA_LEN] = V13_CHECKSUM(sram);
     DISABLE_RAM;
 }
 
 uint8_t saved_level_coins(uint8_t slot) BANKED {
     if (slot < NUM_RAM_SAVE_LEVELS) return level_coins[slot];
-    if (slot < NUM_SAVE_LEVELS) return extra_get((uint8_t)(V11_COINS_OFS + slot - NUM_RAM_SAVE_LEVELS)) & 7;
+    if (slot < NUM_SAVE_LEVELS) return extra_get(slot, SLOT_COINS) & 7;
+    return 0;
+}
+
+uint8_t saved_level_progress(uint8_t slot, uint8_t is_practice) BANKED {
+    if (slot < NUM_RAM_SAVE_LEVELS) return is_practice ? level_progress_practice[slot] : level_progress_normal[slot];
+    if (slot < NUM_SAVE_LEVELS) return extra_get(slot, is_practice ? SLOT_PRACTICE : SLOT_NORMAL);
     return 0;
 }
 
@@ -152,7 +188,7 @@ void init_save_system(void) BANKED {
     if (sram[0] == SAVE_MAGIC_0 && sram[1] == SAVE_MAGIC_1 &&
         sram[2] == SAVE_MAGIC_2 && sram[3] == SAVE_MAGIC_3) {
 
-        if (sram[4] == 12 || sram[4] == 11 || sram[4] == 10 || sram[4] == 9 || sram[4] == 8 || sram[4] == 7 || sram[4] == 6 || sram[4] == 5 || sram[4] == 4) {
+        if (sram[4] == 13 || sram[4] == 12 || sram[4] == 11 || sram[4] == 10 || sram[4] == 9 || sram[4] == 8 || sram[4] == 7 || sram[4] == 6 || sram[4] == 5 || sram[4] == 4) {
             uint8_t v5 = (sram[4] >= 5);
             uint8_t v6 = (sram[4] >= 6);
             uint8_t v7 = (sram[4] >= 7);
@@ -160,7 +196,8 @@ void init_save_system(void) BANKED {
             uint8_t v9 = (sram[4] >= 9);
             uint8_t v10 = (sram[4] >= 10);
             uint8_t v11 = (sram[4] >= 11);
-            uint8_t v12 = (sram[4] == 12);
+            uint8_t v12 = (sram[4] >= 12);
+            uint8_t v13 = (sram[4] == 13);
             uint8_t len = v11 ? V11_DATA_LEN : v10 ? V10_DATA_LEN : v9 ? V9_DATA_LEN : v8 ? V8_DATA_LEN : (v7 ? V7_DATA_LEN : (v6 ? V6_DATA_LEN : (v5 ? V5_DATA_LEN : V4_DATA_LEN)));
             uint8_t chk = calc_checksum((const uint8_t *)&sram[5], len);
             if (sram[5 + len] == chk) {
@@ -192,9 +229,10 @@ void init_save_system(void) BANKED {
                 if (selected_color_secondary >= 12) selected_color_secondary = 1;
                 if (!v12) move_clubstep_slot(sram, v11);
                 if (!v11) clear_extra_slots(sram);
+                else if (!v13 || sram[V13_OFS + V13_DATA_LEN] != V13_CHECKSUM(sram)) clear_v13_slots(sram);
                 if (!setting_show_bg_enabled) setting_parallax_enabled = 0;
                 DISABLE_RAM;
-                if (!v12) save_game_data();   // upgrade to version 12
+                if (!v13) save_game_data();   // upgrade to version 13
                 return;
             }
         } else if (sram[4] == 3) {
@@ -330,8 +368,8 @@ void record_level_progress(uint8_t level_idx, uint8_t pct, uint8_t is_practice) 
     if (level_idx >= NUM_SAVE_LEVELS) return;
     if (pct > 100) pct = 100;
     if (level_idx >= NUM_RAM_SAVE_LEVELS) {
-        uint8_t ofs = (uint8_t)((is_practice ? V11_PRACTICE_OFS : V11_NORMAL_OFS) + level_idx - NUM_RAM_SAVE_LEVELS);
-        if (pct > extra_get(ofs)) extra_set(ofs, pct);
+        uint8_t what = is_practice ? SLOT_PRACTICE : SLOT_NORMAL;
+        if (pct > extra_get(level_idx, what)) extra_set(level_idx, what, pct);
         return;
     }
 
@@ -351,9 +389,8 @@ void record_level_progress(uint8_t level_idx, uint8_t pct, uint8_t is_practice) 
 void record_level_coins(uint8_t level_idx, uint8_t coins) BANKED {
     if (level_idx >= NUM_SAVE_LEVELS) return;
     if (level_idx >= NUM_RAM_SAVE_LEVELS) {
-        uint8_t ofs = (uint8_t)(V11_COINS_OFS + level_idx - NUM_RAM_SAVE_LEVELS);
-        uint8_t c = extra_get(ofs);
-        if ((c | coins) != c) extra_set(ofs, c | coins);
+        uint8_t c = extra_get(level_idx, SLOT_COINS);
+        if ((c | coins) != c) extra_set(level_idx, SLOT_COINS, c | coins);
         return;
     }
     if ((level_coins[level_idx] | coins) != level_coins[level_idx]) {

@@ -2,8 +2,9 @@
 
     new_level.bat mylevel "My Level"
 
-Creates levels/chr_data/tmx/mylevel.tmx and opens it in Tiled if Tiled is installed. The title and
-song are map properties in Tiled (Map > Map Properties), so nothing else needs editing.
+Creates levels/chr_data/tmx/mylevel.tmx and opens it in Tiled if Tiled is installed. The title,
+menu, order, song and save slot are map properties in Tiled (Map > Map Properties), so nothing else
+needs editing.
 """
 import os
 import re
@@ -37,9 +38,16 @@ def main():
         text = f.read()
     assert 'name="Title" value="MY LEVEL"' in text
     text = text.replace('name="Title" value="MY LEVEL"', 'name="Title" value="%s"' % title)
+    sys.path.insert(0, str(ROOT / "tools"))
+    import build_levels
+    last = max((build_levels.level_info(p.stem.lower())["order"] for p in build_levels.level_files()
+                if build_levels.level_info(p.stem.lower())["menu"] == "Extra"), default=0)
+    assert 'name="Order" type="int" value="1"' in text
+    text = text.replace('name="Order" type="int" value="1"', 'name="Order" type="int" value="%d"' % (last + 1))
     with target.open("w", newline="") as f:
         f.write(text)
-    sys.path.insert(0, str(ROOT / "tools"))
+    build_levels.level_info.cache_clear()
+    build_levels.give_save_slots()
     import level_previews
     level_previews.main([name])
 

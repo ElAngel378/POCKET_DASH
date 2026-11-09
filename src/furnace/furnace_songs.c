@@ -28,8 +28,8 @@ BANKREF_EXTERN(fs_xstep)
 extern const fur_song_t fs_xstep;
 BANKREF_EXTERN(fs_clutterfunk)
 extern const fur_song_t fs_clutterfunk;
-BANKREF_EXTERN(fs_theoryofeverything)
-extern const fur_song_t fs_theoryofeverything;
+BANKREF_EXTERN(fs_toe)
+extern const fur_song_t fs_toe;
 BANKREF_EXTERN(fs_electromanadventures)
 extern const fur_song_t fs_electromanadventures;
 BANKREF_EXTERN(fs_clubstep)
@@ -40,8 +40,8 @@ BANKREF_EXTERN(fs_toe2)
 extern const fur_song_t fs_toe2;
 BANKREF_EXTERN(fs_deadlocked)
 extern const fur_song_t fs_deadlocked;
-BANKREF_EXTERN(fs_ultiatedestruction)
-extern const fur_song_t fs_ultiatedestruction;
+BANKREF_EXTERN(fs_ultimate)
+extern const fur_song_t fs_ultimate;
 BANKREF_EXTERN(fs_schemingweasel)
 extern const fur_song_t fs_schemingweasel;
 BANKREF_EXTERN(fs_stayinsideme)
@@ -60,13 +60,13 @@ const FurSong fur_songs[] = {
     { &fs_cycles, BANK(fs_cycles) },
     { &fs_xstep, BANK(fs_xstep) },
     { &fs_clutterfunk, BANK(fs_clutterfunk) },
-    { &fs_theoryofeverything, BANK(fs_theoryofeverything) },
+    { &fs_toe, BANK(fs_toe) },
     { &fs_electromanadventures, BANK(fs_electromanadventures) },
     { &fs_clubstep, BANK(fs_clubstep) },
     { &fs_electrodynamix, BANK(fs_electrodynamix) },
     { &fs_toe2, BANK(fs_toe2) },
     { &fs_deadlocked, BANK(fs_deadlocked) },
-    { &fs_ultiatedestruction, BANK(fs_ultiatedestruction) },
+    { &fs_ultimate, BANK(fs_ultimate) },
     { &fs_schemingweasel, BANK(fs_schemingweasel) },
     { &fs_stayinsideme, BANK(fs_stayinsideme) },
 };

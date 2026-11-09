@@ -8,6 +8,8 @@
   <property name="BG colour" type="color" value="#ff155fd9"/>
   <property name="Ground colour" type="color" value="#ff155fd9"/>
   <property name="Max fall" type="int" value="6"/>
+  <property name="Menu" type="string" propertytype="Menu" value="Extra"/>
+ <property name="Order" type="int" value="1"/>
   <property name="Song" type="string" propertytype="Song" value="none"/>
   <property name="Title" value="MY LEVEL"/>
  </properties>

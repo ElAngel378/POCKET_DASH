@@ -5,7 +5,7 @@
 
 // (delta ticks, code): 1 weak hit, 2 strong hit, 0 none (a gap over 255 ticks or the
 // loop start), 254 the song ends, 255 it loops (to the loop entry)
-static const uint8_t fbeats_theoryofeverything[] = {
+static const uint8_t fbeats_toe[] = {
     0, 1, 62, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3,
     14, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3,
     14, 3, 14, 3, 14, 3, 14, 3, 20, 1, 64, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3, 14, 3,
@@ -397,7 +397,7 @@ static const uint8_t fbeats_deadlocked[] = {
     14, 3, 13, 3, 13, 3, 14, 3, 14, 3, 13, 3, 13, 3, 20, 1, 62, 3, 13, 3, 13, 3, 14, 3,
     7, 254,
 };
-static const uint8_t fbeats_ultiatedestruction[] = {
+static const uint8_t fbeats_ultimate[] = {
     0, 1, 66, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3,
     12, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3,
     12, 3, 12, 3, 12, 3, 12, 3, 6, 1, 66, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3, 12, 3,
@@ -526,13 +526,13 @@ static const uint8_t fbeats_schemingweasel[] = {
 };
 
 static const uint8_t * const fbeats[][2] = {
-    { fbeats_theoryofeverything, 0 },
+    { fbeats_toe, 0 },
     { fbeats_electromanadventures, 0 },
     { fbeats_clubstep, fbeats_clubstep + 850 },
     { fbeats_electrodynamix, fbeats_electrodynamix + 818 },
     { fbeats_toe2, fbeats_toe2 + 776 },
     { fbeats_deadlocked, 0 },
-    { fbeats_ultiatedestruction, fbeats_ultiatedestruction + 806 },
+    { fbeats_ultimate, fbeats_ultimate + 806 },
     { fbeats_schemingweasel, fbeats_schemingweasel + 662 },
 };
 

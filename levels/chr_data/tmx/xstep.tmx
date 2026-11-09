@@ -8,6 +8,11 @@
   <property name="BG colour" type="color" value="#ff007c8d"/>
   <property name="Ground colour" type="color" value="#ff00404d"/>
   <property name="Max fall" type="int" value="7"/>
+  <property name="Menu" type="string" propertytype="Menu" value="Main"/>
+  <property name="Order" type="int" value="10"/>
+  <property name="Save slot" type="int" value="9"/>
+  <property name="Song" type="string" propertytype="Song" value="Xstep"/>
+  <property name="Title" value="XSTEP"/>
  </properties>
  <tileset firstgid="1" source="../objects/gd_objects.tsx" />
  <tileset firstgid="10001" source="../objects/sprites.tsx"/>

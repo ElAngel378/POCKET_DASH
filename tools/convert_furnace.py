@@ -3,9 +3,9 @@
     python tools/convert_furnace.py      (tools/build_levels.py also runs it)
 
 Drop a .fur in music/Furnace and it is in the game:
-  - named like a level (the TMX file: "BaseAfterBase.fur", "DryOut.fur" for dryout.tmx; case,
-    spaces, punctuation and trailing digits don't matter), it is that level's song; with the
-    LEGACY setting (or without a .fur) the level plays its hUGETracker song (music/Legacy)
+  - a level plays it when the level's Song map property says so (Tiled: Map > Map Properties); the
+    file's name has nothing to do with the level's. With the LEGACY setting (or without a .fur) the
+    level plays the hUGETracker song with the same name (music/Legacy)
   - MenuLoop.fur is the menu theme (the hUGETracker one with LEGACY)
   - fur2gb's tools/uge2fur.py converts a music/Legacy .uge to a .fur to edit in Furnace
   - any other song only appears in the music test (named by its Furnace song name, or file name)
@@ -77,15 +77,12 @@ FRAMES = 1
 CHUNKS = 4
 CHUNK_SIZE = 16300            # leave room for GBDK's BANKREF stubs in each bank
 
-LEVEL_ALIASES = {"ultimate": "ultiatedestruction", "ultimatedestruction": "ultiatedestruction",
-                 "toe": "theoryofeverything"}
-MENU_NAMES = {"menuloop", "menu", "menutheme"}
 # Order of the songs (their ids, so the music test list): Geometry Dash's own order, then the Pocket
 # Dash ones; songs not listed come last in file order
 SONG_ORDER = ["menuloop", "stereomadness", "backontrack", "polargeist", "dryout", "baseafterbase",
-              "cantletgo", "jumper", "timemachine", "cycles", "xstep", "clutterfunk", "theoryofeverything",
+              "cantletgo", "jumper", "timemachine", "cycles", "xstep", "clutterfunk", "toe",
               "electromanadventures", "clubstep", "electrodynamix", "toe2", "deadlocked",
-              "ultiatedestruction", "schemingweasel", "stayinsideme"]
+              "ultimate", "schemingweasel", "stayinsideme"]
 NAME_WIDTH = 18               # music test name field
 STRONG, WEAK, FILL, END, LOOP = 2, 1, 0, 0xFE, 0xFF
 
@@ -205,15 +202,9 @@ def norm(s):
     return re.sub(r"[^a-z0-9]", "", s.lower())
 
 
-def level_of(stem, levels):
-    """Index of the level a .fur file name belongs to, or None"""
-    keys = {norm(lv): i for i, lv in enumerate(levels)}
-    n = norm(stem)
-    for cand in (n, re.sub(r"\d+$", "", n), n.replace("wip", "")):
-        cand = LEVEL_ALIASES.get(cand, cand)
-        if cand in keys:
-            return keys[cand]
-    return None
+def song_ident(name):
+    base = norm(name) or "song"
+    return "s" + base if base[0].isdigit() else base
 
 
 def screen_name(name):
@@ -288,19 +279,24 @@ def fetch_fur2gb():
     return True
 
 
-def keep_level_songs(levels):
-    """No conversion: the songs stay, but a new level can still play another level's (its Song property)"""
+def level_song_ids(levels, ident_of):
+    """FUR_<id> of each level's song; ident_of: normalised song name -> id, or None if not in the game"""
     import build_levels
+    ids = []
+    for stem in levels:
+        song = build_levels.level_song(stem)
+        ident = ident_of(norm(song)) if song else None
+        ids.append(f"FUR_{ident.upper()}" if ident else "FUR_NONE")
+    return ids
+
+
+def keep_level_songs(levels):
+    """No conversion: the songs stay, but the levels can still pick any of them (the Song property)"""
     path = HDR / "furnace_songs.h"
     text = path.read_text()
     m = re.search(r"#define FUR_LEVEL_SONGS \{ (.*?) \}", text)
-    known = sum(1 for s in levels if s in build_levels.KNOWN_LEVELS)
-    lv = [s.strip() for s in m.group(1).split(",")][:known] + ["FUR_NONE"] * (len(levels) - known)
-    for i, stem in enumerate(levels):
-        of = build_levels.level_song(stem)
-        if i >= known and of in levels:
-            lv[i] = lv[levels.index(of)]
-    new = text[:m.start(1)] + ", ".join(lv) + text[m.end(1):]
+    lv = level_song_ids(levels, lambda n: song_ident(n) if f"#define FUR_{song_ident(n).upper()} " in text else None)
+    new = text[:m.start(1)] + (", ".join(lv) or "FUR_NONE") + text[m.end(1):]
     if new != text:
         path.write_text(new)
 
@@ -365,30 +361,32 @@ def convert(levels=None):
         if old.name not in wanted:
             old.unlink()    # a song's old versions
 
+    # the first level that plays each song (it names the song in the music test)
+    first_user = {}
+    for i, stem in enumerate(levels):
+        song = build_levels.level_song(stem)
+        if song:
+            first_user.setdefault(norm(song), i)
+
     menu, by_level, extras = None, {}, []
     for fur in furs:
         conv = convert_song(fur, tools)
         if "skip" in conv:
             print(f"  ! {fur.name} skipped: {conv['skip']}")
             continue
-        lvl = level_of(fur.stem, levels)
-        if norm(fur.stem) in MENU_NAMES and not menu:
+        lvl = first_user.get(norm(fur.stem))
+        if norm(fur.stem) in build_levels.MENU_SONGS and not menu:
             menu = (fur, conv)
         elif lvl is not None and lvl not in by_level:
             by_level[lvl] = (fur, conv)
         else:
-            if lvl is not None:
-                print(f"  ! {fur.name}: {by_level[lvl][0].name} is already {levels[lvl]}'s song, "
-                      f"this one is only in the music test")
             extras.append((fur, conv))
 
     # song order (= ids, music test order): menu theme, level songs in level order, the others
     used = {"menuloop"}
 
     def ident_for(base):
-        base = norm(base) or "song"
-        if base[0].isdigit():
-            base = "s" + base
+        base = song_ident(base)
         n, i = base, 2
         while n in used:
             n, i = f"{base}{i}", i + 1
@@ -399,9 +397,9 @@ def convert(levels=None):
     if menu:
         songs.append(("menuloop", "MENU THEME", None, "menu theme") + menu)
     for lvl in sorted(by_level):
-        stem = levels[lvl]
         use = f"level {lvl + 1}"
-        songs.append((ident_for(stem), screen_name(build_levels.level_title(stem)), lvl, use) + by_level[lvl])
+        fur, conv = by_level[lvl]
+        songs.append((ident_for(fur.stem), screen_name(build_levels.level_title(levels[lvl])), lvl, use, fur, conv))
     for fur, conv in extras:
         # the file name, or the song name in the module when the file name is its initials
         # (ToE.fur: Theory of Everything)
@@ -548,16 +546,8 @@ def write_sources(songs, table, beat_arrays, levels, banks):
     with open(OUT / "furnace_songs.c", "a") as f:
         f.write("\n".join(c))
 
-    lv = ["FUR_NONE"] * len(levels)
-    for ident, name, level, use, fur, conv in songs:
-        if level is not None:
-            lv[level] = f"FUR_{ident.upper()}"
-    # levels that play another level's song (tools/build_levels.py "song")
-    import build_levels
-    for i, stem in enumerate(levels):
-        of = build_levels.level_song(stem)
-        if of in levels:
-            lv[i] = lv[levels.index(of)]
+    ident_of = {norm(s[4].stem): s[0] for s in songs}
+    lv = level_song_ids(levels, ident_of.get)
     h = ["// Generated by tools/convert_furnace.py from music/Furnace. Do not edit.",
          "#ifndef FURNACE_SONGS_H", "#define FURNACE_SONGS_H", "", "#include <gb/gb.h>",
          '#include "furplayer.h"', "", f"#define FUR_CODE_BANK {FUR_CODE_BANK}",

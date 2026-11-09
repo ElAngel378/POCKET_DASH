@@ -401,8 +401,8 @@ static uint8_t last_rendered_norm = 0xFF;
 static uint8_t last_rendered_prac = 0xFF;
 
 static void update_level_progress_bars(uint8_t level_idx) {
-    uint8_t norm_p = level_progress_normal[level_save_slot[level_idx]];
-    uint8_t prac_p = level_progress_practice[level_save_slot[level_idx]];
+    uint8_t norm_p = saved_level_progress(level_save_slot[level_idx], 0);
+    uint8_t prac_p = saved_level_progress(level_save_slot[level_idx], 1);
 
     if (norm_p != last_rendered_norm) {
         render_progress_bar(norm_p, 0x50);
@@ -429,7 +429,7 @@ static const uint8_t coin_icon_tiles[32] = {
 };
 
 static void draw_level_coins(uint8_t level_idx) {
-    uint8_t c = level_coins[level_save_slot[level_idx]];
+    uint8_t c = saved_level_coins(level_save_slot[level_idx]);
     for (uint8_t i = 0; i < 3; i++) {
         set_bkg_tile_xy((uint8_t)(13 + i), 8, (uint8_t)(COIN_ICON_TILE + ((c >> i) & 1)));
     }

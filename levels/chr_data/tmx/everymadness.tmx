@@ -8,6 +8,11 @@
   <property name="BG colour" type="color" value="#ff4240ff"/>
   <property name="Ground colour" type="color" value="#ff1412a7"/>
   <property name="Max fall" type="int" value="6"/>
+  <property name="Menu" type="string" propertytype="Menu" value="Extra"/>
+  <property name="Order" type="int" value="5"/>
+  <property name="Save slot" type="int" value="18"/>
+  <property name="Song" type="string" propertytype="Song" value="none"/>
+  <property name="Title" value="EVERY MADNESS"/>
  </properties>
  <tileset firstgid="1" source="../objects/gd_objects.tsx" />
  <tileset firstgid="10001" source="../objects/sprites.tsx"/>

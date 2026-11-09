@@ -128,76 +128,76 @@ extern const SpDef test2_sp_dmg[];
 BANKREF_EXTERN(test2_sp)
 
 // Music songs
-extern const hUGESong_t stereomadness;
-extern const hUGESong_t backontrack;
-extern const hUGESong_t polargeist;
-extern const hUGESong_t dryout;
-extern const hUGESong_t baseafterbase;
-extern const hUGESong_t cantletgo;
-extern const hUGESong_t jumper;
-extern const hUGESong_t timemachine;
-extern const hUGESong_t cycles;
-extern const hUGESong_t xstep;
-extern const hUGESong_t clutterfunk;
-extern const hUGESong_t electromanadventures;
-extern const hUGESong_t ultiatedestruction;
+extern const hUGESong_t song_stereomadness;
+extern const hUGESong_t song_backontrack;
+extern const hUGESong_t song_polargeist;
+extern const hUGESong_t song_dryout;
+extern const hUGESong_t song_baseafterbase;
+extern const hUGESong_t song_cantletgo;
+extern const hUGESong_t song_jumper;
+extern const hUGESong_t song_timemachine;
+extern const hUGESong_t song_cycles;
+extern const hUGESong_t song_xstep;
+extern const hUGESong_t song_clutterfunk;
+extern const hUGESong_t song_electromanadventures;
+extern const hUGESong_t song_ultimate;
 
 // Level songs array
 const hUGESong_t * const level_songs[] = {
-  &stereomadness, // level_sm
-  &backontrack, // level_bot
-  &polargeist, // level_pg
-  &dryout, // level_du
-  &baseafterbase, // level_bab
-  &cantletgo, // level_clg
-  &jumper, // level_ju
-  &timemachine, // level_tm
-  &cycles, // level_cy
-  &xstep, // level_xs
-  &clutterfunk, // level_cf
-  NULL, // level_toe (silent)
-  &electromanadventures, // level_ea
-  NULL, // level_cs (silent)
-  &dryout, // level_bal
-  &stereomadness, // level_le
-  &cantletgo, // level_sz
-  &ultiatedestruction, // level_ultiatedestruction
-  NULL, // level_em (silent)
-  &timemachine, // level_dp
-  &dryout, // level_tlr
+  &song_stereomadness, // level_stereomadness
+  &song_backontrack, // level_backontrack
+  &song_polargeist, // level_polargeist
+  &song_dryout, // level_dryout
+  &song_baseafterbase, // level_baseafterbase
+  &song_cantletgo, // level_cantletgo
+  &song_jumper, // level_jumper
+  &song_timemachine, // level_timemachine
+  &song_cycles, // level_cycles
+  &song_xstep, // level_xstep
+  &song_clutterfunk, // level_clutterfunk
+  NULL, // level_theoryofeverything (silent)
+  &song_electromanadventures, // level_electromanadventures
+  NULL, // level_clubstep (silent)
+  &song_dryout, // level_bestautomaticlvl
+  &song_stereomadness, // level_leveleasy
+  &song_cantletgo, // level_subzero
+  &song_ultimate, // level_ultiatedestruction
+  NULL, // level_everymadness (silent)
+  &song_timemachine, // level_demonpark
+  &song_dryout, // level_thelightningroad
   NULL, // level_test (silent)
   NULL, // level_test2 (silent)
 };
 
 // Per-level song banks: matches level_songs[]; 0 = silent
 const uint8_t song_bank[] = {
-  200u, // level_sm
-  201u, // level_bot
-  202u, // level_pg
-  203u, // level_du
-  204u, // level_bab
-  205u, // level_clg
-  206u, // level_ju
-  207u, // level_tm
-  208u, // level_cy
-  209u, // level_xs
-  210u, // level_cf
-  0u, // level_toe
-  211u, // level_ea
-  0u, // level_cs
-  203u, // level_bal
-  200u, // level_le
-  205u, // level_sz
+  200u, // level_stereomadness
+  201u, // level_backontrack
+  202u, // level_polargeist
+  203u, // level_dryout
+  204u, // level_baseafterbase
+  205u, // level_cantletgo
+  206u, // level_jumper
+  207u, // level_timemachine
+  208u, // level_cycles
+  209u, // level_xstep
+  210u, // level_clutterfunk
+  0u, // level_theoryofeverything
+  211u, // level_electromanadventures
+  0u, // level_clubstep
+  203u, // level_bestautomaticlvl
+  200u, // level_leveleasy
+  205u, // level_subzero
   213u, // level_ultiatedestruction
-  0u, // level_em
-  207u, // level_dp
-  203u, // level_tlr
+  0u, // level_everymadness
+  207u, // level_demonpark
+  203u, // level_thelightningroad
   0u, // level_test
   0u, // level_test2
 };
 
 // Level definitions with dimensions and bank info
-const Level level_sm = {
+const Level level_stereomadness = {
   "STEREO MADNESS",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -214,7 +214,7 @@ const Level level_sm = {
   1
 };
 
-const Level level_bot = {
+const Level level_backontrack = {
   "BACK ON TRACK",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -231,7 +231,7 @@ const Level level_bot = {
   1
 };
 
-const Level level_pg = {
+const Level level_polargeist = {
   "POLARGEIST",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -248,7 +248,7 @@ const Level level_pg = {
   1
 };
 
-const Level level_du = {
+const Level level_dryout = {
   "DRY OUT",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -265,7 +265,7 @@ const Level level_du = {
   1
 };
 
-const Level level_bab = {
+const Level level_baseafterbase = {
   "BASE AFTER BASE",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -282,7 +282,7 @@ const Level level_bab = {
   1
 };
 
-const Level level_clg = {
+const Level level_cantletgo = {
   "CANT LET GO",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -299,7 +299,7 @@ const Level level_clg = {
   1
 };
 
-const Level level_ju = {
+const Level level_jumper = {
   "JUMPER",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -316,7 +316,7 @@ const Level level_ju = {
   1
 };
 
-const Level level_tm = {
+const Level level_timemachine = {
   "TIME MACHINE",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -333,7 +333,7 @@ const Level level_tm = {
   1
 };
 
-const Level level_cy = {
+const Level level_cycles = {
   "CYCLES",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -350,7 +350,7 @@ const Level level_cy = {
   1
 };
 
-const Level level_xs = {
+const Level level_xstep = {
   "XSTEP",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -367,7 +367,7 @@ const Level level_xs = {
   1
 };
 
-const Level level_cf = {
+const Level level_clutterfunk = {
   "CLUTTERFUNK",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -384,7 +384,7 @@ const Level level_cf = {
   1
 };
 
-const Level level_toe = {
+const Level level_theoryofeverything = {
   "THEORY OF EVERYTHING",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -401,7 +401,7 @@ const Level level_toe = {
   1
 };
 
-const Level level_ea = {
+const Level level_electromanadventures = {
   "ELECTROMAN ADVENTURES",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -418,7 +418,7 @@ const Level level_ea = {
   1
 };
 
-const Level level_cs = {
+const Level level_clubstep = {
   "CLUBSTEP",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -435,7 +435,7 @@ const Level level_cs = {
   1
 };
 
-const Level level_bal = {
+const Level level_bestautomaticlvl = {
   "BEST AUTOMATIC LVL",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -452,7 +452,7 @@ const Level level_bal = {
   1
 };
 
-const Level level_le = {
+const Level level_leveleasy = {
   "LEVEL EASY",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -469,7 +469,7 @@ const Level level_le = {
   0
 };
 
-const Level level_sz = {
+const Level level_subzero = {
   "SUBZERO",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -503,7 +503,7 @@ const Level level_ultiatedestruction = {
   1
 };
 
-const Level level_em = {
+const Level level_everymadness = {
   "EVERY MADNESS",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -520,7 +520,7 @@ const Level level_em = {
   0
 };
 
-const Level level_dp = {
+const Level level_demonpark = {
   "DEMON PARK",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -537,7 +537,7 @@ const Level level_dp = {
   0
 };
 
-const Level level_tlr = {
+const Level level_thelightningroad = {
   "THE LIGHTNING ROAD",
   chr_gb_tiles,
   chr_gb_tiles_rev,
@@ -561,7 +561,7 @@ const Level level_test = {
   test_map,
   BG_BASE_TILE_COUNT, 128, 64, 0, 0,
   BANK(test_map),
-  180,
+  183,
   test_sp,
   BANK(test_sp),
   test_sp_dmg,
@@ -578,7 +578,7 @@ const Level level_test2 = {
   test2_map,
   BG_BASE_TILE_COUNT, 256, 64, 0, 0,
   BANK(test2_map),
-  180,
+  183,
   test2_sp,
   BANK(test2_sp),
   test2_sp_dmg,
@@ -590,58 +590,58 @@ const Level level_test2 = {
 
 // Global level list used by the menu and gameplay systems
 const Level* const game_levels[] = {
-  &level_sm,
-  &level_bot,
-  &level_pg,
-  &level_du,
-  &level_bab,
-  &level_clg,
-  &level_ju,
-  &level_tm,
-  &level_cy,
-  &level_xs,
-  &level_cf,
-  &level_toe,
-  &level_ea,
-  &level_cs,
-  &level_bal,
-  &level_le,
-  &level_sz,
+  &level_stereomadness,
+  &level_backontrack,
+  &level_polargeist,
+  &level_dryout,
+  &level_baseafterbase,
+  &level_cantletgo,
+  &level_jumper,
+  &level_timemachine,
+  &level_cycles,
+  &level_xstep,
+  &level_clutterfunk,
+  &level_theoryofeverything,
+  &level_electromanadventures,
+  &level_clubstep,
+  &level_bestautomaticlvl,
+  &level_leveleasy,
+  &level_subzero,
   &level_ultiatedestruction,
-  &level_em,
-  &level_dp,
-  &level_tlr,
+  &level_everymadness,
+  &level_demonpark,
+  &level_thelightningroad,
   &level_test,
   &level_test2,
 };
 const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);
 
 const uint8_t NUM_MAIN_LEVELS = 14;
-const uint8_t NUM_EXTRA_LEVELS = 7;
+const uint8_t NUM_EXTRA_LEVELS = 9;
 
 // Save slot of each level (game_levels order)
 const uint8_t level_save_slot[] = {
-  0u, // level_sm
-  1u, // level_bot
-  2u, // level_pg
-  3u, // level_du
-  4u, // level_bab
-  5u, // level_clg
-  6u, // level_ju
-  7u, // level_tm
-  8u, // level_cy
-  9u, // level_xs
-  10u, // level_cf
-  12u, // level_toe
-  13u, // level_ea
-  15u, // level_cs
-  14u, // level_bal
-  16u, // level_le
-  17u, // level_sz
+  0u, // level_stereomadness
+  1u, // level_backontrack
+  2u, // level_polargeist
+  3u, // level_dryout
+  4u, // level_baseafterbase
+  5u, // level_cantletgo
+  6u, // level_jumper
+  7u, // level_timemachine
+  8u, // level_cycles
+  9u, // level_xstep
+  10u, // level_clutterfunk
+  12u, // level_theoryofeverything
+  13u, // level_electromanadventures
+  15u, // level_clubstep
+  14u, // level_bestautomaticlvl
+  16u, // level_leveleasy
+  17u, // level_subzero
   11u, // level_ultiatedestruction
-  18u, // level_em
-  19u, // level_dp
-  21u, // level_tlr
-  255u, // level_test
-  255u, // level_test2
+  18u, // level_everymadness
+  19u, // level_demonpark
+  21u, // level_thelightningroad
+  22u, // level_test
+  23u, // level_test2
 };

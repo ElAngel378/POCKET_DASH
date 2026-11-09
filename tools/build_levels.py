@@ -6,6 +6,7 @@ import struct
 import subprocess
 import json
 import xml.etree.ElementTree as ET
+from functools import lru_cache
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -22,37 +23,15 @@ SPRITES_DIR = SRC_DIR / "sprites"
 LEVELS_DIR = SRC_DIR / "levels"
 ASSETS_C_PATH = SRC_DIR / "assets.c"
 
-KNOWN_LEVELS = {
-    "stereomadness": {"title": "STEREO MADNESS", "divider": 192, "order": 1, "short": "sm"},
-    "backontrack":   {"title": "BACK ON TRACK",   "divider": 184, "order": 2, "short": "bot"},
-    "polargeist":    {"title": "POLARGEIST",      "divider": 193, "order": 3, "short": "pg"},
-    "dryout":        {"title": "DRY OUT",         "divider": 185, "order": 4, "short": "du"},
-    "baseafterbase": {"title": "BASE AFTER BASE", "divider": 183, "order": 5, "short": "bab"},
-    "cantletgo":     {"title": "CANT LET GO",     "divider": 196, "order": 6, "short": "clg"},
-    "jumper":        {"title": "JUMPER",          "divider": 142, "order": 7, "short": "ju"},
-    "timemachine":   {"title": "TIME MACHINE",    "divider": 41,  "order": 8, "short": "tm"},
-    "cycles":        {"title": "CYCLES",          "divider": 183, "order": 9, "short": "cy"},
-    "xstep":         {"title": "XSTEP",           "divider": 138, "order": 10, "short": "xs"},
-    "clutterfunk":   {"title": "CLUTTERFUNK",     "divider": 195, "order": 11, "short": "cf"},
-    # "save": the level's save slot when it is not order - 1 (slots never move: the order can)
-    "theoryofeverything": {"title": "THEORY OF EVERYTHING", "divider": 183, "order": 12, "short": "toe", "save": 12},
-    "electromanadventures": {"title": "ELECTROMAN ADVENTURES", "divider": 183, "order": 13, "short": "ea", "save": 13},
-    "clubstep":      {"title": "CLUBSTEP",        "divider": 183, "order": 14, "short": "cs", "save": 15},
-    # Extra levels (the wrench in the main menu): the other Famidash levels Pocket Dash can play,
-    # easiest first. "song": play that level's song (Famidash uses it too).
-    # Every Madness is in although the deathless bot has not cleared it yet (from x ~5971)
-    "bestautomaticlvl": {"title": "BEST AUTOMATIC LVL", "divider": 183, "order": 15, "short": "bal", "save": 14, "extra": True, "song": "dryout"},
-    # save slot 15 was Madness (removed); Clubstep has it since it moved to the main levels (save
-    # version 12 moves its slot 20 progress there). Slot 20 is free
-    "leveleasy":     {"title": "LEVEL EASY",      "divider": 183, "order": 17, "short": "le", "save": 16, "extra": True, "song": "stereomadness"},
-    "subzero":       {"title": "SUBZERO",         "divider": 183, "order": 18, "short": "sz", "save": 17, "extra": True, "song": "cantletgo"},
-    "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 19, "short": "ultiatedestruction", "save": 11, "extra": True},
-    "everymadness":  {"title": "EVERY MADNESS",   "divider": 183, "order": 20, "short": "em", "save": 18, "extra": True},
-    "demonpark":     {"title": "DEMON PARK",      "divider": 183, "order": 21, "short": "dp", "save": 19, "extra": True, "song": "timemachine"},
-    "thelightningroad": {"title": "THE LIGHTNING ROAD", "divider": 183, "order": 23, "short": "tlr", "save": 21, "extra": True, "song": "dryout"},
-}
-# Save slots (include/save_manager.h NUM_SAVE_LEVELS); a level not listed above has none
-NO_SAVE_SLOT = 255
+# What a level is called, where it is listed and what it plays are the TMX's map properties
+MENUS = ("Main", "Extra")                 # the "Menu" property; the game lists them in this order
+TITLE_LETTERS = {"Main": 21, "Extra": 18}  # what fits on each menu
+NUM_SAVE_SLOTS = 64                       # include/save_manager.h NUM_SAVE_LEVELS
+FUR_DIR = REPO_ROOT / "music" / "Furnace"
+MENU_SONGS = {"menuloop", "menu", "menutheme"}   # the menu theme, no level plays it
+NOT_LEVEL_SONGS = MENU_SONGS | {"songtemplate"}
+NO_SONG_DIVIDER = 183                     # the music timer of a level without a hUGETracker song
+HAND_WRITTEN_MUSIC = {"music_beats.c", "practice.c"}   # in src/music, not made from a level's song
 
 def level_settings(tmx_path):
     """(BG colour, ground colour, 1 if the cube falls up to 7 px a frame) from the TMX's map properties"""
@@ -86,23 +65,32 @@ def read_uge_tempo(uge_path):
         print(f"  Warning reading tempo from {uge_path}: {e}")
     return None, None
 
-def find_uge_file(stem):
-    """
-    Finds a matching .uge file in music/ for a given level stem.
-    Normalizes names (alphanumeric only) and handles common aliases.
-    """
-    if not ROOT_MUSIC_DIR.exists():
-        return None
-    norm_stem = re.sub(r'[^a-z0-9]', '', stem.lower())
-    aliases = {
-        'ultiatedestruction': 'ultimate',
-        'ultimatedestruction': 'ultimate',
-    }
-    target = aliases.get(norm_stem, norm_stem)
-    for p in ROOT_MUSIC_DIR.glob('*.uge'):
-        if re.sub(r'[^a-z0-9]', '', p.stem.lower()) == target:
-            return p
-    return None
+def norm_name(s):
+    return re.sub(r'[^a-z0-9]', '', s.lower())
+
+def song_files():
+    """The songs a level can play: {normalised name: [name in Tiled, its .fur, its .uge]}. A .fur and
+    a .uge with the same name are the same song (the .uge plays with the LEGACY setting)."""
+    found = {}
+    for kind, folder, pattern in ((1, FUR_DIR, "*.fur"), (2, ROOT_MUSIC_DIR, "*.uge")):
+        for p in sorted(folder.glob(pattern), key=lambda p: p.name.lower()):
+            if norm_name(p.stem) not in NOT_LEVEL_SONGS:
+                found.setdefault(norm_name(p.stem), [p.stem, None, None])[kind] = p
+    return found
+
+def update_song_list():
+    """The Song dropdown in Tiled: the songs in the music folders"""
+    path = TMX_DIR.parent / "pocket_dash.tiled-project"
+    with path.open(encoding="utf-8", newline="") as f:
+        text = f.read()
+    project = json.loads(text)
+    values = ["none"] + sorted((s[0] for s in song_files().values()), key=str.lower)
+    song_type = next(t for t in project["propertyTypes"] if t["name"] == "Song")
+    if song_type["values"] != values:
+        song_type["values"] = values
+        nl = "\r\n" if "\r\n" in text else "\n"
+        with path.open("w", encoding="utf-8", newline="") as f:
+            f.write(json.dumps(project, indent=4).replace("\n", nl) + nl)
 
 def format_title(stem):
     return stem.replace("_", " ").replace("-", " ").upper()
@@ -357,11 +345,9 @@ def generate_assets_c(levels):
         f.write('const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);\n\n')
 
         # the main levels (the level select of PLAY) come first, then the extra ones (the wrench)
-        n_main = sum(1 for l in levels if l["stem"] in KNOWN_LEVELS and not l["extra"])
+        n_main = sum(1 for l in levels if not l["extra"])
         n_extra = sum(1 for l in levels if l["extra"])
         assert all(not l["extra"] for l in levels[:n_main])
-        # the main levels' saves are in WRAM (include/save_manager.h NUM_RAM_SAVE_LEVELS)
-        assert all(l["save_slot"] < 16 for l in levels[:n_main])
         assert all(l["extra"] for l in levels[n_main:n_main + n_extra])
         f.write(f'const uint8_t NUM_MAIN_LEVELS = {n_main};\n')
         f.write(f'const uint8_t NUM_EXTRA_LEVELS = {n_extra};\n\n')
@@ -373,6 +359,30 @@ def generate_assets_c(levels):
             f.write(f'  {lvl["save_slot"]}u, // level_{lvl["short_name"]}\n')
         f.write('};\n')
 
+def map_properties(stem):
+    return {p.get("name"): p.get("value") for p in ET.parse(TMX_DIR / (stem + ".tmx")).getroot().findall("properties/property")}
+
+@lru_cache(maxsize=None)
+def level_info(stem):
+    """The level's map properties: menu, order, title, song (None: silent), save (None: not given yet)"""
+    props = map_properties(stem)
+
+    def number(name, default):
+        value = props.get(name)
+        if value is None:
+            return default
+        if not value.strip().isdigit():
+            raise SystemExit(f"Level '{stem}': the {name} property has to be a number, not '{value}'.")
+        return int(value)
+    menu = props.get("Menu") or "Extra"
+    if menu not in MENUS:
+        raise SystemExit(f"Level '{stem}': the Menu property has to be Main or Extra, not '{menu}'.")
+    title = re.sub(r"[^A-Z0-9 ]", "", (props.get("Title") or "").upper())[:TITLE_LETTERS[menu]].strip()
+    song = (props.get("Song") or "").strip()
+    return {"menu": menu, "order": number("Order", 999), "save": number("Save slot", None),
+            "title": title or format_title(stem)[:TITLE_LETTERS[menu]],
+            "song": None if song.lower() in ("", "none") else song}
+
 def level_files():
     """The levels' TMX files in game order (a level's index is its position here)."""
     tmx_files = [p for p in TMX_DIR.glob("*.tmx") if p.stem.lower() != "template"]
@@ -381,29 +391,56 @@ def level_files():
             raise SystemExit(f"Level file name '{p.name}' can't end in _ and a number.")
 
     def sort_key(p):
-        stem = p.stem.lower()
-        if stem in KNOWN_LEVELS:
-            return (0, KNOWN_LEVELS[stem]["order"], stem)
-        return (1, 999, stem)
+        info = level_info(p.stem.lower())
+        return (MENUS.index(info["menu"]), info["order"], p.stem.lower())
 
     return sorted(tmx_files, key=sort_key)
 
-def map_properties(stem):
-    return {p.get("name"): p.get("value") for p in ET.parse(TMX_DIR / (stem + ".tmx")).getroot().findall("properties/property")}
-
 def level_title(stem):
-    """A community level's title is its "Title" map property; what the font and the list can show"""
-    if stem in KNOWN_LEVELS:
-        return KNOWN_LEVELS[stem]["title"]
-    title = map_properties(stem).get("Title") or format_title(stem)
-    return re.sub(r"[^A-Z0-9 ]", "", title.upper())[:18].strip() or format_title(stem)[:18]
+    return level_info(stem)["title"]
 
 def level_song(stem):
-    """The level whose song this level plays (a community level's "Song" map property), or None"""
-    if stem in KNOWN_LEVELS:
-        return KNOWN_LEVELS[stem].get("song")
-    song = (map_properties(stem).get("Song") or "").strip().lower()
-    return None if song in ("", "none") else song
+    """The song this level plays (the name of its file in the music folders), or None"""
+    return level_info(stem)["song"]
+
+def write_save_slot(tmx_path, slot):
+    with tmx_path.open(encoding="utf-8", newline="") as f:
+        text = f.read()
+    nl = "\r\n" if "\r\n" in text else "\n"
+    line = f' <property name="Save slot" type="int" value="{slot}"/>{nl}'
+    end, first_tileset = text.find(" </properties>"), text.find("<tileset")
+    if end != -1 and end < first_tileset:
+        text = text[:end] + " " + line + text[end:]
+    else:                                 # no map properties at all
+        at = text.index(">", text.index("<map")) + 1 + len(nl)
+        text = text[:at] + f" <properties>{nl} {line} </properties>{nl}" + text[at:]
+    with tmx_path.open("w", encoding="utf-8", newline="") as f:
+        f.write(text)
+
+def give_save_slots():
+    """A level keeps its save slot for good, whatever happens to the order: one without any gets
+    the lowest free slot, written in its TMX"""
+    files = level_files()
+    owner = {}
+    for p in files:
+        slot = level_info(p.stem.lower())["save"]
+        if slot is None:
+            continue
+        if slot >= NUM_SAVE_SLOTS:
+            raise SystemExit(f"Level '{p.stem}': the Save slot property goes up to {NUM_SAVE_SLOTS - 1}, not {slot}.")
+        if slot in owner:
+            raise SystemExit(f"Levels '{owner[slot]}' and '{p.stem}' both have Save slot {slot}. "
+                             "Delete the property from one of them and build again: it gets a free one.")
+        owner[slot] = p.stem
+    for p in files:
+        if level_info(p.stem.lower())["save"] is None:
+            slot = next((s for s in range(NUM_SAVE_SLOTS) if s not in owner), None)
+            if slot is None:
+                raise SystemExit(f"All {NUM_SAVE_SLOTS} save slots are taken, so '{p.stem}' can't have one.")
+            owner[slot] = p.stem
+            write_save_slot(p, slot)
+            print(f"Level {p.stem}: gets save slot {slot}")
+    level_info.cache_clear()
 
 def build_all():
     print("=== Pocket Dash Automated Level Pipeline ===")
@@ -413,6 +450,8 @@ def build_all():
     os.makedirs(SPRITES_DIR, exist_ok=True)
     os.makedirs(LEVELS_DIR, exist_ok=True)
 
+    update_song_list()
+    give_save_slots()
     tmx_files = level_files()
     print(f"Found {len(tmx_files)} level(s): {[p.stem for p in tmx_files]}")
 
@@ -428,10 +467,12 @@ def build_all():
             print(f"Warning: uge2source failed for menuLoop.uge: {res.stderr}")
 
     levels_info = []
+    songs = song_files()
+    made_songs = {}     # the hUGETracker songs so far: the levels that play one share its data
 
     idents = [make_c_ident(p.stem.lower()) for p in tmx_files]
     taken = used_banks([SPRITES_DIR / f"{i}_sprites.c" for i in idents] +
-                       [MUSIC_DIR / f"{i}.c" for i in idents])
+                       [p for p in MUSIC_DIR.glob("*.c") if p.name not in HAND_WRITTEN_MUSIC])
     next_map_bank = FIRST_MAP_BANK
     BASE_SPRITE_BANK = 100
     BASE_MUSIC_BANK = 200
@@ -450,18 +491,10 @@ def build_all():
         stem = tmx_path.stem.lower()
         ident = make_c_ident(stem)
         sprite_bank = sprite_banks[idx]
-        meta = KNOWN_LEVELS.get(stem, {})
-
-        if stem in KNOWN_LEVELS:
-            title = meta["title"]
-            divider = meta["divider"]
-            short_name = meta["short"]
-            save_slot = meta.get("save", meta["order"] - 1)
-        else:
-            title = level_title(stem)
-            divider = 180
-            short_name = ident
-            save_slot = NO_SAVE_SLOT
+        info = level_info(stem)
+        title = info["title"]
+        short_name = ident
+        save_slot = info["save"]
 
         print(f"\n[{idx+1}/{len(tmx_files)}] Processing {title} ({stem})...")
 
@@ -485,59 +518,54 @@ def build_all():
         print(f"  - Level wrapper: level_{short_name}.c (Bank {map_bank}"
               + (f"..{map_bank + chunks - 1}, {chunks} chunks of {MAP_BANK_COLS} columns)" if chunks > 1 else ")"))
 
-        music_file = MUSIC_DIR / f"{ident}.c"
-        uge_file = find_uge_file(stem)
-        song = level_song(stem)
-        song_of = next((l for l in levels_info if l["stem"] == song), None)
-        if song and not song_of:
+        song = info["song"]
+        song_key = norm_name(song) if song else None
+        if song and song_key not in songs:
             raise SystemExit(f"Level '{stem}': there's no song called '{song}'. Pick one from the Song property in Tiled.")
-        music_ident = ident
-        if song_of or (uge_file and UGE2SOURCE_BIN.exists()) or music_file.exists():
-            if not song_of:
-                music_bank = allocate_banks(1, next_music_bank, taken)
-                if music_bank > LAST_MUSIC_BANK:
-                    raise SystemExit("no free bank for the hUGETracker song of " + stem)
-                taken.add(music_bank)
-                next_music_bank = music_bank + 1
+        uge_file = songs[song_key][2] if song else None
+        music_ident = f"song_{song_key}"
+        music_file = MUSIC_DIR / f"{music_ident}.c"
+        divider = NO_SONG_DIVIDER
 
-        if song_of:
-            # another level's song (Famidash plays it there too): the same song data
-            if music_file.exists():
-                music_file.unlink()
-            has_music = song_of["has_music"]
-            music_ident = song_of["music_ident"]
-            music_bank = song_of["music_bank"]
-            divider = song_of["divider"]
-            print(f"  - Music: {song_of['title']}'s song")
-        elif uge_file and UGE2SOURCE_BIN.exists():
-            uge_divider, uge_ticks = read_uge_tempo(uge_file)
-            if uge_divider is not None:
-                divider = uge_divider
-                print(f"  - Music tempo: auto-detected TMA divider = {divider} (ticks={uge_ticks}) from {uge_file.name}")
-            else:
-                # No timer: the song is meant to step once per VBlank. The game always drives
-                # the music from the 4096 Hz timer: TMA 187 = 4096 / 69 = 59.4 Hz, the nearest
-                # rate to VBlank (59.7 Hz).
-                divider = 187
-                print(f"  - Music tempo: {uge_file.name} steps on VBlank (no timer): divider = {divider}")
-
-            cmd = [str(UGE2SOURCE_BIN), str(uge_file), "-b", str(music_bank), ident, str(music_file)]
-            res = subprocess.run(cmd, capture_output=True, text=True)
-            if res.returncode == 0:
+        if song_key in made_songs:
+            has_music, music_bank, divider = made_songs[song_key]
+            print(f"  - Music: {song}, already in the game")
+        elif song and ((uge_file and UGE2SOURCE_BIN.exists()) or music_file.exists()):
+            music_bank = allocate_banks(1, next_music_bank, taken)
+            if music_bank > LAST_MUSIC_BANK:
+                raise SystemExit("no free bank for the hUGETracker song of " + stem)
+            taken.add(music_bank)
+            next_music_bank = music_bank + 1
+            if uge_file:
+                uge_divider, uge_ticks = read_uge_tempo(uge_file)
+                if uge_divider is not None:
+                    divider = uge_divider
+                    print(f"  - Music tempo: auto-detected TMA divider = {divider} (ticks={uge_ticks}) from {uge_file.name}")
+                else:
+                    # No timer: the song is meant to step once per VBlank. The game always drives
+                    # the music from the 4096 Hz timer: TMA 187 = 4096 / 69 = 59.4 Hz, the nearest
+                    # rate to VBlank (59.7 Hz).
+                    divider = 187
+                    print(f"  - Music tempo: {uge_file.name} steps on VBlank (no timer): divider = {divider}")
+            res = None
+            if uge_file and UGE2SOURCE_BIN.exists():
+                cmd = [str(UGE2SOURCE_BIN), str(uge_file), "-b", str(music_bank), music_ident, str(music_file)]
+                res = subprocess.run(cmd, capture_output=True, text=True)
+            if res and res.returncode == 0:
                 print(f"  - Music: exported {uge_file.name} -> {music_file.name} (Bank {music_bank})")
                 has_music = True
             else:
-                print(f"  - Warning: uge2source failed for {uge_file.name}: {res.stderr}")
+                if res:
+                    print(f"  - Warning: uge2source failed for {uge_file.name}: {res.stderr}")
                 has_music = music_file.exists()
                 if has_music:
                     update_music_bank(music_file, music_bank)
-        elif music_file.exists():
-            has_music = True
-            update_music_bank(music_file, music_bank)
-            print(f"  - Music: Using existing {music_file.name} (Bank {music_bank})")
+                    print(f"  - Music: Using existing {music_file.name} (Bank {music_bank})")
+            made_songs[song_key] = (has_music, music_bank, divider)
         else:
             has_music = False
-            print(f"  - Music: Not found for {stem} (Will play silent)")
+            music_bank = 0
+            print(f"  - Music: no hUGETracker song ({song or 'silent'})")
 
         bg_color, g_color, max_fall_7 = level_settings(TMX_DIR / f"{stem}.tmx")
 
@@ -545,7 +573,7 @@ def build_all():
             "stem": stem,
             "ident": ident,
             "music_ident": music_ident,
-            "extra": meta.get("extra", False),
+            "extra": info["menu"] == "Extra",
             "short_name": short_name,
             "save_slot": save_slot,
             "title": title,
@@ -568,8 +596,15 @@ def build_all():
         if re.sub(r"_\d+$", "", p.stem) not in wanted:
             print(f"Removing stale {p.name}")
             p.unlink()
+    # ...and the songs no level plays any more
+    wanted = {f"{l['music_ident']}.c" for l in levels_info if l["has_music"]} | HAND_WRITTEN_MUSIC
+    for p in MUSIC_DIR.glob("*.c"):
+        if p.name not in wanted:
+            print(f"Removing stale {p.name}")
+            p.unlink()
+    subprocess.run([sys.executable, "tools/make_music_beats.py"], cwd=str(REPO_ROOT), check=True, stdout=subprocess.DEVNULL)
 
-    # Furnace songs: music/Furnace/*.fur, matched to the levels by name like the .uge files
+    # Furnace songs: music/Furnace/*.fur, each level's is its Song property
     print("\nConverting Furnace songs (music/Furnace)...")
     import convert_furnace
     convert_furnace.convert([p.stem.lower() for p in tmx_files])

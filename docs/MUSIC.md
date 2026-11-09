@@ -6,8 +6,8 @@ Pocket Dash plays Furnace songs through its own Game Boy driver, [fur2gb](https:
 
 Run `build.bat` (`./build.sh` on Linux and macOS) after adding songs:
 
-- **Furnace** (the game's music): put the `.fur` in `music/Furnace/`. A song named like a level (`BaseAfterBase.fur`, `DryOut.fur`; case, spaces and trailing digits don't matter) is that level's song, and any level can use another level's song with the `Song` map property in Tiled; `MenuLoop.fur` is the menu theme; any other song is only in the music test. Songs must use a single Game Boy chip (DMG or CGB model); others are skipped with a warning.
-- **hUGETracker** (the LEGACY setting): put the `.uge` in `music/Legacy/`, named like the level (`DryOut.uge` for `dryout.tmx`). A level without a Furnace song plays its hUGETracker one.
+- **Furnace** (the game's music): put the `.fur` in `music/Furnace/`. Build once and it is in the `Song` list of every level in Tiled (Map > Map Properties), whatever the file is called; several levels can play the same song. `MenuLoop.fur` is the menu theme; a song no level picks is only in the music test. Songs must use a single Game Boy chip (DMG or CGB model); others are skipped with a warning.
+- **hUGETracker** (the LEGACY setting): put the `.uge` in `music/Legacy/`, with the same name as the song's `.fur` (case, spaces and punctuation don't matter), or on its own: it is then in the `Song` list too. Its tempo comes from the file.
 
 To move a hUGETracker song to Furnace, convert it with fur2gb's `tools/uge2fur.py` (`python ../fur2gb/tools/uge2fur.py music/Legacy/Song.uge -o music/Furnace/Song.fur`) and edit it in Furnace.
 
