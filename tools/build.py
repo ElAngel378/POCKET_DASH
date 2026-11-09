@@ -280,7 +280,7 @@ def convert_levels(force):
     if not force and stamp.exists() and stamp.read_text() == current:
         say("Levels: no changes.")
         return
-    say("Converting levels...")
+    say("Converting levels (a changed song can take a few minutes)...")
     r = subprocess.run([sys.executable, "tools/build_levels.py"], cwd=ROOT, capture_output=True, text=True, errors="replace")
     if r.returncode:
         fail_with("Converting the levels", r.stdout + r.stderr)

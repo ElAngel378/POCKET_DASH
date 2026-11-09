@@ -80,7 +80,7 @@ To start over from nothing, delete the `temp` folder (or run `build --clean`). T
 
 ## Your own song
 
-Put a Furnace song named after your level (`my_level.fur`) in `music/Furnace/`. Converting Furnace songs needs some extra setup, explained in [MUSIC.md](MUSIC.md).
+Put a Furnace song named after your level (`my_level.fur`) in `music/Furnace/`, then build. On Windows the song converter downloads itself the first time, and a new song can take a few minutes. More in [MUSIC.md](MUSIC.md).
 
 ## Linux and macOS
 

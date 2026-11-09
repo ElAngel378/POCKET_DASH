@@ -3,3 +3,5 @@
 # Windows runs these, and needs CRLF even from a zip download
 *.bat text eol=crlf
 *.sh text eol=lf
+# Finished song conversions
+*.pkl binary

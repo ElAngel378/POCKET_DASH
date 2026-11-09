@@ -11,7 +11,7 @@ Run `build.bat` (`./build.sh` on Linux and macOS) after adding songs:
 
 To move a hUGETracker song to Furnace, convert it with fur2gb's `tools/uge2fur.py` (`python ../fur2gb/tools/uge2fur.py music/Legacy/Song.uge -o music/Furnace/Song.fur`) and edit it in Furnace.
 
-The Furnace songs are converted with [fur2gb](https://github.com/Soteris24/fur2gb), which plays each song in Furnace and checks the result write for write. It needs the fur2gb repo next to this one (or `FUR2GB_DIR`) and its Furnace build (see its README). Converted songs are cached in `.cache/furnace/`, so only new or changed songs take time. Without fur2gb the songs already in `src/furnace/` are kept.
+The Furnace songs are converted with [fur2gb](https://github.com/Soteris24/fur2gb), which plays each song in Furnace and checks the result write for write. On Windows you don't have to set anything up: the first time a song has changed, the build downloads fur2gb and its Furnace into `.tools`. If you develop fur2gb itself, a copy next to this repo (or `FUR2GB_DIR`) with its Furnace build is used instead. Finished songs are kept in `music/Furnace/converted/`, so only new or changed songs take time. On Linux and macOS the songs already in `src/furnace/` are kept.
 
 ## The driver: fur2gb
 

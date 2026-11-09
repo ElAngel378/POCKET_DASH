@@ -24,7 +24,7 @@ Writes:
   src/furnace/furnace_songs.c (bank FUR_CODE_BANK) the song table and the songs' beat timelines
                              for the pulsing rods (tools/make_music_beats.py does the hUGE songs)
   include/furnace_songs.h    song ids, names (for the music test), level -> song map
-Converted songs are cached in .cache/furnace (by file contents, fur2gb and Furnace version), so
+Converted songs are kept in music/Furnace/converted (by file contents, fur2gb and Furnace version), so
 only new or changed songs are traced again. Without fur2gb or its Furnace build the generated
 files are left as they are.
 """
@@ -34,17 +34,40 @@ import pickle
 import re
 import shutil
 import sys
+import urllib.request
+import zipfile
 from pathlib import Path
 
 import make_music_beats   # add_fake_beats (tools/ is on the path: run as a script)
 
 ROOT = Path(__file__).resolve().parent.parent
-FUR2GB = Path(os.environ.get("FUR2GB_DIR", ROOT.parent / "fur2gb"))
+FUR2GB_COMMIT = "39b8d5b038dabf74dc9a38c3382d44d2a496b28e"     # what a build downloads when a song changed
+DOWNLOADED = ROOT / ".tools" / "fur2gb"
+
+
+def has_converter(folder):
+    """The fur2gb code and its patched Furnace (a downloaded copy: the version we want)"""
+    if folder == DOWNLOADED and not (folder / "COMMIT").exists():
+        return False
+    if folder == DOWNLOADED and (folder / "COMMIT").read_text().strip() != FUR2GB_COMMIT:
+        return False
+    furnace = os.environ.get("FUR2GB_FURNACE") or folder / ".build" / "furnace-0682-build" / "furnace.exe"
+    return (folder / "tools" / "fur2gb.py").exists() and Path(furnace).exists()
+
+
+def find_fur2gb():
+    for folder in [Path(p) for p in [os.environ.get("FUR2GB_DIR")] if p] + [ROOT.parent / "fur2gb", DOWNLOADED]:
+        if has_converter(folder):
+            return folder
+    return DOWNLOADED
+
+
+FUR2GB = find_fur2gb()
 
 SRC = ROOT / "music" / "Furnace"
 OUT = ROOT / "src" / "furnace"
 HDR = ROOT / "include"
-CACHE = ROOT / ".cache" / "furnace"
+CACHE = SRC / "converted"      # in the repository: only a changed song is converted again
 FUR_CODE_BANK = 25            # fur_play etc., the song table, the beat timelines
 FIRST_SONG_BANK = 130         # songs go in the banks from here that nothing else in src/ uses
 LAST_SONG_BANK = 254          # (the level maps, sprite lists and hUGE songs are among them)
@@ -230,15 +253,61 @@ def tool_hash():
     """What a converted song depends on besides the .fur: fur2gb, its Furnace, our settings"""
     h = hashlib.sha256(repr((FRAMES, CHUNKS, CHUNK_SIZE, 1)).encode())
     for f in sorted((FUR2GB / "tools").glob("*.py")) + sorted((FUR2GB / "driver").glob("*")):
-        h.update(f.name.encode() + f.read_bytes())
-    st = fur2gb.furtrace.DEFAULT_FURNACE.stat()
-    h.update(f"{st.st_size} {st.st_mtime_ns}".encode())
+        h.update(f.name.encode() + f.read_bytes().replace(b"\r\n", b"\n"))    # the same on any PC
+    h.update(fur2gb.furtrace.DEFAULT_FURNACE.read_bytes())
     return h.hexdigest()[:16]
+
+
+def song_key(fur):
+    return hashlib.sha256(fur.read_bytes()).hexdigest()[:24]
+
+
+def fetch_fur2gb():
+    """Downloads the fixed version of fur2gb and its patched Furnace into .tools. True if it worked"""
+    if os.name != "nt":
+        print("  A song changed, but converting songs needs Windows: keeping the existing Furnace songs")
+        return False
+    print("  A song changed: downloading the song converter (only once)...", flush=True)
+    url = "https://github.com/Soteris24/fur2gb/archive/%s.zip" % FUR2GB_COMMIT
+    tools = ROOT / ".tools"
+    tools.mkdir(exist_ok=True)
+    archive = tools / "fur2gb.zip"
+    try:
+        urllib.request.urlretrieve(url, archive)
+    except OSError as e:
+        print(f"  Couldn't download the song converter ({e}): keeping the existing Furnace songs")
+        return False
+    shutil.rmtree(DOWNLOADED, ignore_errors=True)
+    with zipfile.ZipFile(archive) as z:
+        z.extractall(tools)
+    archive.unlink()
+    (tools / ("fur2gb-" + FUR2GB_COMMIT)).rename(DOWNLOADED)
+    with zipfile.ZipFile(DOWNLOADED / "prebuilt" / "furnace-trace-windows.zip") as z:
+        z.extractall(DOWNLOADED / ".build" / "furnace-0682-build")
+    (DOWNLOADED / "COMMIT").write_text(FUR2GB_COMMIT + "\n")
+    return True
+
+
+def keep_level_songs(levels):
+    """No conversion: the songs stay, but a new level can still play another level's (its Song property)"""
+    import build_levels
+    path = HDR / "furnace_songs.h"
+    text = path.read_text()
+    m = re.search(r"#define FUR_LEVEL_SONGS \{ (.*?) \}", text)
+    known = sum(1 for s in levels if s in build_levels.KNOWN_LEVELS)
+    lv = [s.strip() for s in m.group(1).split(",")][:known] + ["FUR_NONE"] * (len(levels) - known)
+    for i, stem in enumerate(levels):
+        of = build_levels.level_song(stem)
+        if i >= known and of in levels:
+            lv[i] = lv[levels.index(of)]
+    new = text[:m.start(1)] + ", ".join(lv) + text[m.end(1):]
+    if new != text:
+        path.write_text(new)
 
 
 def convert_song(fur, tools):
     """The converted song, cached: dict(song, beats, name, approx), or dict(skip=reason)"""
-    cache = CACHE / f"{hashlib.sha256(fur.read_bytes()).hexdigest()[:24]}_{tools}.pkl"
+    cache = CACHE / f"{song_key(fur)}_{tools}.pkl"
     if cache.exists():
         try:
             return pickle.loads(cache.read_bytes())
@@ -271,9 +340,11 @@ def convert(levels=None):
     import build_levels
     if levels is None:
         levels = [p.stem.lower() for p in build_levels.level_files()]
-    if not (FUR2GB / "tools" / "fur2gb.py").exists():
-        print(f"  fur2gb not found at {FUR2GB} (set FUR2GB_DIR): keeping the existing Furnace songs")
-        return
+    if not has_converter(FUR2GB):
+        changed = [f for f in SRC.glob("*.fur") if not any(CACHE.glob(song_key(f) + "_*.pkl"))]
+        if not changed or not fetch_fur2gb():
+            keep_level_songs(levels)
+            return
     sys.path.insert(0, str(FUR2GB / "tools"))
     import fur2gb as f2g
     fur2gb = f2g
@@ -288,6 +359,11 @@ def convert(levels=None):
 
     src = next((d for d in (ROOT / "music").glob("*") if d.is_dir() and d.name.lower() == "furnace"), SRC)
     furs = sorted(src.glob("*.fur"), key=lambda p: p.name.lower()) if src.exists() else []
+
+    wanted = {f"{song_key(f)}_{tools}.pkl" for f in furs}
+    for old in CACHE.glob("*.pkl"):
+        if old.name not in wanted:
+            old.unlink()    # a song's old versions
 
     menu, by_level, extras = None, {}, []
     for fur in furs:
