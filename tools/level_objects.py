@@ -615,9 +615,10 @@ def picture(key, art, opal):
     pw, ph = size(key, fl)
     placed = Image.new("RGBA", (pw, ph), (0, 0, 0, 0))
     colours = ((0, 0, 0, 0),) + PALETTES.get(opal.get(key, 0), PALETTES[0])
+    recolour = GO.CGB_RECOLOUR.get(key, {})            # as the game draws it on CGB
     for (qx, qy), px in art[(key, tf)].items():
         for i, v in enumerate(px):
-            placed.putpixel((qx * 8 + i % 8, qy * 8 + i // 8), colours[v])
+            placed.putpixel((qx * 8 + i % 8, qy * 8 + i // 8), colours[recolour.get(v, v)])
     for q in mask(key, fl) - set(art[(key, tf)]):      # never seen (always covered): grey hatching
         for i in range(64):
             if (i % 8 + i // 8) % 3 == 0:
