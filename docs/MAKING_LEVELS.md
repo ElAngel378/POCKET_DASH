@@ -51,7 +51,7 @@ Your level ends at its last column by itself. To end it sooner, place a **Level 
 | `Ground colour` | The ground's colour at the start |
 | `Max fall` | How fast the cube falls: 6 for most levels, 7 for the later ones |
 
-To change colour during the level, place a **BG colour**, **Ground colour** or **Outline colour** trigger on the SP layer, then set its **Colour** and **Fade** in the Properties panel. The game picks the closest colour it can show.
+To change colour during the level, place a **BG colour**, **Ground colour** or **Outline colour** trigger on the SP layer, then set its **Colour** and **Fade** in the Properties panel. The game picks the closest colour it can show. The trigger fires when the player reaches it.
 
 ### The sky and ground in Tiled
 

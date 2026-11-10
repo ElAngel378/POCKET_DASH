@@ -5,8 +5,8 @@ BANKREF(thelightningroad_sp)
 
 // Extracted 345 objects from SP layer
 const SpDef thelightningroad_sp[] = {
-    {0, 0, 143},
-    {0, 0, 207},
+    {160, 0, 143},
+    {160, 0, 207},
     {240, 992, 10},
     {256, 0, 144},
     {320, 896, 18},
@@ -355,7 +355,7 @@ const SpDef thelightningroad_sp[] = {
 
 // Extracted 289 gameplay-critical objects for DMG mode
 const SpDef thelightningroad_sp_dmg[] = {
-    {0, 0, 143},
+    {160, 0, 143},
     {240, 992, 10},
     {256, 0, 144},
     {320, 896, 18},

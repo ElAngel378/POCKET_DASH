@@ -12,6 +12,10 @@ from gd_objects import ROWS_BELOW
 SPRITES_FIRSTGID = 10001
 # Colour trigger tiles of objects/sprites.tsx (properties Colour, Fade) -> engine ids: base + colour
 BG_TRIGGER, GROUND_TRIGGER, OUTLINE_TRIGGER = 256, 257, 258
+# A colour trigger in Tiled fires when the player reaches it. The engine fires one 10 blocks ahead
+# of the player (BG_TRIGGER_LEAD_PX, sp_draw.c: Famidash's timing, and it keeps triggers only
+# briefly in the 16-entry object cache), so the build moves it that far right to cancel that out.
+TRIGGER_LEAD_PX = 160
 # Fade property -> include/famidash_bg.h FAMIDASH_FADE_* (written as the trigger's y: the engine
 # never reads a colour trigger's position other than its x)
 FADE_NAMES = {"0.3 s": 0, "instant": 1, "0.5 s": 2, "1 s": 3, "2 s": 4, "4 s": 5, "10 s": 6}
@@ -135,7 +139,7 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
                     if y_px is None:
                         print(f"Error: {tmx_filepath}: unknown Fade {props.get('Fade')!r} at x {x_px}")
                         sys.exit(1)
-                portal_data.append((x_px, y_px, obj_id))
+                portal_data.append((x_px + TRIGGER_LEAD_PX, y_px, obj_id))
                 continue
             if gid not in portals_map:
                 continue

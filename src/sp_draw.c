@@ -94,6 +94,8 @@ static const int16_t launch_force[2][5][4] = {
 };
 #define LAUNCH(p, kind) launch_force[(p)->mini][(kind)][(p)->mode]
 
+// Colour triggers fire this far ahead of the player. tools/tmx2sprites.py (TRIGGER_LEAD_PX) adds
+// the same distance to their x, so in Tiled a trigger fires when the player reaches it.
 #define BG_TRIGGER_LEAD_TILES 10
 #define BG_TRIGGER_LEAD_PX    ((BG_TRIGGER_LEAD_TILES) << 4)
 

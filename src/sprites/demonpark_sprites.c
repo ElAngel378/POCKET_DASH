@@ -5,8 +5,8 @@ BANKREF(demonpark_sp)
 
 // Extracted 353 objects from SP layer
 const SpDef demonpark_sp[] = {
-    {0, 0, 150},
-    {0, 0, 214},
+    {160, 0, 150},
+    {160, 0, 214},
     {224, 0, 160},
     {272, 0, 144},
     {272, 0, 192},
@@ -363,7 +363,7 @@ const SpDef demonpark_sp[] = {
 
 // Extracted 169 gameplay-critical objects for DMG mode
 const SpDef demonpark_sp_dmg[] = {
-    {0, 0, 150},
+    {160, 0, 150},
     {224, 0, 160},
     {272, 0, 144},
     {400, 992, 10},

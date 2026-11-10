@@ -5,8 +5,8 @@ BANKREF(leveleasy_sp)
 
 // Extracted 216 objects from SP layer
 const SpDef leveleasy_sp[] = {
-    {0, 0, 172},
-    {0, 0, 225},
+    {160, 0, 172},
+    {160, 0, 225},
     {512, 1008, 43},
     {560, 1008, 48},
     {640, 1008, 48},
@@ -226,7 +226,7 @@ const SpDef leveleasy_sp[] = {
 
 // Extracted 34 gameplay-critical objects for DMG mode
 const SpDef leveleasy_sp_dmg[] = {
-    {0, 0, 172},
+    {160, 0, 172},
     {2000, 4, 171},
     {2032, 0, 170},
     {2064, 0, 154},
