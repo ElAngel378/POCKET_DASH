@@ -458,6 +458,16 @@ static uint8_t player_frame_show(uint8_t want) {
     return same ? want : cube_shown;
 }
 
+// cube_ms's 2 sprites at (x, y), as move_metasprite (base tile, base prop 0), without its generic loop
+static uint8_t player_ms_put(uint8_t oam, uint8_t x, uint8_t y) {
+    uint8_t *o = (uint8_t *)&shadow_OAM[oam];
+    y = (uint8_t)(y + cube_ms[0].dy);
+    x = (uint8_t)(x + cube_ms[0].dx);
+    *o++ = y; *o++ = x; *o++ = cube_ms[0].dtile; *o++ = cube_ms[0].props;
+    *o++ = y; *o++ = (uint8_t)(x + 8u); *o++ = cube_ms[1].dtile; *o = cube_ms[1].props;
+    return 2;
+}
+
 static const metasprite_t *player_frame_metasprite(uint8_t want) {
     uint8_t show = player_frame_show(want);
     uint8_t t = (uint8_t)(cube_front << 2);
@@ -1870,13 +1880,13 @@ void play_level(uint8_t idx) BANKED {
                 }
             } else if (player.mode == MODE_BALL) {
                 // like the cube: never mirrored, it rolls the other way on the ceiling
-                const metasprite_t *ball = player_frame_metasprite(player_frame_id());
-                oam_index += move_metasprite(ball, 0, oam_index, sprite_x_final + 8, final_py + 16);
+                player_frame_metasprite(player_frame_id());
+                oam_index += player_ms_put(oam_index, (uint8_t)(sprite_x_final + 8), (uint8_t)(final_py + 16));
             } else {
                 // never mirrored (cube_turn); in mirror mode 2 px further right, where the mirrored
                 // drawing had it (the image's 1 px left offset mirrored)
-                const metasprite_t *cube = player_frame_metasprite(player_frame_id());
-                oam_index += move_metasprite(cube, 0, oam_index, (uint8_t)(sprite_x_final + (view_rev ? 10 : 8)), final_py + 16);
+                player_frame_metasprite(player_frame_id());
+                oam_index += player_ms_put(oam_index, (uint8_t)(sprite_x_final + (view_rev ? 10 : 8)), (uint8_t)(final_py + 16));
             }
         }
 

@@ -463,6 +463,9 @@ uint8_t player_update(
     // Most frames touch no spike: look at the (up to 4) metatiles the spike probes below lie in
     // first, and only run the 6 spike_at calls when one of them is a spike type
     uint8_t spike_near = 1;
+    // Per metatile: can it have a spike? (s0 s2: rows of the upper probes, s1 s3: lower; 0/1: column)
+    uint8_t s0 = 1, s1 = 1, s2 = 1, s3 = 1;
+    uint8_t rc_upper = 1;              // the centre probes are in the upper row
     {
         int16_t sy0 = (int16_t)py + (mini ? 4 : 3);
         int16_t sy1 = (int16_t)py + (mini ? 10 : 14);
@@ -472,7 +475,12 @@ uint8_t player_update(
             uint8_t k1 = col_tab[c0[r1]];
             uint8_t k2 = col_tab[c1[r0]];
             uint8_t k3 = col_tab[c1[r1]];
-            spike_near = spike_col_tab[k0 & 63u] | spike_col_tab[k1 & 63u] | spike_col_tab[k2 & 63u] | spike_col_tab[k3 & 63u];
+            s0 = spike_col_tab[k0 & 63u];
+            s1 = spike_col_tab[k1 & 63u];
+            s2 = spike_col_tab[k2 & 63u];
+            s3 = spike_col_tab[k3 & 63u];
+            spike_near = (uint8_t)(s0 | s1 | s2 | s3);
+            rc_upper = ((uint8_t)((uint8_t)(py + 8u) >> 4) == r0);
         }
     }
     if (!spike_near) {
@@ -490,11 +498,15 @@ uint8_t player_update(
         // bg_coll_floor_spikes (x+3 / x+12 at y+2 and y+13), bg_coll_death (centre x+6, y+7) and
         // the front side point (bg_coll_R: x+15, y+7)
         int16_t fy = (int16_t)py + 1;
-        if (SPIKE(3, fy + 2) || SPIKE(12, fy + 2) ||
-            SPIKE(3, fy + 13) || SPIKE(12, fy + 13) ||
-            SPIKE(6, fy + 7) || SPIKE(15, fy + 7)) {
+        // A probe only runs if its own metatile can hold a spike: in a row of spikes, most don't
+#define S_COL(off, lo, hi) (((off) < threshold) ? (lo) : (hi))
+        uint8_t sc0 = rc_upper ? s0 : s1, sc1 = rc_upper ? s2 : s3;
+        if ((S_COL(3, s0, s2) && SPIKE(3, fy + 2)) || (S_COL(12, s0, s2) && SPIKE(12, fy + 2)) ||
+            (S_COL(3, s1, s3) && SPIKE(3, fy + 13)) || (S_COL(12, s1, s3) && SPIKE(12, fy + 13)) ||
+            (S_COL(6, sc0, sc1) && SPIKE(6, fy + 7)) || (S_COL(15, sc0, sc1) && SPIKE(15, fy + 7))) {
             p->dead = 1; return 1;
         }
+#undef S_COL
     }
 
     // Saw cores: the 4 corners of the drawn player box (see saw_corner)
