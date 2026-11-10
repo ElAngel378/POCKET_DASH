@@ -74,24 +74,24 @@ static const uint8_t col_quads[COL_QUAD_COUNT] = {
 };
 
 // Collision types that depend on where inside the metatile the probe is (half blocks,
-// half spikes, quadrants). Kept out of inline_col_at so its 13 inlined copies in
-// player_update stay small (SDCC compiles the big inlined version very slowly).
-static uint8_t col_at_partial(uint8_t col, uint8_t inner_y, uint8_t xin) {
+// half spikes, quadrants). pack: probe position inside the metatile, (x << 4) | y.
+static uint8_t col_at_partial(uint8_t col, uint8_t pack) {
+    uint8_t lower = pack & 8u;         // y >= 8
     if (col == COL_TOP) {
-        if (inner_y >= 8) return COL_NONE;
+        if (lower) return COL_NONE;
     } else if (col == COL_BOTTOM) {
-        if (inner_y < 8) return COL_NONE;
+        if (!lower) return COL_NONE;
     } else if (col == COL_DEATH_TOP_HALF) {
-        if (inner_y < 8) return COL_NONE;
+        if (!lower) return COL_NONE;
         return COL_DEATH;
     } else if (col == COL_DEATH_BOTTOM_HALF) {
-        if (inner_y >= 8) return COL_NONE;
+        if (lower) return COL_NONE;
         return COL_DEATH;
     } else if ((uint8_t)(col - COL_QUAD_BASE) < COL_QUAD_COUNT) {
         uint8_t m = col_quads[(uint8_t)(col - COL_QUAD_BASE)];
         uint8_t q = 1;
-        if (inner_y >= 8) q = 4;
-        if (xin & 8u) q <<= 1;
+        if (lower) q = 4;
+        if (pack & 0x80u) q <<= 1;
         if (m & q) return COL_ALL;
         if (m & (uint8_t)(q << 4)) return COL_DEATH;
         return COL_NONE;
@@ -101,16 +101,60 @@ static uint8_t col_at_partial(uint8_t col, uint8_t inner_y, uint8_t xin) {
     return col;
 }
 
-// xin: x inside the 16px metatile of the probe point, (world_x + offset) & 15
-static inline uint8_t inline_col_at(const uint8_t* col_ptr, int16_t y, uint8_t xin) {
-    if ((uint16_t)y & 0xFF00) {
-        return (y < 0) ? COL_NONE : COL_ALL;
-    }
-    uint8_t py8 = (uint8_t)y;
-    uint8_t col = col_tab[col_ptr[py8 >> 4]];
-    // Fast path for the common cases (air, plain spikes, solid blocks)
-    if (col < COL_TOP || col == COL_ALL) return col;
-    return col_at_partial(col, py8 & 0x0F, xin);
+// Collision type at the point (player x + off, y). Only the lookup is in assembly: what the
+// types do is col_at_partial and player_update, in C.
+static uint8_t col_at(int16_t y, uint8_t off) __naked {
+    (void)y; (void)off;
+    __asm
+        ld      b, a                    ; off (A), y (DE)
+        ld      a, (_player)
+        and     a, #15
+        add     a, b
+        ld      b, a                    ; b: bit 4 = right column, low nibble = x in the metatile
+        ld      a, d
+        or      a, a
+        jr      NZ, 2$
+        ld      a, b
+        and     a, #0x10
+        ld      c, a
+        ld      a, e
+        swap    a
+        and     a, #0x0F
+        or      a, c
+        add     a, #<_collision_columns
+        ld      l, a
+        adc     a, #>_collision_columns
+        sub     a, l
+        ld      h, a
+        ld      a, (hl)                 ; metatile
+        add     a, #<_scratch_buf       ; col_tab[metatile]
+        ld      l, a
+        adc     a, #>_scratch_buf
+        sub     a, l
+        ld      h, a
+        ld      a, (hl)
+        cp      a, #COL_TOP
+        ret     C                       ; air, plain spikes
+        cp      a, #COL_ALL
+        ret     Z
+        ld      c, a
+        ld      a, b
+        swap    a
+        and     a, #0xF0
+        ld      b, a
+        ld      a, e
+        and     a, #0x0F
+        or      a, b
+        ld      e, a                    ; pack
+        ld      a, c                    ; col
+        jp      _col_at_partial
+    2$:                                 ; y outside 0..255: air above, solid below
+        xor     a, a
+        bit     7, d
+        ret     NZ
+        ld      a, #COL_ALL
+        ret
+    __endasm;
 }
 
 // Famidash bg_coll_spikes for the spike blocks / half spikes (quadrant types COL_QUAD_BASE + 12..25,
@@ -141,12 +185,11 @@ static const uint8_t quad_spike_zone[COL_QUAD_COUNT - 12][3] = {
 // xin, inner y: probe position inside the metatile. Ranges are inclusive.
 #define MT_BOTTOM_BACKGROUND_SPIKES 12
 #define MT_PITSPIKES                24
-static uint8_t spike_at(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
-    if ((uint16_t)y & 0xFF00) return 0;
-    uint8_t py8 = (uint8_t)y;
-    uint8_t mt = col_ptr[py8 >> 4];
+// pack: probe position inside the metatile, (x << 4) | y
+static uint8_t spike_shape(uint8_t mt, uint8_t pack) {
     uint8_t col = col_tab[mt];
-    uint8_t iy = py8 & 0x0F;
+    uint8_t iy = pack & 0x0Fu;
+    uint8_t xin = pack >> 4;
     // Pit spikes and background spikes are a row of spikes across the whole metatile: they
     // kill at any x (Famidash: x 5..7 only, so touching them for a frame often did nothing)
     if (mt == MT_PITSPIKES || mt == MT_BOTTOM_BACKGROUND_SPIKES) return iy > 10u;
@@ -174,6 +217,12 @@ static uint8_t spike_at(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
         return (uint8_t)(xin - lo) <= (uint8_t)(z[2] - lo);
     }
     return 0;
+}
+
+static uint8_t spike_at(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
+    if ((uint16_t)y & 0xFF00) return 0;
+    uint8_t py8 = (uint8_t)y;
+    return spike_shape(col_ptr[py8 >> 4], (uint8_t)((uint8_t)(xin << 4) | (py8 & 0x0Fu)));
 }
 
 // The collision types spike_at can kill on (a superset is fine: it only gates the spike_at calls)
@@ -246,6 +295,11 @@ static uint8_t spike_probes(void) __naked {
         ld      e, a                    ; e = s0
         pop     af
         ld      h, a                    ; h = rc
+        ld      a, b
+        or      a, c
+        or      a, d
+        or      a, e
+        ret     Z                       ; no spike metatile around: most frames
         ld      a, (_player)            ; which column each probe is in: x & 15
         and     a, #15
         ld      l, #0
@@ -336,29 +390,92 @@ static uint8_t spike_probes(void) __naked {
         ret
         ; a = offset in collision_columns -> a = 1 if that metatile can hold a spike
     30$:
-        ld      hl, #_collision_columns
-        add     a, l
+        add     a, #<_collision_columns
         ld      l, a
-        adc     a, h
+        adc     a, #>_collision_columns
         sub     a, l
         ld      h, a
         ld      a, (hl)                 ; metatile
-        ld      hl, #_scratch_buf       ; col_tab[metatile]
-        add     a, l
+        add     a, #<_scratch_buf       ; col_tab[metatile]
         ld      l, a
-        adc     a, h
+        adc     a, #>_scratch_buf
         sub     a, l
         ld      h, a
         ld      a, (hl)
         and     a, #63
-        ld      hl, #_spike_col_tab
-        add     a, l
+        add     a, #<_spike_col_tab
         ld      l, a
-        adc     a, h
+        adc     a, #>_spike_col_tab
         sub     a, l
         ld      h, a
         ld      a, (hl)
         ret
+    __endasm;
+}
+
+// Famidash's spike points for the 15x15 box, in the bit order of spike_probes: x, y from the
+// top of the player (bg_coll_floor_spikes x+3 / x+12 at y+3 and y+14, bg_coll_death centre x+6,
+// y+8, and the front side point bg_coll_R x+15, y+8)
+static const uint8_t spike_pts[12] = { 3, 3, 12, 3, 3, 14, 12, 14, 6, 8, 15, 8 };
+
+// Nonzero if one of the spike points in mask (from spike_probes, not 0xFF) kills. Only the walk
+// over the points is in assembly: the shape of each spike is spike_shape, in C.
+static uint8_t spike_hit(uint8_t mask) __naked {
+    (void)mask;
+    __asm
+        ld      c, a
+        ld      de, #_spike_pts
+    1$:
+        srl     c
+        jr      C, 2$
+        inc     de
+        inc     de
+        jr      NZ, 1$                  ; (inc de keeps the flags)
+        xor     a, a
+        ret
+    2$:
+        ld      a, (de)                 ; x of the point
+        inc     de
+        ld      l, a
+        ld      a, (_player)
+        and     a, #15
+        add     a, l
+        ld      l, a                    ; l: bit 4 = right column, low nibble = x in the metatile
+        ld      a, (de)                 ; y of the point
+        inc     de
+        ld      h, a
+        ld      a, (_player + 3)
+        add     a, h
+        ld      h, a                    ; h = y
+        push    bc
+        push    de
+        ld      a, l
+        swap    a
+        and     a, #0xF0
+        ld      c, a
+        ld      a, h
+        and     a, #0x0F
+        or      a, c
+        ld      e, a                    ; pack
+        ld      a, l
+        and     a, #0x10
+        ld      c, a
+        ld      a, h
+        swap    a
+        and     a, #0x0F
+        or      a, c
+        add     a, #<_collision_columns
+        ld      l, a
+        adc     a, #>_collision_columns
+        sub     a, l
+        ld      h, a
+        ld      a, (hl)                 ; metatile
+        call    _spike_shape
+        pop     de
+        pop     bc
+        or      a, a
+        ret     NZ
+        jr      1$
     __endasm;
 }
 
@@ -430,7 +547,7 @@ static uint8_t saw_corner(const uint8_t *col_ptr, int16_t y, uint8_t xin, uint8_
 }
 
 // off: x offset of the probe point inside the player box
-#define COL_AT(off, y) inline_col_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
+#define COL_AT(off, y) col_at((int16_t)(y), (off))
 #define SPIKE(off, y) spike_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
 
 uint8_t player_update(
@@ -633,7 +750,7 @@ uint8_t player_update(
     // Most frames touch no spike: look at the (up to 4) metatiles the spike probes below lie in
     // first, and only run the 6 spike_at calls when one of them is a spike type
     uint8_t spike_near = 1;
-    uint8_t spike_mask = 0x3F;         // full size: the probes spike_probes says can hit
+    uint8_t spike_mask = 0;            // full size: the probes spike_probes says can hit
     if (mini) {
         int16_t sy0 = (int16_t)py + 4;
         int16_t sy1 = (int16_t)py + 10;
@@ -647,7 +764,6 @@ uint8_t player_update(
         }
     } else {
         spike_mask = spike_probes();
-        if (spike_mask == 0xFF) spike_mask = 0x3F;
         spike_near = spike_mask;
     }
     if (!spike_near) {
@@ -660,14 +776,15 @@ uint8_t player_update(
             SPIKE(3, py + 7) || SPIKE(MINI_BOX_RIGHT, py + front_y)) {
             p->dead = 1; return 1;
         }
+    } else if (spike_mask != 0xFF) {
+        if (spike_hit(spike_mask)) {
+            p->dead = 1; return 1;
+        }
     } else {
-        // Famidash's spike points for the 15x15 box (its top is our py + 1, see front_y):
-        // bg_coll_floor_spikes (x+3 / x+12 at y+2 and y+13), bg_coll_death (centre x+6, y+7) and
-        // the front side point (bg_coll_R: x+15, y+7)
+        // at the bottom of the 256 px window, where some points are past it (see spike_pts)
         int16_t fy = (int16_t)py + 1;
-        if (((spike_mask & 1u) && SPIKE(3, fy + 2)) || ((spike_mask & 2u) && SPIKE(12, fy + 2)) ||
-            ((spike_mask & 4u) && SPIKE(3, fy + 13)) || ((spike_mask & 8u) && SPIKE(12, fy + 13)) ||
-            ((spike_mask & 16u) && SPIKE(6, fy + 7)) || ((spike_mask & 32u) && SPIKE(15, fy + 7))) {
+        if (SPIKE(3, fy + 2) || SPIKE(12, fy + 2) || SPIKE(3, fy + 13) || SPIKE(12, fy + 13) ||
+            SPIKE(6, fy + 7) || SPIKE(15, fy + 7)) {
             p->dead = 1; return 1;
         }
     }
