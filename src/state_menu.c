@@ -823,20 +823,14 @@ static void mc_update(void) {
     uint8_t id, flip = 0;               // flip: the sprite flips
     uint8_t half_steps = (uint8_t)((mc_frame << 1) + (mc_timer >= 11u ? 1u : 0u));
     if (mc_mini) {
-        #define X S_FLIPX
-        #define Y S_FLIPY
-        static const uint8_t mini_cube_img[24] = {
-            0, 1, 1, 2, 2, 2, 0, 2|Y, 2|Y, 2|Y, 1|Y, 1|Y, 0|X|Y, 1|X|Y, 1|X|Y, 2|X|Y, 2|X|Y, 2|X|Y, 0, 2|X, 2|X, 2|X, 1|X, 1|X
-        };
-        #undef X
-        #undef Y
+        static const uint8_t mini_cube_img[6] = { 0, 1, 1, 2, 1, 1 };
         // ship image (0 steep down .. 30 steep up) -> mini image (30, 15, 0, -15, -30 degrees)
         static const uint8_t mini_ship_img[SHIP_FRAME_COUNT] = {
             0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 };
         if (mc_mode == MODE_CUBE) {
-            uint8_t q = mini_cube_img[mc_frame];
-            id = q & 3u;
-            flip = q & (S_FLIPX | S_FLIPY);
+            uint8_t q = (uint8_t)(mc_frame % 6u);
+            id = mini_cube_img[q];
+            if (q >= 4) flip = S_FLIPX;
         } else if (mc_mode == MODE_BALL) {
             uint8_t k = (uint8_t)(half_steps / 3u);
             if (k >= MINI_BALL_FRAMES) { k -= MINI_BALL_FRAMES; flip = S_FLIPX | S_FLIPY; }
