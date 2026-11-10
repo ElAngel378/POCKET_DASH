@@ -1124,6 +1124,7 @@ static uint8_t draw_oam_coin(uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t go
 
 // Collected coins fly up and vanish after 40 frames (Famidash animate_coin_*)
 static uint8_t draw_coin_anims(uint16_t cam_px, uint16_t cam_py, uint8_t reversed, uint8_t oam_start) {
+    if (!(coin_anim_timer[0] | coin_anim_timer[1] | coin_anim_timer[2])) return oam_start;
     for (uint8_t n = 0; n < 3; n++) {
         if (!coin_anim_timer[n]) continue;
         coin_anim_y[n] -= coin_anim_speed[n] & 0xFF00;

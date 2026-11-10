@@ -240,6 +240,30 @@ static void stream_jobs_reset(void) {
 static uint16_t scroll_acc;
 static uint8_t prev_joy;
 static uint8_t previous_oam_index;
+// Hides the sprites from .. previous_oam_index - 1 (shadow_OAM is 256 byte aligned). As a
+// C loop this was a third of the level sprites' time on a busy DMG frame.
+static void oam_clear_rest(uint8_t from) __naked {
+    (void)from;
+    __asm
+        ld      c, a
+        ld      a, (_previous_oam_index)
+        sub     a, c
+        ld      b, a
+        ld      a, c
+        add     a, a
+        add     a, a
+        ld      l, a
+        ld      h, #>_shadow_OAM
+        ld      de, #4
+        xor     a, a
+    1$:
+        ld      (hl), a
+        add     hl, de
+        dec     b
+        jr      NZ, 1$
+        ret
+    __endasm;
+}
 static uint16_t sp_stream_idx;
 static uint16_t sp_cache_col;
 static uint8_t sp_fill_pending;
@@ -1889,12 +1913,8 @@ void play_level(uint8_t idx) BANKED {
         if (_cpu != CGB_TYPE && player.mode == MODE_SHIP) attempt_text_hide();
         oam_index = attempt_text_draw(oam_index, scroll_px, cam_py);
         if (oam_index < previous_oam_index) {
-            uint8_t *oam_ptr = (uint8_t *)&shadow_OAM[oam_index];
-            while (oam_index < previous_oam_index) {
-                *oam_ptr = 0;
-                oam_ptr += 4;
-                oam_index++;
-            }
+            oam_clear_rest(oam_index);
+            oam_index = previous_oam_index;
         }
         previous_oam_index = oam_index;
 #if ENABLE_DEBUG_MODE

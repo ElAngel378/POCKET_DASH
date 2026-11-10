@@ -64,45 +64,196 @@ static const uint8_t g_to_hi[32] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0
 static FadeCh *ch_p;
 static const uint8_t *step_lo, *step_hi;   // the fade time's row of step_tab_lo / _hi
 static uint8_t step_shift;                 // then halved this many times
-static void setup_ch(uint8_t from, uint8_t to) {
-    uint8_t k = (uint8_t)(to + 31u - from);
-    ch_p->val = from;
-    ch_p->frac = 0x80;              // rounds to the nearest step
-    int16_t st = (int16_t)(((uint16_t)step_hi[k] << 8) | step_lo[k]);
-    // halved towards 0: rounded down, a falling channel overshot past 0 in a 4 s fade and
-    // wrapped (0 -> 255: garbage colours, the ground broke)
-    if (st < 0) {
-        st = -st;
-        for (uint8_t n = step_shift; n; n--) st >>= 1;
-        st = -st;
-    } else {
-        for (uint8_t n = step_shift; n; n--) st >>= 1;
-    }
-    ch_p->step_lo = (uint8_t)st;
-    ch_p->step_hi = (uint8_t)((uint16_t)st >> 8);
-    ch_p++;
+// One channel of *ch_p from b to c, ch_p moved on (called from fade_scan). Assembly: 60 of these in C on the frame
+// a trigger fires took over a third of a CGB frame and dropped it.
+// st = the table's step for to + 31 - from, halved step_shift times towards 0: rounded down, a
+// falling channel overshot past 0 in a 4 s fade and wrapped (0 -> 255: garbage colours)
+static void setup_ch(void) __naked {
+    __asm
+        push    bc
+        ld      a, c
+        add     a, #31
+        sub     a, b
+        ld      e, a                    ; k
+        ld      d, #0
+        ld      hl, #_step_lo           ; c = step_lo[k]
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+        add     hl, de
+        ld      c, (hl)
+        ld      hl, #_step_hi           ; b = step_hi[k]
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+        add     hl, de
+        ld      b, (hl)
+        ld      a, (_step_shift)
+        or      a, a
+        jr      Z, 3$
+        ld      e, a
+        bit     7, b
+        jr      Z, 2$
+        xor     a, a                    ; negative: halve the size
+        sub     a, c
+        ld      c, a
+        ld      a, #0
+        sbc     a, b
+        ld      b, a
+    1$:
+        sra     b
+        rr      c
+        dec     e
+        jr      NZ, 1$
+        xor     a, a
+        sub     a, c
+        ld      c, a
+        ld      a, #0
+        sbc     a, b
+        ld      b, a
+        jr      3$
+    2$:
+        sra     b
+        rr      c
+        dec     e
+        jr      NZ, 2$
+    3$:
+        pop     de                      ; d = from
+        ld      hl, #_ch_p
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+        ld      a, d
+        ld      (hl+), a                ; val
+        ld      a, #0x80                ; frac: rounds to the nearest step
+        ld      (hl+), a
+        ld      a, c
+        ld      (hl+), a                ; step lo
+        ld      a, b
+        ld      (hl+), a                ; step hi
+        ld      a, l
+        ld      (_ch_p), a
+        ld      a, h
+        ld      (_ch_p + 1), a
+        ret
+    __endasm;
+}
+
+// Colours that differ between the screen and the target: index into fade_col, their 3 channels set up
+// (fade_n = how many). In assembly: in C, this loop made the frame a trigger fires drop on CGB.
+static void fade_scan(void) __naked {
+    __asm
+        ld      hl, #_famidash_bg_palettes
+        ld      de, #_famidash_bg_target
+        ld      bc, #0                  ; b = colour, c = n
+    1$:
+        ld      a, (de)
+        cp      a, (hl)
+        jr      NZ, 2$
+        inc     de
+        inc     hl
+        ld      a, (de)
+        cp      a, (hl)
+        dec     de
+        dec     hl
+        jr      Z, 3$
+    2$:
+        push    de
+        push    hl
+        ld      hl, #_fade_col          ; fade_col[n++] = colour
+        ld      e, c
+        ld      d, #0
+        add     hl, de
+        ld      (hl), b
+        inc     c
+        pop     hl
+        pop     de
+        push    bc
+        push    de
+        push    hl
+        ld      a, (hl)                 ; red: low byte & 31
+        and     a, #31
+        ld      b, a
+        ld      a, (de)
+        and     a, #31
+        ld      c, a
+        call    _setup_ch
+        pop     hl
+        pop     de
+        push    de
+        push    hl
+        ld      a, (hl+)                ; green: (lo >> 5) | (hi << 3) & 31
+        swap    a
+        rrca
+        and     a, #7
+        ld      b, a
+        ld      a, (hl)
+        add     a, a
+        add     a, a
+        add     a, a
+        or      a, b
+        and     a, #31
+        ld      b, a
+        ld      a, (de)
+        inc     de
+        swap    a
+        rrca
+        and     a, #7
+        ld      c, a
+        ld      a, (de)
+        add     a, a
+        add     a, a
+        add     a, a
+        or      a, c
+        and     a, #31
+        ld      c, a
+        call    _setup_ch
+        pop     hl
+        pop     de
+        push    de
+        push    hl
+        inc     hl                      ; blue: hi >> 2 & 31
+        inc     de
+        ld      a, (hl)
+        rrca
+        rrca
+        and     a, #31
+        ld      b, a
+        ld      a, (de)
+        rrca
+        rrca
+        and     a, #31
+        ld      c, a
+        call    _setup_ch
+        pop     hl
+        pop     de
+        pop     bc
+    3$:
+        inc     hl
+        inc     hl
+        inc     de
+        inc     de
+        inc     b
+        ld      a, b
+        cp      a, #20
+        jr      NZ, 1$
+        ld      a, c
+        ld      (_fade_n), a
+        ret
+    __endasm;
 }
 
 // The fade starts from the colours on screen (a trigger during a fade continues smoothly)
 static void start_fade(void) {
-    const uint8_t *a = (const uint8_t *)famidash_bg_palettes;
-    const uint8_t *b = (const uint8_t *)famidash_bg_target;
-    uint8_t n = 0;
+    uint8_t n;
     uint8_t row = (fade_time > FAMIDASH_FADE_INSTANT);
     step_lo = step_tab_lo[row];
     step_hi = step_tab_hi[row];
     step_shift = (fade_time == FAMIDASH_FADE_10S) ? 2 : row ? (uint8_t)(fade_time - FAMIDASH_FADE_HALF_S) : 0;
     fade_div = fade_wait = (fade_time == FAMIDASH_FADE_10S) ? 5 : 1;
     ch_p = fade_ch;
-    for (uint8_t i = 0; i < 20; i++, a += 2, b += 2) {
-        uint8_t alo = a[0], ahi = a[1], blo = b[0], bhi = b[1];
-        if (alo == blo && ahi == bhi) continue;
-        fade_col[n++] = i;
-        setup_ch(alo & 31u, blo & 31u);
-        setup_ch((uint8_t)((alo >> 5) | (ahi << 3)) & 31u, (uint8_t)((blo >> 5) | (bhi << 3)) & 31u);
-        setup_ch((ahi >> 2) & 31u, (bhi >> 2) & 31u);
-    }
-    fade_n = n;
+    fade_scan();
+    n = fade_n;
     fade_nch = (uint8_t)(n * 3u);
     fade_left = n ? bg_fade_frames[fade_time] : 0;
 }
