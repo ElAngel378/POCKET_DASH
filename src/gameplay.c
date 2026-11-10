@@ -1799,7 +1799,7 @@ void play_level(uint8_t idx) BANKED {
             // Ship, ball, UFO: their turned images (mini_frames.png) streamed like the big player's
             // into the buffer (its tiles are free while mini); until the first one is copied, the
             // level image in VRAM.
-            static const uint8_t mini_cube_img[6] = { 0, 1, 1, 2, 1, 0 };
+            static const uint8_t mini_cube_img[6] = { 0, 1, 1, 2, 1, 1 };   // 15 degree steps
             // ship image (0 steep down .. 30 steep up) -> mini image (30, 15, 0, -15, -30 degrees)
             static const uint8_t mini_ship_img[SHIP_FRAME_COUNT] = {
                 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 };
@@ -1808,7 +1808,7 @@ void play_level(uint8_t idx) BANKED {
             if (player.mode == MODE_CUBE) {
                 uint8_t q = (uint8_t)(player.anim_frame % 6u);
                 tile = MINI_PLAYER_TILE_BASE + (uint8_t)(mini_cube_img[q] << 1);
-                if (q == 4) prop ^= S_FLIPX;
+                if (q >= 4) prop ^= S_FLIPX;   // 60, 75 degrees: the 22 degree image mirrored (67)
             } else {
                 uint8_t first, n, want;
                 if (player.mode == MODE_SHIP) {

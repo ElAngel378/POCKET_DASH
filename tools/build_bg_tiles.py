@@ -44,7 +44,7 @@ to override.
 
 FAKE SPIKES (DMG): CGB draws the fake spike metatiles (FAKE_SPIKE_MTS) with the real spikes'
 tiles in palette 5, whose colour 3 (the white outline) is black like colour 2. DMG has one BGP,
-so a level with fake spikes copies their sheet tiles to free slots with colour 3 turned into 2
+so a level with fake spikes copies their sheet tiles to free slots one shade lighter
 (fake_tile) and points the fake metatiles there. On DMG, BG
 tiles 144..159 share VRAM with the coin sprite tiles, so tiles a level uses there move to
 slots it leaves free, and its saw tiles go to free slots too.
@@ -176,8 +176,8 @@ def gb_bytes(rows):
 
 
 def fake_tile(data):
-    """DMG fake spike tile: colour 3 -> 2 (the low bit plane cleared where the high one is set)"""
-    return bytes(data[i] & ~data[i + 1] & 0xFF if i % 2 == 0 else data[i] for i in range(16))
+    """DMG fake spike tile, one shade lighter: colours 2 -> 1, 3 -> 2"""
+    return bytes(data[i] ^ data[i + 1] if i % 2 == 0 else data[i - 1] & data[i] for i in range(16))
 
 
 def mirrored(rows):
