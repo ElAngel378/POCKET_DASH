@@ -192,6 +192,176 @@ static const uint8_t spike_col_tab[64] = {
     IS_SPIKE_COL(56u), IS_SPIKE_COL(57u), IS_SPIKE_COL(58u), IS_SPIKE_COL(59u), IS_SPIKE_COL(60u), IS_SPIKE_COL(61u), IS_SPIKE_COL(62u), IS_SPIKE_COL(63u)
 };
 
+// Which of the 6 spike probes of the full size player can hit: bit set = that probe's own metatile
+// can hold a spike (bits 0, 1: x+3, x+12 at py+3; 2, 3: x+3, x+12 at py+14; 4, 5: x+6, x+15 at
+// py+8). 0xFF: off the top of the 256 px window, all of them. Only the lookup is in assembly: what
+// each spike does is spike_at, in C, like every other mechanic.
+static uint8_t spike_probes(void) __naked {
+    __asm
+        ld      a, (_player + 3)        ; py
+        cp      a, #242                 ; py + 14 over 255: cannot tell
+        jr      C, 1$
+        ld      a, #0xFF
+        ret
+    1$:
+        ld      b, a
+        add     a, #3
+        swap    a
+        and     a, #0x0F
+        ld      d, a                    ; d = r0, row of py + 3
+        ld      a, b
+        add     a, #14
+        swap    a
+        and     a, #0x0F
+        ld      e, a                    ; e = r1, row of py + 14
+        ld      a, b
+        add     a, #8
+        swap    a
+        and     a, #0x0F
+        cp      a, d
+        ld      a, #1                   ; (ld keeps the flags) centre probes in the upper row?
+        jr      Z, 2$
+        xor     a, a
+    2$:
+        push    af                      ; rc
+        ld      a, d
+        call    30$
+        push    af                      ; s0: column 0, r0
+        ld      a, e
+        call    30$
+        push    af                      ; s1: column 0, r1
+        ld      a, d
+        add     a, #16
+        call    30$
+        push    af                      ; s2: column 1, r0
+        ld      a, e
+        add     a, #16
+        call    30$
+        ld      b, a                    ; b = s3: column 1, r1
+        pop     af
+        ld      c, a                    ; c = s2
+        pop     af
+        ld      d, a                    ; d = s1
+        pop     af
+        ld      e, a                    ; e = s0
+        pop     af
+        ld      h, a                    ; h = rc
+        ld      a, (_player)            ; which column each probe is in: x & 15
+        and     a, #15
+        ld      l, #0
+        cp      a, #13                  ; l bit 0: x+3 in column 0
+        jr      NC, 3$
+        set     0, l
+    3$:
+        cp      a, #4                   ; bit 1: x+12
+        jr      NC, 4$
+        set     1, l
+    4$:
+        cp      a, #10                  ; bit 2: x+6
+        jr      NC, 5$
+        set     2, l
+    5$:
+        cp      a, #1                   ; bit 3: x+15
+        jr      NC, 6$
+        set     3, l
+    6$:
+        xor     a, a
+        ; bit 5: x+15, centre row
+        bit     0, h
+        jr      Z, 8$
+        bit     3, l
+        jr      Z, 7$
+        or      a, e
+        jr      11$
+    7$:
+        or      a, c
+        jr      11$
+    8$:
+        bit     3, l
+        jr      Z, 9$
+        or      a, d
+        jr      11$
+    9$:
+        or      a, b
+    11$:
+        add     a, a                    ; bit 4: x+6, centre row
+        bit     0, h
+        jr      Z, 13$
+        bit     2, l
+        jr      Z, 12$
+        or      a, e
+        jr      16$
+    12$:
+        or      a, c
+        jr      16$
+    13$:
+        bit     2, l
+        jr      Z, 14$
+        or      a, d
+        jr      16$
+    14$:
+        or      a, b
+    16$:
+        add     a, a                    ; bit 3: x+12, lower row
+        bit     1, l
+        jr      Z, 17$
+        or      a, d
+        jr      18$
+    17$:
+        or      a, b
+    18$:
+        add     a, a                    ; bit 2: x+3, lower row
+        bit     0, l
+        jr      Z, 19$
+        or      a, d
+        jr      20$
+    19$:
+        or      a, b
+    20$:
+        add     a, a                    ; bit 1: x+12, upper row
+        bit     1, l
+        jr      Z, 21$
+        or      a, e
+        jr      22$
+    21$:
+        or      a, c
+    22$:
+        add     a, a                    ; bit 0: x+3, upper row
+        bit     0, l
+        jr      Z, 23$
+        or      a, e
+        ret
+    23$:
+        or      a, c
+        ret
+        ; a = offset in collision_columns -> a = 1 if that metatile can hold a spike
+    30$:
+        ld      hl, #_collision_columns
+        add     a, l
+        ld      l, a
+        adc     a, h
+        sub     a, l
+        ld      h, a
+        ld      a, (hl)                 ; metatile
+        ld      hl, #_scratch_buf       ; col_tab[metatile]
+        add     a, l
+        ld      l, a
+        adc     a, h
+        sub     a, l
+        ld      h, a
+        ld      a, (hl)
+        and     a, #63
+        ld      hl, #_spike_col_tab
+        add     a, l
+        ld      l, a
+        adc     a, h
+        sub     a, l
+        ld      h, a
+        ld      a, (hl)
+        ret
+    __endasm;
+}
+
 // Saw cores. Saw parts use Famidash's spike types (spike_at), but those only kill in small zones
 // that leave holes: the big saw's centre metatile has no collision at all, and a medium saw only
 // kills in two 3px strips, so a player 1-5px off a saw's centre line went straight through.
@@ -463,25 +633,22 @@ uint8_t player_update(
     // Most frames touch no spike: look at the (up to 4) metatiles the spike probes below lie in
     // first, and only run the 6 spike_at calls when one of them is a spike type
     uint8_t spike_near = 1;
-    // Per metatile: can it have a spike? (s0 s2: rows of the upper probes, s1 s3: lower; 0/1: column)
-    uint8_t s0 = 1, s1 = 1, s2 = 1, s3 = 1;
-    uint8_t rc_upper = 1;              // the centre probes are in the upper row
-    {
-        int16_t sy0 = (int16_t)py + (mini ? 4 : 3);
-        int16_t sy1 = (int16_t)py + (mini ? 10 : 14);
+    uint8_t spike_mask = 0x3F;         // full size: the probes spike_probes says can hit
+    if (mini) {
+        int16_t sy0 = (int16_t)py + 4;
+        int16_t sy1 = (int16_t)py + 10;
         if (!(((uint16_t)sy0 | (uint16_t)sy1) & 0xFF00)) {
             uint8_t r0 = (uint8_t)sy0 >> 4, r1 = (uint8_t)sy1 >> 4;
             uint8_t k0 = col_tab[c0[r0]];
             uint8_t k1 = col_tab[c0[r1]];
             uint8_t k2 = col_tab[c1[r0]];
             uint8_t k3 = col_tab[c1[r1]];
-            s0 = spike_col_tab[k0 & 63u];
-            s1 = spike_col_tab[k1 & 63u];
-            s2 = spike_col_tab[k2 & 63u];
-            s3 = spike_col_tab[k3 & 63u];
-            spike_near = (uint8_t)(s0 | s1 | s2 | s3);
-            rc_upper = ((uint8_t)((uint8_t)(py + 8u) >> 4) == r0);
+            spike_near = spike_col_tab[k0 & 63u] | spike_col_tab[k1 & 63u] | spike_col_tab[k2 & 63u] | spike_col_tab[k3 & 63u];
         }
+    } else {
+        spike_mask = spike_probes();
+        if (spike_mask == 0xFF) spike_mask = 0x3F;
+        spike_near = spike_mask;
     }
     if (!spike_near) {
         // no spike probe can hit
@@ -498,15 +665,11 @@ uint8_t player_update(
         // bg_coll_floor_spikes (x+3 / x+12 at y+2 and y+13), bg_coll_death (centre x+6, y+7) and
         // the front side point (bg_coll_R: x+15, y+7)
         int16_t fy = (int16_t)py + 1;
-        // A probe only runs if its own metatile can hold a spike: in a row of spikes, most don't
-#define S_COL(off, lo, hi) (((off) < threshold) ? (lo) : (hi))
-        uint8_t sc0 = rc_upper ? s0 : s1, sc1 = rc_upper ? s2 : s3;
-        if ((S_COL(3, s0, s2) && SPIKE(3, fy + 2)) || (S_COL(12, s0, s2) && SPIKE(12, fy + 2)) ||
-            (S_COL(3, s1, s3) && SPIKE(3, fy + 13)) || (S_COL(12, s1, s3) && SPIKE(12, fy + 13)) ||
-            (S_COL(6, sc0, sc1) && SPIKE(6, fy + 7)) || (S_COL(15, sc0, sc1) && SPIKE(15, fy + 7))) {
+        if (((spike_mask & 1u) && SPIKE(3, fy + 2)) || ((spike_mask & 2u) && SPIKE(12, fy + 2)) ||
+            ((spike_mask & 4u) && SPIKE(3, fy + 13)) || ((spike_mask & 8u) && SPIKE(12, fy + 13)) ||
+            ((spike_mask & 16u) && SPIKE(6, fy + 7)) || ((spike_mask & 32u) && SPIKE(15, fy + 7))) {
             p->dead = 1; return 1;
         }
-#undef S_COL
     }
 
     // Saw cores: the 4 corners of the drawn player box (see saw_corner)
