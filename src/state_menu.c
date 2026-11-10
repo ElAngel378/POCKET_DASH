@@ -784,8 +784,8 @@ static void mc_update(void) {
         if (--mc_wait == 0) mc_reset();
         return;
     }
-    if (mc_x >= 161) {                  // off the right edge: a pause of 1 to 2 seconds
-        mc_wait = (uint8_t)(60u + (mc_rnd() & 63u));
+    if (mc_x >= 161) {                  // off the right edge: a short pause
+        mc_wait = (uint8_t)(15u + (mc_rnd() & 15u));
         return;
     }
 
