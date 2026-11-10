@@ -80,8 +80,8 @@ def quarters(art, name, m, cgb, big_saw, sets=None):
         else:
             px = art.sec["BASE"][t]
         if not cgb and m in BG.FAKE_SPIKE_MTS:
-            # DMG fake spikes: colour 3 (the white outline) drawn as 2 (CGB: palette 5)
-            px = tuple(2 if v == 3 else v for v in px)
+            # DMG fake spikes: hollow, only the outline (colour 3, black on DMG; CGB: palette 5)
+            px = tuple(3 if v == 3 else 0 for v in px)
         out.append(px)
     return out
 
