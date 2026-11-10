@@ -41,12 +41,66 @@ extern uint8_t selected;   // main.c: the level of the level selects
 
 #define MENU_BTN_PAL 5   // CGB: music and settings share a big button rim palette (lime, black, yellow)
 
-// CGB: a cube with a random look runs along the ground and jumps at random (GDA's title screen)
-#define MC_SPRITES 4     // OAM 0..3: in front of the buttons
+// CGB: a random icon (cube, ship, ball, UFO) crosses the screen behind the buttons (GDA's title screen)
+#define MC_OAM     36    // OAM 36..39: behind the other sprites (a lower slot is drawn on top on CGB)
 #define MC_TILE    52    // sprite tiles 52..55 / 56..59, double buffered
 #define MC_PAL     3
-#define MC_REST_Y  104   // screen y of the cube standing on the ground
+#define MC_REST_Y  104   // screen y of the icon standing on the ground
+#define MC_TOP_Y   16    // the ship and the UFO fly no higher (below the logo)
 #define MC_START_X (-17) // off the left edge
+#define MC_CUT_ABOVE 41  // icon y from which it can touch the buttons' BG centres
+#define MC_CUT_BELOW 80  // (map rows 7..9, lines 56..79; the icon is 16 lines tall)
+
+// The icon's state: in scratch_buf, after the 64 bytes the ground buttons' tiles are built in (WRAM
+// is full: a few dozen more bytes of globals run the stack into them)
+typedef struct {
+    uint8_t solid[18][3];        // map cells that are BG centres of the big buttons (a bit per column)
+    uint8_t art_ram[64 + 15];    // art with the cut, for the GDMA: 16 byte aligned
+    uint8_t *art;
+    const uint8_t *src;          // the first image of this look, in ROM bank bank
+    uint8_t bank, seed, mode;    // mode: MODE_CUBE .. MODE_UFO
+    int16_t x;                   // screen x of the left edge
+    uint16_t acc, speed, y;      // y: 8.8
+    int16_t vy;
+    uint8_t on_ground, frame, timer;   // frame / timer: as the player's anim_*
+    uint8_t hold;                // ship: the button held
+    uint8_t tilt;                // ship / UFO: the image shown, eased towards the flight direction
+    uint8_t front;               // sprite tile buffer shown
+    uint8_t art_id;              // image in it, 0xFF: none
+    uint8_t art_cut;             // it has pixels cut out, for the position it was drawn at
+    // What the next update draws (the copy into the buffer not shown takes a frame: the sprites
+    // keep to the same frame as their art, or the cut would be a frame off the buttons)
+    uint8_t q_valid, q_copied, q_id, q_flip, q_cut, q_y;
+    int16_t q_x;
+} mc_state_t;
+typedef char mc_state_fits[(sizeof(mc_state_t) <= SCRATCH_SIZE - 64u) ? 1 : -1];
+#define mc_s (*(mc_state_t *)(scratch_buf + 64u))
+#define mc_solid mc_s.solid
+#define mc_art mc_s.art
+#define mc_src mc_s.src
+#define mc_bank mc_s.bank
+#define mc_seed mc_s.seed
+#define mc_mode mc_s.mode
+#define mc_x mc_s.x
+#define mc_acc mc_s.acc
+#define mc_speed mc_s.speed
+#define mc_y mc_s.y
+#define mc_vy mc_s.vy
+#define mc_on_ground mc_s.on_ground
+#define mc_frame mc_s.frame
+#define mc_timer mc_s.timer
+#define mc_hold mc_s.hold
+#define mc_tilt mc_s.tilt
+#define mc_front mc_s.front
+#define mc_art_id mc_s.art_id
+#define mc_art_cut mc_s.art_cut
+#define mc_q_valid mc_s.q_valid
+#define mc_q_copied mc_s.q_copied
+#define mc_q_id mc_s.q_id
+#define mc_q_flip mc_s.q_flip
+#define mc_q_cut mc_s.q_cut
+#define mc_q_y mc_s.q_y
+#define mc_q_x mc_s.q_x
 
 static uint8_t tb_cgb_place(uint8_t slot) __nonbanked;
 
@@ -60,7 +114,7 @@ static void update_menu_sprites(uint8_t sel) {
 
     uint8_t slot;
     if (_cpu == CGB_TYPE) {
-        slot = MC_SPRITES;
+        slot = 0;
         for (uint8_t b = 0; b < 2; b++) {
             uint8_t x = b ? sx : mx, y = b ? sy : my, t = b ? 28 : 22;
             for (uint8_t i = 0; i < 4; i++, slot++) {   // top and bottom of the left, then right column
@@ -101,7 +155,7 @@ static void update_menu_sprites(uint8_t sel) {
     set_sprite_prop(slot, prop_c);
     move_sprite(slot, cx, cy);
 
-    for (uint8_t s = slot + 1; s < 40; s++) hide_sprite(s);
+    for (uint8_t s = slot + 1; s < ((_cpu == CGB_TYPE) ? MC_OAM : 40); s++) hide_sprite(s);
 }
 
 // This file lives in a switchable ROM bank, so everything that switches ROM
@@ -298,6 +352,7 @@ static void tb_cgb_cores(void) __nonbanked {
     for (uint8_t b = 0; b < 3; b++) {
         const uint8_t *e = tb_groups[b].core;
         for (uint8_t i = tb_groups[b].ncore; i; i--, e += 4) {
+            mc_solid[e[1]][e[0] >> 3] |= (uint8_t)(1u << (e[0] & 7u));
             VBK_REG = 1; set_bkg_tile_xy(e[0], e[1], e[3]);
             VBK_REG = 0; set_bkg_tile_xy(e[0], e[1], e[2]);
         }
@@ -515,18 +570,8 @@ static void load_ground_button_tiles(uint8_t first, const uint8_t *src) {
 }
 
 static const uint16_t mc_speeds[5] = { 576, 714, 888, 1073, 1320 };   // the game's speeds (8.8 px a frame)
-static uint8_t mc_seed;
-static const uint8_t *mc_src;    // the first image of the icon, in ROM bank mc_bank
-static uint8_t mc_bank;
-static int16_t mc_x;             // screen x of the cube's left edge
-static uint16_t mc_acc, mc_speed;
-static uint16_t mc_y;            // 8.8
-static int16_t mc_vy;
-static uint8_t mc_on_ground, mc_frame, mc_timer;   // mc_frame / mc_timer: as the player's anim_*
-static uint8_t mc_front;         // buffer shown
-static uint8_t mc_shown;         // spin step of the image in it, 0xFF: none yet
-static uint8_t mc_req;           // spin step being copied to the other buffer, 0xFF: none
-
+static const uint16_t mc_ship_tilt_vy[] = SHIP_TILT_VY;
+static const uint16_t mc_ufo_tilt_vy[] = UFO_TILT_VY;
 static uint8_t mc_rnd(void) {
     mc_seed = (uint8_t)(((mc_seed & 0x80u) ? (uint8_t)((mc_seed << 1) ^ 0x1Du) : (uint8_t)(mc_seed << 1)) + DIV_REG);
     return mc_seed;
@@ -539,19 +584,28 @@ static uint8_t mc_colour(void) {
 
 // A new look, off the left edge. In VBlank: it writes a sprite palette.
 static void mc_reset(void) {
-    uint8_t icon = mc_rnd() & 63u;
-    if (icon >= NUM_CUBE_ICONS) icon -= NUM_CUBE_ICONS;
-    if (icon == 0) {
-        mc_src = cube_icon_frames;
-        mc_bank = BANK(cube_icon_frames);
+    mc_mode = mc_rnd() & 3u;
+    mc_bank = BANK(cube_icon_frames);
+    if (mc_mode == MODE_SHIP) {
+        mc_src = SHIP_FRAME(0);
+    } else if (mc_mode == MODE_BALL) {
+        mc_src = BALL_FRAME(0);
+    } else if (mc_mode == MODE_UFO) {
+        mc_src = UFO_FRAME(0);
     } else {
-        uint8_t j = (uint8_t)(icon - 1u);
-        if (j < CUBE_FD_PER_BANK) { mc_src = cube_fd_frames_0; mc_bank = BANK(cube_fd_frames_0); }
-        else if ((j -= CUBE_FD_PER_BANK) < CUBE_FD_PER_BANK) { mc_src = cube_fd_frames_1; mc_bank = BANK(cube_fd_frames_1); }
-        else if ((j -= CUBE_FD_PER_BANK) < CUBE_FD_PER_BANK) { mc_src = cube_fd_frames_2; mc_bank = BANK(cube_fd_frames_2); }
-        else if ((j -= CUBE_FD_PER_BANK) < CUBE_FD_PER_BANK) { mc_src = cube_fd_frames_3; mc_bank = BANK(cube_fd_frames_3); }
-        else { j -= CUBE_FD_PER_BANK; mc_src = cube_fd_frames_4; mc_bank = BANK(cube_fd_frames_4); }
-        mc_src += (uint16_t)j * CUBE_FD_FRAMES * 64u;
+        uint8_t icon = mc_rnd() & 63u;
+        if (icon >= NUM_CUBE_ICONS) icon -= NUM_CUBE_ICONS;
+        if (icon == 0) {
+            mc_src = cube_icon_frames;
+        } else {
+            uint8_t j = (uint8_t)(icon - 1u);
+            if (j < CUBE_FD_PER_BANK) { mc_src = cube_fd_frames_0; mc_bank = BANK(cube_fd_frames_0); }
+            else if ((j -= CUBE_FD_PER_BANK) < CUBE_FD_PER_BANK) { mc_src = cube_fd_frames_1; mc_bank = BANK(cube_fd_frames_1); }
+            else if ((j -= CUBE_FD_PER_BANK) < CUBE_FD_PER_BANK) { mc_src = cube_fd_frames_2; mc_bank = BANK(cube_fd_frames_2); }
+            else if ((j -= CUBE_FD_PER_BANK) < CUBE_FD_PER_BANK) { mc_src = cube_fd_frames_3; mc_bank = BANK(cube_fd_frames_3); }
+            else { j -= CUBE_FD_PER_BANK; mc_src = cube_fd_frames_4; mc_bank = BANK(cube_fd_frames_4); }
+            mc_src += (uint16_t)j * CUBE_FD_FRAMES * 64u;
+        }
     }
     palette_color_t pal[4];
     pal[0] = RGB8(255, 255, 255);
@@ -568,41 +622,35 @@ static void mc_reset(void) {
     mc_vy = 0;
     mc_on_ground = 1;
     mc_frame = mc_timer = 0;
-    mc_shown = mc_req = 0xFF;
+    mc_hold = 0;
+    mc_tilt = (mc_mode == MODE_SHIP) ? SHIP_FRAME_LEVEL : UFO_FRAME_LEVEL;
+    mc_art_id = 0xFF;
+    mc_art_cut = 0;
+    mc_q_valid = 0;
 }
 
-// image of a spin step: the second half turn is the first one flipped both ways
-#define MC_IMG(st) ((uint8_t)((st) >= CUBE_ICON_FRAMES ? (st) - CUBE_ICON_FRAMES : (st)))
-
-// Asks for spin step want and returns the step shown this frame, in the buffer mc_front
-static uint8_t mc_show(uint8_t want) {
-    if (mc_req != 0xFF && !bg_cube_pending) {
-        mc_front ^= 1;
-        mc_shown = mc_req;
-        mc_req = 0xFF;
+static void mc_spin(void) {
+    mc_timer += 10;
+    if (mc_timer >= 21) {
+        mc_timer -= 21;
+        if (++mc_frame >= 24) mc_frame = 0;
     }
-    if (mc_shown != 0xFF && MC_IMG(want) == MC_IMG(mc_shown)) return want;
-    if (mc_req == 0xFF) {
-        bg_cube_src = mc_src + (uint16_t)MC_IMG(want) * 64u;
-        bg_cube_bank = mc_bank;
-        bg_cube_dst = (uint8_t *)(0x8000u + ((uint16_t)(MC_TILE + (uint8_t)((mc_front ^ 1u) << 2)) << 4));
-        mc_req = want;
-        bg_cube_pending = 4;
-    }
-    return mc_shown;
 }
 
-static void mc_update(void) {
-    if (mc_x >= 161) mc_reset();
-    if (mc_shown == 0xFF) {             // the new icon's first image is on its way
-        mc_show(0);
-        return;
+// up (vel_y < 0) stops at the top, down lands on the ground
+static void mc_move_y(void) {
+    mc_y += (uint16_t)mc_vy;
+    if (mc_y >= ((uint16_t)MC_REST_Y << 8)) {
+        mc_y = (uint16_t)MC_REST_Y << 8;
+        mc_vy = 0;
+        mc_on_ground = 1;
+    } else if (mc_y < ((uint16_t)MC_TOP_Y << 8)) {
+        mc_y = (uint16_t)MC_TOP_Y << 8;
+        mc_vy = 0;
     }
-    mc_acc += mc_speed;
-    mc_x += (int16_t)(mc_acc >> 8);
-    mc_acc &= 0xFFu;
+}
 
-    // The player's cube physics and spin (player.c)
+static void mc_step_cube(void) {
     if (mc_on_ground && !(mc_rnd() & 15u)) {
         mc_vy = JUMP_FORCE;
         mc_on_ground = 0;
@@ -611,12 +659,7 @@ static void mc_update(void) {
     if (!mc_on_ground) {
         mc_vy += GRAVITY;
         if (mc_vy > MAX_FALL_SPEED) mc_vy = MAX_FALL_SPEED;
-        mc_y += (uint16_t)mc_vy;
-        if (mc_y >= ((uint16_t)MC_REST_Y << 8)) {
-            mc_y = (uint16_t)MC_REST_Y << 8;
-            mc_vy = 0;
-            mc_on_ground = 1;
-        }
+        mc_move_y();
     }
     if (mc_on_ground) {
         uint8_t st = (uint8_t)((mc_frame << 1) + (mc_timer >= 11u ? 1u : 0u));
@@ -631,28 +674,143 @@ static void mc_update(void) {
             mc_timer = 0;
         }
     } else {
-        mc_timer += 10;
-        if (mc_timer >= 21) {
-            mc_timer -= 21;
-            if (++mc_frame >= 24) mc_frame = 0;
-        }
+        mc_spin();
     }
+}
 
-    uint8_t show = mc_show((uint8_t)((mc_frame << 1) + (mc_timer >= 11u ? 1u : 0u)));
-    uint8_t t = (uint8_t)(MC_TILE + (uint8_t)(mc_front << 2));
-    uint8_t flip = (show >= CUBE_ICON_FRAMES);
-    int16_t ox = mc_x + 7;              // OAM x: 8, less the 1 px the game draws the cube to the left
-    uint8_t oy = (uint8_t)((mc_y >> 8) + 16u);
-    for (uint8_t i = 0; i < MC_SPRITES; i++) {
-        int16_t x = ox + ((i & 2u) << 2);
-        if (x <= 0 || x >= 168) {
-            hide_sprite(i);
-        } else {
-            set_sprite_tile(i, (uint8_t)(t + (flip ? 3u - i : i)));
-            set_sprite_prop(i, (uint8_t)(MC_PAL | (flip ? (S_FLIPX | S_FLIPY) : 0)));
-            move_sprite(i, (uint8_t)x, (uint8_t)(oy + ((i & 1u) << 3)));
+static void mc_step_ship(void) {
+    if (!(mc_rnd() & 15u)) mc_hold ^= 1;
+    uint8_t falling = (mc_vy > 0);
+    if (mc_hold) mc_vy += falling ? -SHIP_GRAVITY_HOLD_FALL : SHIP_THRUST;
+    else mc_vy += falling ? SHIP_GRAVITY : SHIP_GRAVITY_AFTER_HOLD;
+    mc_move_y();
+    if (mc_vy > SHIP_MAX_VEL_UP) mc_vy = SHIP_MAX_VEL_UP;
+    if (mc_vy < -SHIP_MAX_VEL_DOWN) mc_vy = -SHIP_MAX_VEL_DOWN;
+
+    uint16_t a = (mc_vy < 0) ? (uint16_t)-mc_vy : (uint16_t)mc_vy;
+    uint8_t k = 0;
+    while (k < (uint8_t)(sizeof(mc_ship_tilt_vy) / 2u) && a >= mc_ship_tilt_vy[k]) k++;
+    uint8_t target = (mc_vy > 0) ? (uint8_t)(SHIP_FRAME_LEVEL - k) : (uint8_t)(SHIP_FRAME_LEVEL + k);
+    if (mc_tilt + 2u <= target) mc_tilt += 2;
+    else if (mc_tilt < target) mc_tilt++;
+    else if (mc_tilt >= target + 2u) mc_tilt -= 2;
+    else if (mc_tilt > target) mc_tilt--;
+}
+
+static void mc_step_ufo(void) {
+    if (!(mc_rnd() & 31u)) mc_vy = UFO_JUMP_VEL;
+    if (mc_vy > UFO_MAX_FALL) mc_vy -= UFO_GRAVITY;
+    else mc_vy += UFO_GRAVITY;
+    mc_move_y();
+
+    uint16_t a = (mc_vy < 0) ? (uint16_t)-mc_vy : (uint16_t)mc_vy;
+    uint8_t k = 0;
+    while (k < (uint8_t)(sizeof(mc_ufo_tilt_vy) / 2u) && a >= mc_ufo_tilt_vy[k]) k++;
+    uint8_t target = (mc_vy > 0) ? (uint8_t)(UFO_FRAME_LEVEL + k) : (uint8_t)(UFO_FRAME_LEVEL - k);
+    if (mc_tilt < target) mc_tilt++;
+    else if (mc_tilt > target) mc_tilt--;
+}
+
+// An image into RAM (it is in another ROM bank than this code: run from bank 0)
+static void mc_art_load(const uint8_t *src) __nonbanked {
+    uint8_t prev_bank = _current_bank;
+    SWITCH_ROM(mc_bank);
+    for (uint8_t i = 0; i < 64u; i++) mc_art[i] = src[i];
+    SWITCH_ROM(prev_bank);
+}
+
+// Clears the pixels of mc_art that the BG centres of the big buttons cover, with its top left
+// at (sx, sy). Returns 1 if there were any.
+static uint8_t mc_art_cut_out(int16_t sx, uint8_t sy, uint8_t flip) {
+    uint8_t any = 0;
+    for (uint8_t i = 0; i < 4u; i++) {
+        uint8_t *tile = mc_art + ((uint16_t)(flip ? 3u - i : i) << 4);
+        int16_t x = sx + (int16_t)((i & 2u) << 2);
+        int8_t ca = (int8_t)(x >> 3);
+        int8_t cb = (int8_t)(ca + 1);
+        uint8_t off = (uint8_t)x & 7u;
+        uint8_t y0 = (uint8_t)(sy + ((i & 1u) << 3));
+        uint8_t ma = flip ? (uint8_t)(0xFFu >> off) : (uint8_t)(0xFFu << off);   // the pixels in cell ca
+        for (uint8_t r = 0; r < 8u; r++) {
+            uint8_t row = (uint8_t)((uint8_t)(y0 + r) >> 3);
+            if (row >= 18u) continue;
+            uint8_t m = 0;
+            if (ca >= 0 && ca < 20 && (mc_solid[row][(uint8_t)ca >> 3] & (uint8_t)(1u << ((uint8_t)ca & 7u)))) m = ma;
+            if (cb >= 0 && cb < 20 && (mc_solid[row][(uint8_t)cb >> 3] & (uint8_t)(1u << ((uint8_t)cb & 7u)))) m |= (uint8_t)~ma;
+            if (m) {
+                uint8_t tr = flip ? (uint8_t)(7u - r) : r;
+                tile[(uint8_t)(tr << 1)] &= (uint8_t)~m;
+                tile[(uint8_t)((tr << 1) + 1u)] &= (uint8_t)~m;
+                any = 1;
+            }
         }
     }
+    return any;
+}
+
+static void mc_draw(void) {
+    uint8_t t = (uint8_t)(MC_TILE + (uint8_t)(mc_front << 2));
+    int16_t ox = mc_q_x + 8;
+    uint8_t oy = (uint8_t)(mc_q_y + 16u);
+    for (uint8_t i = 0; i < 4u; i++) {
+        uint8_t s = (uint8_t)(MC_OAM + i);
+        int16_t x = ox + (int16_t)((i & 2u) << 2);
+        if (x <= 0 || x >= 168) {
+            hide_sprite(s);
+        } else {
+            set_sprite_tile(s, (uint8_t)(t + (mc_q_flip ? 3u - i : i)));
+            set_sprite_prop(s, (uint8_t)(MC_PAL | (mc_q_flip ? (S_FLIPX | S_FLIPY) : 0)));
+            move_sprite(s, (uint8_t)x, (uint8_t)(oy + ((i & 1u) << 3)));
+        }
+    }
+}
+
+static void mc_update(void) {
+    if (mc_q_valid) {
+        if (bg_cube_pending) return;    // (the copy always runs in the next VBlank)
+        if (mc_q_copied) {
+            mc_front ^= 1;
+            mc_art_id = mc_q_id;
+            mc_art_cut = mc_q_cut;
+        }
+        mc_draw();
+        mc_q_valid = 0;
+    }
+    if (mc_x >= 161) mc_reset();
+
+    mc_acc += mc_speed;
+    mc_x += (int16_t)(mc_acc >> 8);
+    mc_acc &= 0xFFu;
+    if (mc_mode == MODE_CUBE) mc_step_cube();
+    else if (mc_mode == MODE_SHIP) mc_step_ship();
+    else if (mc_mode == MODE_UFO) mc_step_ufo();
+    else mc_spin();                     // the ball rolls along the ground
+
+    uint8_t id, flip = 0;
+    if (mc_mode == MODE_CUBE || mc_mode == MODE_BALL) {
+        id = (uint8_t)((mc_frame << 1) + (mc_timer >= 11u ? 1u : 0u));
+        if (id >= CUBE_ICON_FRAMES) { id -= CUBE_ICON_FRAMES; flip = 1; }
+    } else {
+        id = mc_tilt;
+    }
+    mc_q_x = (mc_mode == MODE_BALL) ? mc_x : (int16_t)(mc_x - 1);
+    mc_q_y = (uint8_t)((mc_y >> 8) - ((mc_mode == MODE_SHIP || mc_mode == MODE_UFO) ? 1u : 0u));
+    mc_q_id = id;
+    mc_q_flip = flip;
+    mc_q_cut = 0;
+    const uint8_t *src = mc_src + (uint16_t)id * 64u;
+    if (mc_q_y >= MC_CUT_ABOVE && mc_q_y < MC_CUT_BELOW) {
+        mc_art_load(src);
+        mc_q_cut = mc_art_cut_out(mc_q_x, mc_q_y, flip);
+    }
+    mc_q_copied = (mc_q_cut || mc_art_cut || id != mc_art_id);
+    if (mc_q_copied) {
+        bg_cube_src = mc_q_cut ? (const uint8_t *)mc_art : src;
+        bg_cube_bank = mc_bank;
+        bg_cube_dst = (uint8_t *)(0x8000u + ((uint16_t)(MC_TILE + (uint8_t)((mc_front ^ 1u) << 2)) << 4));
+        bg_cube_pending = 4;
+    }
+    mc_q_valid = 1;
 }
 
 GameState update_menu_state(void) BANKED {
@@ -724,9 +882,12 @@ GameState update_menu_state(void) BANKED {
         for (uint8_t i = 0; i < 4; i++) spr[16 + i] = cursor_palette[i];
         fade_set_sprite_palette(0, 8, spr);
 
+        memset(&mc_s, 0, sizeof(mc_state_t));
         mc_seed = DIV_REG | 1u;
+        mc_art = (uint8_t *)(((uint16_t)mc_s.art_ram + 15u) & 0xFFF0u);
         mc_front = 0;
         bg_cube_pending = 0;
+        for (uint8_t i = 0; i < 4u; i++) hide_sprite((uint8_t)(MC_OAM + i));
         mc_reset();
     } else {
         tb_dmg_init();
