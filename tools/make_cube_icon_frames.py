@@ -193,6 +193,39 @@ def ufo_frames():
     return frames
 
 
+def voted(img, angles, black=0.6, sub=4):
+    # the ship: mostly outline, RotSprite's nearest pixel turned it into black blobs. Per
+    # pixel, sub x sub points of the scaled-up image (as RotSprite) vote, black votes count
+    # 0.6: transparent if most points are, else the colour with the most votes
+    c = [[0] * 16 for _ in range(16)]
+    for y in range(8):
+        c[4 + y][4:12] = img[y]
+    big = scale2x(scale2x(scale2x(c)))
+    out = []
+    for deg in angles:
+        if deg == 0:
+            out.append([row[:] for row in img])
+            continue
+        a = math.radians(deg)
+        ca, sa = math.cos(a), math.sin(a)
+        f = [[0] * 8 for _ in range(8)]
+        for y in range(8):
+            for x in range(8):
+                votes = [0.0] * 4
+                for j in range(sub):
+                    for i in range(sub):
+                        px, py = x - 4 + (i + 0.5) / sub, y - 4 + (j + 0.5) / sub
+                        bx, by = int((px * ca + py * sa + 8) * 8), int((-px * sa + py * ca + 8) * 8)
+                        votes[big[by][bx] if 0 <= bx < 128 and 0 <= by < 128 else 0] += 1
+                if votes[0] > sub * sub / 2:
+                    continue
+                votes[0] = 0
+                votes[3] *= black
+                f[y][x] = max(range(4), key=lambda v: votes[v])
+        out.append(f)
+    return out
+
+
 def mini_frames():
     """The mini ship, ball and UFO (MINI_*_ANGLES): their 8x8 image in sprite_tiles.png (top half
     of pairs 61, 62, 9) turned clockwise (RotSprite) on a 16x16 canvas, cropped back to 8x8."""
@@ -211,37 +244,6 @@ def mini_frames():
             out.append([row[:] for row in img] if deg == 0 else [row[4:12] for row in f[4:12]])
         return out
 
-    def voted(img, angles, black=0.6, sub=4):
-        # the ship: mostly outline, RotSprite's nearest pixel turned it into black blobs. Per
-        # pixel, sub x sub points of the scaled-up image (as RotSprite) vote, black votes count
-        # 0.6: transparent if most points are, else the colour with the most votes
-        c = [[0] * 16 for _ in range(16)]
-        for y in range(8):
-            c[4 + y][4:12] = img[y]
-        big = scale2x(scale2x(scale2x(c)))
-        out = []
-        for deg in angles:
-            if deg == 0:
-                out.append([row[:] for row in img])
-                continue
-            a = math.radians(deg)
-            ca, sa = math.cos(a), math.sin(a)
-            f = [[0] * 8 for _ in range(8)]
-            for y in range(8):
-                for x in range(8):
-                    votes = [0.0] * 4
-                    for j in range(sub):
-                        for i in range(sub):
-                            px, py = x - 4 + (i + 0.5) / sub, y - 4 + (j + 0.5) / sub
-                            bx, by = int((px * ca + py * sa + 8) * 8), int((-px * sa + py * ca + 8) * 8)
-                            votes[big[by][bx] if 0 <= bx < 128 and 0 <= by < 128 else 0] += 1
-                    if votes[0] > sub * sub / 2:
-                        continue
-                    votes[0] = 0
-                    votes[3] *= black
-                    f[y][x] = max(range(4), key=lambda v: votes[v])
-            out.append(f)
-        return out
     return (voted(mini(61), MINI_SHIP_ANGLES) + turned(mini(62), MINI_BALL_ANGLES) +
             turned(mini(9), MINI_UFO_ANGLES))
 
