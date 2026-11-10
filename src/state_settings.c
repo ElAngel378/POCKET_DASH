@@ -132,6 +132,7 @@ static const SettingItem settings_list[] = {
     // the hUGETracker songs (hUGEDriver) instead of the Furnace ones
     { "LEGACY",       SETTING_TYPE_TOGGLE, &setting_legacy_music,     0, 1, toggle_labels, on_legacy_toggle,  NULL },
     { "GRADIENT",     SETTING_TYPE_TOGGLE, &setting_dmg_gradient,     0, 1, toggle_labels, on_setting_change, NULL },
+    { "30 FPS",       SETTING_TYPE_TOGGLE, &setting_dmg_30fps,        0, 1, toggle_labels, on_setting_change, NULL },
     { "SHOW BG",      SETTING_TYPE_TOGGLE, &setting_show_bg_enabled,  0, 1, toggle_labels, on_show_bg_change, NULL },
     { "PARALLAX",     SETTING_TYPE_TOGGLE, &setting_parallax_enabled, 0, 1, toggle_labels, on_parallax_change, NULL },
     { "EFFECTS",      SETTING_TYPE_TOGGLE, &setting_effects_enabled,  0, 1, toggle_labels, on_setting_change, NULL },
@@ -140,8 +141,8 @@ static const SettingItem settings_list[] = {
     { "AUTO CP",      SETTING_TYPE_TOGGLE, &setting_auto_checkpoints, 0, 1, toggle_labels,   on_setting_change, NULL },
     { "WIPE SAVE",    SETTING_TYPE_ACTION, NULL,                      0, 0, NULL,            NULL,              on_wipe_save_action }
 };
-// GRADIENT (row 3) only exists on DMG
-#define HIDE_GRADIENT ((_cpu == CGB_TYPE || sgb_present) ? 1u : 0u)
+// GRADIENT and 30 FPS (rows 3, 4) only exist on DMG
+#define HIDE_GRADIENT ((_cpu == CGB_TYPE || sgb_present) ? 2u : 0u)
 #define SET_ITEM(i) ((uint8_t)((i) + (((i) >= 3u) ? HIDE_GRADIENT : 0u)))
 #define NUM_SETTINGS ((uint8_t)(sizeof(settings_list) / sizeof(settings_list[0]) - HIDE_GRADIENT))
 #define VISIBLE_ROWS 5

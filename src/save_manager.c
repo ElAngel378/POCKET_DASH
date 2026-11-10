@@ -89,6 +89,7 @@ uint8_t selected_dmg_secondary = 1;
 uint8_t setting_music_enabled   = 1;
 uint8_t setting_sfx_enabled     = 1;
 uint8_t setting_dmg_gradient    = 0;
+uint8_t setting_dmg_30fps       = 0;
 uint8_t setting_show_bg_enabled = 1;
 uint8_t setting_parallax_enabled = 1;
 uint8_t setting_effects_enabled = 1;
@@ -210,7 +211,8 @@ void init_save_system(void) BANKED {
                 }
                 setting_music_enabled    = sram[5 + V10_SAVE_LEVELS * 2 + 0] ? 1 : 0;
                 setting_sfx_enabled      = sram[5 + V10_SAVE_LEVELS * 2 + 1] ? 1 : 0;
-                setting_dmg_gradient     = sram[5 + V10_SAVE_LEVELS * 2 + 2] ? 1 : 0;
+                setting_dmg_gradient     = sram[5 + V10_SAVE_LEVELS * 2 + 2] & 1u;   // (bit 1: 30 FPS)
+                setting_dmg_30fps        = (sram[5 + V10_SAVE_LEVELS * 2 + 2] >> 1) & 1u;
                 setting_show_bg_enabled  = sram[5 + V10_SAVE_LEVELS * 2 + 3] ? 1 : 0;
                 setting_parallax_enabled = sram[5 + V10_SAVE_LEVELS * 2 + 4] ? 1 : 0;
                 setting_effects_enabled  = sram[5 + V10_SAVE_LEVELS * 2 + 5] ? 1 : 0;
@@ -309,6 +311,7 @@ void init_save_system(void) BANKED {
     setting_music_enabled   = 1;
     setting_sfx_enabled     = 1;
     setting_dmg_gradient    = 0;
+    setting_dmg_30fps       = 0;
     setting_show_bg_enabled = 1;
     setting_parallax_enabled = 1;
     setting_effects_enabled = 1;
@@ -341,7 +344,7 @@ void save_game_data(void) BANKED {
 
     sram[5 + V10_SAVE_LEVELS * 2 + 0] = setting_music_enabled;
     sram[5 + V10_SAVE_LEVELS * 2 + 1] = setting_sfx_enabled;
-    sram[5 + V10_SAVE_LEVELS * 2 + 2] = setting_dmg_gradient;
+    sram[5 + V10_SAVE_LEVELS * 2 + 2] = (uint8_t)(setting_dmg_gradient | (setting_dmg_30fps << 1));
     sram[5 + V10_SAVE_LEVELS * 2 + 3] = setting_show_bg_enabled;
     sram[5 + V10_SAVE_LEVELS * 2 + 4] = setting_parallax_enabled;
     sram[5 + V10_SAVE_LEVELS * 2 + 5] = setting_effects_enabled;

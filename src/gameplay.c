@@ -1539,6 +1539,10 @@ void play_level(uint8_t idx) BANKED {
     attempt_count = 0;
     attempt_text_start(1, 0, cam_py);
     bg_parallax_isr_start();
+    // 30 FPS (DMG setting): two logic steps, then one picture over two VBlanks. The time of both
+    // frames is shared, so a heavy picture no longer drops a frame.
+    uint8_t fps30 = (setting_dmg_30fps && _cpu != CGB_TYPE && !sgb_present) ? 1u : 0u;
+    uint8_t fps_half = 0, fps_base = 0;
     while (1) {
         PROF_MARK(1);   // input, scrolling, object cache
         // one frame of music time per iteration: a dropped frame holds the music back too
@@ -1765,6 +1769,18 @@ void play_level(uint8_t idx) BANKED {
         }
 
         PROF_MARK(5);   // player sprite
+        uint8_t fps_present = 1;
+        if (fps30) {
+            if (!fps_half && end_anim_state == END_ANIM_INACTIVE && !died && !player.level_complete) {
+                // the first step: logic only, no picture and no wait
+                fps_half = 1;
+                fps_base = mj_frame;
+                fps_present = 0;
+                goto fps_no_draw;
+            }
+            fps_half = 0;
+            DISABLE_OAM_DMA;   // a VBlank in the middle of the drawing must not show half of it
+        }
         // Player sprite
         percent_hud_update(cam_px);
         uint8_t oam_index = PERCENT_HUD_OAM;   // slots 0..3: % display
@@ -1931,6 +1947,14 @@ void play_level(uint8_t idx) BANKED {
         if (debug_mode) debug_draw_hud(1, debug_ly, debug_max_ly);
 #endif
 
+    fps_no_draw: ;
+        if (fps30 && fps_present) {
+            // Not before the first VBlank: the picture is shown at the second one, and the column
+            // and row jobs issued from here on get that VBlank
+            while (bg_vbl_frames == fps_base) { }
+            ENABLE_OAM_DMA;
+            mj_frame = bg_vbl_frames;
+        }
         PROF_MARK(7);   // column job
         // The frame that switches maps issues no map job: it could reach the VBlank handler
         // before the switch does and land in the map going out.
@@ -2048,11 +2072,13 @@ void play_level(uint8_t idx) BANKED {
         // queue is filling: a full queue makes the game wait
         if (bs_q_n && (LY_REG < 110u || bs_q_n >= 8u)) bg_stream_feed();
         // Same for the scroll registers and the DMG palettes
-        if (_cpu != CGB_TYPE) {
-            request_bg_dmg_pals(final_bgp, final_obp0, final_obp1);
-            sgb_frame();
+        if (fps_present) {
+            if (_cpu != CGB_TYPE) {
+                request_bg_dmg_pals(final_bgp, final_obp0, final_obp1);
+                sgb_frame();
+            }
+            request_bg_scroll(final_scx, final_scy);
         }
-        request_bg_scroll(final_scx, final_scy);
         if (seamless && !mj_switched && end_anim_state == END_ANIM_INACTIVE && !died) mirror_job(px_curr);
 #if ENABLE_DEBUG_MODE
         if (debug_mode) {
@@ -2061,6 +2087,7 @@ void play_level(uint8_t idx) BANKED {
         }
 #endif
         PROF_MARK(9);   // waiting for VBlank
+        if (!fps_present) continue;
         bg_wait_vbl();
         PROF_MARK(10);  // after VBlank: DMG scroll / VRAM writes, saw animation
         if (dmg_mirror_due && !died) {
