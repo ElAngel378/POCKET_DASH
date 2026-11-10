@@ -180,6 +180,17 @@ static uint8_t spike_at(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
 #define IS_SPIKE_COL(col) ((uint8_t)((col) - COL_DEATH_RIGHT) < 4u || (col) == COL_DEATH || \
         (uint8_t)((col) - COL_DEATH_TOP_HALF) < 2u || \
         (uint8_t)((col) - (COL_QUAD_BASE + 12u)) < (uint8_t)(COL_QUAD_COUNT - 12))
+// The same as a table, for the check made on every frame (collision types are below 64)
+static const uint8_t spike_col_tab[64] = {
+    IS_SPIKE_COL(0u), IS_SPIKE_COL(1u), IS_SPIKE_COL(2u), IS_SPIKE_COL(3u), IS_SPIKE_COL(4u), IS_SPIKE_COL(5u), IS_SPIKE_COL(6u), IS_SPIKE_COL(7u),
+    IS_SPIKE_COL(8u), IS_SPIKE_COL(9u), IS_SPIKE_COL(10u), IS_SPIKE_COL(11u), IS_SPIKE_COL(12u), IS_SPIKE_COL(13u), IS_SPIKE_COL(14u), IS_SPIKE_COL(15u),
+    IS_SPIKE_COL(16u), IS_SPIKE_COL(17u), IS_SPIKE_COL(18u), IS_SPIKE_COL(19u), IS_SPIKE_COL(20u), IS_SPIKE_COL(21u), IS_SPIKE_COL(22u), IS_SPIKE_COL(23u),
+    IS_SPIKE_COL(24u), IS_SPIKE_COL(25u), IS_SPIKE_COL(26u), IS_SPIKE_COL(27u), IS_SPIKE_COL(28u), IS_SPIKE_COL(29u), IS_SPIKE_COL(30u), IS_SPIKE_COL(31u),
+    IS_SPIKE_COL(32u), IS_SPIKE_COL(33u), IS_SPIKE_COL(34u), IS_SPIKE_COL(35u), IS_SPIKE_COL(36u), IS_SPIKE_COL(37u), IS_SPIKE_COL(38u), IS_SPIKE_COL(39u),
+    IS_SPIKE_COL(40u), IS_SPIKE_COL(41u), IS_SPIKE_COL(42u), IS_SPIKE_COL(43u), IS_SPIKE_COL(44u), IS_SPIKE_COL(45u), IS_SPIKE_COL(46u), IS_SPIKE_COL(47u),
+    IS_SPIKE_COL(48u), IS_SPIKE_COL(49u), IS_SPIKE_COL(50u), IS_SPIKE_COL(51u), IS_SPIKE_COL(52u), IS_SPIKE_COL(53u), IS_SPIKE_COL(54u), IS_SPIKE_COL(55u),
+    IS_SPIKE_COL(56u), IS_SPIKE_COL(57u), IS_SPIKE_COL(58u), IS_SPIKE_COL(59u), IS_SPIKE_COL(60u), IS_SPIKE_COL(61u), IS_SPIKE_COL(62u), IS_SPIKE_COL(63u)
+};
 
 // Saw cores. Saw parts use Famidash's spike types (spike_at), but those only kill in small zones
 // that leave holes: the big saw's centre metatile has no collision at all, and a medium saw only
@@ -461,7 +472,7 @@ uint8_t player_update(
             uint8_t k1 = col_tab[c0[r1]];
             uint8_t k2 = col_tab[c1[r0]];
             uint8_t k3 = col_tab[c1[r1]];
-            spike_near = IS_SPIKE_COL(k0) || IS_SPIKE_COL(k1) || IS_SPIKE_COL(k2) || IS_SPIKE_COL(k3);
+            spike_near = spike_col_tab[k0 & 63u] | spike_col_tab[k1 & 63u] | spike_col_tab[k2 & 63u] | spike_col_tab[k3 & 63u];
         }
     }
     if (!spike_near) {

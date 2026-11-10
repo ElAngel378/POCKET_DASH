@@ -911,11 +911,34 @@ void process_sprite_logic(
     uint16_t px = p->world_x;
     uint16_t py = p->y_base + p->world_y.b.h;
 
+    if (p->mini) py += MINI_BOX_TOP;
+    t_px = px + 1u;                    // (draw_sprites uses it too)
+    psl_py20 = py + 20u;               // (uint16_t)(dy + 20) <= 70: the dy test in psl_filter
+    uint8_t fast = 0;
+    if (px >= 48u && px == cam_px) {
+        // The usual case: psl_filter's limits are constant distances from the player (from
+        // psl_back = px - 48: lim_ahead, lim_lead, lim_near, t_front, p_front + 16 and px - 24),
+        // and with nothing near nothing else below is needed
+        psl_back = (uint16_t)(px - 48u);
+        psl_rel_ahead = 224u;
+        psl_rel_lead = (uint8_t)(48u + BG_TRIGGER_LEAD_PX);
+        psl_rel_near = 96u;
+        if (p->mini) {
+            psl_rel_tfront = (uint8_t)(48u + MINI_BOX_RIGHT + 1u);
+            psl_rel_pf16 = (uint8_t)(48u + MINI_BOX_RIGHT + 16u);
+        } else {
+            psl_rel_tfront = (uint8_t)(48u + 15u + 1u);
+            psl_rel_pf16 = (uint8_t)(48u + 15u + 16u);
+        }
+        psl_rel_x24 = 24u;
+        psl_filter();
+        if (!psl_n) return;
+        fast = 1;
+    }
+
     // Player box (mini: 8x7 at +4 like Famidash)
     uint16_t p_front = px + (p->mini ? MINI_BOX_RIGHT : 15u);
-    uint16_t p_bottom = py + (p->mini ? (MINI_BOX_BOTTOM - 1) : PLAYER_SIZE);
-    if (p->mini) py += MINI_BOX_TOP;
-    t_px = px + 1u;
+    uint16_t p_bottom = py + (p->mini ? (MINI_BOX_BOTTOM - 1 - MINI_BOX_TOP) : PLAYER_SIZE);
     t_front = p_front + 1u;
     if (p->mini) {
         t_py = py;
@@ -932,20 +955,20 @@ void process_sprite_logic(
     uint16_t lim_near = px + 48u;
     uint16_t lim_back = (px >= 48u) ? (uint16_t)(px - 48u) : 0;   // obj_x + 48 < px
 
-    psl_back = lim_back;
-    psl_py20 = py + 20u;   // (uint16_t)(dy + 20) <= 70: the dy test below
-    uint8_t fast = ((uint16_t)(lim_ahead - lim_back) < 256u && lim_lead >= lim_back && lim_near >= lim_back);
-    if (fast) {
-        // always (px is cam_px: 224, 208, 96 at most)
-        psl_rel_ahead = (uint8_t)(lim_ahead - lim_back);
-        psl_rel_lead = (uint8_t)(lim_lead - lim_back);
-        psl_rel_near = (uint8_t)(lim_near - lim_back);
-        psl_rel_tfront = (uint8_t)(t_front - lim_back);
-        psl_rel_pf16 = (uint8_t)(p_front + 16u - lim_back);
-        psl_rel_x24 = (px >= lim_back + 24u) ? (uint8_t)(px - 24u - lim_back) : 0;   // px <= obj_x + 24
-        psl_filter();
-    } else {
-        for (psl_n = 0; psl_n < MAX_ACTIVE_SP_OBJECTS; psl_n++) psl_idx[psl_n] = psl_n;
+    if (!fast) {
+        psl_back = lim_back;
+        fast = ((uint16_t)(lim_ahead - lim_back) < 256u && lim_lead >= lim_back && lim_near >= lim_back);
+        if (fast) {
+            psl_rel_ahead = (uint8_t)(lim_ahead - lim_back);
+            psl_rel_lead = (uint8_t)(lim_lead - lim_back);
+            psl_rel_near = (uint8_t)(lim_near - lim_back);
+            psl_rel_tfront = (uint8_t)(t_front - lim_back);
+            psl_rel_pf16 = (uint8_t)(p_front + 16u - lim_back);
+            psl_rel_x24 = (px >= lim_back + 24u) ? (uint8_t)(px - 24u - lim_back) : 0;   // px <= obj_x + 24
+            psl_filter();
+        } else {
+            for (psl_n = 0; psl_n < MAX_ACTIVE_SP_OBJECTS; psl_n++) psl_idx[psl_n] = psl_n;
+        }
     }
     for (uint8_t k = 0; k < psl_n; k++) {
         i = psl_idx[k];
