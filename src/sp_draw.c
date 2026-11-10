@@ -552,40 +552,6 @@ static void rod_pulse_update(void) {
     deco_set = deco_big ? set : (uint8_t)(set + DECO_SET);
 }
 
-// tile of a deco sprite, pulsing ones in the size shown
-#define DECO_TILE(t, tile_base) (deco_tile_sets[0][(uint8_t)(deco_set + ((uint8_t)(t) >> 1))])
-
-inline static uint8_t draw_oam_deco(const FamidashDeco *deco, uint8_t tile_base,
-                             uint8_t oam_idx, uint8_t sx, uint8_t sy,
-                             uint8_t reversed) {
-    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
-    uint8_t count = deco->count;
-    const int8_t *dx = deco->x;
-    const int8_t *dy = deco->y;
-    const uint8_t *dt = deco->tile;
-    const uint8_t *dp = deco->props;
-
-    if (!reversed) {
-        *oam++ = sy + dy[0]; *oam++ = sx + dx[0]; *oam++ = DECO_TILE(dt[0], tile_base); *oam++ = dp[0];
-        if (count > 1) {
-            *oam++ = sy + dy[1]; *oam++ = sx + dx[1]; *oam++ = DECO_TILE(dt[1], tile_base); *oam++ = dp[1];
-            if (count > 2) {
-                *oam++ = sy + dy[2]; *oam++ = sx + dx[2]; *oam++ = DECO_TILE(dt[2], tile_base); *oam++ = dp[2];
-            }
-        }
-    } else {
-        uint8_t rx = sx + deco->width - 8;
-        *oam++ = sy + dy[0]; *oam++ = rx - dx[0]; *oam++ = DECO_TILE(dt[0], tile_base); *oam++ = dp[0] ^ S_FLIPX;
-        if (count > 1) {
-            *oam++ = sy + dy[1]; *oam++ = rx - dx[1]; *oam++ = DECO_TILE(dt[1], tile_base); *oam++ = dp[1] ^ S_FLIPX;
-            if (count > 2) {
-                *oam++ = sy + dy[2]; *oam++ = rx - dx[2]; *oam++ = DECO_TILE(dt[2], tile_base); *oam++ = dp[2] ^ S_FLIPX;
-            }
-        }
-    }
-    return count;
-}
-
 // 4 columns x 3 rows (12 8x16 hardware sprites = 32x48 pixels, tools/make_mirror_portal_gfx.py).
 // The art is mirrored top to bottom: row 0 is stored, row 1 is the middle, row 2 is row 0 drawn
 // with S_FLIPY. The exit art faces the same way as the entrance (CGB: its own tiles, ring in
