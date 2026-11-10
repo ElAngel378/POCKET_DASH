@@ -176,8 +176,8 @@ def gb_bytes(rows):
 
 
 def fake_tile(data):
-    """DMG fake spike tile, one shade lighter: colours 2 -> 1, 3 -> 2"""
-    return bytes(data[i] ^ data[i + 1] if i % 2 == 0 else data[i - 1] & data[i] for i in range(16))
+    """DMG fake spike tile: only its black outline (colour 3), hollow"""
+    return bytes(data[i] & data[i + 1] if i % 2 == 0 else data[i - 1] & data[i] for i in range(16))
 
 
 def mirrored(rows):

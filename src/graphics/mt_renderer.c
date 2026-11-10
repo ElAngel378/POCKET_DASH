@@ -377,17 +377,17 @@ static void apply_level_bg_tiles_(uint8_t level, uint8_t reversed) {
             set_bkg_data(dst, 1, buf);
         }
     }
-    // DMG fake spike tiles: a sheet tile one shade lighter (CGB: palette 5); the
+    // DMG fake spike tiles: a sheet tile with only its colour 3 outline (CGB: palette 5); the
     // overrides point the fake spike metatiles at them
     for (n = ll_get(); n; n--) {
         uint8_t dst = ll_get(), src = ll_get();
         if (baked) continue;   // in the sheet
         if (display_off) memcpy(buf, BG_TILE_ADDR(src), 16);
         else get_bkg_data(src, 1, buf);
-        for (uint8_t i = 0; i < 16; i += 2) {   // one shade lighter: 2 -> 1, 3 -> 2
-            uint8_t lo = buf[i], hi = buf[i + 1];
-            buf[i] = lo ^ hi;
-            buf[i + 1] = lo & hi;
+        for (uint8_t i = 0; i < 16; i += 2) {   // only the black outline (colour 3)
+            uint8_t v = buf[i] & buf[i + 1];
+            buf[i] = v;
+            buf[i + 1] = v;
         }
         if (display_off) memcpy(BG_TILE_ADDR(dst), buf, 16);
         else set_bkg_data(dst, 1, buf);
