@@ -1779,7 +1779,10 @@ void play_level(uint8_t idx) BANKED {
                 goto fps_no_draw;
             }
             fps_half = 0;
-            DISABLE_OAM_DMA;   // a VBlank in the middle of the drawing must not show half of it
+            // The picture is drawn after the first VBlank and shown at the second, like a normal
+            // frame: that VBlank also swaps the player's tile buffers, which the drawing reads
+            while (bg_vbl_frames == fps_base) { }
+            mj_frame = bg_vbl_frames;
         }
         // Player sprite
         percent_hud_update(cam_px);
@@ -1948,13 +1951,6 @@ void play_level(uint8_t idx) BANKED {
 #endif
 
     fps_no_draw: ;
-        if (fps30 && fps_present) {
-            // Not before the first VBlank: the picture is shown at the second one, and the column
-            // and row jobs issued from here on get that VBlank
-            while (bg_vbl_frames == fps_base) { }
-            ENABLE_OAM_DMA;
-            mj_frame = bg_vbl_frames;
-        }
         PROF_MARK(7);   // column job
         // The frame that switches maps issues no map job: it could reach the VBlank handler
         // before the switch does and land in the map going out.
