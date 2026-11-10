@@ -49,3 +49,6 @@ docs/gda_sprites.png
 docs/user_art.png
 # Tiled remembers open files and zoom here
 *.tiled-session
+# God mode test build
+temp_god/
+bin/POCKETDASH_god.*
