@@ -68,6 +68,7 @@ typedef struct {
     uint8_t front;               // sprite tile buffer shown
     uint8_t art_id;              // image in it, 0xFF: none
     uint8_t art_cut;             // it has pixels cut out, for the position it was drawn at
+    uint8_t wait;                // frames left before the next icon comes in
     // What the next update draws (the copy into the buffer not shown takes a frame: the sprites
     // keep to the same frame as their art, or the cut would be a frame off the buttons)
     uint8_t q_valid, q_copied, q_id, q_flip, q_cut, q_y;
@@ -94,6 +95,7 @@ typedef char mc_state_fits[(sizeof(mc_state_t) <= SCRATCH_SIZE - 64u) ? 1 : -1];
 #define mc_front mc_s.front
 #define mc_art_id mc_s.art_id
 #define mc_art_cut mc_s.art_cut
+#define mc_wait mc_s.wait
 #define mc_q_valid mc_s.q_valid
 #define mc_q_copied mc_s.q_copied
 #define mc_q_id mc_s.q_id
@@ -569,7 +571,9 @@ static void load_ground_button_tiles(uint8_t first, const uint8_t *src) {
     set_sprite_data(first, 4, out);
 }
 
-static const uint16_t mc_speeds[5] = { 576, 714, 888, 1073, 1320 };   // the game's speeds (8.8 px a frame)
+// Half the game's speeds (8.8 px a frame): the screen is much narrower than the GBA's, where GDA
+// uses them as they are
+static const uint16_t mc_speeds[5] = { 288, 357, 444, 536, 660 };
 static const uint16_t mc_ship_tilt_vy[] = SHIP_TILT_VY;
 static const uint16_t mc_ufo_tilt_vy[] = UFO_TILT_VY;
 static uint8_t mc_rnd(void) {
@@ -776,7 +780,14 @@ static void mc_update(void) {
         mc_draw();
         mc_q_valid = 0;
     }
-    if (mc_x >= 161) mc_reset();
+    if (mc_wait) {
+        if (--mc_wait == 0) mc_reset();
+        return;
+    }
+    if (mc_x >= 161) {                  // off the right edge: a pause of 1 to 2 seconds
+        mc_wait = (uint8_t)(60u + (mc_rnd() & 63u));
+        return;
+    }
 
     mc_acc += mc_speed;
     mc_x += (int16_t)(mc_acc >> 8);
