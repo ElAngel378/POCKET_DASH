@@ -12,6 +12,8 @@ extern uint8_t selected;   // main.c: the level of the level selects
 #include "bg_parallax.h"
 #include "settings.h"
 #include "title_buttons.h"
+#include "cube_icon_frames.h"
+#include "icon_catalog.h"
 #include <gb/gb.h>
 #include <gb/cgb.h>
 #include <string.h>
@@ -22,7 +24,8 @@ extern uint8_t selected;   // main.c: the level of the level selects
 //
 // Big buttons (icon / play / wrench), from tools/gen_title_buttons.py. Three side by side
 // would be more than 10 sprites on a line, so on CGB each is a BG core plus 8x8 sprites for
-// the rest (the sky shows through). Ground buttons use 8x16, switched at MENU_OBJ16_LINE.
+// the rest (the sky shows through). Every CGB sprite here is 8x8, so the menu cube can jump
+// past the big buttons (at most 9 sprites on a line).
 // DMG: PLAY is 8x16 sprites; the side buttons are BG tiles blended with the sky for each of
 // the 64 SCX values (tables in ROM), double buffered.
 
@@ -36,7 +39,14 @@ extern uint8_t selected;   // main.c: the level of the level selects
 #define SEL_ICON     3
 #define SEL_WRENCH   4
 
-#define MENU_OBJ16_LINE 100   // CGB: 8x8 sprites above (big buttons), 8x16 below (ground buttons)
+#define MENU_BTN_PAL 5   // CGB: music and settings share a big button rim palette (lime, black, yellow)
+
+// CGB: a cube with a random look runs along the ground and jumps at random (GDA's title screen)
+#define MC_SPRITES 4     // OAM 0..3: in front of the buttons
+#define MC_TILE    52    // sprite tiles 52..55 / 56..59, double buffered
+#define MC_PAL     3
+#define MC_REST_Y  104   // screen y of the cube standing on the ground
+#define MC_START_X (-17) // off the left edge
 
 static uint8_t tb_cgb_place(uint8_t slot) __nonbanked;
 
@@ -44,20 +54,28 @@ static void update_menu_sprites(uint8_t sel) {
     // Music button (16x16) on left of ground bar (Screen X = 56..72, OAM X = 64)
     uint8_t mx = 64;
     uint8_t my = (sel == SEL_MUSIC) ? 138 : 140; // Screen Y = 122 (selected) / 124 (unselected)
-    uint8_t prop_m = (_cpu == CGB_TYPE) ? 3 : 0;
-    set_sprite_tile(0, 22); move_sprite(0, mx, my);      set_sprite_prop(0, prop_m);
-    set_sprite_tile(1, 24); move_sprite(1, mx + 8, my);  set_sprite_prop(1, prop_m);
-
     // Settings cog button (16x16) on right of ground bar (Screen X = 88..104, OAM X = 96)
     uint8_t sx = 96;
     uint8_t sy = (sel == SEL_SETTINGS) ? 138 : 140;
-    set_sprite_tile(2, 28); move_sprite(2, sx, sy);      set_sprite_prop(2, prop_m);
-    set_sprite_tile(3, 30); move_sprite(3, sx + 8, sy);  set_sprite_prop(3, prop_m);
 
     uint8_t slot;
     if (_cpu == CGB_TYPE) {
-        slot = tb_cgb_place(4);
+        slot = MC_SPRITES;
+        for (uint8_t b = 0; b < 2; b++) {
+            uint8_t x = b ? sx : mx, y = b ? sy : my, t = b ? 28 : 22;
+            for (uint8_t i = 0; i < 4; i++, slot++) {   // top and bottom of the left, then right column
+                set_sprite_tile(slot, (uint8_t)(t + i));
+                move_sprite(slot, (uint8_t)(x + ((i & 2u) << 2)), (uint8_t)(y + ((i & 1u) << 3)));
+                set_sprite_prop(slot, MENU_BTN_PAL);
+            }
+        }
+        slot = tb_cgb_place(slot);
     } else {
+        set_sprite_tile(0, 22); move_sprite(0, mx, my);      set_sprite_prop(0, 0);
+        set_sprite_tile(1, 24); move_sprite(1, mx + 8, my);  set_sprite_prop(1, 0);
+        set_sprite_tile(2, 28); move_sprite(2, sx, sy);      set_sprite_prop(2, 0);
+        set_sprite_tile(3, 30); move_sprite(3, sx + 8, sy);  set_sprite_prop(3, 0);
+
         // Play button sprites (OAM 4..11) - centered at Screen X = 64..96 (OAM X = 72)
         uint8_t bx = 72;
         uint8_t by = 68;   // Screen Y = 52 (the big buttons do not move when selected)
@@ -302,10 +320,6 @@ static void tb_cgb_load_gfx(void) __nonbanked {
     SWITCH_ROM(prev_bank);
 }
 
-// CGB: 8x8 sprites for the big buttons, 8x16 from MENU_OBJ16_LINE (ground buttons)
-static void menu_cgb_stat_isr(void) __nonbanked { LCDC_REG |= LCDCF_OBJ16; }
-static void menu_cgb_vbl_isr(void) __nonbanked { LCDC_REG &= ~LCDCF_OBJ16; }
-
 // DMG side buttons: TB_DMG_TILES tiles per side, 2 buffers (the one not shown is filled with the
 // next scroll position while the sky waits its 2 frames)
 static const uint8_t *tb_dmg_src[4];   // [side * 2 + half]: SCX 0..31, 32..63
@@ -484,13 +498,160 @@ static void menu_stop_irqs(uint8_t dmg_sky_irq) {
         set_interrupts(VBL_IFLAG | TIM_IFLAG);
         enable_interrupts();
     } else if (_cpu == CGB_TYPE) {
-        disable_interrupts();
-        remove_LCD(menu_cgb_stat_isr);
-        remove_VBL(menu_cgb_vbl_isr);
-        STAT_REG &= ~STATF_LYC;
-        set_interrupts(VBL_IFLAG | TIM_IFLAG);
-        enable_interrupts();
-        LCDC_REG |= LCDCF_OBJ16;
+        SPRITES_8x16;   // what the other screens expect
+    }
+}
+
+// Music / settings button art (colours 1 yellow, 2 lime, 3 black) into 4 sprite tiles. CGB: for
+// the rim palette MENU_BTN_PAL (1 lime, 2 black, 3 yellow).
+static void load_ground_button_tiles(uint8_t first, const uint8_t *src) {
+    uint8_t *out = scratch_buf;   // (the ground tiles are built by now)
+    for (uint8_t i = 0; i < 64u; i += 2) {
+        uint8_t lo = src[i], hi = src[i + 1];
+        out[i] = (_cpu == CGB_TYPE) ? (uint8_t)(lo ^ hi) : lo;
+        out[i + 1] = (_cpu == CGB_TYPE) ? lo : hi;
+    }
+    set_sprite_data(first, 4, out);
+}
+
+static const uint16_t mc_speeds[5] = { 576, 714, 888, 1073, 1320 };   // the game's speeds (8.8 px a frame)
+static uint8_t mc_seed;
+static const uint8_t *mc_src;    // the first image of the icon, in ROM bank mc_bank
+static uint8_t mc_bank;
+static int16_t mc_x;             // screen x of the cube's left edge
+static uint16_t mc_acc, mc_speed;
+static uint16_t mc_y;            // 8.8
+static int16_t mc_vy;
+static uint8_t mc_on_ground, mc_frame, mc_timer;   // mc_frame / mc_timer: as the player's anim_*
+static uint8_t mc_front;         // buffer shown
+static uint8_t mc_shown;         // spin step of the image in it, 0xFF: none yet
+static uint8_t mc_req;           // spin step being copied to the other buffer, 0xFF: none
+
+static uint8_t mc_rnd(void) {
+    mc_seed = (uint8_t)(((mc_seed & 0x80u) ? (uint8_t)((mc_seed << 1) ^ 0x1Du) : (uint8_t)(mc_seed << 1)) + DIV_REG);
+    return mc_seed;
+}
+
+static uint8_t mc_colour(void) {
+    uint8_t c = mc_rnd() & 15u;
+    return (c >= NUM_PALETTE_COLORS) ? (uint8_t)(c - NUM_PALETTE_COLORS) : c;
+}
+
+// A new look, off the left edge. In VBlank: it writes a sprite palette.
+static void mc_reset(void) {
+    uint8_t icon = mc_rnd() & 63u;
+    if (icon >= NUM_CUBE_ICONS) icon -= NUM_CUBE_ICONS;
+    if (icon == 0) {
+        mc_src = cube_icon_frames;
+        mc_bank = BANK(cube_icon_frames);
+    } else {
+        uint8_t j = (uint8_t)(icon - 1u);
+        if (j < CUBE_FD_PER_BANK) { mc_src = cube_fd_frames_0; mc_bank = BANK(cube_fd_frames_0); }
+        else if ((j -= CUBE_FD_PER_BANK) < CUBE_FD_PER_BANK) { mc_src = cube_fd_frames_1; mc_bank = BANK(cube_fd_frames_1); }
+        else if ((j -= CUBE_FD_PER_BANK) < CUBE_FD_PER_BANK) { mc_src = cube_fd_frames_2; mc_bank = BANK(cube_fd_frames_2); }
+        else if ((j -= CUBE_FD_PER_BANK) < CUBE_FD_PER_BANK) { mc_src = cube_fd_frames_3; mc_bank = BANK(cube_fd_frames_3); }
+        else { j -= CUBE_FD_PER_BANK; mc_src = cube_fd_frames_4; mc_bank = BANK(cube_fd_frames_4); }
+        mc_src += (uint16_t)j * CUBE_FD_FRAMES * 64u;
+    }
+    palette_color_t pal[4];
+    pal[0] = RGB8(255, 255, 255);
+    pal[1] = icon_color(mc_colour());   // secondary
+    pal[2] = icon_color(mc_colour());   // primary
+    pal[3] = RGB8(0, 0, 0);
+    fade_set_sprite_palette(MC_PAL, 1, pal);
+
+    uint8_t s = mc_rnd() & 7u;
+    mc_speed = mc_speeds[(s >= 5u) ? (uint8_t)(s - 5u) : s];
+    mc_x = MC_START_X;
+    mc_acc = 0;
+    mc_y = (uint16_t)MC_REST_Y << 8;
+    mc_vy = 0;
+    mc_on_ground = 1;
+    mc_frame = mc_timer = 0;
+    mc_shown = mc_req = 0xFF;
+}
+
+// image of a spin step: the second half turn is the first one flipped both ways
+#define MC_IMG(st) ((uint8_t)((st) >= CUBE_ICON_FRAMES ? (st) - CUBE_ICON_FRAMES : (st)))
+
+// Asks for spin step want and returns the step shown this frame, in the buffer mc_front
+static uint8_t mc_show(uint8_t want) {
+    if (mc_req != 0xFF && !bg_cube_pending) {
+        mc_front ^= 1;
+        mc_shown = mc_req;
+        mc_req = 0xFF;
+    }
+    if (mc_shown != 0xFF && MC_IMG(want) == MC_IMG(mc_shown)) return want;
+    if (mc_req == 0xFF) {
+        bg_cube_src = mc_src + (uint16_t)MC_IMG(want) * 64u;
+        bg_cube_bank = mc_bank;
+        bg_cube_dst = (uint8_t *)(0x8000u + ((uint16_t)(MC_TILE + (uint8_t)((mc_front ^ 1u) << 2)) << 4));
+        mc_req = want;
+        bg_cube_pending = 4;
+    }
+    return mc_shown;
+}
+
+static void mc_update(void) {
+    if (mc_x >= 161) mc_reset();
+    if (mc_shown == 0xFF) {             // the new icon's first image is on its way
+        mc_show(0);
+        return;
+    }
+    mc_acc += mc_speed;
+    mc_x += (int16_t)(mc_acc >> 8);
+    mc_acc &= 0xFFu;
+
+    // The player's cube physics and spin (player.c)
+    if (mc_on_ground && !(mc_rnd() & 15u)) {
+        mc_vy = JUMP_FORCE;
+        mc_on_ground = 0;
+        if ((uint8_t)(mc_frame % 6u) == 0) { mc_frame = (uint8_t)((mc_frame + 1u) % 24u); mc_timer = 0; }
+    }
+    if (!mc_on_ground) {
+        mc_vy += GRAVITY;
+        if (mc_vy > MAX_FALL_SPEED) mc_vy = MAX_FALL_SPEED;
+        mc_y += (uint16_t)mc_vy;
+        if (mc_y >= ((uint16_t)MC_REST_Y << 8)) {
+            mc_y = (uint16_t)MC_REST_Y << 8;
+            mc_vy = 0;
+            mc_on_ground = 1;
+        }
+    }
+    if (mc_on_ground) {
+        uint8_t st = (uint8_t)((mc_frame << 1) + (mc_timer >= 11u ? 1u : 0u));
+        uint8_t q = (uint8_t)(((uint8_t)(mc_frame % 6u) << 1) + (st & 1u));
+        if (q != 0) {                   // settle onto the nearest side
+            if (q >= 6) st += (q == 11) ? 1 : 2;
+            else st -= (q == 1) ? 1 : 2;
+            if (st >= 48) st -= 48;
+            mc_frame = (uint8_t)(st >> 1);
+            mc_timer = (st & 1u) ? 11 : 0;
+        } else {
+            mc_timer = 0;
+        }
+    } else {
+        mc_timer += 10;
+        if (mc_timer >= 21) {
+            mc_timer -= 21;
+            if (++mc_frame >= 24) mc_frame = 0;
+        }
+    }
+
+    uint8_t show = mc_show((uint8_t)((mc_frame << 1) + (mc_timer >= 11u ? 1u : 0u)));
+    uint8_t t = (uint8_t)(MC_TILE + (uint8_t)(mc_front << 2));
+    uint8_t flip = (show >= CUBE_ICON_FRAMES);
+    int16_t ox = mc_x + 7;              // OAM x: 8, less the 1 px the game draws the cube to the left
+    uint8_t oy = (uint8_t)((mc_y >> 8) + 16u);
+    for (uint8_t i = 0; i < MC_SPRITES; i++) {
+        int16_t x = ox + ((i & 2u) << 2);
+        if (x <= 0 || x >= 168) {
+            hide_sprite(i);
+        } else {
+            set_sprite_tile(i, (uint8_t)(t + (flip ? 3u - i : i)));
+            set_sprite_prop(i, (uint8_t)(MC_PAL | (flip ? (S_FLIPX | S_FLIPY) : 0)));
+            move_sprite(i, (uint8_t)x, (uint8_t)(oy + ((i & 1u) << 3)));
+        }
     }
 }
 
@@ -549,12 +710,6 @@ GameState update_menu_state(void) BANKED {
         for (uint8_t i = 0; i < TB_CORE_PAL_COUNT; i++)   // BG palettes 2, 5, 6, 7
             fade_set_bkg_palette(i ? (uint8_t)(4 + i) : 2, 1, &tb_core_pals_ram[i * 4]);
 
-        static const uint16_t music_btn_palette[] = {
-            RGB8(255, 255, 255),
-            RGB8(255, 235, 20),
-            RGB8(80, 210, 20),
-            RGB8(0, 0, 0)
-        };
         static const uint16_t cursor_palette[] = {
             RGB8(255, 255, 255),
             RGB8(255, 255, 255),
@@ -562,15 +717,17 @@ GameState update_menu_state(void) BANKED {
             RGB8(0, 0, 0)
         };
         // fade_set_sprite_palette is banked: RAM copies of this bank's tables. Palettes 0..2 and
-        // 5..7: big button rims, 3: ground buttons, 4: cursor
+        // 5..7: big button rims (5: the ground buttons too), 3: menu cube, 4: cursor
         palette_color_t spr[32];
         for (uint8_t i = 0; i < 32; i++) spr[i] = RGB8(255, 255, 255);
         for (uint8_t i = 0; i < TB_OBJ_PAL_COUNT * 4; i++) spr[(i < 12) ? i : i + 8] = tb_obj_pals_ram[i];
-        for (uint8_t i = 0; i < 4; i++) {
-            spr[12 + i] = music_btn_palette[i];
-            spr[16 + i] = cursor_palette[i];
-        }
+        for (uint8_t i = 0; i < 4; i++) spr[16 + i] = cursor_palette[i];
         fade_set_sprite_palette(0, 8, spr);
+
+        mc_seed = DIV_REG | 1u;
+        mc_front = 0;
+        bg_cube_pending = 0;
+        mc_reset();
     } else {
         tb_dmg_init();
         tb_dmg_ids_init();
@@ -588,7 +745,7 @@ GameState update_menu_state(void) BANKED {
         // Tile 3 (right bottom)
         0xA2, 0xFE, 0x82, 0xFE, 0x82, 0xFE, 0x86, 0xFE, 0x04, 0xFC, 0x18, 0xF8, 0xF0, 0xF0, 0x00, 0x00
     };
-    set_sprite_data(22, 4, music_button_tiles);
+    load_ground_button_tiles(22, music_button_tiles);
 
     // Settings button tiles (16x16 icon -> 4 8x8 tiles = 2 8x16 sprites)
     // Colors: 0 transparent, 1 yellow (gear), 2 lime (bg), 3 black (outline)
@@ -598,7 +755,7 @@ GameState update_menu_state(void) BANKED {
         0x00, 0x00, 0xF0, 0xF0, 0xD8, 0x78, 0xF4, 0x7C, 0xFE, 0x0E, 0xFA, 0x8E, 0x7E, 0xCE, 0x3E, 0xE2,
         0x3E, 0xE2, 0x7E, 0xCE, 0xFA, 0x8E, 0xFE, 0x0E, 0xF4, 0x7C, 0xD8, 0x78, 0xF0, 0xF0, 0x00, 0x00,
     };
-    set_sprite_data(28, 4, settings_button_tiles);
+    load_ground_button_tiles(28, settings_button_tiles);
 
     // Cursor indicator tiles (downward-pointing chevron, 8x16 mode: white body, black border)
     static const uint8_t pause_cursor_tiles[32] = {
@@ -609,7 +766,7 @@ GameState update_menu_state(void) BANKED {
     };
     set_sprite_data(26, 2, pause_cursor_tiles);
 
-    SPRITES_8x16;
+    if (_cpu == CGB_TYPE) SPRITES_8x8; else SPRITES_8x16;
     // Top row: icon, play, wrench. Ground row: music, settings.
     uint8_t menu_sel = SEL_PLAY;
     uint8_t last_ground_sel = SEL_MUSIC;
@@ -627,13 +784,6 @@ GameState update_menu_state(void) BANKED {
     uint8_t dmg_sky_irq = (_cpu != CGB_TYPE && setting_show_bg_enabled);
     if (_cpu == CGB_TYPE) {
         tb_cgb_cores();
-        disable_interrupts();
-        add_LCD(menu_cgb_stat_isr);
-        add_VBL(menu_cgb_vbl_isr);
-        STAT_REG |= STATF_LYC;
-        LYC_REG = MENU_OBJ16_LINE;
-        set_interrupts(VBL_IFLAG | LCD_IFLAG | TIM_IFLAG);
-        enable_interrupts();
     } else {
         tb_dmg_show(0);
     }
@@ -677,6 +827,7 @@ GameState update_menu_state(void) BANKED {
             }
         }
         bg_wait_vbl();
+        if (_cpu == CGB_TYPE) mc_update();
         if (dmg_scroll) {
             // In VBlank: the STAT handler takes menu_sky_scx at line 16, and the side buttons' map
             // cells (from line 48) have to move with it in the same frame
