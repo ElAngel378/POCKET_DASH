@@ -880,7 +880,7 @@ GameState update_menu_state(void) BANKED {
     // Restore standard palettes
     fade_set_dmg_palettes(0xE4, 0xE4, 0xD2);
 
-    static uint16_t frame_counter = 0;
+    static uint16_t frame_counter = 77 << 4;   // the rainbow starts at an open blue
 
     sky_ty0_init();
     menu_load_bg_gfx();

@@ -53,6 +53,7 @@ typedef struct {
 } SettingItem;
 
 #include "settings.h"
+#include "sgb.h"
 
 static const char * const toggle_labels[] = { "OFF", "ON" };
 static const char * const ship_cam_labels[] = { "NEW", "OLD" };
@@ -139,7 +140,10 @@ static const SettingItem settings_list[] = {
     { "AUTO CP",      SETTING_TYPE_TOGGLE, &setting_auto_checkpoints, 0, 1, toggle_labels,   on_setting_change, NULL },
     { "WIPE SAVE",    SETTING_TYPE_ACTION, NULL,                      0, 0, NULL,            NULL,              on_wipe_save_action }
 };
-#define NUM_SETTINGS (sizeof(settings_list) / sizeof(settings_list[0]))
+// GRADIENT (row 3) only exists on DMG
+#define HIDE_GRADIENT ((_cpu == CGB_TYPE || sgb_present) ? 1u : 0u)
+#define SET_ITEM(i) ((uint8_t)((i) + (((i) >= 3u) ? HIDE_GRADIENT : 0u)))
+#define NUM_SETTINGS ((uint8_t)(sizeof(settings_list) / sizeof(settings_list[0]) - HIDE_GRADIENT))
 #define VISIBLE_ROWS 5
 
 static void reset_audio_full(void) {
@@ -204,7 +208,7 @@ static void render_setting_row(uint8_t visible_row, uint8_t item_idx, uint8_t is
         return;
     }
 
-    const SettingItem *item = &settings_list[item_idx];
+    const SettingItem *item = &settings_list[SET_ITEM(item_idx)];
     char line_buf[15];
     for (uint8_t i = 0; i < 14; i++) line_buf[i] = ' '; // Clean spaces - NO DOTS!
     line_buf[14] = '\0';
@@ -339,7 +343,7 @@ GameState update_settings_state(void) BANKED {
 
         // Toggle / Action on Left / Right / A
         if (pressed & (J_LEFT | J_RIGHT | J_A)) {
-            const SettingItem *item = &settings_list[current_sel];
+            const SettingItem *item = &settings_list[SET_ITEM(current_sel)];
             if (item->type == SETTING_TYPE_TOGGLE && item->val_ptr) {
                 // Parallax requires SHOW BG: ignore input when BG is off
                 if (item->val_ptr == &setting_parallax_enabled && !setting_show_bg_enabled) {

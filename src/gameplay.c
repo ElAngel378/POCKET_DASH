@@ -517,9 +517,9 @@ static uint8_t dmg_shown_bg_idx(uint8_t idx) {
 // OBP1: the player (cube, ship, ball, mini), in the shades chosen in the icon select menu on every
 // theme: colour 1 secondary, 2 primary, 3 outline. The outline is black, or white on the dark grey
 // and black themes (2, 3), so the cube always stands out from the sky, also on a real DMG screen.
-// SGB (always theme 1): white on a near black sky, where the other three colours look alike.
+// SGB (always theme 1): always white, for visibility.
 static uint8_t dmg_player_obp(uint8_t idx) {
-    uint8_t outline = (idx >= 2 || sgb_dark_sky) ? 0 : 3;
+    uint8_t outline = (idx >= 2 || sgb_present) ? 0 : 3;
     return (uint8_t)((outline << 6) | (selected_dmg_primary << 4) | (selected_dmg_secondary << 2));
 }
 

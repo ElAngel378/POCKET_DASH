@@ -88,7 +88,7 @@ uint8_t selected_dmg_secondary = 1;
 
 uint8_t setting_music_enabled   = 1;
 uint8_t setting_sfx_enabled     = 1;
-uint8_t setting_dmg_gradient    = 1;
+uint8_t setting_dmg_gradient    = 0;
 uint8_t setting_show_bg_enabled = 1;
 uint8_t setting_parallax_enabled = 1;
 uint8_t setting_effects_enabled = 1;
@@ -308,7 +308,7 @@ void init_save_system(void) BANKED {
     }
     setting_music_enabled   = 1;
     setting_sfx_enabled     = 1;
-    setting_dmg_gradient    = 1;
+    setting_dmg_gradient    = 0;
     setting_show_bg_enabled = 1;
     setting_parallax_enabled = 1;
     setting_effects_enabled = 1;
