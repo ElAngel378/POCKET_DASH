@@ -52,3 +52,5 @@ docs/user_art.png
 # God mode test build
 temp_god/
 bin/POCKETDASH_god.*
+# Originals tools/fix_trigger_lead.py keeps
+*.tmx.bak

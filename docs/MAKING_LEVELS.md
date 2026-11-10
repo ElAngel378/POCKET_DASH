@@ -53,6 +53,8 @@ Your level ends at its last column by itself. To end it sooner, place a **Level 
 
 To change colour during the level, place a **BG colour**, **Ground colour** or **Outline colour** trigger on the SP layer, then set its **Colour** and **Fade** in the Properties panel. The game picks the closest colour it can show. The trigger fires when the player reaches it.
 
+> **Started your level before November 10, 2026?** Colour triggers used to fire 10 blocks early. Drop your `.tmx` on **`fix_triggers.bat`** once to move them, and the level plays as it did. The original is kept as `.tmx.bak`.
+
 ### The sky and ground in Tiled
 
 The sky and the ground behind your level are only a preview. They aren't part of the level and you can't edit them. They follow your colours and triggers: **press F6** to redraw them. If the picture doesn't change, press `Ctrl+R` to reload.
