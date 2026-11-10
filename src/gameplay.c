@@ -1799,15 +1799,23 @@ void play_level(uint8_t idx) BANKED {
             // Ship, ball, UFO: their turned images (mini_frames.png) streamed like the big player's
             // into the buffer (its tiles are free while mini); until the first one is copied, the
             // level image in VRAM.
-            static const uint8_t mini_cube_img[6] = { 0, 1, 1, 2, 2, 0 };   // never mirrored: icons are not symmetrical
+            // 24 steps of 15 degrees: image (0, 22, 45 degrees) | flips (X: -a, Y: 180 - a, both: 180 + a)
+            #define X S_FLIPX
+            #define Y S_FLIPY
+            static const uint8_t mini_cube_img[24] = {
+                0, 1, 1, 2, 2, 2, 0, 2|Y, 2|Y, 2|Y, 1|Y, 1|Y, 0|X|Y, 1|X|Y, 1|X|Y, 2|X|Y, 2|X|Y, 2|X|Y, 0, 2|X, 2|X, 2|X, 1|X, 1|X
+            };
+            #undef X
+            #undef Y
             // ship image (0 steep down .. 30 steep up) -> mini image (30, 15, 0, -15, -30 degrees)
             static const uint8_t mini_ship_img[SHIP_FRAME_COUNT] = {
                 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 };
             uint8_t tile, prop = S_PALETTE;   // DMG: OBP1, the player's palette
             uint8_t mirrored = 1;             // drawn flipped with the gravity / mirror mode
             if (player.mode == MODE_CUBE) {
-                uint8_t q = (uint8_t)(player.anim_frame % 6u);
-                tile = MINI_PLAYER_TILE_BASE + (uint8_t)(mini_cube_img[q] << 1);
+                uint8_t q = mini_cube_img[player.anim_frame];
+                tile = MINI_PLAYER_TILE_BASE + (uint8_t)((q & 3u) << 1);
+                prop ^= (uint8_t)(q & (S_FLIPX | S_FLIPY));
             } else {
                 uint8_t first, n, want;
                 if (player.mode == MODE_SHIP) {
