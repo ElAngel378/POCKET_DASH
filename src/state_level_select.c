@@ -1,7 +1,8 @@
 #pragma bank 28
 // The extra levels (the wrench in the main menu): a GD-style list on the hanging table of the
 // settings (settings_bg.c, this bank). A row per level: its difficulty face (sprites), its name on
-// up to two lines and the best normal-mode percent. UP/DOWN move, A plays, B goes back.
+// up to two lines and the best normal-mode percent, the rows lighter and darker by turns.
+// UP/DOWN move, A plays, B goes back.
 
 #include "states.h"
 #include "gameplay.h"
@@ -31,6 +32,13 @@ extern const uint8_t extra_font_tiles[4 * 16];   // state_settings.c (this bank)
 #define CURSOR_TILE 27      // and 28 below it
 #define PAL_ROW     2
 #define PAL_SEL     4       // the selected row (CGB; the chains use 5 here)
+// The darker rows: the font and the cursor again with colour 1 (the dark brown, DMG light grey)
+// as their background, made from the loaded ones. Tiles 0x80.. (free on this screen)
+#define DARK_FONT   0x80u                 // font tiles 0..42
+#define DARK_CURSOR (DARK_FONT + 43u)     // and 44
+#define GAP_LD      (DARK_FONT + 45u)     // a row between two: the light one above, the dark below
+#define GAP_DL      (DARK_FONT + 46u)
+#define IS_DARK(idx) (((uint8_t)((idx) - NUM_MAIN_LEVELS)) & 1u)
 
 // tiles 26 (row separator), 27/28 (the cursor, 8 x 16)
 static const uint8_t list_tiles[48] = {
@@ -162,6 +170,15 @@ static void draw_row(uint8_t r, uint8_t idx, uint8_t sel, uint8_t faces) {
     } else if (faces) {
         for (uint8_t k = 0; k < 4; k++) hide_sprite((uint8_t)(spr + k));
     }
+    if (IS_DARK(idx)) {
+        for (uint8_t i = 0; i < 2u * COLS; i++) {
+            uint8_t t = line1[i];             // (line2 follows line1)
+            if (t >= FONT_PUSAB_START) t = (uint8_t)(t - FONT_PUSAB_START + DARK_FONT);
+            else if (t >= CURSOR_TILE) t = (uint8_t)(t - CURSOR_TILE + DARK_CURSOR);
+            else t = DARK_FONT;               // blank
+            line1[i] = t;
+        }
+    }
     set_bkg_tiles(COL0, y, COLS, 1, line1);
     set_bkg_tiles(COL0, (uint8_t)(y + 1u), COLS, 1, line2);
     if (_cpu == CGB_TYPE) {
@@ -193,6 +210,9 @@ static void draw_list(uint8_t top, uint8_t faces) {
     for (uint8_t r = 0; r < LIST_ROWS; r++) {
         uint8_t idx = (uint8_t)(top + r);
         draw_row(r, idx, idx == selected, faces);
+        // the row under it: half its shade, half the next one's
+        if (r + 1u < LIST_ROWS)
+            fill_bkg_rect(COL0, (uint8_t)(ROW_Y(r) + 2u), COLS, 1, IS_DARK(idx) ? GAP_DL : GAP_LD);
     }
     draw_counter();
 }
@@ -214,13 +234,31 @@ GameState update_level_select_state(void) BANKED {
     setup_menu_font();
     set_bkg_data((uint8_t)(FONT_PUSAB_START + 39), 4, extra_font_tiles);
     set_bkg_tiles(0, 0, 20, 18, list_map);
+    // the dark copies: colour 0 -> 1 (a pixel with neither bit set gets the low one)
+    for (uint8_t t = 0; t < 43u; t = (uint8_t)(t + 16u)) {
+        uint8_t n = (43u - t < 16u) ? (uint8_t)(43u - t) : 16u;
+        get_bkg_data((uint8_t)(FONT_PUSAB_START + t), n, scratch_buf);
+        for (uint16_t i = 0; i < (uint16_t)n * 16u; i += 2u) scratch_buf[i] |= (uint8_t)~(scratch_buf[i] | scratch_buf[i + 1u]);
+        set_bkg_data((uint8_t)(DARK_FONT + t), n, scratch_buf);
+    }
+    memcpy(scratch_buf, list_tiles + 16, 32);
+    for (uint8_t i = 0; i < 32u; i += 2u) scratch_buf[i] |= (uint8_t)~(scratch_buf[i] | scratch_buf[i + 1u]);
+    for (uint8_t i = 0; i < 16u; i += 2u) {   // the two gap tiles: 4 rows of each shade
+        uint8_t top = (i < 8u) ? 0x00u : 0xFFu;
+        scratch_buf[32u + i] = top;
+        scratch_buf[48u + i] = (uint8_t)~top;
+        scratch_buf[33u + i] = 0;
+        scratch_buf[49u + i] = 0;
+    }
+    set_bkg_data(DARK_CURSOR, 4, scratch_buf);
 
     if (_cpu == CGB_TYPE) {
         palette_color_t *pals = pal_buf;   // fade_set_bkg_palette is banked: a RAM copy
         memcpy(pals, settings_bg_palettes, 32 * sizeof(palette_color_t));
-        // 4: the selected row
+        // 2: colour 1 (the letters' shadow) is the darker rows' brown too; 4: the selected row
+        pals[8 + 1] = RGB8(119, 61, 0);
         pals[16 + 0] = RGB8(214, 126, 24);
-        pals[16 + 1] = RGB8(96, 48, 0);
+        pals[16 + 1] = RGB8(168, 94, 14);
         pals[16 + 2] = RGB8(0, 0, 0);
         pals[16 + 3] = RGB8(255, 255, 255);
         fade_set_bkg_palette(0, 8, pals);

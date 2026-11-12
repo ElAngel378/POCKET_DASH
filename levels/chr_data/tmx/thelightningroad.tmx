@@ -6,6 +6,7 @@
  </editorsettings>
  <properties>
   <property name="BG colour" type="color" value="#ff000000"/>
+  <property name="Difficulty" propertytype="Difficulty" value="Demon"/>
   <property name="Ground colour" type="color" value="#ff000000"/>
   <property name="Max fall" type="int" value="6"/>
   <property name="Menu" propertytype="Menu" value="Extra"/>

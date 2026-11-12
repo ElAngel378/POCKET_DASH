@@ -663,12 +663,12 @@ const uint8_t level_difficulty[] = {
   5u, // level_electromanadventures
   6u, // level_clubstep
   0u, // level_bestautomaticlvl
-  1u, // level_leveleasy
-  8u, // level_subzero
-  8u, // level_ultiatedestruction
-  8u, // level_everymadness
-  8u, // level_demonpark
-  8u, // level_thelightningroad
+  2u, // level_leveleasy
+  3u, // level_subzero
+  3u, // level_ultiatedestruction
+  9u, // level_everymadness
+  9u, // level_demonpark
+  6u, // level_thelightningroad
   8u, // level_test
   8u, // level_test2
 };
