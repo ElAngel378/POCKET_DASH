@@ -177,7 +177,7 @@ void percent_hud_update(uint16_t cam_px) BANKED {
     if (pct == shown) return;
     shown = pct;
 
-    uint8_t tens = pct / 10u, ones = pct % 10u;   // once per percent, not per frame
+    uint8_t tens = pct / (uint8_t)10, ones = pct % (uint8_t)10;   // once per percent, not per frame
     uint8_t n = (pct == 100) ? 4 : (pct >= 10) ? 3 : 2;
     uint8_t x = (uint8_t)(80 + 8 - ((n * GLYPH_W) >> 1));
     uint8_t s = 0;

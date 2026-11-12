@@ -1825,7 +1825,9 @@ void play_level(uint8_t idx) BANKED {
             uint8_t tile, prop = S_PALETTE;   // DMG: OBP1, the player's palette
             uint8_t mirrored = 1;             // drawn flipped with the gravity / mirror mode
             if (player.mode == MODE_CUBE) {
-                uint8_t q = (uint8_t)(player.anim_frame % 6u);
+                // anim_frame % 6 (anim_frame < 24): a 16-bit division every frame otherwise
+                static const uint8_t mod6[24] = { 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5 };
+                uint8_t q = mod6[player.anim_frame];
                 tile = MINI_PLAYER_TILE_BASE + (uint8_t)(mini_cube_img[q] << 1);
                 if (q >= 4) prop ^= S_FLIPX;   // 60, 75 degrees: the 22 degree image mirrored (67)
             } else {
