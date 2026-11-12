@@ -449,7 +449,7 @@ void bg_parallax_vbl_isr(void) {
         HDMA2_REG = (uint8_t)((uint16_t)bg_cube_src & 0xF0);
         HDMA3_REG = (uint8_t)(((uint16_t)bg_cube_dst >> 8) & 0x1F);
         HDMA4_REG = (uint8_t)((uint16_t)bg_cube_dst & 0xF0);
-        HDMA5_REG = 3;   // 4 blocks of 16 bytes
+        HDMA5_REG = (uint8_t)(bg_cube_pending - 1u);   // its tiles: blocks of 16 bytes
         SWITCH_ROM(prev_b);
         bg_cube_pending = 0;
     }

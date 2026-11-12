@@ -14,8 +14,7 @@ extern uint8_t selected;   // main.c: the level of the level selects
 #include "title_buttons.h"
 #include "cube_icon_frames.h"
 #include "icon_catalog.h"
-BANKREF_EXTERN(mini_cube_icons)
-extern const uint8_t mini_cube_icons[];   // 32 icons, 3 images each
+#include "mini_cube_frames.h"
 #include <gb/gb.h>
 #include <gb/cgb.h>
 #include <string.h>
@@ -600,8 +599,8 @@ static void mc_reset(void) {
     mc_bank = BANK(cube_icon_frames);
     if (mc_mini) {
         if (mc_mode == MODE_CUBE) {
-            mc_src = mini_cube_icons + (uint16_t)(mc_rnd() & 31u) * 48u;
-            mc_bank = BANK(mini_cube_icons);
+            mc_src = MINI_CUBE_FRAME(mc_rnd() & 31u, 0);
+            mc_bank = BANK(mini_cube_frames);
         } else {
             mc_src = MINI_FRAME(0);
         }
@@ -823,14 +822,12 @@ static void mc_update(void) {
     uint8_t id, flip = 0;               // flip: the sprite flips
     uint8_t half_steps = (uint8_t)((mc_frame << 1) + (mc_timer >= 11u ? 1u : 0u));
     if (mc_mini) {
-        static const uint8_t mini_cube_img[6] = { 0, 1, 1, 2, 1, 1 };
         // ship image (0 steep down .. 30 steep up) -> mini image (30, 15, 0, -15, -30 degrees)
         static const uint8_t mini_ship_img[SHIP_FRAME_COUNT] = {
             0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 };
         if (mc_mode == MODE_CUBE) {
-            uint8_t q = (uint8_t)(mc_frame % 6u);
-            id = mini_cube_img[q];
-            if (q >= 4) flip = S_FLIPX;
+            id = mc_frame;      // 15 degree steps: 12 images, the second half turn flipped both ways
+            if (id >= MINI_CUBE_FRAMES) { id -= MINI_CUBE_FRAMES; flip = S_FLIPX | S_FLIPY; }
         } else if (mc_mode == MODE_BALL) {
             uint8_t k = (uint8_t)(half_steps / 3u);
             if (k >= MINI_BALL_FRAMES) { k -= MINI_BALL_FRAMES; flip = S_FLIPX | S_FLIPY; }
@@ -857,14 +854,14 @@ static void mc_update(void) {
     mc_q_id = id;
     mc_q_flip = flip;
     mc_q_cut = 0;
-    uint8_t mini_cube = (mc_mini && mc_mode == MODE_CUBE);   // its images are 16 bytes each, not aligned for the GDMA
-    const uint8_t *src = mc_src + (uint16_t)id * (mini_cube ? 16u : 64u);
+    uint8_t mini_cube = (mc_mini && mc_mode == MODE_CUBE);   // its images are 32 bytes each
+    const uint8_t *src = mc_src + (uint16_t)id * (mini_cube ? 32u : 64u);
     uint8_t in_band = (mc_q_y >= MC_CUT_ABOVE && mc_q_y < MC_CUT_BELOW);
-    if (in_band || mini_cube) mc_art_load(src);
+    if (in_band) mc_art_load(src);
     if (in_band) mc_q_cut = mc_art_cut_out(mc_q_x, mc_q_y, flip, mc_mini ? 1u : 4u);
     mc_q_copied = (mc_q_cut || mc_art_cut || id != mc_art_id);
     if (mc_q_copied) {
-        bg_cube_src = (mc_q_cut || mini_cube) ? (const uint8_t *)mc_art : src;
+        bg_cube_src = mc_q_cut ? (const uint8_t *)mc_art : src;
         bg_cube_bank = mc_bank;
         bg_cube_dst = (uint8_t *)(0x8000u + ((uint16_t)(MC_TILE + (uint8_t)((mc_front ^ 1u) << 2)) << 4));
         bg_cube_pending = 4;

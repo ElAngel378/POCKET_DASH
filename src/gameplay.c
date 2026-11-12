@@ -48,6 +48,7 @@ static void apply_custom_player_palette(void) {
 #include "percent_hud.h"
 #include "bg_parallax.h"
 #include "cube_icon_frames.h"
+#include "mini_cube_frames.h"
 #include "collision.h"
 #include "settings.h"
 #include "level_complete.h"
@@ -322,13 +323,16 @@ static uint8_t practice_mode = 0;
 // ground too).
 // UFO: Famidash's, 5 images: 15 and 8 degrees nose down, level, 8 and 15 up, following its
 // vertical speed (ufo_tilt_vy): it tilts nose down on a jump and up as it falls.
-// Mini ship, ball and UFO: 8x8 images in the first tile of the buffer (the cube's 3 stay in VRAM).
+// Mini ship, ball, UFO and cube: 8x8 images in the first tile of the buffer.
 // Frame ids: cube step 0..47, ship PL_SHIP + image, ball PL_BALL + step, UFO PL_UFO + image,
-// mini PL_MINI + image (MINI_*_FIRST ..).
+// mini PL_MINI + image (MINI_*_FIRST ..), mini cube PL_MINI_CUBE + its 15 degree step (0..23:
+// 12 images of the icon's, mini_cube_frames.h, the second half turn flipped both ways).
 #define PL_SHIP 64
 #define PL_BALL 128
 #define PL_UFO 192
 #define PL_MINI 200
+#define PL_MINI_CUBE (PL_MINI + MINI_FRAME_COUNT)
+static uint8_t mini_cube_m;  // the selected icon's mini icon (mini_cube_frames.h)
 // ship / UFO: tilted images, drawn mirrored (no half turn), 1 px higher than the cube
 #define PL_TILTED(id) ((id) >= PL_UFO || ((id) >= PL_SHIP && (id) < PL_BALL))
 static metasprite_t cube_ms[3];
@@ -346,7 +350,7 @@ static uint8_t ufo_tilt;     // ... and the UFO's
 #define CUBE_IMG(st) ((uint8_t)((st) >= CUBE_ICON_FRAMES ? (st) - CUBE_ICON_FRAMES : (st)))
 #define CUBE_MIRROR() ((uint8_t)(player.gravity_flipped | (view_rev << 1)))
 // the image of a frame id (cube / ball steps 24 apart share one)
-#define PL_KEY(id) ((id) >= PL_UFO ? (id) : (id) >= PL_BALL ? (uint8_t)(PL_BALL + CUBE_IMG((uint8_t)((id) - PL_BALL)))                     : (id) >= PL_SHIP ? (id) : CUBE_IMG(id))
+#define PL_KEY(id) ((id) >= PL_MINI_CUBE + MINI_CUBE_FRAMES ? (uint8_t)((id) - MINI_CUBE_FRAMES) : (id) >= PL_UFO ? (id) : (id) >= PL_BALL ? (uint8_t)(PL_BALL + CUBE_IMG((uint8_t)((id) - PL_BALL)))                     : (id) >= PL_SHIP ? (id) : CUBE_IMG(id))
 
 static uint8_t cube_step(void) {
     uint8_t s = (uint8_t)(player.anim_frame << 1);
@@ -374,6 +378,11 @@ static uint8_t player_frame_id(void) {
 
 // Icons 1..45 (Famidash and custom, tools/make_cube_icon_frames.py): 24 frames like icon 0, 10 icons a bank
 static const uint8_t *player_frame_src(uint8_t id) {
+    if (id >= PL_MINI_CUBE) {
+        uint8_t k = (uint8_t)(id - PL_MINI_CUBE);
+        if (k >= MINI_CUBE_FRAMES) k -= MINI_CUBE_FRAMES;
+        return MINI_CUBE_FRAME(mini_cube_m, k);
+    }
     if (id >= PL_MINI) return MINI_FRAME(id - PL_MINI);
     if (id >= PL_UFO) return UFO_FRAME(id - PL_UFO);
     if (id >= PL_BALL) return BALL_FRAME(CUBE_IMG((uint8_t)(id - PL_BALL)));
@@ -389,6 +398,7 @@ static const uint8_t *player_frame_src(uint8_t id) {
 }
 
 static uint8_t player_frame_bank(uint8_t id) {
+    if (id >= PL_MINI_CUBE) return BANK(mini_cube_frames);
     if (id >= PL_SHIP || selected_icon == 0) return BANK(cube_icon_frames);
     if (selected_icon <= CUBE_FD_PER_BANK) return BANK(cube_fd_frames_0);
     if (selected_icon <= 2 * CUBE_FD_PER_BANK) return BANK(cube_fd_frames_1);
@@ -400,6 +410,7 @@ static uint8_t player_frame_bank(uint8_t id) {
 static void cube_icon_reset(void) {
     cube_req = 0xFF;
     bg_cube_pending = 0;
+    mini_cube_m = mini_cube_of_icon(selected_icon);
     cube_mirror = cube_img_mir = CUBE_MIRROR();
     player_draw_dy_snap();
     cube_front = 0;
@@ -453,7 +464,7 @@ static uint8_t player_frame_show(uint8_t want) {
         bg_cube_dst = (uint8_t *)(0x8000u + ((uint16_t)(cube_front ^ 1u) << 6));
         cube_req = want;
         cube_req_mir = cube_mirror;
-        bg_cube_pending = 4;   // tiles (DMG: copied a few per VBlank)
+        bg_cube_pending = (want >= PL_MINI_CUBE) ? 2u : 4u;   // tiles (DMG: copied a few per VBlank)
     }
     return same ? want : cube_shown;
 }
@@ -1814,22 +1825,25 @@ void play_level(uint8_t idx) BANKED {
 
         if (end_anim_state != END_ANIM_SHAKE && player.mini) {
             // Mini size: one 8x16 sprite, image in its top half, drawn at box top - 1
-            // like Famidash (x .. x+7, y+3 .. y+10). Cube: 3 rotation images + mirror, in VRAM.
-            // Ship, ball, UFO: their turned images (mini_frames.png) streamed like the big player's
-            // into the buffer (its tiles are free while mini); until the first one is copied, the
-            // level image in VRAM.
-            static const uint8_t mini_cube_img[6] = { 0, 1, 1, 2, 1, 1 };   // 15 degree steps
+            // like Famidash (x .. x+7, y+3 .. y+10). Cube, ship, ball, UFO: their turned images
+            // (mini_cube_frames.png, mini_frames.png) streamed like the big player's into the
+            // buffer (its tiles are free while mini); until the first one is copied, the level
+            // image in VRAM (the cube: its icon upright).
             // ship image (0 steep down .. 30 steep up) -> mini image (30, 15, 0, -15, -30 degrees)
             static const uint8_t mini_ship_img[SHIP_FRAME_COUNT] = {
                 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 };
             uint8_t tile, prop = S_PALETTE;   // DMG: OBP1, the player's palette
             uint8_t mirrored = 1;             // drawn flipped with the gravity / mirror mode
             if (player.mode == MODE_CUBE) {
-                // anim_frame % 6 (anim_frame < 24): a 16-bit division every frame otherwise
-                static const uint8_t mod6[24] = { 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5 };
-                uint8_t q = mod6[player.anim_frame];
-                tile = MINI_PLAYER_TILE_BASE + (uint8_t)(mini_cube_img[q] << 1);
-                if (q >= 4) prop ^= S_FLIPX;   // 60, 75 degrees: the 22 degree image mirrored (67)
+                // like the big cube: never mirrored (cube_turn), 24 steps of 15 degrees a turn
+                mirrored = 0;
+                uint8_t show = player_frame_show((uint8_t)(PL_MINI_CUBE + (cube_turn(cube_step()) >> 1)));
+                if (show >= PL_MINI_CUBE) {
+                    tile = (uint8_t)(cube_front << 2);
+                    if (show >= PL_MINI_CUBE + MINI_CUBE_FRAMES) prop ^= S_FLIPX | S_FLIPY;
+                } else {
+                    tile = MINI_PLAYER_TILE_BASE;
+                }
             } else {
                 uint8_t first, n, want;
                 if (player.mode == MODE_SHIP) {
