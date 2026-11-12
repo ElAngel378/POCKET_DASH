@@ -47,24 +47,13 @@ static uint8_t bs_bank, bs_dmg, bs_rev;
 static uint16_t bs_pool;                // the level's tiles
 static uint8_t bs_tables_ok;            // the metatile tables already point at this level's slots
 static uint16_t bs_tile_base;           // the level's first tile in the tile space (see tile_of)
-static const uint8_t *bs_rp;            // next record bytes to fetch from ROM
-static uint8_t bs_buf[32], bs_bi, bs_bn;
+static const uint8_t *bs_rp;            // the next record bytes in ROM (bank bs_bank)
 uint16_t bs_col = 0xFFFF;               // the next column with records (0xFFFF: none)
 static uint16_t bs_reached;             // the last column asked for (+1; 0: none)
 static uint16_t bs_resume;              // bs_reached before the last reset
 
 // VRAM address of BG tile slot (BG tiles 0..127 are at 0x9000, 128..255 at 0x8800)
 #define BG_TILE_ADDR(slot) ((uint8_t *)((((slot) < 128u) ? 0x9000u : 0x8000u) + ((uint16_t)(slot) << 4)))
-
-static uint8_t rd(void) {
-    if (bs_bi == bs_bn) {
-        fur_copy_banked(bs_buf, bs_rp, sizeof(bs_buf), bs_bank);
-        bs_rp += sizeof(bs_buf);
-        bs_bi = 0;
-        bs_bn = sizeof(bs_buf);
-    }
-    return bs_buf[bs_bi++];
-}
 
 // All levels' tiles are one space of 16 byte tiles over consecutive banks from BS_TILE_BANK (1024
 // tiles a bank), so a level can have any number of them. DMG: the tiles, then the same tiles
@@ -113,7 +102,6 @@ void bg_stream_reset(uint8_t level, uint8_t reversed, uint8_t tables_kept) BANKE
     bs_q_n = 0;
     bs_col = 0xFFFF;
     bs_reached = 0;
-    bs_bi = bs_bn = 0;
     bs_spin_n = 0;
     fade_n = 0;
     fade_on = 0;
@@ -135,15 +123,15 @@ void bg_stream_reset(uint8_t level, uint8_t reversed, uint8_t tables_kept) BANKE
     uint8_t k = (uint8_t)((level << 1) | bs_dmg);
     bs_bank = bs_banks[level];
     bs_tile_base = bs_tile_first[k];
-    bs_rp = bs_recs[k];
-    bs_pool = rd();
-    bs_pool |= (uint16_t)rd() << 8;
+    // pool size (16 bits), flags, the first column with records (16 bits)
+    uint8_t hdr[5];
+    fur_copy_banked(hdr, bs_recs[k], 5, bs_bank);
+    bs_rp = bs_recs[k] + 5;
+    bs_pool = hdr[0] | ((uint16_t)hdr[1] << 8);
     // the same level again (respawn, mirror portal) with tiles that are each loaded once: the
     // tables are this level's already, only the tiles are uploaded again
-    uint8_t flags = rd();   // (read whatever tables_kept is)
-    bs_tables_ok = (uint8_t)(tables_kept && (flags & 1u));
-    bs_col = rd();
-    bs_col |= (uint16_t)rd() << 8;
+    bs_tables_ok = (uint8_t)(tables_kept && (hdr[2] & 1u));
+    bs_col = hdr[3] | ((uint16_t)hdr[4] << 8);
 }
 
 static void enqueue(uint8_t s, uint16_t t) {
@@ -164,34 +152,29 @@ void bg_stream_to(uint16_t col) BANKED {
     uint8_t off = !(LCDC_REG & LCDCF_ON);
     uint8_t vbk = VBK_REG;   // CGB: the column flush leaves VRAM bank 1 (attributes) selected
     if (off && !bs_dmg) VBK_REG = 0;
+    bsu_bank = bs_bank;
+    bsu_skip = bs_tables_ok;
     while (bs_col <= col) {
-        for (uint8_t n = rd(); n; n--) {
-            uint8_t s = rd();
-            uint16_t t = rd();
-            t |= (uint16_t)rd() << 8;
-            uint8_t k = rd();
-            if (bs_tables_ok) {
-                // skip the quarters: inside the buffer, or refetch from where they end
-                uint16_t skip = (uint16_t)k << 1;
-                if ((uint16_t)bs_bi + skip <= bs_bn) {
-                    bs_bi += (uint8_t)skip;
-                } else {
-                    bs_rp = bs_rp - bs_bn + bs_bi + skip;
-                    bs_bi = bs_bn = 0;
-                }
-            } else {
-                for (; k; k--) {
-                    uint8_t m = rd(), q = rd();
-                    mt_ram[0][m][q] = s;
-                    mt_ram[1][m][q ^ 1u] = s;   // mirrored: left and right quarters swapped
-                }
+        // n, the n records (bs_apply: the metatile quarters; here the tiles), the next column
+        uint8_t n;
+        fur_copy_banked(&n, bs_rp, 1, bs_bank);
+        bs_rp++;
+        while (n) {
+            uint8_t k = (n > BSU_MAX) ? BSU_MAX : n;
+            n -= k;
+            bsu_src = bs_rp;
+            bsu_n = k;
+            bs_apply();
+            bs_rp = bsu_src;
+            const uint8_t *o = bsu_out;
+            for (k = bsu_m; k; k--, o += 3) {
+                uint16_t t = o[1] | ((uint16_t)o[2] << 8);
+                if (off) run_add(o[0], t);
+                else enqueue(o[0], t);
             }
-            if (t == 0xFFFFu) continue;     // no tile: only the metatile quarters
-            if (off) run_add(s, t);
-            else enqueue(s, t);
         }
-        bs_col = rd();
-        bs_col |= (uint16_t)rd() << 8;
+        fur_copy_banked(&bs_col, bs_rp, 2, bs_bank);
+        bs_rp += 2;
     }
     run_flush();
     if (off && !bs_dmg) VBK_REG = vbk;

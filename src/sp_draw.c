@@ -104,10 +104,11 @@ extern const unsigned char FontPusab[];
 
 static uint8_t sp_has_drawn = 0;
 
-// DMG draws the portals, orbs and pads, coins, mirror portals and the arrow (the object cache
-// keeps and draws only these there): bit (o & 7) of dmg_drawn_mask[o >> 3], for the object ids below 128.
+// DMG draws the coins only (the other objects are in its background, tools/dmg_deco.py; the object
+// cache keeps only the coins once they are activated): bit (o & 7) of dmg_drawn_mask[o >> 3], for the
+// object ids below 128.
 static const uint8_t dmg_drawn_mask[16] = {
-    0xE7, 0x7F, 0x3F, 0x0F, 0x20, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x42
+    0x80, 0x00, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 static inline uint8_t is_dmg_drawn(uint8_t o) {
     return o < 128 && (dmg_drawn_mask[o >> 3] & (uint8_t)(1u << (o & 7)));
@@ -121,7 +122,6 @@ void sp_cache_reset(SpCache *cache_arg, uint16_t *stream_idx) BANKED {
     *stream_idx = 0;
     sp_has_drawn = 0;
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) cache->active[i] = 0;
-    if (_cpu != CGB_TYPE && !dmg_portal_art_ready) dmg_portal_art_init();
 }
 
 // The cache update is split in two halves that run in different frames (see
@@ -1416,13 +1416,11 @@ static void dmg_object_loop(void) __naked {
         ld      h, a
         ld      a, (hl)
         ld      (_dmgd_obj), a
-        cp      a, #38
-        jp      C, 00002$
-        cp      a, #OBJ_ARROW
+        cp      a, #OBJ_COIN1           ; the coins only
         jp      Z, 00002$
-        cp      a, #OBJ_MIRROR_PORTAL
+        cp      a, #OBJ_COIN2
         jp      Z, 00002$
-        cp      a, #OBJ_MIRROR_EXIT
+        cp      a, #OBJ_COIN3
         jp      NZ, 00009$
 00002$:
         ; off screen when 137 <= dist_x < rej

@@ -53,6 +53,12 @@ void bg_stream_to(uint16_t col) BANKED;
 // Display off, after bg_stream_reset: back to the column the stream had reached (DMG mirror
 // portal: the tiles in the other orientation)
 void bg_stream_resume(void) BANKED;
+// (src/bg_stream_home.c)
+#define BSU_MAX 8
+extern uint8_t bsu_n, bsu_bank, bsu_skip, bsu_m;
+extern const uint8_t *bsu_src;
+extern uint8_t bsu_out[BSU_MAX * 3];
+void bs_apply(void) NONBANKED;
 // Once a frame: the next queued tiles to the VBlank handler
 void bg_stream_feed(void) BANKED;
 

@@ -468,7 +468,7 @@ const SpDef theoryofeverything_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 207 gameplay-critical objects for DMG mode
+// Extracted 202 gameplay-critical objects for DMG mode
 const SpDef theoryofeverything_sp_dmg[] = {
     {192, 992, 11},
     {256, 976, 37},
@@ -495,7 +495,6 @@ const SpDef theoryofeverything_sp_dmg[] = {
     {1408, 0, 145},
     {1488, 928, 24},
     {1808, 912, 25},
-    {1936, 896, 51},
     {2096, 880, 24},
     {2256, 2, 130},
     {2280, 928, 25},
@@ -524,7 +523,6 @@ const SpDef theoryofeverything_sp_dmg[] = {
     {3808, 0, 147},
     {3856, 0, 170},
     {4208, 832, 7},
-    {4336, 888, 51},
     {4736, 880, 0},
     {5264, 976, 11},
     {5360, 3, 153},
@@ -603,7 +601,6 @@ const SpDef theoryofeverything_sp_dmg[] = {
     {9408, 0, 148},
     {9504, 0, 164},
     {9552, 0, 148},
-    {9616, 488, 51},
     {9664, 0, 164},
     {9712, 0, 148},
     {9808, 1, 164},
@@ -621,11 +618,9 @@ const SpDef theoryofeverything_sp_dmg[] = {
     {10576, 0, 165},
     {10624, 0, 149},
     {10720, 0, 165},
-    {10720, 440, 51},
     {10768, 0, 149},
     {10880, 0, 165},
     {10928, 0, 149},
-    {10992, 536, 51},
     {11056, 0, 164},
     {11104, 3, 148},
     {11120, 520, 25},

@@ -108,6 +108,10 @@ DMG_RESERVED_TILES = [12, 26]
 # tiles there: 224..237 (CGB-only mirror exit art; 238, 239 are the UFO badge) and, in levels
 # without mirror portals, 208..223 (the mirror portal art). Only saw tiles (reloaded from ROM after
 # the sprite tiles by reapply_bg_shared_slots), never moved sheet tiles (copied from VRAM).
+# The DMG draws no object as a sprite but the coins (the others are in its background,
+# tools/dmg_deco.py), so the level's tiles take the sprite tiles from 160 too, all but the coin's
+# (192..195, 246, 247: include/famidash_sprites.h)
+DMG_OBJECT_SLOTS = [t for t in range(160, 256) if t not in (192, 193, 194, 195, 246, 247)]
 DMG_SHARED_SLOTS = list(range(224, 238))
 DMG_MIRROR_SLOTS = list(range(208, 224))
 
@@ -316,7 +320,8 @@ def main():
         streams.append((lv, name, cgb, dmg, big_saw, any(m in saw_mts for m in level_mts)))
         pools.append((name, [level_map[x * 64:(x + 1) * 64] for x in range(len(level_map) // 64)],
                       [t for t in range(160) if t not in (12, BLACK_FILL_SLOT)],
-                      [t for t in range(DMG_BG_SLOTS) if t not in DMG_RESERVED_TILES and t not in saw_slot.values()],
+                      [t for t in list(range(DMG_BG_SLOTS)) + DMG_OBJECT_SLOTS
+                       if t not in DMG_RESERVED_TILES and t not in saw_slot.values()],
                       novel))
 
     import bg_stream

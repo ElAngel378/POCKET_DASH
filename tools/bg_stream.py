@@ -94,19 +94,32 @@ class Stream:
         self.name, self.cgb = name, cgb
         self.own = sorted(novel or {})
         big_saw = any(m in BG.BIG_SAW_PARTS for col in grid for m in col)
-        used = sorted({m for col in grid for m in col})
         novel = novel or {}
+        # DMG: an id with "dmg_at" [[first column, quarters], ...] (tools/compose.py: the cells with the
+        # DMG's painted objects) looks different from each of those columns on. Here it is one
+        # metatile (id, n) per look; its quarters are pointed at their tiles where a column shows it
+        # (self.repoint), not by the tiles' records.
+        self.at = {m: novel[m]["dmg_at"] for m in novel if not cgb and novel[m].get("dmg_at")}
+
+        def shown(m, x):
+            if m not in self.at:
+                return m
+            return (m, max(i for i, (first, _) in enumerate(self.at[m]) if first <= x or not i))
+        real = grid
+        grid = self.grid = [[shown(m, x) for m in col] for x, col in enumerate(real)]
+        used = sorted({m for col in grid for m in col}, key=lambda v: v if isinstance(v, tuple) else (v, -1))
         def quarter_of(q):
             if not q:
                 return None
             return tuple(tuple(f) for f in q) if len(q) == SPIN_FRAMES else tuple(q)
-        self.mq = {m: [quarter_of(q) for q in novel[m]["cgb" if cgb else "dmg"]] if m in novel
+        self.mq = {m: [quarter_of(q) for q in self.at[m[0]][m[1]][1]] if isinstance(m, tuple)
+                   else [quarter_of(q) for q in novel[m]["cgb" if cgb else "dmg"]] if m in novel
                    else quarters(art, name, m, cgb, big_saw) for m in used}
         # The tiles that change as objects spin keep a slot for the whole level. An object spins
         # whole or not at all (a wheel half turning looks broken): they are taken from the left of
         # the level while they fit, the others stand still
         moving, tiles_of = [], {}
-        for m in dict.fromkeys(m for col in grid for m in col):
+        for m in dict.fromkeys(m for col in real for m in col):
             if m in novel and cgb:
                 for key in novel[m].get("spin", ()):
                     for px in self.mq[m]:
@@ -130,7 +143,9 @@ class Stream:
                 if px not in index:
                     index[px] = len(pool)
                     pool.append(px)
-                self.uses.setdefault(index[px], []).append((m, q))
+                self.uses.setdefault(index[px], [])
+                if not isinstance(m, tuple):
+                    self.uses[index[px]].append((m, q))
         self.pool, self.index = pool, index
         self.spin = [index[px] for px in moving]
         self.col_tiles = [sorted({index[px] for m in set(col) for px in self.mq[m]
@@ -139,6 +154,20 @@ class Stream:
         self.slots = [s for s in slots if s not in pinned]
         self.allocate()
         self.records[0][:0] = list(zip(self.spin, pinned))
+        # repoint[c]: [(slot, id, quarter)] after column c's records: the quarters of the looks column
+        # c shows that are not at their tiles yet (another look of the id was shown, or the tile
+        # came back in another slot)
+        self.repoint = [[] for _ in grid]
+        slot_of, at = {}, {}
+        for c, col in enumerate(grid if self.at else []):
+            for t, sl in self.records[c]:
+                slot_of[t] = sl
+            for v in sorted(v for v in set(col) if isinstance(v, tuple)):
+                for q, px in enumerate(self.mq[v]):
+                    want = TRANSPARENT if px is None else slot_of[index[px]]
+                    if at.get((v[0], q)) != want:
+                        at[(v[0], q)] = want
+                        self.repoint[c].append((want, v[0], q))
 
     def allocate(self):
         """records[c]: [(pool tile, slot)] to apply before column c is drawn. A tile that left the
@@ -219,20 +248,24 @@ class Stream:
             todo = [i for i in todo if i not in placed]
         self.records = moved
 
-    def simulate(self, grid):
+    def simulate(self, grid=None):
         """Applies the records like the game and checks every metatile of the ring each column"""
-        vram, mt = {}, {}
+        vram, mt = {TRANSPARENT: None}, {}
+        grid = self.grid
         for c, col in enumerate(grid):
             for t, s in self.records[c]:
                 vram[s] = self.pool[t]
                 for m, q in self.uses[t]:
                     mt[(m, q)] = s
+            for s, m, q in self.repoint[c]:
+                mt[(m, q)] = s
             for k in range(max(0, c - RING + 1), c + 1):
-                for m in set(grid[k]):
-                    for q, px in enumerate(self.mq[m]):
-                        if px is not None and vram.get(mt.get((m, q))) != px:
-                            raise SystemExit("%s: column %d (ring at %d), metatile %d quarter %d shows the wrong tile"
-                                             % (self.name, k, c, m, q))
+                for v in set(grid[k]):
+                    m = v[0] if isinstance(v, tuple) else v
+                    for q, px in enumerate(self.mq[v]):
+                        if (px is not None or isinstance(v, tuple)) and vram.get(mt.get((m, q)), 0) != px:
+                            raise SystemExit("%s: column %d (ring at %d), metatile %s quarter %d shows the wrong tile"
+                                             % (self.name, k, c, v, q))
 
 
 def tile_bytes(px):
@@ -252,14 +285,17 @@ def record_bytes(st):
     (slot, pool tile (16 bits; 0xFFFF: no tile to load), k, k x (metatile, quarter)); then 0xFFFF"""
     tiles = [t for rec in st.records for t, _ in rec]
     n = len(st.pool)
-    out = bytearray([n & 0xFF, n >> 8, 1 if len(tiles) == len(set(tiles)) else 0])
+    out = bytearray([n & 0xFF, n >> 8, 1 if len(tiles) == len(set(tiles)) and not any(st.repoint) else 0])
     # the empty quarters of the level's own metatiles show the transparent tile: records of no tile
     empty = [(m, q) for m in st.own if m in st.mq for q, px in enumerate(st.mq[m]) if px is None]
     groups = [empty[i:i + 255] for i in range(0, len(empty), 255)]
     for c, rec in enumerate(st.records):
-        if not rec and not (c == 0 and groups):
+        points = {}
+        for sl, m, q in st.repoint[c]:
+            points.setdefault(sl, []).append((m, q))
+        if not rec and not points and not (c == 0 and groups):
             continue
-        n = len(rec) + (len(groups) if c == 0 else 0)
+        n = len(rec) + len(points) + (len(groups) if c == 0 else 0)
         assert n < 256, "%s: %d records in column %d" % (st.name, n, c)
         out += bytes([c & 0xFF, c >> 8, n])
         if c == 0:
@@ -271,6 +307,8 @@ def record_bytes(st):
             out += bytes([s, t & 0xFF, t >> 8, len(uses)])
             for m, q in uses:
                 out += bytes([m, q])
+        for sl, g in points.items():
+            out += bytes([sl, 0xFF, 0xFF, len(g)]) + bytes(v for mq in g for v in mq)
     return bytes(out + bytes([255, 255]))
 
 

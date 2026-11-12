@@ -317,10 +317,11 @@ def convert_grid(name, grid):
     return sorted(objs, key=lambda o: (objs[o], o[1], o[2]))
 
 
-def compile_objects(name, objs, w, h, novel=None):
+def compile_objects(name, objs, w, h, novel=None, deco=None):
     """[(key, x, y, flags)] in drawing order (later = on top) -> (metatile rows (h x w), errors).
     novel: a dict to make the cells no Famidash metatile shows in (tools/compose.py: metatile id ->
-    (CGB quarters, DMG quarters, collision)); without it they are errors."""
+    (CGB quarters, DMG quarters, collision)); without it they are errors.
+    deco: [{(x, y): colour}], objects painted over the cells' DMG look (tools/dmg_deco.py)."""
     cells = {}
     for z, (key, x, y, flags) in enumerate(objs):
         for c, part in cells_of(key, x, y, flags).items():
@@ -377,8 +378,9 @@ def compile_objects(name, objs, w, h, novel=None):
                           % (cx, cy, cx * 16, sorted(parts)))
             continue
         grid[cy][cx] = found[0]
-    if new:
-        made, warn = composer().make(name, grid, new, lookup)
+    over = deco if novel is not None and deco else []
+    if new or over:
+        made, warn = composer().make(name, grid, new, lookup, over)
         novel.update(made)
         for w_ in warn:
             print("  warning: " + w_)
@@ -430,7 +432,11 @@ def compile_tmx(path, novel=None):
     """The metatile rows of an object TMX (novel: see compile_objects)"""
     root = ET.parse(path).getroot()
     w, h = int(root.get("width")), int(root.get("height")) - GO.ROWS_BELOW
-    grid, errors = compile_objects(path.stem.lower(), tmx_objects(root), w, h, novel)
+    deco = None
+    if novel is not None:
+        import dmg_deco
+        deco = dmg_deco.pixels(root, path.stem.lower())
+    grid, errors = compile_objects(path.stem.lower(), tmx_objects(root), w, h, novel, deco)
     if errors:
         raise SystemExit("%s:\n  %s" % (path.name, "\n  ".join(errors[:20])))
     return grid

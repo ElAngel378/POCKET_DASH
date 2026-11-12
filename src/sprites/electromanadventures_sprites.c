@@ -523,7 +523,7 @@ const SpDef electromanadventures_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 172 gameplay-critical objects for DMG mode
+// Extracted 168 gameplay-critical objects for DMG mode
 const SpDef electromanadventures_sp_dmg[] = {
     {720, 976, 10},
     {720, 992, 12},
@@ -547,11 +547,7 @@ const SpDef electromanadventures_sp_dmg[] = {
     {1872, 896, 24},
     {2016, 0, 132},
     {2720, 976, 26},
-    {2928, 920, 51},
     {3024, 5, 148},
-    {3312, 928, 51},
-    {3440, 896, 51},
-    {3568, 928, 51},
     {3632, 5, 164},
     {3712, 896, 0},
     {3808, 960, 13},

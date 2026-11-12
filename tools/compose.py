@@ -41,6 +41,7 @@ SOLID_CODES = {0x05, 0x06, 0x07, 0x09}
 COL_BREAKABLE, BRICK = 0x16, "gd143"       # on the grid; off it, a plain solid block
 SPECIAL_CODES = set(range(0x0A, 0x10))   # orbs, pads
 # fills: no collision, but opaque like the blocks they fill
+SHARE_GAP = BS.RING + 1    # columns between two looks of one id: the first has left the VRAM ring
 FADED_PAL = 7       # the faded look of fading cells on CGB (famidash_bg.c): their tiles, nearer the sky
 FILLS = {"gd5", "gd120", "fd_x_none", "fd_black_none", "fd_bg5", "fd_bg6"}
 
@@ -409,14 +410,31 @@ class Composer:
         best = min(range(len(self.t.quads)), key=lambda k: bin(self.t.quads[k] ^ v).count("1"))
         return COL_QUAD_BASE + best, "no quadrant type solid %X deadly %X: used %02X" % (solid, deadly, self.t.quads[best])
 
-    def make(self, name, grid, novel, lookup):
+    def painted(self, look, over):
+        """A cell's DMG look (4 quarters) with the pixels {(x, y): colour} painted over it"""
+        out = []
+        for q in range(4):
+            px = list(look[q] or (0,) * 64)
+            for (x, y), v in over.items():
+                if x // 8 == q % 2 and y // 8 == q // 2:
+                    px[(y % 8) * 8 + x % 8] = v
+            out.append(tuple(px) if any(px) else None)
+        return tuple(out)
+
+    def make(self, name, grid, novel, lookup, over=None):
         """novel: [(cx, cy, parts bottom to top)] -> fills grid, returns (metatiles {id: (cgb quarters,
         dmg quarters, collision, CGB palette, spinning objects in it)}, warnings). The level's collision and palette tables
-        hold them (tools/build_bg_tiles.py), so any id the level does not use will do."""
+        hold them (tools/build_bg_tiles.py), so any id the level does not use will do.
+        over: [{(x, y): colour}], objects painted over the DMG look of the cells they cover (the DMG's
+        objects and decorations, tools/dmg_deco.py), the most important first. A cell with paint is
+        a metatile of its own (on CGB it looks and collides as before), so an object is painted
+        whole while the level has metatile ids left for it, or not at all."""
+        from collections import Counter
         used = {m for row in grid for m in row if m >= 0}
         cells, out, warn = {}, {}, []
         free = [m for m in range(256) if m not in used and m not in RESERVED]
-        todo = []
+        todo = []       # the cells with fading objects (never painted)
+        plain = {}      # cell -> its look without paint: (key, spin, is a metatile of the level's own)
         for cx, cy, parts in novel:
             col, w = self.collision(parts, lookup)
             if w:
@@ -426,14 +444,17 @@ class Composer:
             pal = self.palette(parts)
             k = (tuple(self.spin_look(parts)), tuple(self.look(0, parts)), pal, col)
             rest = [p for p in parts if p[0] not in GO.FADE]
-            hidden = None
+            spin = sorted({p[0] for p in parts if p[0] in self.spin})
             if len(rest) != len(parts):
                 hidden = (tuple(self.spin_look(rest)), tuple(self.look(0, rest)),
                           self.palette(rest) if rest else pal, col)
-            todo.append((cx, cy, k, hidden, sorted({p[0] for p in parts if p[0] in self.spin})))
+                todo.append((cx, cy, k, hidden, spin))
+                plain[(cx, cy)] = None
+            else:
+                plain[(cx, cy)] = (k, spin, True)
         # cells with fading objects: ids in one block, each with its faded look n ids further, so
         # the game finds them without a table (bg_stream.c fade_*)
-        fading = list(dict.fromkeys(t[2] for t in todo if t[3] is not None))
+        fading = list(dict.fromkeys(t[2] for t in todo))
         if fading:
             n = len(fading)
             block = next((f for f in free if all(f + i in free for i in range(2 * n))), None)
@@ -443,19 +464,122 @@ class Composer:
                 cells[k] = block + i
             for f in range(block, block + 2 * n):
                 free.remove(f)
-            for t in todo:
-                if t[3] is not None:
-                    m = cells[t[2]]
-                    out[m] = (t[2][0], t[2][1], t[2][3], t[2][2], t[4], m + n)
-                    h = t[3]
-                    out[m + n] = (t[2][0], h[1], h[3], FADED_PAL, t[4], None)
-        for cx, cy, k, hidden, spin in todo:
+            for cx, cy, k, h, spin in todo:
+                m = cells[k]
+                out[m] = (k[0], k[1], k[3], k[2], spin, m + n)
+                out[m + n] = (k[0], h[1], h[3], FADED_PAL, spin, None)
+                grid[cy][cx] = m
+        # The cells without paint that are the level's own: a look is an id.
+        own = {c: p[0] for c, p in plain.items() if p is not None}
+        own_count = Counter(own.values())
+        if len(own_count) > len(free):
+            raise SystemExit("%s: no metatile id left: too many different cells (%d, %d ids)"
+                             % (name, len(own_count), len(free)))
+        # The cells with paint differ from the cell under the paint on the DMG only, so painted looks
+        # of the same cell share an id where they are SHARE_GAP columns apart: the id shows one, then
+        # the other (tools/bg_stream.py points its quarters at other tiles there: "dmg_at").
+        painted = {}
+
+        def tracks(painted):
+            """{(cgb look, palette, collision): [[(first column, last column, look), ...] of an id]}
+            (not sharing: an id each look)"""
+            cols = {}
+            for (cx, _), k in painted.items():
+                cols.setdefault(k, set()).add(cx)
+            items = {}
+            for k, cs in cols.items():
+                cs = sorted(cs)
+                first = cs[0]
+                for i, c in enumerate(cs):
+                    if i + 1 == len(cs) or (share and cs[i + 1] - c >= SHARE_GAP):
+                        items.setdefault((k[0], k[2], k[3]), []).append((first, c, k))
+                        first = cs[i + 1] if i + 1 < len(cs) else None
+            out = {}
+            for base, its in items.items():
+                ids = out[base] = []
+                for it in sorted(its, key=lambda t: t[:2]):
+                    for t in ids:
+                        if share and it[0] - t[-1][1] >= SHARE_GAP:
+                            t.append(it)
+                            break
+                    else:
+                        ids.append([it])
+            return out
+
+        big_saw = any(m in BG.BIG_SAW_PARTS for row in grid for m in row)
+        fixed = {}
+
+        def plain_of(c):
+            if c not in plain:
+                m = grid[c[1]][c[0]]
+                if m in RESERVED - {0, 12, 24}:   # (12, 24: background and pit spikes, nothing goes by their ids)
+                    plain[c] = None
+                else:
+                    if m not in fixed:
+                        fixed[m] = (tuple(BS.quarters(self.bs, name, m, 1, big_saw)),
+                                    tuple(BS.quarters(self.bs, name, m, 0, big_saw)), self.t.pal[m], self.t.col[m])
+                    plain[c] = (fixed[m], [], False)
+            return plain[c]
+
+        # (ids are only shared in a level that has too few: its tiles' records then say where the ids
+        # point, so a respawn has to read them all again, bg_stream.c bs_tables_ok)
+        h, w = len(grid), len(grid[0])
+        start = (own_count, painted)
+        for share in (False, True):
+            own_count, painted = start
+            paint, dropped = {}, 0
+            for px in over or []:
+                by_cell = {}
+                for (x, y), v in px.items():
+                    if 0 <= x < w * 16 and 0 <= y < h * 16:
+                        by_cell.setdefault((x // 16, y // 16), {})[(x % 16, y % 16)] = v
+                new, own2, painted2 = {}, Counter(own_count), dict(painted)
+                for c, o in by_cell.items():
+                    p = plain_of(c)
+                    if p is None:
+                        continue
+                    k, _, mine = p
+                    merged = {**paint.get(c, {}), **o}
+                    kd = (k[0], self.painted(k[1], merged), k[2], k[3])
+                    new[c] = merged
+                    if c in painted2:
+                        del painted2[c]
+                    elif mine:
+                        own2[k] -= 1
+                        if not own2[k]:
+                            del own2[k]
+                    if kd[1] != k[1]:
+                        painted2[c] = kd
+                    elif mine:
+                        own2[k] += 1
+                if len(own2) + sum(len(t) for t in tracks(painted2).values()) > len(free):
+                    dropped += 1
+                    continue
+                own_count, painted = own2, painted2
+                paint.update(new)
+            if not dropped:
+                break
+        if dropped:
+            warn.append("%s: no metatile ids left to paint %d of the DMG's objects and decorations" % (name, dropped))
+        for c in sorted(own):
+            if c in painted:
+                continue
+            k = own[c]
             if k not in cells:
-                if not free:
-                    raise SystemExit("%s: no metatile id left (cell %d, %d): too many different cells"
-                                     % (name, cx, cy))
+                cells[k] = free.pop(0)
+                out[cells[k]] = (k[0], k[1], k[3], k[2], plain[c][1], None)
+            grid[c[1]][c[0]] = cells[k]
+        spin = {}
+        for c, k in painted.items():
+            spin.setdefault((k[0], k[2], k[3]), set()).update(plain[c][1])
+        where = {}      # painted look -> [(first column, last column, id)]
+        for base, ids in sorted(tracks(painted).items(), key=lambda kv: min(t[0][:2] for t in kv[1])):
+            for t in ids:
                 m = free.pop(0)
-                cells[k] = m
-                out[m] = (k[0], k[1], k[3], k[2], spin, None)
-            grid[cy][cx] = cells[k]
+                out[m] = (base[0], t[0][2][1], base[2], base[1], sorted(spin[base]), None,
+                          [[it[0], it[2][1]] for it in t] if len(t) > 1 else None)
+                for first, last, k in t:
+                    where.setdefault(k, []).append((first, last, m))
+        for (cx, cy), k in painted.items():
+            grid[cy][cx] = next(m for first, last, m in where[k] if first <= cx <= last)
         return out, warn
