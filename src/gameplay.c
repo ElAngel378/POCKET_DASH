@@ -1943,10 +1943,9 @@ void play_level(uint8_t idx) BANKED {
         // DMG: the text's glyphs are in the ship's tiles (a ship portal while it is shown)
         if (_cpu != CGB_TYPE && player.mode == MODE_SHIP) attempt_text_hide();
         oam_index = attempt_text_draw(oam_index, scroll_px, cam_py);
-        if (oam_index < previous_oam_index) {
-            oam_clear_rest(oam_index);
-            oam_index = previous_oam_index;
-        }
+        // hide what the last frame showed past this frame's sprites, and remember only this
+        // frame's (keeping the highest ever cleared up to 40 sprites every frame)
+        if (oam_index < previous_oam_index) oam_clear_rest(oam_index);
         previous_oam_index = oam_index;
 #if ENABLE_DEBUG_MODE
         if (debug_mode) debug_draw_hud(1, debug_ly, debug_max_ly);
