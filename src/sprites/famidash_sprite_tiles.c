@@ -19,12 +19,22 @@ INCBIN_EXTERN(sprite_tiles)
 #include "dmg_object_icons.h"
 #include "coin_tiles.h"
 
+// Sprite tiles 128..159 of VRAM bank 0 are also background tiles 128..159: after the background
+// tileset was reloaded (mirror portal) only these need to be loaded again (DMG coins).
+// Display off: plain copies (set_sprite_data waits on STAT for every byte)
+#define SPR_TILE_ADDR(t) ((uint8_t *)(0x8000u + ((uint16_t)(t) << 4)))
+static void spr_data(uint8_t first, uint8_t n, const uint8_t *src) {
+    uint8_t lcd_on = LCDC_REG & LCDCF_ON;   // read first (SDCC miscompiled this test inside an if)
+    if (!lcd_on) vram_copy(SPR_TILE_ADDR(first), src, (uint16_t)n << 4);
+    else set_sprite_data(first, n, src);
+}
+
 // DMG coin tile pairs 0..7 -> 144..159 (shared with background tiles 144..159), 8..9 ->
 // DMG_COIN_TILE_B, 10 -> DMG_COIN_TILE_C (see draw_oam_coin)
 static void load_dmg_coin_tiles(void) {
-    set_sprite_data(DMG_COIN_TILE_BASE, 16, coin_tiles_dmg);
-    set_sprite_data(DMG_COIN_TILE_B, 4, coin_tiles_dmg + 16 * 16);
-    set_sprite_data(DMG_COIN_TILE_C, 2, coin_tiles_dmg + 20 * 16);
+    spr_data(DMG_COIN_TILE_BASE, 16, coin_tiles_dmg);
+    spr_data(DMG_COIN_TILE_B, 4, coin_tiles_dmg + 16 * 16);
+    spr_data(DMG_COIN_TILE_C, 2, coin_tiles_dmg + 20 * 16);
 }
 
 void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED {
@@ -40,27 +50,17 @@ void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED {
         // are the level's (tools/build_bg_tiles.py DMG_OBJECT_SLOTS)
         if (!cgb && l[2] >= 160u) continue;
         if (cgb) VBK_REG = l[1];
-        set_sprite_data(l[2], l[3], sprite_tiles + ((uint16_t)l[4] | ((uint16_t)l[5] << 8)) * 16u);
+        spr_data(l[2], l[3], sprite_tiles + ((uint16_t)l[4] | ((uint16_t)l[5] << 8)) * 16u);
     }
     if (cgb) {
         // coin: VRAM bank 1 tiles 200.. (tools/make_coin_tiles.py)
         VBK_REG = 1;
-        set_sprite_data(COIN_TILE_BASE, COIN_PAIRS * 2, coin_tiles_cgb);
+        spr_data(COIN_TILE_BASE, COIN_PAIRS * 2, coin_tiles_cgb);
         VBK_REG = 0;
     } else {
         load_dmg_coin_tiles();
     }
     mini_cube_icon_load(selected_icon);   // the player's mini cube (bank 0 VRAM on CGB too)
-}
-
-// Sprite tiles 128..159 of VRAM bank 0 are also background tiles 128..159: after the background
-// tileset was reloaded (mirror portal) only these need to be loaded again (DMG coins).
-// Display off: plain copies (set_sprite_data waits on STAT for every byte)
-#define SPR_TILE_ADDR(t) ((uint8_t *)(0x8000u + ((uint16_t)(t) << 4)))
-static void spr_data(uint8_t first, uint8_t n, const uint8_t *src) {
-    uint8_t lcd_on = LCDC_REG & LCDCF_ON;   // read first (SDCC miscompiled this test inside an if)
-    if (!lcd_on) vram_copy(SPR_TILE_ADDR(first), src, (uint16_t)n << 4);
-    else set_sprite_data(first, n, src);
 }
 
 void reload_bg_shared_sprite_tiles(void) BANKED {

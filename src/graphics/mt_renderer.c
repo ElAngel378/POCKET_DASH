@@ -62,6 +62,13 @@ static void saw_anim_reset(void) {
     bg_saw_dmg_n = 0;
 }
 
+// DMG mirror portal: the saw frames from now on in the new orientation (the tiles in VRAM were
+// mirrored in place: bg_stream_mirror)
+void saw_set_reversed(uint8_t reversed) BANKED {
+    saw_reversed = reversed;
+    saw_anim_reset();
+}
+
 // Call once per frame before waiting for VBlank (like request_bg_parallax)
 void saw_anim_request(void) BANKED {
     // spinning objects, in the time the saws leave (here: bank 10, gameplay.c, is full)

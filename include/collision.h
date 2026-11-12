@@ -110,6 +110,7 @@ extern uint8_t bm_mixed;   // the level has cells with a palette per quarter: it
 void mj_build_row(uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t map_hi) BANKED;
 // Saw animation (see mt_renderer.c): call before waiting for VBlank, the VBlank handler uploads
 void saw_anim_request(void) BANKED;
+void saw_set_reversed(uint8_t reversed) BANKED;   // DMG mirror portal (mt_renderer.c)
 extern uint8_t saw_on;   // the level has saws (mt_renderer.c)
 void request_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
 // Vertical streaming: the VRAM ring (16 metatile rows) holds map rows mt_band .. mt_band+15,
@@ -124,6 +125,7 @@ extern uint8_t mt_band;
 void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
 
 void vram_copy(uint8_t *dst, const uint8_t *src, uint16_t n);   // display off, n % 16 == 0, 16-aligned dst
+void vram_copy_banked(uint8_t *dst, const uint8_t *src, uint16_t n, uint8_t bank);   // the same, src in ROM bank `bank`
 void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank);
 void load_collision_columns(uint16_t map_col, const uint8_t* map,
                             uint16_t map_w, uint8_t map_bank,

@@ -117,6 +117,14 @@ void vram_copy(uint8_t *dst, const uint8_t *src, uint16_t n) {
 }
 
 // Upload tileset graphics to VRAM
+// vram_copy from ROM bank `bank` (display off)
+void vram_copy_banked(uint8_t *dst, const uint8_t *src, uint16_t n, uint8_t bank) {
+  uint8_t _prev = _current_bank;
+  SWITCH_ROM(bank);
+  vram_copy(dst, src, n);
+  SWITCH_ROM(_prev);
+}
+
 void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
   uint8_t _prev = _current_bank;
   uint8_t lcd_on = LCDC_REG & LCDCF_ON;   // read first: SDCC miscompiled the test inside the if

@@ -74,7 +74,7 @@ static void run_flush(void) {
     while (run_n) {
         uint16_t k = 1024u - (g & 1023u);     // up to the end of the bank
         if (k > run_n) k = run_n;
-        fur_copy_banked(BG_TILE_ADDR(s), TILE_ADDR(g), k << 4, TILE_BANK(g));
+        vram_copy_banked(BG_TILE_ADDR(s), TILE_ADDR(g), k << 4, TILE_BANK(g));
         s += (uint8_t)k;
         g += k;
         run_n -= (uint8_t)k;
@@ -154,6 +154,10 @@ void bg_stream_to(uint16_t col) BANKED {
     if (off && !bs_dmg) VBK_REG = 0;
     bsu_bank = bs_bank;
     bsu_skip = bs_tables_ok;
+    // DMG, display off: bs_apply copies the tiles itself (CGB: VRAM bank 0 and HDMA, below)
+    bsu_copy = (uint8_t)(off && bs_dmg);
+    bsu_base = bs_tile_base + (bs_rev ? bs_pool : 0u);
+    bsu_tbank = BS_TILE_BANK;
     while (bs_col <= col) {
         // n, the n records (bs_apply: the metatile quarters; here the tiles), the next column
         uint8_t n;
@@ -178,6 +182,26 @@ void bg_stream_to(uint16_t col) BANKED {
     }
     run_flush();
     if (off && !bs_dmg) VBK_REG = vbk;
+}
+
+// Every BG tile slot but the sprite tiles the DMG still draws from there (the coins: 144..159,
+// reloaded after, 192..195, 246, 247), as runs: first slot, count
+static const uint8_t flip_runs[][2] = {
+    { 0, 128 }, { 128, 16 }, { 160, 32 }, { 196, 50 }, { 248, 8 }
+};
+void bg_stream_mirror(uint8_t reversed) BANKED {
+    for (uint8_t i = 0; i < sizeof(flip_runs) / 2u; i++) {
+        bsf_dst = BG_TILE_ADDR(flip_runs[i][0]);
+        bsf_n = flip_runs[i][1];
+        bs_flip_tiles();
+    }
+    // the tiles fetched for the VBlank handler and not uploaded yet
+    if (bs_up_i < bs_up_n) {
+        bsf_dst = bs_up_buf + (bs_up_i << 4);
+        bsf_n = (uint8_t)(bs_up_n - bs_up_i);
+        bs_flip_tiles();
+    }
+    bs_rev = reversed;
 }
 
 void bg_stream_resume(void) BANKED {

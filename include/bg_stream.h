@@ -55,10 +55,17 @@ void bg_stream_to(uint16_t col) BANKED;
 void bg_stream_resume(void) BANKED;
 // (src/bg_stream_home.c)
 #define BSU_MAX 8
-extern uint8_t bsu_n, bsu_bank, bsu_skip, bsu_m;
+extern uint8_t bsu_n, bsu_bank, bsu_skip, bsu_m, bsu_copy, bsu_tbank;
+extern uint16_t bsu_base;
 extern const uint8_t *bsu_src;
 extern uint8_t bsu_out[BSU_MAX * 3];
 void bs_apply(void) NONBANKED;
+extern uint8_t *bsf_dst;
+extern uint8_t bsf_n;
+void bs_flip_tiles(void) NONBANKED;
+// DMG mirror portal (display off): the background tiles in VRAM mirrored in place, and what the
+// stream uploads from now on in the new orientation
+void bg_stream_mirror(uint8_t reversed) BANKED;
 // Once a frame: the next queued tiles to the VBlank handler
 void bg_stream_feed(void) BANKED;
 

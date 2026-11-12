@@ -1177,15 +1177,15 @@ static void mirror_reflect(uint8_t idx) {
     enable_interrupts();
     DISPLAY_OFF;   // returns at once when it is off
     PROF_MARK(14);   // mirror: tileset
-    load_level_bg_sheet(idx, player.reversed, player.reversed ? l->tiles_rev : level_tiles, level_tile_count, level_tiles_bank);
-    PROF_MARK(15);   // mirror: level tiles
-    apply_level_bg_tiles(idx, player.reversed);
-    if (!setting_show_bg_enabled) set_bkg_data(12, 1, blank_bg_tile);
-    bg_stream_resume();   // the streamed tiles in this orientation
+    // Every background tile mirrored where it is (reloading the sheet and the level's streamed
+    // tiles took 5 to 25 frames, more the further the level went)
+    (void)idx;
+    bg_stream_mirror(player.reversed);
+    saw_set_reversed(player.reversed);
     PROF_MARK(16);   // mirror: columns (map mirrored in place)
     bg_map_reflect();
     PROF_MARK(17);   // mirror: sprite tiles
-    // the tileset overwrote sprite tiles 128..159 (shared VRAM)
+    // coins (sprite tiles 144..159, shared with the background)
     reload_bg_shared_sprite_tiles();
     PROF_MARK(18);   // mirror: rest
     view_rev = player.reversed;
