@@ -29,6 +29,20 @@ typedef struct { const uint8_t *spr; uint8_t nspr; const uint8_t *core; uint8_t 
 #define TB_DMG_TILES (TB_DMG_COLS * TB_DMG_ROWS)
 #define TB_DMG_BUF_TILE 168
 #define TB_DMG_SKY_TILE 53
+// DMG: the screen pixels the big buttons cover, rows TB_DMG_MASK_Y0 .., pre-shifted:
+// [off 0..7][row][c 0..20] = the 8 pixels from x = (c - 1) * 8 + off (bit 7 the left one)
+#define TB_DMG_MASK_Y0 53
+#define TB_DMG_MASK_ROWS 30
+// their screen x spans (left, right), for a quick test before the cut
+#define TB_DMG_SPAN0_L 24
+#define TB_DMG_SPAN0_R 47
+#define TB_DMG_SPAN1_L 65
+#define TB_DMG_SPAN1_R 94
+#define TB_DMG_SPAN2_L 112
+#define TB_DMG_SPAN2_R 135
+BANKREF_EXTERN(tb_dmg_cut)
+extern const uint8_t tb_dmg_cut[];
+extern const uint8_t tb_dmg_cut_cols[21];   // 1: window column c has button pixels
 
 BANKREF_EXTERN(title_buttons)
 extern const uint8_t tb_obj_tiles[];

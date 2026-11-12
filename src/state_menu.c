@@ -15,6 +15,7 @@ extern uint8_t selected;   // main.c: the level of the level selects
 #include "cube_icon_frames.h"
 #include "icon_catalog.h"
 #include "mini_cube_frames.h"
+#include "menu_icon_cut.h"
 #include <gb/gb.h>
 #include <gb/cgb.h>
 #include <string.h>
@@ -42,9 +43,14 @@ extern uint8_t selected;   // main.c: the level of the level selects
 
 #define MENU_BTN_PAL 5   // CGB: music and settings share a big button rim palette (lime, black, yellow)
 
-// CGB: a random icon (cube, ship, ball, UFO) crosses the screen behind the buttons (GDA's title screen)
+// A random icon (cube, ship, ball, UFO) crosses the screen behind the buttons (GDA's title screen).
+// CGB: 8x8 sprites, cut where the buttons' BG centres are (the rims are sprites drawn on top).
+// DMG: 8x16 sprites (a column of the image each), cut wherever the big buttons have pixels
+// (menu_icon_cut.c): PLAY is sprites too and a DMG sprite further left is drawn on top whatever its slot.
 #define MC_OAM     36    // OAM 36..39: behind the other sprites (a lower slot is drawn on top on CGB)
-#define MC_TILE    52    // sprite tiles 52..55 / 56..59, double buffered
+// sprite tiles MC_TILE.. +3 / +4.. +7, double buffered. DMG: BG and sprites share tiles 0..127
+// (sky 53..100): 101..127 are free there
+#define MC_TILE    ((_cpu == CGB_TYPE) ? 52u : 104u)
 #define MC_PAL     3
 #define MC_REST_Y  104   // screen y of the icon standing on the ground
 #define MC_REST_Y_MINI 109  // (of the player box: the mini image is drawn 3 px lower, 8 tall)
@@ -163,7 +169,7 @@ static void update_menu_sprites(uint8_t sel) {
     set_sprite_prop(slot, prop_c);
     move_sprite(slot, cx, cy);
 
-    for (uint8_t s = slot + 1; s < ((_cpu == CGB_TYPE) ? MC_OAM : 40); s++) hide_sprite(s);
+    for (uint8_t s = slot + 1; s < MC_OAM; s++) hide_sprite(s);
 }
 
 // This file lives in a switchable ROM bank, so everything that switches ROM
@@ -228,12 +234,18 @@ static void build_ground_variants(void) {
 }
 
 // phase = screen x of the first pillar's left edge (pillars are GROUND_PERIOD apart)
-static void ground_rows_hblank(const uint8_t *rows) __nonbanked;
+static void ground_rows_hblank(uint8_t phase) __nonbanked;
+BANKREF_EXTERN(menu_ground_map)
+extern const uint8_t menu_ground_map[];   // [phase][row][32]: tools/gen_menu_ground.py
 
 // The 3 rows are written whole (32 columns, contiguous in the map): on DMG with the fast HBlank
 // copy (set_bkg_tiles waits on STAT per byte: ~66 scanlines for these 60 bytes). Columns 20..31
 // are never seen on the ground lines (SCX 0 there).
 static void draw_ground(uint8_t phase) {
+    if (_cpu != CGB_TYPE && (LCDC_REG & LCDCF_ON)) {
+        ground_rows_hblank(phase);   // the rows worked out offline (this took ~24 lines of a DMG frame)
+        return;
+    }
     uint8_t rows[GROUND_ROWS][32];
     for (uint8_t k = 0; k < GROUND_ROWS; k++) memset(rows[k], GROUND_UNIFORM(k), 32);
     for (uint8_t j = 0; j < 3; j++) {
@@ -245,12 +257,8 @@ static void draw_ground(uint8_t phase) {
             if (o && tx + 1 >= 0 && tx + 1 < 20) rows[k][tx + 1] = GROUND_RIGHT(k, o);
         }
     }
-    if (_cpu != CGB_TYPE && (LCDC_REG & LCDCF_ON)) {
-        ground_rows_hblank(&rows[0][0]);
-    } else {
-        for (uint8_t k = 0; k < GROUND_ROWS; k++) {
-            set_bkg_tiles(0, (uint8_t)(GROUND_ROW + k), 20, 1, rows[k]);
-        }
+    for (uint8_t k = 0; k < GROUND_ROWS; k++) {
+        set_bkg_tiles(0, (uint8_t)(GROUND_ROW + k), 20, 1, rows[k]);
     }
 }
 
@@ -391,6 +399,7 @@ static uint8_t tb_dmg_left_ram[2], tb_dmg_row0_ram[2];
 static uint8_t dmg_buf;            // buffer shown
 static uint8_t dmg_scx;            // SCX the shown tiles are for
 static uint8_t dmg_prep;           // sides of scroll position dmg_scx + 1 copied into the other buffer
+static uint8_t dmg_wait;           // frames since the last scroll step
 static uint8_t dmg_c0[2];          // first map column shown per side (0xFF: none)
 
 static void tb_dmg_init(void) __nonbanked {
@@ -460,11 +469,14 @@ static void tb_hblank_copy(void) __naked __nonbanked {   // (called with a data 
     __endasm;
 }
 
-static void ground_rows_hblank(const uint8_t *rows) __nonbanked {
-    hb_src = rows;
+static void ground_rows_hblank(uint8_t phase) __nonbanked {
+    uint8_t prev_bank = _current_bank;
+    SWITCH_ROM(BANK(menu_ground_map));
+    hb_src = menu_ground_map + (uint16_t)phase * (GROUND_ROWS * 32u);
     hb_dst = (uint8_t *)(0x9800u + GROUND_ROW * 32u);
     hb_bursts = GROUND_ROWS * 32 / 8;
     tb_hblank_copy();
+    SWITCH_ROM(prev_bank);
 }
 
 // The tiles of one side (0 icon, 1 wrench) for scroll position scx into buffer buf
@@ -625,12 +637,14 @@ static void mc_reset(void) {
             mc_src += (uint16_t)j * CUBE_FD_FRAMES * 64u;
         }
     }
-    palette_color_t pal[4];
-    pal[0] = RGB8(255, 255, 255);
-    pal[1] = icon_color(mc_colour());   // secondary
-    pal[2] = icon_color(mc_colour());   // primary
-    pal[3] = RGB8(0, 0, 0);
-    fade_set_sprite_palette(MC_PAL, 1, pal);
+    if (_cpu == CGB_TYPE) {             // (DMG: OBP0, the player's greys)
+        palette_color_t pal[4];
+        pal[0] = RGB8(255, 255, 255);
+        pal[1] = icon_color(mc_colour());   // secondary
+        pal[2] = icon_color(mc_colour());   // primary
+        pal[3] = RGB8(0, 0, 0);
+        fade_set_sprite_palette(MC_PAL, 1, pal);
+    }
 
     uint8_t s = mc_rnd() & 7u;
     mc_speed = mc_speeds[(s >= 5u) ? (uint8_t)(s - 5u) : s];
@@ -773,10 +787,95 @@ static uint8_t mc_art_cut_out(int16_t sx, uint8_t sy, uint8_t flags, uint8_t n) 
     return any;
 }
 
+// DMG: whether screen x .. x + w - 1 meets a big button (else no cut: most frames at their height)
+static uint8_t mc_over_buttons(int16_t x, uint8_t w) {
+    if (x <= -16 || x >= 160) return 0;
+    uint8_t l = (uint8_t)(x + 16), r = (uint8_t)(l + w - 1u);   // (+16: no negatives)
+    return (r >= TB_DMG_SPAN0_L + 16 && l <= TB_DMG_SPAN0_R + 16)
+        || (r >= TB_DMG_SPAN1_L + 16 && l <= TB_DMG_SPAN1_R + 16)
+        || (r >= TB_DMG_SPAN2_L + 16 && l <= TB_DMG_SPAN2_R + 16);
+}
+
+#define mc_cut_m (&mc_solid[0][0])          // DMG: menu_icon_cut's masks (mc_solid: CGB only)
+
+// DMG: the image into RAM without the pixels in mc_cut_m (run from bank 0, like mc_art_load).
+// Assembly: the DMG menu frame has little time to spare.
+static const uint8_t *mc_lc_src;
+static uint8_t *mc_lc_dst;
+static const uint8_t *mc_lc_mask;
+static uint8_t mc_lc_n;
+static void mc_load_cut_asm(void) __naked __nonbanked {
+    __asm
+        ld      a, (_mc_lc_dst)
+        ld      e, a
+        ld      a, (_mc_lc_dst + 1)
+        ld      d, a
+        ld      a, (_mc_lc_mask)
+        ld      c, a
+        ld      a, (_mc_lc_mask + 1)
+        ld      b, a
+        ld      a, (_mc_lc_src)
+        ld      l, a
+        ld      a, (_mc_lc_src + 1)
+        ld      h, a
+        ld      a, #32
+        ld      (_mc_lc_n), a
+    1$:
+        ld      a, (bc)                 ; a tile row: both bit planes without the mask
+        cpl
+        and     a, (hl)
+        ld      (de), a
+        inc     hl
+        inc     de
+        ld      a, (bc)
+        cpl
+        and     a, (hl)
+        ld      (de), a
+        inc     hl
+        inc     de
+        inc     bc
+        ld      a, (_mc_lc_n)
+        dec     a
+        ld      (_mc_lc_n), a
+        jr      NZ, 1$
+        ret
+    __endasm;
+}
+static void mc_art_load_cut(const uint8_t *src) __nonbanked {
+    uint8_t prev_bank = _current_bank;
+    SWITCH_ROM(mc_bank);
+    mc_lc_src = src;
+    mc_lc_dst = mc_art;
+    mc_lc_mask = mc_cut_m;
+    mc_load_cut_asm();
+    SWITCH_ROM(prev_bank);
+}
+
 static void mc_draw(void) {
     uint8_t t = (uint8_t)(MC_TILE + (uint8_t)(mc_front << 2));
     int16_t ox = mc_q_x + 8;
     uint8_t oy = (uint8_t)(mc_q_y + 16u);
+    if (_cpu != CGB_TYPE) {
+        // 8x16: a column of the image a sprite (tiles t, t+1 / t+2, t+3), OAM MC_OAM and +1 (the
+        // other 2 stay hidden). Flipped vertically the hardware swaps a sprite's halves; flipped
+        // across, the columns are swapped here. Mini: the image in the top half (the bottom one
+        // empty), 8 higher when flipped vertically.
+        uint8_t prop = mc_q_flip;
+        uint8_t tl = t, tr = (uint8_t)(t + 2u);
+        if (mc_mini) {
+            if (prop & S_FLIPY) oy -= 8u;
+        } else if (prop & S_FLIPX) {
+            tl = tr; tr = t;
+        }
+        OAM_item_t *o = &shadow_OAM[MC_OAM];
+        if (ox > 0 && ox < 168) { o->y = oy; o->x = (uint8_t)ox; o->tile = tl; o->prop = prop; }
+        else o->y = 0;
+        o++;
+        ox += 8;
+        if (!mc_mini && ox > 0 && ox < 168) { o->y = oy; o->x = (uint8_t)ox; o->tile = tr; o->prop = prop; }
+        else o->y = 0;
+        return;
+    }
     uint8_t n = mc_mini ? 1u : 4u;
     for (uint8_t i = 0; i < 4u; i++) {
         uint8_t s = (uint8_t)(MC_OAM + i);
@@ -855,16 +954,28 @@ static void mc_update(void) {
     mc_q_flip = flip;
     mc_q_cut = 0;
     uint8_t mini_cube = (mc_mini && mc_mode == MODE_CUBE);   // its images are 32 bytes each
-    const uint8_t *src = mc_src + (uint16_t)id * (mini_cube ? 32u : 64u);
-    uint8_t in_band = (mc_q_y >= MC_CUT_ABOVE && mc_q_y < MC_CUT_BELOW);
-    if (in_band) mc_art_load(src);
-    if (in_band) mc_q_cut = mc_art_cut_out(mc_q_x, mc_q_y, flip, mc_mini ? 1u : 4u);
+    uint16_t at = (uint16_t)id << 5;     // (a shift: a 16-bit multiplication is a slow library call)
+    if (!mini_cube) at <<= 1;
+    const uint8_t *src = mc_src + at;
+    uint8_t n = mc_mini ? 1u : 4u;
+    if (_cpu == CGB_TYPE) {
+        if (mc_q_y >= MC_CUT_ABOVE && mc_q_y < MC_CUT_BELOW) {
+            mc_art_load(src);
+            mc_q_cut = mc_art_cut_out(mc_q_x, mc_q_y, flip, n);
+        }
+    } else if (mc_q_y > (uint8_t)(TB_DMG_MASK_Y0 - 16) && mc_q_y < (uint8_t)(TB_DMG_MASK_Y0 + TB_DMG_MASK_ROWS)
+               && mc_over_buttons(mc_q_x, mc_mini ? 8u : 16u)) {
+        if (menu_icon_cut(mc_q_x, mc_q_y, flip, n, mc_cut_m)) {
+            mc_art_load_cut(src);
+            mc_q_cut = 1;
+        }
+    }
     mc_q_copied = (mc_q_cut || mc_art_cut || id != mc_art_id);
     if (mc_q_copied) {
         bg_cube_src = mc_q_cut ? (const uint8_t *)mc_art : src;
         bg_cube_bank = mc_bank;
         bg_cube_dst = (uint8_t *)(0x8000u + ((uint16_t)(MC_TILE + (uint8_t)((mc_front ^ 1u) << 2)) << 4));
-        bg_cube_pending = 4;
+        bg_cube_pending = mc_mini ? 2u : 4u;   // (mini: the image, an empty tile)
     }
     mc_q_valid = 1;
 }
@@ -938,17 +1049,17 @@ GameState update_menu_state(void) BANKED {
         for (uint8_t i = 0; i < 4; i++) spr[16 + i] = cursor_palette[i];
         fade_set_sprite_palette(0, 8, spr);
 
-        memset(&mc_s, 0, sizeof(mc_state_t));
-        mc_seed = DIV_REG | 1u;
-        mc_art = (uint8_t *)(((uint16_t)mc_s.art_ram + 15u) & 0xFFF0u);
-        mc_front = 0;
-        bg_cube_pending = 0;
-        for (uint8_t i = 0; i < 4u; i++) hide_sprite((uint8_t)(MC_OAM + i));
-        mc_reset();
     } else {
         tb_dmg_init();
         tb_dmg_ids_init();
     }
+    memset(&mc_s, 0, sizeof(mc_state_t));
+    mc_seed = DIV_REG | 1u;
+    mc_art = (uint8_t *)(((uint16_t)mc_s.art_ram + 15u) & 0xFFF0u);
+    mc_front = 0;
+    bg_cube_pending = 0;
+    for (uint8_t i = 0; i < 4u; i++) hide_sprite((uint8_t)(MC_OAM + i));
+    mc_reset();
 
     // Music button tiles (16x16 icon -> 4 8x8 tiles = 2 8x16 sprites)
     // Colors: 0 transparent, 1 yellow (note), 2 lime (bg), 3 black (outline)
@@ -1044,29 +1155,30 @@ GameState update_menu_state(void) BANKED {
             }
         }
         bg_wait_vbl();
-        if (_cpu == CGB_TYPE) mc_update();
         if (dmg_scroll) {
-            // In VBlank: the STAT handler takes menu_sky_scx at line 16, and the side buttons' map
-            // cells (from line 48) have to move with it in the same frame
-            uint8_t scx = (uint8_t)(frame_counter >> 1);   // 0..255, see tb_dmg_place
-            if (scx != dmg_scx) {
+            // DMG: the sky moves a pixel every 2 frames, once the side buttons' tiles for the next
+            // position are ready (below; a step put off a frame is not seen). In VBlank: the STAT
+            // handler takes menu_sky_scx at line 16, and the side buttons' map cells (from line
+            // 48) have to move with it in the same frame.
+            if (dmg_wait < 2) dmg_wait++;
+            if (dmg_wait >= 2 && dmg_prep >= 2) {
+                uint8_t scx = (uint8_t)(dmg_scx + 1);   // 0..255, see tb_dmg_place
                 uint8_t nb = dmg_buf ^ 1;
-                if (dmg_prep < 2 || scx != (uint8_t)(dmg_scx + 1)) {
-                    menu_sky_scx = scx;                // not ready (a slow frame): copy now
-                    tb_dmg_show(scx);
-                } else {
-                    menu_sky_scx = scx;
-                    tb_dmg_place(scx, nb);
-                    dmg_buf = nb; dmg_scx = scx; dmg_prep = 0;
-                }
+                menu_sky_scx = scx;
+                tb_dmg_place(scx, nb);
+                dmg_buf = nb; dmg_scx = scx; dmg_prep = 0; dmg_wait = 0;
             }
         }
+        mc_update();
         draw_ground(ground_x);
         if (dmg_scroll && dmg_prep < 2) {
-            // the next scroll position into the buffer not shown, a side per frame
-            uint8_t next = (uint8_t)(dmg_scx + 1);
-            tb_dmg_copy(dmg_prep, next, dmg_buf ^ 1);
-            dmg_prep++;
+            // the next scroll position into the buffer not shown, a side per frame: ~42 lines of
+            // HBlank copy, only if they end before VBlank (the menu icon's frames can be long)
+            uint8_t ly = LY_REG;
+            if (ly < 96u || ly >= 144u) {
+                tb_dmg_copy(dmg_prep, (uint8_t)(dmg_scx + 1), dmg_buf ^ 1);
+                dmg_prep++;
+            }
         }
         if (_cpu == CGB_TYPE && (frame_counter & 15) == 0) {
             apply_rainbow_palette((uint8_t)(frame_counter >> 4));
