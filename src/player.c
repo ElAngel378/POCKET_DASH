@@ -417,14 +417,22 @@ static uint8_t spike_probes(void) __naked {
 // top of the player (bg_coll_floor_spikes x+3 / x+12 at y+3 and y+14, bg_coll_death centre x+6,
 // y+8, and the front side point bg_coll_R x+15, y+8)
 static const uint8_t spike_pts[12] = { 3, 3, 12, 3, 3, 14, 12, 14, 6, 8, 15, 8 };
+// Mini: Famidash's points (x+3 / x+5 at y+4 and y+9, the centre x+3, y+7, the front x+8 at front_y:
+// 5, 7 or 10, see player_update)
+static const uint8_t spike_pts_mini[3][12] = {
+    { 3, 4, 5, 4, 3, 9, 5, 9, 3, 7, MINI_BOX_RIGHT, 5 },
+    { 3, 4, 5, 4, 3, 9, 5, 9, 3, 7, MINI_BOX_RIGHT, 7 },
+    { 3, 4, 5, 4, 3, 9, 5, 9, 3, 7, MINI_BOX_RIGHT, 10 },
+};
 
 // Nonzero if one of the spike points in mask (from spike_probes, not 0xFF) kills. Only the walk
 // over the points is in assembly: the shape of each spike is spike_shape, in C.
-static uint8_t spike_hit(uint8_t mask) __naked {
+// pts: x, y of each point (spike_pts, spike_pts_mini)
+static uint8_t spike_hit(uint8_t mask, const uint8_t *pts) __naked {
     (void)mask;
+    (void)pts;
     __asm
-        ld      c, a
-        ld      de, #_spike_pts
+        ld      c, a                    ; (pts in de)
     1$:
         srl     c
         jr      C, 2$
@@ -771,13 +779,18 @@ uint8_t player_update(
     } else if (mini) {
         // Famidash's mini spike points: bg_coll_floor_spikes (x+3 / x+5 at the box top + 0 and
         // bottom - 2), bg_coll_death (centre x+3, y+7) and the front side point (x+8)
-        if (SPIKE(3, py + 4) || SPIKE(5, py + 4) ||
+        if (py <= 245u) {
+            // every point inside the collision window: the walk in assembly
+            if (spike_hit(0x3F, spike_pts_mini[front_y == 5 ? 0 : front_y == 7 ? 1 : 2])) {
+                p->dead = 1; return 1;
+            }
+        } else if (SPIKE(3, py + 4) || SPIKE(5, py + 4) ||
             SPIKE(3, py + 9) || SPIKE(5, py + 9) ||
             SPIKE(3, py + 7) || SPIKE(MINI_BOX_RIGHT, py + front_y)) {
             p->dead = 1; return 1;
         }
     } else if (spike_mask != 0xFF) {
-        if (spike_hit(spike_mask)) {
+        if (spike_hit(spike_mask, spike_pts)) {
             p->dead = 1; return 1;
         }
     } else {
