@@ -1104,19 +1104,23 @@ GameState update_menu_state(void) BANKED {
     SCX_REG = 0;
     SCY_REG = 0;
 
+    // The sky starts where it is drifting to (frame_counter carries over between visits): shown
+    // at 0 through the fade-in, it jumped there on the first frame
+    uint8_t sky_scx = setting_parallax_enabled ? (uint8_t)(frame_counter >> 1) : 0u;   // DMG SCX
+    uint8_t sky_phase = (uint8_t)(-(int8_t)sky_scx) & 63u;                            // CGB
     if (_cpu == CGB_TYPE && setting_show_bg_enabled) {
         wait_vbl_done();   // the display is on: the parallax GDMA has to run in VBlank
-        init_bg_parallax();
+        set_bg_parallax_phase(sky_phase);
     }
 
     uint8_t dmg_sky_irq = (_cpu != CGB_TYPE && setting_show_bg_enabled);
     if (_cpu == CGB_TYPE) {
         tb_cgb_cores();
     } else {
-        tb_dmg_show(0);
+        tb_dmg_show(sky_scx);
     }
     if (dmg_sky_irq) {
-        menu_sky_scx = 0;
+        menu_sky_scx = sky_scx;
         disable_interrupts();
         add_LCD(menu_stat_isr);
         add_VBL(menu_vbl_isr);
@@ -1142,7 +1146,6 @@ GameState update_menu_state(void) BANKED {
     // VBlank handler: runs the parallax GDMA at the start of VBlank (CGB)
     bg_parallax_isr_start();
     fade_from_black(2);
-    uint8_t sky_phase = 0;
     uint8_t prev_joy = joypad();
 
     while (1) {
