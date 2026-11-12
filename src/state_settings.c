@@ -203,7 +203,7 @@ static void draw_fixed_text(uint8_t x, uint8_t y, const char *str, uint8_t width
 }
 
 static void render_setting_row(uint8_t visible_row, uint8_t item_idx, uint8_t is_selected) {
-    uint8_t row_y = 4 + visible_row * 2;
+    uint8_t row_y = 5 + visible_row * 2;
     if (item_idx >= NUM_SETTINGS) {
         for (uint8_t x = 3; x <= 16; x++) set_bkg_tile_xy(x, row_y, 0);
         return;
