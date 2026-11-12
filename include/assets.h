@@ -66,5 +66,6 @@ extern const uint8_t NUM_EXTRA_LEVELS;
 // Save slot of each level (game_levels order): a level keeps its saved progress and coins
 // when the level order changes
 extern const uint8_t level_save_slot[];
+extern const uint8_t level_difficulty[];   // the face on the menus (difficulty_faces.h)
 
 #endif

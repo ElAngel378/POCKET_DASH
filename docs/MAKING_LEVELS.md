@@ -43,6 +43,7 @@ Your level ends at its last column by itself. To end it sooner, place a **Level 
 | Property | What it does |
 |---|---|
 | `Title` | The name in the game's list: up to 18 letters and numbers (21 on the Main menu) |
+| `Difficulty` | The face next to it on the menus: `Auto`, `Easy`, `Normal`, `Hard`, `Harder`, `Insane`, `Easy Demon`, `Demon`, `Insane Demon` or `NA` (no rating, what you get without it) |
 | `Menu` | `Main` is the PLAY menu, `Extra` is the wrench menu |
 | `Order` | Its place in that menu: lower numbers come first |
 | `Song` | The song it plays, by file name. `none` means silence |

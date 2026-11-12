@@ -85,6 +85,25 @@
                 "Extra"
             ],
             "valuesAsFlags": false
+        },
+        {
+            "id": 4,
+            "name": "Difficulty",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "Auto",
+                "Easy",
+                "Normal",
+                "Hard",
+                "Harder",
+                "Insane",
+                "Easy Demon",
+                "Demon",
+                "Insane Demon",
+                "NA"
+            ],
+            "valuesAsFlags": false
         }
     ]
 }

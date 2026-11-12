@@ -26,6 +26,8 @@ ASSETS_C_PATH = SRC_DIR / "assets.c"
 # What a level is called, where it is listed and what it plays are the TMX's map properties
 MENUS = ("Main", "Extra")                 # the "Menu" property; the game lists them in this order
 TITLE_LETTERS = {"Main": 21, "Extra": 18}  # what fits on each menu
+# the "Difficulty" property: the face on the menus (src/graphics/difficulty_faces.h order)
+DIFFICULTIES = ("Auto", "Easy", "Normal", "Hard", "Harder", "Insane", "Demon", "Insane Demon", "NA", "Easy Demon")
 NUM_SAVE_SLOTS = 64                       # include/save_manager.h NUM_SAVE_LEVELS
 FUR_DIR = REPO_ROOT / "music" / "Furnace"
 MENU_SONGS = {"menuloop", "menu", "menutheme"}   # the menu theme, no level plays it
@@ -357,6 +359,12 @@ def generate_assets_c(levels):
         f.write('const uint8_t level_save_slot[] = {\n')
         for lvl in levels:
             f.write(f'  {lvl["save_slot"]}u, // level_{lvl["short_name"]}\n')
+        f.write('};\n\n')
+
+        f.write('// Difficulty face of each level (game_levels order; difficulty_faces.h)\n')
+        f.write('const uint8_t level_difficulty[] = {\n')
+        for lvl in levels:
+            f.write(f'  {lvl["difficulty"]}u, // level_{lvl["short_name"]}\n')
         f.write('};\n')
 
 def map_properties(stem):
@@ -379,8 +387,12 @@ def level_info(stem):
         raise SystemExit(f"Level '{stem}': the Menu property has to be Main or Extra, not '{menu}'.")
     title = re.sub(r"[^A-Z0-9 ]", "", (props.get("Title") or "").upper())[:TITLE_LETTERS[menu]].strip()
     song = (props.get("Song") or "").strip()
+    difficulty = (props.get("Difficulty") or "NA").strip()
+    if difficulty not in DIFFICULTIES:
+        raise SystemExit(f"Level '{stem}': the Difficulty property has to be one of {', '.join(DIFFICULTIES)}, not '{difficulty}'.")
     return {"menu": menu, "order": number("Order", 999), "save": number("Save slot", None),
             "title": title or format_title(stem)[:TITLE_LETTERS[menu]],
+            "difficulty": DIFFICULTIES.index(difficulty),
             "song": None if song.lower() in ("", "none") else song}
 
 def level_files():
@@ -576,6 +588,7 @@ def build_all():
             "extra": info["menu"] == "Extra",
             "short_name": short_name,
             "save_slot": save_slot,
+            "difficulty": info["difficulty"],
             "title": title,
             "width": width,
             "height": MAP_ROWS,

@@ -645,3 +645,30 @@ const uint8_t level_save_slot[] = {
   22u, // level_test
   23u, // level_test2
 };
+
+// Difficulty face of each level (game_levels order; difficulty_faces.h)
+const uint8_t level_difficulty[] = {
+  1u, // level_stereomadness
+  1u, // level_backontrack
+  2u, // level_polargeist
+  2u, // level_dryout
+  3u, // level_baseafterbase
+  3u, // level_cantletgo
+  4u, // level_jumper
+  4u, // level_timemachine
+  4u, // level_cycles
+  5u, // level_xstep
+  5u, // level_clutterfunk
+  5u, // level_theoryofeverything
+  5u, // level_electromanadventures
+  6u, // level_clubstep
+  0u, // level_bestautomaticlvl
+  1u, // level_leveleasy
+  8u, // level_subzero
+  8u, // level_ultiatedestruction
+  8u, // level_everymadness
+  8u, // level_demonpark
+  8u, // level_thelightningroad
+  8u, // level_test
+  8u, // level_test2
+};

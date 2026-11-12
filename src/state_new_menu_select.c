@@ -38,23 +38,6 @@ static const palette_color_t cgb_level_bg_colors[NUM_LEVEL_STYLES] = {
     RGB8(152,  78,   0), // Clubstep (Famidash's level select colour)
 };
 
-static const uint8_t level_difficulties[NUM_LEVEL_STYLES] = {
-    1, // Stereo Madness
-    1, // Back On Track
-    2, // Polargeist
-    2, // Dry Out
-    3, // Base After Base
-    3, // Cant Let Go
-    4, // Jumper
-    4, // Time Machine
-    4, // Cycles
-    5, // xStep
-    5, // Clutterfunk
-    5, // Theory of Everything
-    5, // Electroman Adventures
-    6, // Clubstep (Demon)
-};
-
 // Difficulty faces (16x16, drawn as 4 sprites): Auto, Easy, Normal, Hard, Harder, Insane, Demon,
 // Insane Demon, NA, Easy Demon
 #include "graphics/difficulty_faces.h"
@@ -448,7 +431,7 @@ static void draw_selected_level(void) {
     draw_level_coins(selected);
 
     // Update difficulty face sprite tiles/palettes only if difficulty changed
-    uint8_t diff = level_difficulties[selected % NUM_LEVEL_STYLES];
+    uint8_t diff = level_difficulty[selected];
     if (diff != last_rendered_diff) {
         if (_cpu == CGB_TYPE) {
             set_sprite_data(FACE_SPR_TILE, 4, difficulty_face_cgb_tiles[diff]);
