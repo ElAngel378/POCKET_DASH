@@ -8,7 +8,8 @@ The portals, orbs, pads and the arrow too (the DMG draws no object as a sprite b
 spin and go away when taken): their art is levels/chr_data/game_art/dmg_bg_objects.png, what the
 DMG's sprites of them looked like (captured from the game), a 64 x 64 cell each in SHEET_IDS order,
 the object's position at (8, 8) of its cell; white 255 is colour 0 .. black 0 is colour 3. On the
-black theme only colour 3 shows (white), like the blocks' outlines.
+black theme only colour 3 shows (white), like the blocks' outlines: the portals' rings and badges
+and the arrow are drawn in it (their sprites' dark grey became black).
 
 Not painted: what covers a cell the engine treats by id (saws, the ground) or a fading cell.
 """
