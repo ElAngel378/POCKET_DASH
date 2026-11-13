@@ -70,7 +70,7 @@ static void apply_custom_player_palette(void) {
 #define VIEW_MT_H 9
 
 // Level end animation timings
-#define LEVEL_END_SHAKE_FRAMES 120  // Screen shake duration (2s at 60fps)
+#define LEVEL_END_SHAKE_FRAMES 108  // Screen shake duration (1.8s at 60fps)
 #define LEVEL_END_PULL_FRAMES   72  // Magnetic pull towards end trigger (~1.2s)
 #define LEVEL_END_OVERSHOOT_PX  14  // Y overshoot amplitude in pixels
 

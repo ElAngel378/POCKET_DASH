@@ -19,6 +19,7 @@
 #include "collision.h"
 #include "settings.h"
 #include "famidash_bg.h"
+#include "death_effect.h"
 
 BANKREF(state_level_complete)
 
@@ -47,6 +48,7 @@ extern uint8_t music_ready;
 uint8_t lc_dbg_free, lc_dbg_need;   // free / needed tile slots (tools: how tight is it)
 
 static uint8_t skip;        // A pressed during the animation: the rest runs without waits
+static uint8_t fx_on;       // the discs and particles run (until the box)
 static uint8_t prev_joy;
 
 static uint8_t map_x0, map_y0;                          // BG map cell at the top left of the screen
@@ -83,6 +85,7 @@ static void wait_frames(uint8_t n) {
     while (n--) {
         if (skip) return;
         wait_vbl_done();
+        if (fx_on) end_fx_draw(4);
         uint8_t joy = joypad();
         if ((joy & J_A) && !(prev_joy & J_A)) skip = 1;
         prev_joy = joy;
@@ -343,6 +346,7 @@ static palette_color_t level_colour(void) {
 GameState update_level_complete_state(void) BANKED {
     uint8_t c, y;
     skip = 0;
+    fx_on = 0;
     prev_joy = joypad();
 
     // grid-lock the scroll like the pause menu does, then pick the tile slots
@@ -379,6 +383,8 @@ GameState update_level_complete_state(void) BANKED {
 
     uint8_t sel = 0;
     if (have_gfx) {
+        end_fx_init();
+        fx_on = 1;
         wait_frames(4);
         // both lines grow from the middle outwards, a column on each side per step
         for (c = 0; c < LEVEL_COMPLETE_TEXT_COLS / 2; c++) {
@@ -394,11 +400,14 @@ GameState update_level_complete_state(void) BANKED {
             }
             text_column(2, (uint8_t)(LEVEL_COMPLETE_TEXT_COLS / 2 - 1 - c));
             text_column(2, (uint8_t)(LEVEL_COMPLETE_TEXT_COLS / 2 + c));
-            wait_frames(3);
+            wait_frames(2);
         }
+        end_fx_splash();
         // 2 seconds with the text on the level (A skips the wait)
         for (y = 0; y < 120 && !skip; y++) wait_frames(1);
         skip = 0;
+        fx_on = 0;
+        for (c = 4; c < 40; c++) shadow_OAM[c].y = 0;
         load_border_tiles();
         for (y = BOX_TOP; y <= BOX_BOTTOM; y++) {
             box_row(y);

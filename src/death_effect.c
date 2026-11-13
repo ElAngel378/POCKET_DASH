@@ -6,6 +6,8 @@
 #include <gb/cgb.h>
 #include "settings.h"
 #include "hUGEDriver.h"
+#include "end_fx_discs.h"
+#include "fade.h"
 
 // Practice mode: the crash takes the noise channel from the music this long, then the
 // music gets it back (cut before the crash fully decays so the drums come back cleanly)
@@ -261,4 +263,188 @@ uint8_t play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_
     move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
     wait_vbl_done();
     return removes;
+}
+
+// Level complete: a disc (END_FX_SIZES sizes, 3 frames each) at a random spot, the next starting
+// just before it is gone (two at once then, one above the other); the particles of the death effect burst from the disc's centre as it starts. Once the text is
+// in, a splash of stars flies a little way out of it, slowing down, twinkling, gone in half a second. Every tile is loaded once (end_fx_init): nothing is uploaded per frame,
+// and the per-frame code stays on 8-bit maths and pointer walks (it ran 50..120 lines a frame on DMG
+// with int16 maths, modulos, 2D indexing and a 256-byte upload every 3 frames: dropped frames).
+#define END_FX_STEP_FRAMES 3
+#define END_FX_PART_FRAMES 36     // frames per particle in particle_trajectories
+#define END_FX_CYCLE_FRAMES 28    // a disc's frames (its burst's are cut there: tiny dots by then)
+#define END_FX_NEXT_AT 18         // the next disc starts at the newest one's frame 18..21 (of 24 drawn)
+#define FX_TEXT_X 88              // OAM x, y of the text's centre: the stars fly away from it
+#define FX_TEXT_Y 50
+#define END_FX_PAL 6            // CGB sprite palette of the discs and stars (free on this screen)
+#define FX_SPARKS 12
+
+// two discs: the newest (fx_new) and the one before it, finishing
+typedef struct { uint8_t frame, size, step, cx, cy; } fx_disc_t;   // frame 0xFF: idle
+static fx_disc_t discs[2];
+static uint8_t fx_new;
+static uint8_t fx_next_at;
+static uint8_t fx_rng;
+static uint8_t fx_prop;     // the discs' and stars' sprite attributes (CGB: END_FX_PAL)
+static uint8_t fx_used;     // sprites in use after the last frame (the rest are hidden already)
+
+static uint8_t fx_rand(void) {
+    fx_rng = (uint8_t)(fx_rng * 5u + 17u + DIV_REG);
+    return fx_rng;
+}
+
+// the stars of the splash: a life counts down, 0 = gone
+typedef struct { uint8_t x, y, life; int8_t vx, vy; } fx_spark_t;
+static fx_spark_t sparks[FX_SPARKS];
+
+// twinkle: dot, small star, big star, small star
+static const uint8_t spark_tiles[4] = {
+    DEATH_TILE_PART_TINY,
+    END_FX_TILE_BASE + END_FX_STAR_SMALL,
+    END_FX_TILE_BASE + END_FX_STAR_BIG,
+    END_FX_TILE_BASE + END_FX_STAR_SMALL,
+};
+
+void end_fx_init(void) BANKED {
+    fx_prop = 0;
+    if (_cpu == CGB_TYPE) {
+        palette_color_t pal[4];
+        pal[0] = RGB8(0, 0, 0);
+        pal[1] = RGB8(255, 255, 255);     // disc, star arms
+        pal[2] = RGB8(255, 240, 140);     // star centre
+        pal[3] = RGB8(170, 236, 255);
+        wait_vbl_done();                  // palette writes are lost while the LCD reads them
+        fade_set_sprite_palette(END_FX_PAL, 1, pal);
+        fx_prop = END_FX_PAL;
+    }
+    set_sprite_data(END_FX_TILE_BASE, END_FX_TILE_COUNT, end_fx_tiles);
+    fx_spark_t *s = sparks;
+    for (uint8_t i = 0; i < FX_SPARKS; i++, s++) s->life = 0;
+    discs[0].frame = discs[1].frame = 0xFF;
+    discs[0].cy = 68;
+    fx_new = 0;
+    fx_next_at = 0;
+    fx_used = 40;
+    fx_rng = DIV_REG;
+}
+
+void end_fx_splash(void) BANKED {
+    fx_spark_t *s = sparks;
+    for (uint8_t i = 0; i < FX_SPARKS; i++, s++) {
+        // spread along the text (OAM x 24..151, y 36..67), flying away from its centre: sideways
+        // unless near the middle, up or down unless near the ends
+        uint8_t x = (uint8_t)(24u + i * 10u + (fx_rand() & 7u));
+        uint8_t y = (uint8_t)(36u + (fx_rand() & 31u));
+        s->x = x;
+        s->y = y;
+        int8_t dx = (int8_t)(x - FX_TEXT_X);
+        s->vx = (dx > 12) ? 1 : ((dx < -12) ? -1 : 0);
+        s->vy = (dx > 52 || dx < -52) ? 0 : ((y < FX_TEXT_Y) ? -1 : 1);
+        if (!s->vx && !s->vy) s->vy = -1;
+        s->life = (uint8_t)(26u + (fx_rand() & 7u));    // about half a second
+    }
+}
+
+// Draws a disc and its burst from o on, as far as the 40 sprites go; advances it a frame
+static OAM_item_t *draw_disc(fx_disc_t *d, OAM_item_t *o, uint8_t prop) {
+    uint8_t i;
+    if (d->frame == 0xFF) return o;
+    // (o's low byte is 4 x its sprite index: shadow_OAM is page aligned)
+    if (d->size < END_FX_SIZES && (uint8_t)(uint16_t)o <= (uint8_t)((40u - 8u) * 4u)) {
+        // 4 x 2 sprites of one quarter, mirrored: columns 0 1 | 1' 0', the lower row flipped; the
+        // mirrored ones 1 px left / up, sharing the centre column and row
+        uint8_t t0 = (uint8_t)(END_FX_TILE_BASE + (d->size << 2)), t1 = (uint8_t)(t0 + 2u);
+        uint8_t dx = (uint8_t)(d->cx - 8u), dy = d->cy, p = prop;
+        for (i = 0; i < 2; i++) {
+            o->y = dy; o->x = dx;                  o->tile = t0; o->prop = p;                   o++;
+            o->y = dy; o->x = (uint8_t)(dx + 8u);  o->tile = t1; o->prop = p;                   o++;
+            o->y = dy; o->x = (uint8_t)(dx + 15u); o->tile = t1; o->prop = (uint8_t)(p | S_FLIPX); o++;
+            o->y = dy; o->x = (uint8_t)(dx + 23u); o->tile = t0; o->prop = (uint8_t)(p | S_FLIPX); o++;
+            dy += 15u;
+            p |= S_FLIPY;
+        }
+    }
+    {
+        // the burst, from the centre (OAM x, y). No clipping needed: x 32..159 +- 48 stays under 256
+        // (below 0 wraps to 240.., off the screen) and y 84..147 + 48 does too
+        uint8_t f = d->frame, ta, tb;
+        if (f >= 24u) ta = tb = DEATH_TILE_PART_TINY;
+        else if (f >= 13u) { ta = DEATH_TILE_PART_SMALL_CYAN; tb = DEATH_TILE_PART_SMALL_GREEN; }
+        else { ta = DEATH_TILE_PART_CYAN; tb = DEATH_TILE_PART_GREEN; }
+        const int8_t *p = &particle_trajectories[0][f][0];
+        uint8_t cx = (uint8_t)(d->cx + 8u), cy = (uint8_t)(d->cy + 16u);
+        for (i = 0; i < 6; i++) {
+            if ((uint8_t)(uint16_t)o > (uint8_t)((40u - 2u) * 4u)) break;
+            o->y = (uint8_t)(cy + p[1]); o->x = (uint8_t)(cx + p[0]); o->tile = ta; o->prop = 0; o++;
+            p += END_FX_PART_FRAMES * 2;
+            o->y = (uint8_t)(cy + p[1]); o->x = (uint8_t)(cx + p[0]); o->tile = tb; o->prop = 0; o++;
+            p += END_FX_PART_FRAMES * 2;
+        }
+    }
+    if (++d->step == END_FX_STEP_FRAMES) {
+        d->step = 0;
+        d->size++;
+    }
+    if (++d->frame >= END_FX_CYCLE_FRAMES) d->frame = 0xFF;
+    return o;
+}
+
+uint8_t end_fx_draw(uint8_t oam_idx) BANKED {
+    OAM_item_t *o = &shadow_OAM[oam_idx];
+    uint8_t i, l, r, prop = fx_prop;
+
+    fx_spark_t *s = sparks;
+    for (i = 0; i < FX_SPARKS; i++, s++) {
+        l = s->life;
+        if (!l) continue;
+        s->life = --l;
+        // slowing down: every frame, then every 2nd, then every 4th (about 12 px in all)
+        if (l >= 22u || (l >= 12u ? !(l & 1u) : !(l & 3u))) {
+            s->x = (uint8_t)(s->x + s->vx);
+            s->y = (uint8_t)(s->y + s->vy);
+        }
+        if (l > 6u || (l & 1u)) {   // blinks out at the end
+            o->y = s->y;
+            o->x = s->x;
+            o->tile = spark_tiles[((uint8_t)(l + (i << 1)) >> 2) & 3u];
+            o->prop = prop;
+            o++;
+        }
+    }
+
+    {
+        fx_disc_t *n = &discs[fx_new];
+        if (n->frame == 0xFF || n->frame >= fx_next_at) {
+            // the next disc, in the other slot (idle: the older one is long done), fully above or
+            // below the one finishing (OAM y 68..131), so the two never share lines (10 sprites a line)
+            uint8_t y = n->cy;
+            if (y < 100u) {
+                y = (uint8_t)(y + 31u + (fx_rand() & 15u));
+                if (y > 131u) y = 131u;
+            } else {
+                y = (uint8_t)(y - 31u - (fx_rand() & 15u));
+                if (y < 68u) y = 68u;
+            }
+            fx_new ^= 1u;
+            n = &discs[fx_new];
+            n->cx = (uint8_t)(24u + (fx_rand() & 127u));
+            n->cy = y;
+            n->frame = n->size = n->step = 0;
+            fx_next_at = (uint8_t)(END_FX_NEXT_AT + (fx_rand() & 3u));
+        }
+        // the newest first: it keeps all its sprites when the stars take some
+        o = draw_disc(n, o, prop);
+        o = draw_disc(&discs[fx_new ^ 1u], o, prop);
+    }
+
+    // shadow_OAM is page aligned: the index is the address's low byte / 4
+    l = (uint8_t)((uint8_t)(uint16_t)o >> 2);
+    r = l;
+    while (r < fx_used) {
+        o->y = 0;
+        o++;
+        r++;
+    }
+    fx_used = l;
+    return l;
 }
