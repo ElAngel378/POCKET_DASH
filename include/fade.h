@@ -30,4 +30,18 @@ inline static uint8_t dim_dmg_byte(uint8_t pal, uint8_t step) {
     return out;
 }
 
+// Mirror portal transition (CGB seamless levels): the view closes like a curtain (sky from both
+// edges), gameplay switches maps, the mirrored view fades in from the sky's colour
+#define MIRROR_FX_IDLE 0
+#define MIRROR_FX_CLOSING 1
+#define MIRROR_FX_CLOSED 2      // gameplay may switch (mirror_fx_open)
+#define MIRROR_FX_OPEN 3
+extern uint8_t mirror_fx_state;
+void mirror_fx_frame(uint8_t scx) BANKED;
+void mirror_fx_row(uint8_t maprow) BANKED;
+void mirror_fx_open(void) BANKED;
+void mirror_fx_cancel(void) BANKED;
+void mirror_fx_vbl(void);       // the VBlank handler, its bank switched in
+BANKREF_EXTERN(mirror_fx_vbl)
+
 #endif

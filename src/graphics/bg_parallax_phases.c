@@ -5,6 +5,7 @@
 #include "bg_parallax.h"
 #include "famidash_bg.h"
 #include "music.h"
+#include "fade.h"
 
 volatile uint8_t bg_gdma_pending;
 volatile uint8_t bg_gdma_phase;
@@ -13,6 +14,7 @@ volatile uint8_t bg_vbl_on;
 volatile uint8_t bg_vbl_seen;
 volatile uint8_t bg_vbl_frames;   // VBlanks seen (wraps)
 volatile uint8_t bg_pal_request;
+volatile uint8_t bg_fx_pending;
 volatile uint8_t bg_cj_pending;
 uint8_t bg_cj_x, bg_cj_y;
 const uint8_t *bg_cj_tiles;
@@ -513,6 +515,14 @@ void bg_parallax_vbl_isr(void) {
     // Parallax GDMA after the map uploads (unless a column took the time, see above): first, it
     // often left the row job too little of VBlank, and in a fast climb the rows fell behind
     // (stale rows on screen)
+    // Mirror portal transition: sky columns, palettes. Before the parallax: the view closes in
+    // ~12 frames with 3 columns a VBlank (the sky stands still meanwhile), in ~45 after it
+    if (bg_fx_pending) {
+        uint8_t prev_b = _current_bank;
+        SWITCH_ROM(BANK(mirror_fx_vbl));
+        mirror_fx_vbl();
+        SWITCH_ROM(prev_b);
+    }
     PARALLAX_TRY();
     FADE_CELLS_TRY();
     // Streamed tiles: a column is drawn a few columns before it is seen, so they have time

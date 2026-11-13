@@ -28,6 +28,7 @@ extern volatile uint8_t bg_gdma_isr_on;
 extern volatile uint8_t bg_vbl_on;
 extern volatile uint8_t bg_vbl_seen;
 extern volatile uint8_t bg_vbl_frames;   // incremented by the VBlank handler
+extern volatile uint8_t bg_fx_pending;  // mirror portal transition (fade.c, mirror_fx_vbl): bits 0-1 sky columns, 0x40 / 0x80 its BG / sprite palettes
 extern volatile uint8_t bg_pal_request; // apply famidash_bg_palettes in the VBlank handler (CGB palette RAM is VBlank-only)
 
 // VRAM uploads done by the VBlank handler right after the parallax GDMA (fast,

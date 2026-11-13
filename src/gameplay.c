@@ -285,7 +285,7 @@ uint8_t view_rev;   // the orientation on screen (player.reversed: the one the g
 #define MJ_LY_WRITE 120u       // write a worked out column only before this line (~20 lines)
 #define MJ_AHEAD_PX 320u        // the build starts this far before a mirror portal (cam x)
 #define MJ_LY_RUSH 134u        // through the portal, the view still the old one: any step before this line
-#define MJ_MAX_WAIT 30u        // frames the switch may wait (then mirror_reload, screen off)
+#define MJ_MAX_WAIT 48u        // frames the switch may wait (then mirror_reload, screen off); the view closes in ~12
 static uint8_t seamless;       // this level uses the seamless switch
 static uint8_t mj_active;      // building the other map (2: column mj_next is worked out, not written)
 static uint8_t mj_target;      // its orientation (!view_rev)
@@ -296,6 +296,8 @@ static uint8_t mj_far;         // a mirror portal ahead that is not loaded yet (
 static uint8_t mj_part;        // parts of column mj_next worked out (mj_prepare_column)
 static uint8_t mj_wait;        // frames player.reversed != view_rev
 static uint8_t mj_frame;       // bg_vbl_frames when this game loop iteration started
+// the view is closing or closed (fade.c): its map gets sky only
+#define MIRROR_FX_CLOSES() ((uint8_t)(mirror_fx_state - 1u) < 2u)
 
 // (one call site for the banked call: this bank is full)
 static void fade_view_again(void) { fade_reset_view(); }
@@ -1050,6 +1052,7 @@ static void bg_map_reset(void) {
     mj_wait = 0;
     mj_far = 0;
     dmg_mirror_due = 0;
+    mirror_fx_cancel();
 }
 
 // A mirror portal that would change the view is (nearly) on screen
@@ -1137,6 +1140,7 @@ static void mirror_switch(uint16_t px) {
     stream_jobs_reset();
     fade_view_again();   // the other map's fading cells were built full
     bg_lcdc_map = (mj_map_hi == 0x9Cu) ? LCDCF_BG9C00 : LCDCF_BG9800;
+    mirror_fx_open();
 }
 
 // Mirror portal: reload the (mirrored) tileset and redraw the visible columns
@@ -1326,6 +1330,7 @@ static void practice_respawn(uint8_t idx) {
 
 static void handle_death(uint8_t idx, uint8_t sprite_x_final, int16_t final_py, uint16_t scroll_px) {
     music_gate_off();   // the music runs freely until the loop starts again (practice: it keeps playing)
+    mirror_fx_cancel();
     record_level_progress_from_cam(level_save_slot[idx], cam_px, max_scroll_px, practice_mode);
     uint8_t removes = 0;
     if (setting_effects_enabled) {
@@ -1598,7 +1603,7 @@ void play_level(uint8_t idx) BANKED {
         }
 
         // Pause game on Start press
-        if (!player.dead && end_anim_state == END_ANIM_INACTIVE && (joy & J_START) && !(prev_joy & J_START)) {
+        if (!player.dead && end_anim_state == END_ANIM_INACTIVE && !mirror_fx_state && (joy & J_START) && !(prev_joy & J_START)) {
             if (pause_menu(idx)) break;
             continue;
         }
@@ -1691,13 +1696,15 @@ void play_level(uint8_t idx) BANKED {
                 dmg_mirror_due = 1;
             } else if (!seamless) {
                 mirror_reload(idx, 1);
-            } else if (mirror_job_ready(px_curr)) {
+            } else if (mirror_fx_state == MIRROR_FX_CLOSED && mirror_job_ready(px_curr)) {
                 mirror_switch(px_curr);
                 needs_render = 0;
                 mj_switched = 1;
             } else if (++mj_wait > MJ_MAX_WAIT) {
                 mirror_reload(idx, 1);
             }
+        } else if (MIRROR_FX_CLOSES()) {
+            mirror_reload(idx, 1);   // back through a portal while the view closed
         }
 
         // Move the collision window when the player nears its top or bottom
@@ -1989,7 +1996,7 @@ void play_level(uint8_t idx) BANKED {
         PROF_MARK(7);   // column job
         // The frame that switches maps issues no map job: it could reach the VBlank handler
         // before the switch does and land in the map going out.
-        if (!mj_switched) {
+        if (!mj_switched && !MIRROR_FX_CLOSES()) {
         // VRAM uploads (DMG too): the VBlank handler writes them the moment VBlank starts. Done
         // by this thread after waking up, they could land outside VBlank when the music timer
         // interrupt ran first. A slice the handler has uploaded counts as done.
@@ -2088,6 +2095,7 @@ void play_level(uint8_t idx) BANKED {
         // so it never depends on how late this thread wakes up.
         if (row0_job_pos < 16 && !row0_job_issued && !mj_switched) {
             request_row_slots(row0_job_pos, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, view_rev);
+            if (MIRROR_FX_CLOSES()) mirror_fx_row(row_job_row);
             row0_job_issued = 1;
         }
         // fading objects whose look changed with the scroll
@@ -2096,7 +2104,7 @@ void play_level(uint8_t idx) BANKED {
         }
         if (bg_gdma_isr_on) {
             famidash_bg_fade_step();
-            if (famidash_bkg_palettes_dirty) bg_pal_request = 1;
+            if (famidash_bkg_palettes_dirty && mirror_fx_state != MIRROR_FX_OPEN) bg_pal_request = 1;
         }
         if (parallax_needed) request_bg_parallax(bg_phase);
         saw_anim_request();
@@ -2111,6 +2119,8 @@ void play_level(uint8_t idx) BANKED {
             }
             request_bg_scroll(final_scx, final_scy);
         }
+        if (mirror_fx_state ? !mj_switched : (seamless && player.reversed != view_rev && end_anim_state == END_ANIM_INACTIVE && !died))
+            mirror_fx_frame(final_scx);
         if (seamless && !mj_switched && end_anim_state == END_ANIM_INACTIVE && !died) mirror_job(px_curr);
 #if ENABLE_DEBUG_MODE
         if (debug_mode) {
