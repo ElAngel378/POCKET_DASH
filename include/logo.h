@@ -9,5 +9,6 @@
 
 extern const uint8_t logo_tiles[];
 BANKREF_EXTERN(logo)
+void load_logo_tiles(void) BANKED;
 
 #endif // LOGO_H

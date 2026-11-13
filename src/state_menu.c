@@ -16,6 +16,8 @@ extern uint8_t selected;   // main.c: the level of the level selects
 #include "icon_catalog.h"
 #include "mini_cube_frames.h"
 #include "menu_icon_cut.h"
+#include "music.h"
+#include "furnace_songs.h"
 #include <gb/gb.h>
 #include <gb/cgb.h>
 #include <string.h>
@@ -58,6 +60,8 @@ extern uint8_t selected;   // main.c: the level of the level selects
 #define MC_START_X (-17) // off the left edge
 #define MC_CUT_ABOVE 41  // icon y from which it can touch the buttons' BG centres
 #define MC_CUT_BELOW 80  // (map rows 7..9, lines 56..79; the icon is 16 lines tall)
+#define CR_ROWS    8     // credits: the text band, map rows 0..7 (lines 0..63)
+#define CR_TOP_Y   (CR_ROWS * 8)   // the ship and the UFO fly no higher there
 
 // The icon's state: in scratch_buf, after the 64 bytes the ground buttons' tiles are built in (WRAM
 // is full: a few dozen more bytes of globals run the stack into them)
@@ -79,6 +83,7 @@ typedef struct {
     uint8_t wait;                // frames left before the next icon comes in
     uint8_t mini;                // the mini size: one 8x8 sprite
     uint16_t rest;               // y on the ground (8.8)
+    uint8_t credits;             // the credits screen: no buttons to cut around, the text band above
     // What the next update draws (the copy into the buffer not shown takes a frame: the sprites
     // keep to the same frame as their art, or the cut would be a frame off the buttons)
     uint8_t q_valid, q_copied, q_id, q_flip, q_cut, q_y;
@@ -108,6 +113,7 @@ typedef char mc_state_fits[(sizeof(mc_state_t) <= SCRATCH_SIZE - 64u) ? 1 : -1];
 #define mc_wait mc_s.wait
 #define mc_mini mc_s.mini
 #define mc_rest mc_s.rest
+#define mc_credits mc_s.credits
 #define mc_q_valid mc_s.q_valid
 #define mc_q_copied mc_s.q_copied
 #define mc_q_id mc_s.q_id
@@ -678,8 +684,8 @@ static void mc_move_y(void) {
         mc_y = mc_rest;
         mc_vy = 0;
         mc_on_ground = 1;
-    } else if (mc_y < ((uint16_t)MC_TOP_Y << 8)) {
-        mc_y = (uint16_t)MC_TOP_Y << 8;
+    } else if (mc_y < ((uint16_t)(mc_credits ? CR_TOP_Y : MC_TOP_Y) << 8)) {
+        mc_y = (uint16_t)(mc_credits ? CR_TOP_Y : MC_TOP_Y) << 8;
         mc_vy = 0;
     }
 }
@@ -959,7 +965,9 @@ static void mc_update(void) {
     if (!mini_cube) at <<= 1;
     const uint8_t *src = mc_src + at;
     uint8_t n = mc_mini ? 1u : 4u;
-    if (_cpu == CGB_TYPE) {
+    if (mc_credits) {
+        // nothing in front of it
+    } else if (_cpu == CGB_TYPE) {
         if (mc_q_y >= MC_CUT_ABOVE && mc_q_y < MC_CUT_BELOW) {
             mc_art_load(src);
             mc_q_cut = mc_art_cut_out(mc_q_x, mc_q_y, flip, n);
@@ -1241,4 +1249,246 @@ GameState update_menu_state(void) BANKED {
         frame_counter++;
         ground_x = (uint8_t)(ground_x - GROUND_SPEED) & (GROUND_PERIOD - 1);
     }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Credits (settings, or SELECT on the title): the title's sky, ground and running icon, with a
+// text band in place of the logo and the buttons. A page at a time, wiped in and out a column a
+// frame. A: the next page, B / START: back.
+
+#define CR_PAGES 7
+#define CR_HOLD  210          // frames a page stays
+#define CR_DASH  41           // the dash glyph, after the font
+#define CR_PAL_LOGO 2         // CGB band palettes (the rainbow has 0, 1, 3, 4)
+#define CR_PAL_TEXT 5
+#define CR_PAL_ROLE 6
+#define CR_PAL_HEAD 7
+
+// '@': the logo (this row and the next), '~' heading, '^' role, else a name. Centred. The last
+// row stays blank: a margin above the sky.
+static const char * const cr_pages[CR_PAGES][CR_ROWS] = {
+    { "", "@", "", "", "A GEOMETRY DASH", "DEMAKE FOR THE", "GAME BOY", "" },
+    { "~LEAD DEVELOPERS", "~---------------", "", "SOTOS 24", "ELANGEL378", "", "^CODE MUSIC ART", "" },
+    { "~MUSIC", "", "CRAFTY JUMPER", "ZIQIANGAO", "BOBAJOEJOE", "NERDBOY628", "USERSNIPER", "" },
+    { "~GRAPHICS", "", "CRAFTY JUMPER", "ZIQIANGAO", "PBAXX", "FINNTENDO", "SWITCHROOT", "" },
+    { "~GRAPHICS", "", "BOBAJOEJOE", "RANEDOM", "", "~TOOLS", "ZIQIANGAO", "" },
+    { "~THANK YOU", "", "TFDSOFT AND THE", "FAMIDASH TEAM", "^FOR THE ASSETS", "", "", "" },
+    { "~AND OF COURSE", "", "GEOMETRY DASH", "^BY ROBTOP GAMES", "", "", "~THANKS FOR PLAYING", "" },
+};
+
+static const uint8_t cr_dash_tile[16] = {
+    0x00,0x00, 0x00,0x00, 0x00,0x7C, 0x38,0x7C, 0x00,0x7C, 0x00,0x00, 0x00,0x00, 0x00,0x00
+};
+
+static uint8_t cr_char(char c) {
+    if (c >= '0' && c <= '9') return (uint8_t)(FONT_PUSAB_START + 3 + (c - '0'));
+    if (c >= 'A' && c <= 'Z') return (uint8_t)(FONT_PUSAB_START + 13 + (c - 'A'));
+    if (c == '-') return (uint8_t)(FONT_PUSAB_START + CR_DASH);
+    return 0;   // blank tile
+}
+
+static uint8_t cr_is_logo(uint8_t p, uint8_t r) {   // 1: the logo's top row, 2: its bottom row
+    if (cr_pages[p][r][0] == '@') return 1;
+    if (r && cr_pages[p][r - 1u][0] == '@') return 2;
+    return 0;
+}
+
+static uint8_t cr_cell(uint8_t p, uint8_t r, uint8_t x) {
+    uint8_t lg = cr_is_logo(p, r);
+    if (lg) return (uint8_t)(LOGO_TILE_START + x + ((lg == 2u) ? 20u : 0u));
+    const char *str = cr_pages[p][r];
+    if (*str == '~' || *str == '^') str++;
+    uint8_t len = (uint8_t)strlen(str);
+    uint8_t x0 = (uint8_t)((20u - len) >> 1);
+    return (x >= x0 && x < x0 + len) ? cr_char(str[x - x0]) : 0u;
+}
+
+// column x of page p into the band (p = CR_PAGES: blank)
+static void cr_column(uint8_t p, uint8_t x) {
+    uint8_t col[CR_ROWS];
+    for (uint8_t r = 0; r < CR_ROWS; r++) col[r] = (p < CR_PAGES) ? cr_cell(p, r, x) : 0u;
+    set_bkg_tiles(x, 0, 1, CR_ROWS, col);
+}
+
+// CGB: the band rows' palettes for page p (while the band is blank)
+static void cr_attrs(uint8_t p) {
+    if (_cpu != CGB_TYPE) return;
+    VBK_REG = 1;
+    for (uint8_t r = 0; r < CR_ROWS; r++) {
+        char c = cr_pages[p][r][0];
+        uint8_t pal = cr_is_logo(p, r) ? CR_PAL_LOGO : (c == '~') ? CR_PAL_HEAD : (c == '^') ? CR_PAL_ROLE : CR_PAL_TEXT;
+        fill_bkg_rect(0, r, 20, 1, pal);
+    }
+    VBK_REG = 0;
+}
+
+// DMG sky below the band: SCX from line CR_TOP_Y to the ground (as menu_stat_isr from line 16)
+static void cr_stat_isr(void) __nonbanked {
+    if (LYC_REG == CR_TOP_Y - 1) {
+        while (LY_REG < (uint8_t)CR_TOP_Y);
+        SCX_REG = menu_sky_scx;
+        LYC_REG = 119;
+    } else {
+        while (LY_REG < 120u);
+        SCX_REG = 0;
+        LYC_REG = 255;
+    }
+}
+
+static void cr_vbl_isr(void) __nonbanked {
+    SCX_REG = 0;
+    LYC_REG = CR_TOP_Y - 1;
+}
+
+GameState update_credits_state(GameState back) BANKED {
+    fade_set_black();
+    fade_hold = 1;
+    fade_set_dmg_palettes(0xE4, 0xE4, 0xD2);
+    HIDE_SPRITES;
+    for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
+    HIDE_WIN;
+    SCX_REG = 0;
+    SCY_REG = 0;
+
+    uint16_t frame_counter = 77 << 4;   // the rainbow at an open blue
+
+    sky_ty0_init();
+    menu_load_bg_gfx();
+    static const uint8_t blank_tile[16] = { 0 };
+    set_bkg_data(0, 1, blank_tile);
+    fill_bkg_rect(0, 0, 32, 32, 0);
+    build_ground_variants();
+    setup_menu_font();
+    set_bkg_data((uint8_t)(FONT_PUSAB_START + CR_DASH), 1, cr_dash_tile);
+
+    draw_sky();
+    fill_bkg_rect(0, 0, 32, CR_ROWS, 0);   // the band (DMG: all 32 columns, SCX 0 there)
+    if (_cpu == CGB_TYPE) {
+        VBK_REG = 1;
+        fill_bkg_rect(0, 0, 20, CR_ROWS, CR_PAL_TEXT);
+        fill_bkg_rect(0, GROUND_ROW, 20, GROUND_ROWS, 4); // ground: palette 4
+        VBK_REG = 0;
+        apply_rainbow_palette((uint8_t)(frame_counter >> 4));
+        static const palette_color_t cr_pals[16] = {
+            RGB8(15, 20, 35), RGB8(185, 250, 70), RGB8(60, 175, 40), RGB8(0, 0, 0),         // 2 logo
+            RGB8(15, 20, 35), RGB8(0, 130, 180), RGB8(60, 210, 255), RGB8(255, 255, 255),   // 5 names
+            RGB8(15, 20, 35), RGB8(210, 140, 20), RGB8(255, 225, 40), RGB8(255, 255, 255),  // 6 roles
+            RGB8(15, 20, 35), RGB8(20, 150, 70), RGB8(60, 245, 120), RGB8(255, 255, 255)    // 7 headings
+        };
+        palette_color_t pals[16];   // fade_set_bkg_palette is banked: a RAM copy
+        for (uint8_t i = 0; i < 16; i++) pals[i] = cr_pals[i];
+        fade_set_bkg_palette(CR_PAL_LOGO, 1, pals);
+        fade_set_bkg_palette(CR_PAL_TEXT, 3, &pals[4]);
+    }
+    uint8_t ground_x = 0;
+    draw_ground(ground_x);
+
+    memset(&mc_s, 0, sizeof(mc_state_t));
+    mc_credits = 1;
+    mc_seed = DIV_REG | 1u;
+    mc_art = (uint8_t *)(((uint16_t)mc_s.art_ram + 15u) & 0xFFF0u);
+    mc_front = 0;
+    bg_cube_pending = 0;
+    for (uint8_t i = 0; i < 4u; i++) hide_sprite((uint8_t)(MC_OAM + i));
+    mc_reset();
+    if (_cpu == CGB_TYPE) SPRITES_8x8; else SPRITES_8x16;
+
+    uint8_t sky_scx = setting_parallax_enabled ? (uint8_t)(frame_counter >> 1) : 0u;   // DMG SCX
+    uint8_t sky_phase = (uint8_t)(-(int8_t)sky_scx) & 63u;                            // CGB
+    if (_cpu == CGB_TYPE && setting_show_bg_enabled) {
+        wait_vbl_done();   // the display is on: the parallax GDMA has to run in VBlank
+        set_bg_parallax_phase(sky_phase);
+    }
+    uint8_t dmg_sky_irq = (_cpu != CGB_TYPE && setting_show_bg_enabled);
+    if (dmg_sky_irq) {
+        menu_sky_scx = sky_scx;
+        disable_interrupts();
+        add_LCD(cr_stat_isr);
+        add_VBL(cr_vbl_isr);
+        STAT_REG |= STATF_LYC;
+        LYC_REG = CR_TOP_Y - 1;
+        set_interrupts(VBL_IFLAG | LCD_IFLAG | TIM_IFLAG);
+        enable_interrupts();
+    }
+
+    SHOW_BKG;
+    SHOW_SPRITES;
+    DISPLAY_ON;
+    bg_parallax_isr_start();
+    fade_from_black(2);
+
+#ifdef FUR_SCHEMINGWEASEL
+    if (setting_music_enabled) {
+        music_play_fur(FUR_SCHEMINGWEASEL);
+        music_ready = 1;
+    }
+#endif
+
+    uint8_t page = 0, wipe = 0, col = 0;   // wipe: 0 in, 1 holding, 2 out
+    uint8_t hold = 0;
+    uint8_t prev_joy = joypad();
+    cr_attrs(0);
+
+    while (1) {
+        if (_cpu == CGB_TYPE && setting_show_bg_enabled && setting_parallax_enabled) {
+            uint8_t phase = (uint8_t)(-(int8_t)(frame_counter >> 1)) & 63u;
+            if (phase != sky_phase) {
+                sky_phase = phase;
+                request_bg_parallax(phase);
+            }
+        }
+        bg_wait_vbl();
+        if (dmg_sky_irq && setting_parallax_enabled) menu_sky_scx = (uint8_t)(frame_counter >> 1);
+        mc_update();
+        draw_ground(ground_x);
+        if (_cpu == CGB_TYPE && (frame_counter & 15) == 0) {
+            apply_rainbow_palette((uint8_t)(frame_counter >> 4));
+        }
+
+        if (wipe == 0) {
+            cr_column(page, col);
+            if (++col == 20u) { wipe = 1; hold = 0; }
+        } else if (wipe == 1) {
+            if (++hold >= CR_HOLD) { wipe = 2; col = 0; }
+        } else {
+            cr_column(CR_PAGES, col);
+            if (++col == 20u) {
+                if (++page == CR_PAGES) break;
+                cr_attrs(page);
+                wipe = 0; col = 0;
+            }
+        }
+
+        uint8_t joy = joypad();
+        uint8_t pressed = joy & ~prev_joy;
+        prev_joy = joy;
+        if (pressed & (J_B | J_START)) break;
+        if ((pressed & J_A) && wipe == 1) hold = CR_HOLD;
+
+        frame_counter++;
+        ground_x = (uint8_t)(ground_x - GROUND_SPEED) & (GROUND_PERIOD - 1);
+    }
+
+    fade_capture_current();
+    fade_to_black(2);
+    if (dmg_sky_irq) {
+        disable_interrupts();
+        remove_LCD(cr_stat_isr);
+        remove_VBL(cr_vbl_isr);
+        STAT_REG &= ~STATF_LYC;
+        SCX_REG = 0;
+        set_interrupts(VBL_IFLAG | TIM_IFLAG);
+        enable_interrupts();
+    }
+    bg_parallax_isr_stop();
+    HIDE_SPRITES;
+    for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
+    SPRITES_8x16;   // what the other screens expect
+    SCX_REG = 0;
+    SCY_REG = 0;
+    if (setting_music_enabled) {   // back to the menu theme
+        music_play_menu();
+        music_ready = 1;
+    }
+    return back;
 }

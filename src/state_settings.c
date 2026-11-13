@@ -38,7 +38,8 @@ const uint8_t extra_font_tiles[4 * 16] = {  // also used by state_level_complete
 typedef enum {
     SETTING_TYPE_TOGGLE = 0,
     SETTING_TYPE_CHOICE,
-    SETTING_TYPE_ACTION
+    SETTING_TYPE_ACTION,
+    SETTING_TYPE_CREDITS        // A: leaves for the credits
 } SettingType;
 
 typedef struct {
@@ -139,7 +140,8 @@ static const SettingItem settings_list[] = {
     { "SHOW %",       SETTING_TYPE_TOGGLE, &setting_show_percent,     0, 1, toggle_labels, on_setting_change, NULL },
     { "SHIP CAM",     SETTING_TYPE_TOGGLE, &setting_old_ship_cam,     0, 1, ship_cam_labels, on_setting_change, NULL },
     { "AUTO CP",      SETTING_TYPE_TOGGLE, &setting_auto_checkpoints, 0, 1, toggle_labels,   on_setting_change, NULL },
-    { "WIPE SAVE",    SETTING_TYPE_ACTION, NULL,                      0, 0, NULL,            NULL,              on_wipe_save_action }
+    { "WIPE SAVE",    SETTING_TYPE_ACTION, NULL,                      0, 0, NULL,            NULL,              on_wipe_save_action },
+    { "CREDITS",      SETTING_TYPE_CREDITS, NULL,                     0, 0, NULL,            NULL,              NULL }
 };
 // GRADIENT and 30 FPS (rows 3, 4) only exist on DMG
 #define HIDE_GRADIENT ((_cpu == CGB_TYPE || sgb_present) ? 2u : 0u)
@@ -257,7 +259,7 @@ static void render_all_settings(uint8_t current_sel, uint8_t scroll_offset) {
     }
 }
 
-GameState update_settings_state(void) BANKED {
+GameState update_settings_state(uint8_t at_credits) BANKED {
     // load with the display on (off shows white); fade_from_black shows the palettes
     fade_set_black();
     fade_hold = 1;
@@ -289,8 +291,9 @@ GameState update_settings_state(void) BANKED {
 
     fade_set_dmg_palettes(0xE4, 0xE4, 0xE4);
 
-    uint8_t current_sel = 0;
-    uint8_t scroll_offset = 0;
+    // back from the credits: on CREDITS (the last row)
+    uint8_t current_sel = at_credits ? (uint8_t)(NUM_SETTINGS - 1u) : 0;
+    uint8_t scroll_offset = (current_sel >= VISIBLE_ROWS) ? (uint8_t)(current_sel - VISIBLE_ROWS + 1u) : 0;
     action_feedback_timer = 0;
 
     render_all_settings(current_sel, scroll_offset);
@@ -375,6 +378,14 @@ GameState update_settings_state(void) BANKED {
                     item->on_change(*item->val_ptr);
                 }
                 render_setting_row(current_sel - scroll_offset, current_sel, 1);
+            } else if (item->type == SETTING_TYPE_CREDITS && (pressed & J_A)) {
+                fade_capture_current();
+                fade_to_black(2);
+                HIDE_SPRITES;
+                for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
+                SCX_REG = 0;
+                SCY_REG = 0;
+                return STATE_CREDITS_SETTINGS;
             } else if (item->type == SETTING_TYPE_ACTION && (pressed & J_A)) {
                 if (item->on_action) {
                     item->on_action();

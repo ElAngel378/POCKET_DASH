@@ -43,7 +43,7 @@ static uint8_t fur_period_counts(void) {
 GameState current_state = STATE_PLAY_LEVEL;
 volatile uint8_t gplevel;
 #else
-GameState current_state = STATE_CREDITS;   // the credits, then the menu
+GameState current_state = STATE_INTRO;   // the intro, then the menu
 #endif
 
 volatile uint8_t level_banner_scx = 0;
@@ -343,7 +343,7 @@ void main(void) {
   add_TIM(play_music_safe);
   set_interrupts(VBL_IFLAG | TIM_IFLAG);
 
-  if (setting_music_enabled && current_state != STATE_CREDITS) {   // the credits start their own song
+  if (setting_music_enabled) {   // (the intro plays the menu theme too)
     music_play_menu();
     music_ready = 1;
   }
@@ -369,7 +369,10 @@ void main(void) {
         current_state = update_music_test_state();
         break;
       case STATE_SETTINGS:
-        current_state = update_settings_state();
+        current_state = update_settings_state(0);
+        break;
+      case STATE_SETTINGS_AT_CREDITS:
+        current_state = update_settings_state(1);
         break;
       case STATE_LEVEL_COMPLETE:
         current_state = update_level_complete_state();
@@ -378,7 +381,13 @@ void main(void) {
         current_state = update_icon_select_state();
         break;
       case STATE_CREDITS:
-        current_state = update_credits_state();
+        current_state = update_credits_state(STATE_MENU);
+        break;
+      case STATE_CREDITS_SETTINGS:
+        current_state = update_credits_state(STATE_SETTINGS_AT_CREDITS);
+        break;
+      case STATE_INTRO:
+        current_state = update_intro_state();
         break;
     }
   }
