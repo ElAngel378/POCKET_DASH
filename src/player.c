@@ -3,6 +3,17 @@
 #include "player.h"
 #include "collision.h"
 #include "bg_stream.h"
+#include "debug_mode.h"
+
+// Noclip (debug mode, the god build): a hit marks the player dead (gameplay clears it again) but
+// the update goes on. Returning there, as a death does, skipped the jump, the orbs and the spin:
+// in a wall or on a spike the player froze.
+#if defined(DEBUG_GODMODE) && ENABLE_DEBUG_MODE
+#define NOCLIP() 1
+#else
+#define NOCLIP() (debug_mode)
+#endif
+#define DIE() do { p->dead = 1; if (!NOCLIP()) return 1; } while (0)
 
 uint8_t level_max_fall_7;   // player.h
 
@@ -641,15 +652,15 @@ uint8_t player_update(
     // Out of bounds check: ceiling underflow (going above top of screen/map)
     if (p->vel_y.w < 0 && p->world_y.w > prev_y) {
         p->world_y.w = 0;
-        p->dead = 1;
-        return 1;
+        p->vel_y.w = 0;
+        DIE();
     }
 
     // Out of bounds check: floor overflow
     if (p->vel_y.w > 0 && p->world_y.w < prev_y) {
         p->world_y.w = 0xFF00;
-        p->dead = 1;
-        return 1;
+        p->vel_y.w = 0;
+        DIE();
     }
 
     uint8_t py = p->world_y.b.h;
@@ -751,10 +762,8 @@ uint8_t player_update(
         // A brick breaks instead (GDA: the player's centre hitbox), solid on every other side
         uint8_t fy = (uint8_t)(py + front_y);
         if ((uint16_t)((int16_t)py + front_y) & 0xFF00u || col_tab[GET_COL_FAST(box_r)[fy >> 4]] != COL_BREAKABLE) {
-            p->dead = 1;
-            return 1;
-        }
-        brick_break((uint16_t)(p->world_x + box_r) >> 4, (uint8_t)((uint16_t)(p->y_base + fy) >> 4));
+            DIE();
+        } else brick_break((uint16_t)(p->world_x + box_r) >> 4, (uint8_t)((uint16_t)(p->y_base + fy) >> 4));
     }
     // Most frames touch no spike: look at the (up to 4) metatiles the spike probes below lie in
     // first, and only run the 6 spike_at calls when one of them is a spike type
@@ -783,23 +792,23 @@ uint8_t player_update(
         if (py <= 245u) {
             // every point inside the collision window: the walk in assembly
             if (spike_hit(0x3F, spike_pts_mini[front_y == 5 ? 0 : front_y == 7 ? 1 : 2])) {
-                p->dead = 1; return 1;
+                DIE();
             }
         } else if (SPIKE(3, py + 4) || SPIKE(5, py + 4) ||
             SPIKE(3, py + 9) || SPIKE(5, py + 9) ||
             SPIKE(3, py + 7) || SPIKE(MINI_BOX_RIGHT, py + front_y)) {
-            p->dead = 1; return 1;
+            DIE();
         }
     } else if (spike_mask != 0xFF) {
         if (spike_hit(spike_mask, spike_pts)) {
-            p->dead = 1; return 1;
+            DIE();
         }
     } else {
         // at the bottom of the 256 px window, where some points are past it (see spike_pts)
         int16_t fy = (int16_t)py + 1;
         if (SPIKE(3, fy + 2) || SPIKE(12, fy + 2) || SPIKE(3, fy + 13) || SPIKE(12, fy + 13) ||
             SPIKE(6, fy + 7) || SPIKE(15, fy + 7)) {
-            p->dead = 1; return 1;
+            DIE();
         }
     }
 
@@ -817,7 +826,7 @@ uint8_t player_update(
             (ON_SAW(cr, ty) && saw_corner(cr, ty, xr, 1, 0)) ||
             (ON_SAW(c0, by) && saw_corner(c0, by, x_mod_16, 0, 1)) ||
             (ON_SAW(cr, by) && saw_corner(cr, by, xr, 1, 1))) {
-            p->dead = 1; return 1;
+            DIE();
         }
 #undef ON_SAW
     }
@@ -902,8 +911,12 @@ uint8_t player_update(
 
     // Bottom bounds check (falling below playable map)
     if (p->world_y.b.h >= (uint8_t)((map_h << 4) - 8)) {
-        p->dead = 1;
-        return 1;
+        // noclip: a floor there, to jump back out
+        p->world_y.b.h = (uint8_t)((map_h << 4) - 9);
+        p->world_y.b.l = 0;
+        if (p->vel_y.w > 0) p->vel_y.w = 0;
+        if (!p->gravity_flipped) p->on_ground = 1;
+        DIE();
     }
 
     p->last_joy = joy;
