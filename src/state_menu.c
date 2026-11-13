@@ -246,19 +246,20 @@ static void draw_ground(uint8_t phase) {
         ground_rows_hblank(phase);   // the rows worked out offline (this took ~24 lines of a DMG frame)
         return;
     }
-    uint8_t rows[GROUND_ROWS][32];
-    for (uint8_t k = 0; k < GROUND_ROWS; k++) memset(rows[k], GROUND_UNIFORM(k), 32);
-    for (uint8_t j = 0; j < 3; j++) {
-        int16_t xl = (int16_t)phase + (int16_t)(j * GROUND_PERIOD) - 8;
-        int8_t tx = (int8_t)(xl >> 3);
-        uint8_t o = (uint8_t)xl & 7;
-        for (uint8_t k = 0; k < GROUND_ROWS; k++) {
-            if (tx >= 0 && tx < 20) rows[k][tx] = GROUND_LEFT(k, o);
-            if (o && tx + 1 >= 0 && tx + 1 < 20) rows[k][tx + 1] = GROUND_RIGHT(k, o);
-        }
-    }
+    // A row at a time, the 20 visible columns: the 3 x 32 byte array this was built in was the
+    // deepest stack use in the game (the music interrupt on top of it came within 22 bytes of
+    // the variables, 2026-11-13)
+    uint8_t row[20];
     for (uint8_t k = 0; k < GROUND_ROWS; k++) {
-        set_bkg_tiles(0, (uint8_t)(GROUND_ROW + k), 20, 1, rows[k]);
+        memset(row, GROUND_UNIFORM(k), 20);
+        for (uint8_t j = 0; j < 3; j++) {
+            int16_t xl = (int16_t)phase + (int16_t)(j * GROUND_PERIOD) - 8;
+            int8_t tx = (int8_t)(xl >> 3);
+            uint8_t o = (uint8_t)xl & 7;
+            if (tx >= 0 && tx < 20) row[tx] = GROUND_LEFT(k, o);
+            if (o && tx + 1 >= 0 && tx + 1 < 20) row[tx + 1] = GROUND_RIGHT(k, o);
+        }
+        set_bkg_tiles(0, (uint8_t)(GROUND_ROW + k), 20, 1, row);
     }
 }
 
