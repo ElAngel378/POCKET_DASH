@@ -67,7 +67,6 @@ void player_init(Player* p, uint16_t start_x, int16_t start_y) BANKED {
     p->reversed = 0;
     p->last_joy = 0;
     p->ball_switched = 0;
-    p->ball_spin = 2;
     p->touching_orb = 0;
     p->level_complete = 0;
     p->mini = 0;
@@ -853,7 +852,6 @@ uint8_t player_update(
                 p->vel_y.w = (p->gravity_flipped) ? -sv : sv;
                 p->on_ground = 0;
                 p->ball_switched = 1;
-                p->ball_spin = -1;
             }
         }
     }
@@ -883,22 +881,6 @@ uint8_t player_update(
             p->anim_timer = (s & 1u) ? 11 : 0;
         } else {
             p->anim_timer = 0;
-        }
-    } else if (p->mode == MODE_BALL) {
-        // GDA ball_gamemode: full speed on the ground, half in the air, backwards after a switch
-        // (the step counts toward rolling with the gravity there is now, cube_turn)
-        if (p->on_ground) p->ball_spin = 2;
-        if (p->ball_spin < 0) {
-            if (p->anim_timer < 5u) {
-                p->anim_timer += 16;
-                p->anim_frame = p->anim_frame ? (uint8_t)(p->anim_frame - 1u) : 23u;
-            } else p->anim_timer -= 5;
-        } else {
-            p->anim_timer += (uint8_t)(p->ball_spin * 5);
-            if (p->anim_timer >= 21) {
-                p->anim_timer -= 21;
-                if (++p->anim_frame >= 24) p->anim_frame = 0;
-            }
         }
     } else {
         p->anim_timer += 10;
