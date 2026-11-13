@@ -107,7 +107,10 @@ typedef struct Player {
     uint8_t  mode;
     uint8_t  reversed;
     uint8_t  anim_frame;
-    uint16_t anim_timer;
+    uint8_t  anim_timer;
+    int8_t   ball_spin;    // GDA's ball_rotation_direction, in steps toward rolling with the gravity
+                           // there is now: 2 on the ground, 1 a half-speed roll that way, -1 the
+                           // other way (a switch: it keeps turning as it was, slower, until it lands)
     uint8_t  last_joy;
     uint8_t  ball_switched;
     uint8_t  orb_buffered;

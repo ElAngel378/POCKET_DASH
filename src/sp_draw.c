@@ -637,6 +637,7 @@ static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t ob
                     if (p->gravity_flipped != target_flipped) {
                         p->gravity_flipped = target_flipped;
                         p->vel_y.w /= 2;   // Famidash spcl_gvity_portal_common
+                        p->ball_spin = -1;   // GDA: the ball keeps turning as it was, slower
                     }
                     *act = 1;
                 }
@@ -663,12 +664,14 @@ static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t ob
                     if (!p->gravity_flipped) {
                         p->gravity_flipped = 1;
                         p->vel_y.w = -BLUE_PAD_FORCE;
+                        p->ball_spin = 1;   // GDA: half speed, the new way
                         p->on_ground = 0;
                     }
                 } else if (obj == OBJ_PAD_BLUE_UP) {
                     if (p->gravity_flipped) {
                         p->gravity_flipped = 0;
                         p->vel_y.w = BLUE_PAD_FORCE;
+                        p->ball_spin = 1;   // GDA: half speed, the new way
                         p->on_ground = 0;
                     }
                 } else if (obj == OBJ_PAD_PINK || obj == OBJ_PAD_PINK_UP) {
@@ -715,6 +718,7 @@ static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t ob
                             p->vel_y.w = (p->gravity_flipped) ? -force : force;
                         }
                         p->on_ground = 0;
+                        p->ball_spin = 1;    // GDA: any orb, half speed toward the gravity after it
                     }
                 }
             }
@@ -1070,6 +1074,7 @@ void process_sprite_logic(
                 if (p->gravity_flipped != target_flipped) {
                     p->gravity_flipped = target_flipped;
                     p->vel_y.w /= 2;   // Famidash spcl_gvity_portal_common
+                    p->ball_spin = -1;   // GDA: the ball keeps turning as it was, slower
                 }
                 cache->activated[i] = 1;
             }
