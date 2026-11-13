@@ -217,7 +217,9 @@ GameState update_intro_state(void) BANKED {
     fade_capture_current();
     fade_to_black(2);
     HIDE_SPRITES;
-    for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
+    // the squares' behind-the-background flag stays in OAM: the gameplay sets the player's tiles
+    // and places it but not its flags (the cube was drawn behind the sky)
+    for (uint8_t s = 0; s < 40; s++) { hide_sprite(s); set_sprite_prop(s, 0); }
     SCX_REG = 0;
     SCY_REG = 0;
     return STATE_MENU;
