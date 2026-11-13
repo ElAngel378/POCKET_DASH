@@ -247,7 +247,7 @@ void fade_from_black(uint8_t delay_frames) BANKED {
 // Closing: the map shown is covered with sky from both edges of the screen to its middle, a tile
 // column at a time (the VBlank handler writes them: mirror_fx_vbl), and the sprites outside the
 // opening are hidden. Then gameplay switches to the mirrored map, with every colour set to the
-// sky's, and they fade to their own in 16 frames.
+// sky's, and they fade to their own in 8 frames.
 // No variables of its own but the state: the closing uses step_bkg, the fade both step buffers
 // (the pause menu, the other user of step_bkg, does not open meanwhile).
 uint8_t mirror_fx_state;
@@ -525,11 +525,11 @@ void mirror_fx_open(void) BANKED {
 void mirror_fx_frame(uint8_t scx) BANKED {
     if (mirror_fx_state == MIRROR_FX_OPEN) {
         uint8_t f = DZ_F;
-        uint8_t t = (uint8_t)((f >> 1) + 1u);
+        uint8_t t = (uint8_t)(((f >> 1) + 1u) << 1);   // 2, 4, 6, 8 eighths: 8 frames
         if (f & 1u) { dz_spr(t); bg_fx_pending |= 0x80u; }
         else { dz_bkg(t); bg_fx_pending |= 0x40u; }
         DZ_F = ++f;
-        if (f == 16u) mirror_fx_state = MIRROR_FX_IDLE;
+        if (f == 8u) mirror_fx_state = MIRROR_FX_IDLE;
         return;
     }
     if (mirror_fx_state == MIRROR_FX_IDLE) {
