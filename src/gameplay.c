@@ -278,9 +278,13 @@ uint8_t view_rev;   // the orientation on screen (player.reversed: the one the g
 // scroll. Elsewhere (DMG) mirror_reload() redraws everything with the display off.
 #define OBJ_MIRROR_PORTAL 126
 #define OBJ_MIRROR_EXIT   121
-#define MJ_LY_LIMIT 96u        // work out a column / build a row only before this line
+#define MJ_LY_LIMIT 96u        // build a row only before this line
 #define MJ_LY_LIMIT_MIXED 72u  // the same with palettes per quarter (up to ~70 lines)
-#define MJ_LY_WRITE 112u       // write a worked out column only before this line (~20 lines)
+#define MJ_LY_PART 122u        // work out a part (4 rows) of a column only before this line (~13 lines)
+#define MJ_LY_PART_MIXED 120u  // the same with palettes per quarter (~17)
+#define MJ_LY_WRITE 120u       // write a worked out column only before this line (~20 lines)
+#define MJ_AHEAD_PX 320u        // the build starts this far before a mirror portal (cam x)
+#define MJ_LY_RUSH 134u        // through the portal, the view still the old one: any step before this line
 #define MJ_MAX_WAIT 30u        // frames the switch may wait (then mirror_reload, screen off)
 static uint8_t seamless;       // this level uses the seamless switch
 static uint8_t mj_active;      // building the other map (2: column mj_next is worked out, not written)
@@ -288,6 +292,8 @@ static uint8_t mj_target;      // its orientation (!view_rev)
 static uint8_t mj_map_hi;      // its address >> 8 (0x98 / 0x9C)
 static uint16_t mj_next;       // next map column to build into it
 static uint8_t mj_row_pending; // map row to write into it (the band moved), 0xFF: none
+static uint8_t mj_far;         // a mirror portal ahead that is not loaded yet (checked every 8th frame)
+static uint8_t mj_part;        // parts of column mj_next worked out (mj_prepare_column)
 static uint8_t mj_wait;        // frames player.reversed != view_rev
 static uint8_t mj_frame;       // bg_vbl_frames when this game loop iteration started
 
@@ -1042,6 +1048,7 @@ static void bg_map_reset(void) {
     bg_lcdc_map = 0xFF;
     mj_active = 0;
     mj_wait = 0;
+    mj_far = 0;
     dmg_mirror_due = 0;
 }
 
@@ -1051,10 +1058,14 @@ static uint8_t mirror_portal_ahead(void) {
     for (uint8_t i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
         if (active_sp.active[i] && active_sp.obj[i] == want && !active_sp.activated[i]) {
             uint16_t x = active_sp.px[i];
-            if (x + 64u > cam_px && x < cam_px + 320u) return 1;
+            if (x + 64u > cam_px && x < cam_px + MJ_AHEAD_PX) return 1;
         }
     }
-    return 0;
+    // objects are loaded 176 px ahead only: the level's list for the rest (a busy part of a level
+    // builds a column in several frames, and 176 px were not enough for 16 of them)
+    if (!(bg_vbl_frames & 7u))
+        mj_far = sp_object_ahead(l->sp_bank, l->sp_list, sp_stream_idx, cam_px + MJ_AHEAD_PX, want);
+    return mj_far;
 }
 
 // Per frame, after the frame's work (CGB seamless levels): start, cancel or advance the build
@@ -1068,6 +1079,7 @@ static void mirror_job(uint16_t px) {
         mj_target = !view_rev;
         mj_map_hi = (LCDC_REG & LCDCF_BG9C00) ? 0x98u : 0x9Cu;
         mj_next = 0;
+        mj_part = 0;
         mj_row_pending = 0xFF;
     } else if (!needed && !mirror_portal_ahead()) {
         mj_active = 0;   // the portal was missed
@@ -1077,24 +1089,32 @@ static void mirror_job(uint16_t px) {
     uint16_t col0 = RING_COL0(px);
     uint16_t end = col0 + 16u;
     if (end > level_map_w) end = level_map_w;
-    if (mj_next < col0) { mj_next = col0; mj_active = 1; }
+    if (mj_next < col0) { mj_next = col0; mj_active = 1; mj_part = 0; }
     uint8_t limit = bm_mixed ? MJ_LY_LIMIT_MIXED : MJ_LY_LIMIT;
+    uint8_t part_limit = bm_mixed ? MJ_LY_PART_MIXED : MJ_LY_PART;
+    uint8_t write_limit = MJ_LY_WRITE;
+    // The player is through the portal and still sees the old view: finishing comes first (a step
+    // that runs into VBlank costs a frame, the wrong view lasted ten in a busy part of a level)
+    if (needed) limit = part_limit = write_limit = MJ_LY_RUSH;
     while (bg_vbl_frames == mj_frame) {
         if (mj_active == 2) {
             if (mj_row_pending == 0xFF) {
-                if (LY_REG >= MJ_LY_WRITE) break;
+                if (LY_REG >= write_limit) break;
                 mj_write_column(mj_next, mj_target, mj_map_hi);
                 mj_next++;
             }
             mj_active = 1;
-        } else if (LY_REG >= limit) {
-            break;
         } else if (mj_row_pending != 0xFF) {
+            if (LY_REG >= limit) break;
             mj_build_row(mj_row_pending, mj_next ? mj_next - 1u : 0, level_map, level_map_w, level_map_bank, mj_target, mj_map_hi);
             mj_row_pending = 0xFF;
         } else if (mj_next < end) {
-            mj_prepare_column(mj_next, level_map, level_map_bank, mj_target);
-            mj_active = 2;
+            if (LY_REG >= part_limit) break;
+            mj_prepare_column(mj_next, level_map, level_map_bank, mj_target, mj_part);
+            if (++mj_part == MJ_PARTS) {
+                mj_part = 0;
+                mj_active = 2;
+            }
         } else {
             break;
         }
@@ -2023,6 +2043,7 @@ void play_level(uint8_t idx) BANKED {
                     // the other map needs the row too (two moves before it got the first: rebuild)
                     if (mj_row_pending != 0xFF) mj_next = 0;
                     mj_active = 1;   // (a column already worked out has the old band)
+                    mj_part = 0;
                     mj_row_pending = row_job_row;
                 }
                 // a column slice already built is uploaded before the row job, which fixes it

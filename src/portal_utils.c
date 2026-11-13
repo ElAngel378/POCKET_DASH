@@ -23,6 +23,20 @@
 
 extern SpCache active_sp;   // the only cache (see sp_draw.c)
 
+// An object `want` among those not loaded yet (from stream index idx on, sorted by x) up to x `to`
+// (below 0xFFFF, the list's end mark). The CGB mirror portal build starts further ahead than the
+// objects are loaded.
+uint8_t sp_object_ahead(uint8_t sp_bank, const SpDef *sp_list, uint16_t idx, uint16_t to, uint8_t want) {
+    uint8_t save_bank = _current_bank, r = 0;
+    if (sp_bank == 0 || sp_list == 0) return 0;
+    SWITCH_ROM(sp_bank);
+    for (const SpDef *sp = &sp_list[idx]; sp->x <= to; sp++) {
+        if (sp->obj == want) { r = 1; break; }
+    }
+    SWITCH_ROM(save_bank);
+    return r;
+}
+
 void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
                    SpCache *cache_arg, uint16_t *stream_idx, uint16_t map_h) {
     uint8_t count = 0;

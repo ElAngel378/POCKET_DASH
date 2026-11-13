@@ -40,5 +40,6 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
                    SpCache *cache, uint16_t *stream_idx, uint16_t map_h);
 void sp_cache_retire(uint16_t cam_px) BANKED;
 void sp_cache_fill(const Level *l, uint16_t cam_px, uint16_t *stream_idx) BANKED;
+uint8_t sp_object_ahead(uint8_t sp_bank, const SpDef *sp_list, uint16_t idx, uint16_t to, uint8_t want);
 
 #endif

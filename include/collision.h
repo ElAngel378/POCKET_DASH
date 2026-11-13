@@ -104,7 +104,9 @@ void bg_level_set_flip_mode(uint8_t level) BANKED;
 // display on (HBlank-synced writes)
 // DMG mirror portal, display off: mirror the 0x9800 map in place
 void bg_map_reflect(void) BANKED;
-void mj_prepare_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED;
+// part 0..MJ_PARTS-1: metatile rows part * 4 .. + 3 (part 0 reads the column first)
+#define MJ_PARTS 4
+void mj_prepare_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t part) BANKED;
 void mj_write_column(uint16_t map_col, uint8_t reversed, uint8_t map_hi) BANKED;
 extern uint8_t bm_mixed;   // the level has cells with a palette per quarter: its columns take longer
 void mj_build_row(uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t map_hi) BANKED;

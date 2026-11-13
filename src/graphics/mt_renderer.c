@@ -1363,13 +1363,18 @@ static void mj_write_run_asm(void) __naked {
     __endasm;
 }
 
-// Map column map_col for `reversed` (current mt_band), in two steps that can be in different
-// frames (mj_out keeps it: the fading cells stop while the job runs): working it out, then
-// writing it into its ring slot of the BG map at map_hi << 8 (0x98 / 0x9C). CGB, display on.
-void mj_prepare_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED {
-    get_map_column(map_col, map, map_bank, mj_col, mt_band);
-    if (broken_n) broken_fix_ring(map_col, mj_col);
-    build_mt_rows(map_col, mj_col, mj_out, reversed, 0, BKG_MT_H);
+// Map column map_col for `reversed` (current mt_band), in steps that can be in different frames
+// (mj_out keeps it: the fading cells stop while the job runs): working it out, 4 of its 16 rows
+// a call (MJ_PARTS: a whole column took up to ~70 lines with palettes per quarter, more than a
+// busy frame has left, so the build hardly moved), then writing it into its ring slot of the BG
+// map at map_hi << 8 (0x98 / 0x9C). CGB, display on.
+void mj_prepare_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t part) BANKED {
+    if (!part) {
+        get_map_column(map_col, map, map_bank, mj_col, mt_band);
+        if (broken_n) broken_fix_ring(map_col, mj_col);
+    }
+    part <<= 2;
+    build_mt_rows(map_col, mj_col, mj_out, reversed, part, (uint8_t)(part + 4u));
 }
 
 void mj_write_column(uint16_t map_col, uint8_t reversed, uint8_t map_hi) BANKED {

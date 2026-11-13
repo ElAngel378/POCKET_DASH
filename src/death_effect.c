@@ -8,6 +8,7 @@
 #include "hUGEDriver.h"
 #include "end_fx_discs.h"
 #include "fade.h"
+#include "bg_stream.h"   // mj_out
 
 // Practice mode: the crash takes the noise channel from the music this long, then the
 // music gets it back (cut before the crash fully decays so the drums come back cleanly)
@@ -279,23 +280,30 @@ uint8_t play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_
 #define END_FX_PAL 6            // CGB sprite palette of the discs and stars (free on this screen)
 #define FX_SPARKS 12
 
-// two discs: the newest (fx_new) and the one before it, finishing
+// two discs: the newest (cur) and the one before it, finishing
 typedef struct { uint8_t frame, size, step, cx, cy; } fx_disc_t;   // frame 0xFF: idle
-static fx_disc_t discs[2];
-static uint8_t fx_new;
-static uint8_t fx_next_at;
-static uint8_t fx_rng;
-static uint8_t fx_prop;     // the discs' and stars' sprite attributes (CGB: END_FX_PAL)
-static uint8_t fx_used;     // sprites in use after the last frame (the rest are hidden already)
-
-static uint8_t fx_rand(void) {
-    fx_rng = (uint8_t)(fx_rng * 5u + 17u + DIV_REG);
-    return fx_rng;
-}
-
 // the stars of the splash: a life counts down, 0 = gone
 typedef struct { uint8_t x, y, life; int8_t vx, vy; } fx_spark_t;
-static fx_spark_t sparks[FX_SPARKS];
+// All the effect's state, in mj_out: WRAM is full (static globals here pushed the variables into
+// the stack and crashed the DMG title menu), and mj_out is idle on this screen: it is the mirror
+// portal / fading cells build buffer, its VBlank job is stopped when the level ends and reset when
+// one starts (stream_jobs_reset)
+typedef struct {
+    fx_disc_t discs[2];
+    uint8_t cur;        // the newest disc
+    uint8_t next_at;    // its frame at which the next starts
+    uint8_t rng;
+    uint8_t prop;       // the discs' and stars' sprite attributes (CGB: END_FX_PAL)
+    uint8_t used;       // sprites in use after the last frame (the rest are hidden already)
+    fx_spark_t sparks[FX_SPARKS];
+} fx_state_t;
+typedef char fx_state_fits[(sizeof(fx_state_t) <= sizeof(mj_out)) ? 1 : -1];
+#define FXS (*(fx_state_t *)mj_out)
+
+static uint8_t fx_rand(void) {
+    FXS.rng = (uint8_t)(FXS.rng * 5u + 17u + DIV_REG);
+    return FXS.rng;
+}
 
 // twinkle: dot, small star, big star, small star
 static const uint8_t spark_tiles[4] = {
@@ -306,7 +314,7 @@ static const uint8_t spark_tiles[4] = {
 };
 
 void end_fx_init(void) BANKED {
-    fx_prop = 0;
+    FXS.prop = 0;
     if (_cpu == CGB_TYPE) {
         palette_color_t pal[4];
         pal[0] = RGB8(0, 0, 0);
@@ -315,21 +323,21 @@ void end_fx_init(void) BANKED {
         pal[3] = RGB8(170, 236, 255);
         wait_vbl_done();                  // palette writes are lost while the LCD reads them
         fade_set_sprite_palette(END_FX_PAL, 1, pal);
-        fx_prop = END_FX_PAL;
+        FXS.prop = END_FX_PAL;
     }
     set_sprite_data(END_FX_TILE_BASE, END_FX_TILE_COUNT, end_fx_tiles);
-    fx_spark_t *s = sparks;
+    fx_spark_t *s = FXS.sparks;
     for (uint8_t i = 0; i < FX_SPARKS; i++, s++) s->life = 0;
-    discs[0].frame = discs[1].frame = 0xFF;
-    discs[0].cy = 68;
-    fx_new = 0;
-    fx_next_at = 0;
-    fx_used = 40;
-    fx_rng = DIV_REG;
+    FXS.discs[0].frame = FXS.discs[1].frame = 0xFF;
+    FXS.discs[0].cy = 68;
+    FXS.cur = 0;
+    FXS.next_at = 0;
+    FXS.used = 40;
+    FXS.rng = DIV_REG;
 }
 
 void end_fx_splash(void) BANKED {
-    fx_spark_t *s = sparks;
+    fx_spark_t *s = FXS.sparks;
     for (uint8_t i = 0; i < FX_SPARKS; i++, s++) {
         // spread along the text (OAM x 24..151, y 36..67), flying away from its centre: sideways
         // unless near the middle, up or down unless near the ends
@@ -391,9 +399,9 @@ static OAM_item_t *draw_disc(fx_disc_t *d, OAM_item_t *o, uint8_t prop) {
 
 uint8_t end_fx_draw(uint8_t oam_idx) BANKED {
     OAM_item_t *o = &shadow_OAM[oam_idx];
-    uint8_t i, l, r, prop = fx_prop;
+    uint8_t i, l, r, prop = FXS.prop;
 
-    fx_spark_t *s = sparks;
+    fx_spark_t *s = FXS.sparks;
     for (i = 0; i < FX_SPARKS; i++, s++) {
         l = s->life;
         if (!l) continue;
@@ -413,8 +421,8 @@ uint8_t end_fx_draw(uint8_t oam_idx) BANKED {
     }
 
     {
-        fx_disc_t *n = &discs[fx_new];
-        if (n->frame == 0xFF || n->frame >= fx_next_at) {
+        fx_disc_t *n = &FXS.discs[FXS.cur];
+        if (n->frame == 0xFF || n->frame >= FXS.next_at) {
             // the next disc, in the other slot (idle: the older one is long done), fully above or
             // below the one finishing (OAM y 68..131), so the two never share lines (10 sprites a line)
             uint8_t y = n->cy;
@@ -425,26 +433,26 @@ uint8_t end_fx_draw(uint8_t oam_idx) BANKED {
                 y = (uint8_t)(y - 31u - (fx_rand() & 15u));
                 if (y < 68u) y = 68u;
             }
-            fx_new ^= 1u;
-            n = &discs[fx_new];
+            FXS.cur ^= 1u;
+            n = &FXS.discs[FXS.cur];
             n->cx = (uint8_t)(24u + (fx_rand() & 127u));
             n->cy = y;
             n->frame = n->size = n->step = 0;
-            fx_next_at = (uint8_t)(END_FX_NEXT_AT + (fx_rand() & 3u));
+            FXS.next_at = (uint8_t)(END_FX_NEXT_AT + (fx_rand() & 3u));
         }
         // the newest first: it keeps all its sprites when the stars take some
         o = draw_disc(n, o, prop);
-        o = draw_disc(&discs[fx_new ^ 1u], o, prop);
+        o = draw_disc(&FXS.discs[FXS.cur ^ 1u], o, prop);
     }
 
     // shadow_OAM is page aligned: the index is the address's low byte / 4
     l = (uint8_t)((uint8_t)(uint16_t)o >> 2);
     r = l;
-    while (r < fx_used) {
+    while (r < FXS.used) {
         o->y = 0;
         o++;
         r++;
     }
-    fx_used = l;
+    FXS.used = l;
     return l;
 }
