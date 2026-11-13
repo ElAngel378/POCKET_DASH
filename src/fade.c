@@ -372,7 +372,7 @@ void mirror_fx_vbl(void) {
     uint8_t p = bg_fx_pending;
     while (p & 3u) {
         uint8_t ly = LY_REG;
-        if (ly < 144u || ly > 151u) break;      // (a column: ~2 lines)
+        if (ly < 144u || ly > 150u) break;      // (a column: ~2.2 lines, VBlank ends after 153)
         cu_col(CU.x[(uint8_t)((p & 3u) - 1u)]);
         p--;
     }
@@ -445,8 +445,10 @@ static void cu_frame(uint8_t scx) {
     if ((int8_t)(CU.open_l - s) < 0) CU.open_l = s;
     if ((int8_t)(CU.open_r - (uint8_t)(s + 21u)) > 0) CU.open_r = (uint8_t)(s + 21u);
     if ((int8_t)(CU.open_r - CU.open_l) < 0) CU.open_r = CU.open_l;
-    if (!(bg_fx_pending & 3u)) {
-        uint8_t n = 0;
+    {
+        // topped up every frame: the handler takes them from the top (x[p - 1]), the ones still
+        // pending stay below; one it writes meanwhile is only written twice
+        uint8_t n = bg_fx_pending & 3u;
         // the columns the scroll brings in first, a column before they show
         while (n < 3u && (int8_t)(CU.cov_r - (uint8_t)(s + 22u)) < 0) CU.x[n++] = (uint8_t)(CU.cov_r++ & 31u);
         while (n < 3u && (int8_t)(CU.cov_l - (uint8_t)(s - 1u)) > 0) CU.x[n++] = (uint8_t)(--CU.cov_l & 31u);

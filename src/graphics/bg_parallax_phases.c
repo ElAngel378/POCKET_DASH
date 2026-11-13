@@ -397,7 +397,11 @@ static void parallax_try(void) {
 #endif
 }
 // The handler calls it only with a GDMA pending: a call with nothing pending took ~100 dots
-#define PARALLAX_TRY() do { if (bg_gdma_pending) parallax_try(); } while (0)
+// Not while a mirror portal's curtain closes (mirror_fx_state 1-2, fade.c): its sky columns leave
+// a parallax step time only in some VBlanks, and a step put off now and then made the sky wobble.
+// Stopped, the sky moves with the map until the mirrored view opens (from flat sky colour, where
+// the step catching up is not seen)
+#define PARALLAX_TRY() do { if (bg_gdma_pending && (uint8_t)(mirror_fx_state - 1u) >= 2u) parallax_try(); } while (0)
 
 // Fading cells: never before a column slice still pending; with the parallax still to start, only
 // while it can still start in time (the rest after it, the handler tries again)
@@ -516,7 +520,7 @@ void bg_parallax_vbl_isr(void) {
     // often left the row job too little of VBlank, and in a fast climb the rows fell behind
     // (stale rows on screen)
     // Mirror portal transition: sky columns, palettes. Before the parallax: the view closes in
-    // ~12 frames with 3 columns a VBlank (the sky stands still meanwhile), in ~45 after it
+    // ~12 frames with 3 columns a VBlank (the parallax stopped meanwhile, above), in ~45 after it
     if (bg_fx_pending) {
         uint8_t prev_b = _current_bank;
         SWITCH_ROM(BANK(mirror_fx_vbl));
