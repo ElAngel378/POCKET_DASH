@@ -84,6 +84,10 @@ typedef struct {
     uint8_t mini;                // the mini size: one 8x8 sprite
     uint16_t rest;               // y on the ground (8.8)
     uint8_t credits;             // the credits screen: no buttons to cut around, the text band above
+    uint8_t page_mode;           // credits: the page's game mode (| 0x80: mini)
+    uint8_t jump_d;              // credits cube: jumps when a spike's middle is this close (px)
+    uint8_t sp_x[2];             // credits: ground spikes, screen x + 24 (0: none)
+    uint8_t sp_timer;            // frames before the next spike may come
     // What the next update draws (the copy into the buffer not shown takes a frame: the sprites
     // keep to the same frame as their art, or the cut would be a frame off the buttons)
     uint8_t q_valid, q_copied, q_id, q_flip, q_cut, q_y;
@@ -615,6 +619,10 @@ static uint8_t mc_colour(void) {
 static void mc_reset(void) {
     mc_mode = mc_rnd() & 3u;
     mc_mini = !(mc_rnd() & 3u);         // 1 in 4, like GDA
+    if (mc_credits) {                   // each page its own
+        mc_mode = mc_s.page_mode & 3u;
+        mc_mini = mc_s.page_mode >> 7;
+    }
     mc_bank = BANK(cube_icon_frames);
     if (mc_mini) {
         if (mc_mode == MODE_CUBE) {
@@ -654,6 +662,10 @@ static void mc_reset(void) {
     }
 
     uint8_t s = mc_rnd() & 7u;
+    if (mc_credits) {                   // the 3 fastest: a crossing fits a page (CR_PASS)
+        s = mc_rnd() & 3u;
+        s = (uint8_t)(2u + (s == 3u ? 0u : s));
+    }
     mc_speed = mc_speeds[(s >= 5u) ? (uint8_t)(s - 5u) : s];
     mc_x = MC_START_X;
     mc_acc = 0;
@@ -664,6 +676,9 @@ static void mc_reset(void) {
     mc_frame = mc_timer = 0;
     mc_hold = 0;
     mc_tilt = (mc_mode == MODE_SHIP) ? SHIP_FRAME_LEVEL : UFO_FRAME_LEVEL;
+    // the spikes come at the ground's speed: the top of the jump over a spike's middle
+    mc_s.jump_d = (uint8_t)((uint16_t)(((GROUND_SPEED << 8) + mc_speed) >> 4)
+                            * (uint8_t)(mc_mini ? -MINI_JUMP_FORCE / MINI_GRAVITY : -JUMP_FORCE / GRAVITY) >> 4);
     mc_art_id = 0xFF;
     mc_art_cut = 0;
     mc_q_valid = 0;
@@ -690,8 +705,19 @@ static void mc_move_y(void) {
     }
 }
 
+// credits: a spike ahead within the jump distance
+static uint8_t cr_spike_ahead(void) {
+    for (uint8_t i = 0; i < 2u; i++) {
+        uint8_t sx = mc_s.sp_x[i];
+        if (!sx) continue;
+        int16_t d = (int16_t)sx - 24 - mc_x;   // middle to middle (both 16 wide)
+        if (d > 0 && d <= (int16_t)mc_s.jump_d) return 1;
+    }
+    return 0;
+}
+
 static void mc_step_cube(void) {
-    if (mc_on_ground && !(mc_rnd() & 15u)) {
+    if (mc_on_ground && (mc_credits ? cr_spike_ahead() : !(mc_rnd() & 15u))) {
         mc_vy = mc_mini ? MINI_JUMP_FORCE : JUMP_FORCE;
         mc_on_ground = 0;
         if ((uint8_t)(mc_frame % 6u) == 0) { mc_frame = (uint8_t)((mc_frame + 1u) % 24u); mc_timer = 0; }
@@ -1259,6 +1285,7 @@ GameState update_menu_state(void) BANKED {
 #define CR_PAGES 7
 #define CR_HOLD  210          // frames a page stays
 #define CR_DASH  41           // the dash glyph, after the font
+#define CR_PASS  110          // frames a runner may take to cross (the slowest of the credits' speeds: ~103)
 #define CR_PAL_LOGO 2         // CGB band palettes (the rainbow has 0, 1, 3, 4)
 #define CR_PAL_TEXT 5
 #define CR_PAL_ROLE 6
@@ -1275,6 +1302,57 @@ static const char * const cr_pages[CR_PAGES][CR_ROWS] = {
     { "~THANK YOU", "", "TFDSOFT AND THE", "FAMIDASH TEAM", "^FOR THE ASSETS", "", "", "" },
     { "~AND OF COURSE", "", "GEOMETRY DASH", "^BY ROBTOP GAMES", "", "", "~THANKS FOR PLAYING", "" },
 };
+
+// The runner of each page (| 0x80: mini). The cube pages have spikes on the ground to jump.
+static const uint8_t cr_page_mode[CR_PAGES] = {
+    MODE_CUBE, MODE_SHIP, MODE_BALL, MODE_UFO, MODE_CUBE | 0x80u, MODE_SHIP | 0x80u, MODE_CUBE
+};
+
+// Ground spikes: sprites, 16 x 16 (tiles TL, BL, TR, BR: one 8x16 column a pair on DMG), white
+// outline (colour 1), black (3). Sprite tiles 120..123 (MC_TILE's are below them).
+#define CR_SPIKE_TILE 120u
+#define CR_SPIKE_OAM  28u     // 28..35 (CGB, 8x8: 4 a spike), 32..35 (DMG, 8x16: 2 a spike)
+#define CR_SPIKE_PAL  4u
+#define CR_SPIKE_Y    (GROUND_ROW * 8 - 16)   // standing on the ground
+static const uint8_t cr_spike_tiles[64] = {
+    0x01, 0x00, 0x01, 0x00, 0x03, 0x01, 0x03, 0x01, 0x07, 0x03, 0x07, 0x03, 0x0F, 0x07, 0x0F, 0x07,
+    0x1F, 0x0F, 0x1F, 0x0F, 0x3F, 0x1F, 0x3F, 0x1F, 0x7F, 0x3F, 0x7F, 0x3F, 0xFF, 0x7F, 0xFF, 0x7F,
+    0x80, 0x00, 0x80, 0x00, 0xC0, 0x80, 0xC0, 0x80, 0xE0, 0xC0, 0xE0, 0xC0, 0xF0, 0xE0, 0xF0, 0xE0,
+    0xF8, 0xF0, 0xF8, 0xF0, 0xFC, 0xF8, 0xFC, 0xF8, 0xFE, 0xFC, 0xFE, 0xFC, 0xFF, 0xFE, 0xFF, 0xFE,
+};
+
+// Once a frame, with the ground: the spikes move with it; a new one comes while a cube runs and
+// still has room to jump it. Far enough apart to land between two.
+static void cr_spikes(void) {
+    for (uint8_t i = 0; i < 2u; i++) {
+        uint8_t sx = mc_s.sp_x[i];
+        if (sx) mc_s.sp_x[i] = sx = (sx > GROUND_SPEED) ? (uint8_t)(sx - GROUND_SPEED) : 0u;
+    }
+    if (mc_s.sp_timer) mc_s.sp_timer--;
+    else if (mc_mode == MODE_CUBE && !mc_wait && mc_x < (int16_t)(152 - mc_s.jump_d)) {
+        uint8_t i = mc_s.sp_x[0] ? 1u : 0u;
+        if (!mc_s.sp_x[i]) {
+            mc_s.sp_x[i] = 184;         // just off the right edge
+            mc_s.sp_timer = (uint8_t)(56u + (mc_rnd() & 31u));
+        }
+    }
+    uint8_t cgb = (_cpu == CGB_TYPE);
+    OAM_item_t *o = &shadow_OAM[cgb ? CR_SPIKE_OAM : CR_SPIKE_OAM + 4u];
+    for (uint8_t i = 0; i < 2u; i++) {
+        uint8_t sx = mc_s.sp_x[i];
+        for (uint8_t c = 0; c < 2u; c++) {   // the two 8 px columns
+            uint8_t ox = (uint8_t)(sx - 16u + (c << 3));   // OAM x = screen x + 8
+            uint8_t on = sx && (uint8_t)(sx + (c << 3)) > 16u && ox < 168u;
+            uint8_t t = (uint8_t)(CR_SPIKE_TILE + (c << 1));
+            if (cgb) {
+                o->y = on ? (uint8_t)(CR_SPIKE_Y + 16) : 0; o->x = ox; o->tile = t; o->prop = CR_SPIKE_PAL; o++;
+                o->y = on ? (uint8_t)(CR_SPIKE_Y + 24) : 0; o->x = ox; o->tile = (uint8_t)(t + 1u); o->prop = CR_SPIKE_PAL; o++;
+            } else {
+                o->y = on ? (uint8_t)(CR_SPIKE_Y + 16) : 0; o->x = ox; o->tile = t; o->prop = 0; o++;
+            }
+        }
+    }
+}
 
 static const uint8_t cr_dash_tile[16] = {
     0x00,0x00, 0x00,0x00, 0x00,0x7C, 0x38,0x7C, 0x00,0x7C, 0x00,0x00, 0x00,0x00, 0x00,0x00
@@ -1385,6 +1463,15 @@ GameState update_credits_state(GameState back) BANKED {
 
     memset(&mc_s, 0, sizeof(mc_state_t));
     mc_credits = 1;
+    mc_s.page_mode = cr_page_mode[0];
+    mc_s.sp_timer = 30;
+    set_sprite_data(CR_SPIKE_TILE, 4, cr_spike_tiles);
+    if (_cpu == CGB_TYPE) {
+        palette_color_t pal[4];
+        pal[0] = RGB8(255, 255, 255); pal[1] = RGB8(255, 255, 255);
+        pal[2] = RGB8(0, 0, 0); pal[3] = RGB8(0, 0, 0);
+        fade_set_sprite_palette(CR_SPIKE_PAL, 1, pal);
+    }
     mc_seed = DIV_REG | 1u;
     mc_art = (uint8_t *)(((uint16_t)mc_s.art_ram + 15u) & 0xFFF0u);
     mc_front = 0;
@@ -1441,8 +1528,16 @@ GameState update_credits_state(GameState back) BANKED {
         if (dmg_sky_irq && setting_parallax_enabled) menu_sky_scx = (uint8_t)(frame_counter >> 1);
         mc_update();
         draw_ground(ground_x);
+        cr_spikes();
         if (_cpu == CGB_TYPE && (frame_counter & 15) == 0) {
             apply_rainbow_palette((uint8_t)(frame_counter >> 4));
+        }
+
+        // The runner belongs to the page: a new one only if it can cross before the page goes
+        if (mc_wait == 1u) {
+            uint8_t left = (wipe == 0u) ? (uint8_t)(20u - col + CR_HOLD + 20u)
+                         : (wipe == 1u) ? (uint8_t)(CR_HOLD - hold + 20u) : (uint8_t)(20u - col);
+            if (left < CR_PASS) mc_wait = 2;   // (held until the next page)
         }
 
         if (wipe == 0) {
@@ -1455,6 +1550,8 @@ GameState update_credits_state(GameState back) BANKED {
             if (++col == 20u) {
                 if (++page == CR_PAGES) break;
                 cr_attrs(page);
+                mc_s.page_mode = cr_page_mode[page];
+                if (mc_wait) mc_wait = 1;   // the page's runner comes in now (one still crossing first)
                 wipe = 0; col = 0;
             }
         }
