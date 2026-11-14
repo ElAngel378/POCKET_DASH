@@ -343,7 +343,7 @@ void main(void) {
   add_TIM(play_music_safe);
   set_interrupts(VBL_IFLAG | TIM_IFLAG);
 
-  if (setting_music_enabled) {   // (the intro plays the menu theme too)
+  if (setting_music_enabled && current_state != STATE_INTRO) {   // the splash is silent: it starts the theme as it leaves
     music_play_menu();
     music_ready = 1;
   }
