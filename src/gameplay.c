@@ -280,11 +280,14 @@ uint8_t view_rev;   // the orientation on screen (player.reversed: the one the g
 #define OBJ_MIRROR_EXIT   121
 #define MJ_LY_LIMIT 96u        // build a row only before this line
 #define MJ_LY_LIMIT_MIXED 72u  // the same with palettes per quarter (up to ~70 lines)
-#define MJ_LY_PART 122u        // work out a part (4 rows) of a column only before this line (~13 lines)
-#define MJ_LY_PART_MIXED 120u  // the same with palettes per quarter (~17)
-#define MJ_LY_WRITE 120u       // write a worked out column only before this line (~20 lines)
+// A step must end before VBlank with the music interrupt's worst case (~20 lines) on top: the
+// limits 120-134 (2026-11-13) ended busy frames at line ~140 and dropped one frame in ten near a
+// portal, and every dropped frame skips a parallax step
+#define MJ_LY_PART 108u        // work out a part (4 rows) of a column only before this line (~13 lines)
+#define MJ_LY_PART_MIXED 104u  // the same with palettes per quarter (~17)
+#define MJ_LY_WRITE 108u       // write a worked out column only before this line (~20 lines)
 #define MJ_AHEAD_PX 320u        // the build starts this far before a mirror portal (cam x)
-#define MJ_LY_RUSH 134u        // through the portal, the view still the old one: any step before this line
+#define MJ_LY_RUSH 116u        // through the portal, the view still the old one: any step before this line
 #define MJ_MAX_WAIT 48u        // frames the switch may wait (then mirror_reload, screen off); the view closes in ~12
 static uint8_t seamless;       // this level uses the seamless switch
 static uint8_t mj_active;      // building the other map (2: column mj_next is worked out, not written)
@@ -1483,7 +1486,9 @@ void play_level(uint8_t idx) BANKED {
     bg_map_reset();
     view_rev = 0;
     bg_level_set_flip_mode(idx);
-    seamless = mt_cgb_flip;
+    // only a level with mirror portals: the others skip the per-frame lookup ahead
+    seamless = mt_cgb_flip && (sp_object_ahead(l->sp_bank, l->sp_list, 0, 0xFFFEu, OBJ_MIRROR_PORTAL) ||
+                               sp_object_ahead(l->sp_bank, l->sp_list, 0, 0xFFFEu, OBJ_MIRROR_EXIT));
 #ifdef DEBUG_NO_SEAMLESS
     seamless = 0;   // test builds: CGB mirror portals through mirror_reload
 #endif
