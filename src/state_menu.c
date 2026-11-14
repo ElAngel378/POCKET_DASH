@@ -88,6 +88,7 @@ typedef struct {
     uint8_t jump_d;              // credits cube: jumps when a spike's middle is this close (px)
     uint8_t sp_x[2];             // credits: ground spikes, screen x + 24 (0: none)
     uint8_t sp_timer;            // frames before the next spike may come
+    uint8_t sp_up;               // bit i: spike i hangs from the text band (ship, ball pages)
     // What the next update draws (the copy into the buffer not shown takes a frame: the sprites
     // keep to the same frame as their art, or the cut would be a frame off the buttons)
     uint8_t q_valid, q_copied, q_id, q_flip, q_cut, q_y;
@@ -676,9 +677,12 @@ static void mc_reset(void) {
     mc_frame = mc_timer = 0;
     mc_hold = 0;
     mc_tilt = (mc_mode == MODE_SHIP) ? SHIP_FRAME_LEVEL : UFO_FRAME_LEVEL;
-    // the spikes come at the ground's speed: the top of the jump over a spike's middle
-    mc_s.jump_d = (uint8_t)((uint16_t)(((GROUND_SPEED << 8) + mc_speed) >> 4)
-                            * (uint8_t)(mc_mini ? -MINI_JUMP_FORCE / MINI_GRAVITY : -JUMP_FORCE / GRAVITY) >> 4);
+    // the spikes come at the ground's speed; frames before a spike the runner acts: the top of a
+    // cube's jump or a UFO's hop over its middle, a ball's switch, a ship's turn
+    uint8_t lead = (mc_mode == MODE_CUBE) ? (mc_mini ? 11u : 13u)   // -JUMP_FORCE / GRAVITY
+                 : (mc_mode == MODE_UFO) ? (mc_mini ? 14u : 16u)    // -UFO_JUMP_VEL / UFO_GRAVITY
+                 : (mc_mode == MODE_BALL) ? 16u : 24u;
+    mc_s.jump_d = (uint8_t)((uint16_t)(((GROUND_SPEED << 8) + mc_speed) >> 4) * lead >> 4);
     mc_art_id = 0xFF;
     mc_art_cut = 0;
     mc_q_valid = 0;
@@ -705,19 +709,21 @@ static void mc_move_y(void) {
     }
 }
 
-// credits: a spike ahead within the jump distance
+// credits: spikes ahead within the jump distance: 1 on the ground, 2 from the band; 4 any ahead
 static uint8_t cr_spike_ahead(void) {
+    uint8_t m = 0;
     for (uint8_t i = 0; i < 2u; i++) {
         uint8_t sx = mc_s.sp_x[i];
         if (!sx) continue;
         int16_t d = (int16_t)sx - 24 - mc_x;   // middle to middle (both 16 wide)
-        if (d > 0 && d <= (int16_t)mc_s.jump_d) return 1;
+        if (d > -12) m |= 4u;
+        if (d > -12 && d <= (int16_t)mc_s.jump_d) m |= (mc_s.sp_up & (uint8_t)(1u << i)) ? 2u : 1u;
     }
-    return 0;
+    return m;
 }
 
 static void mc_step_cube(void) {
-    if (mc_on_ground && (mc_credits ? cr_spike_ahead() : !(mc_rnd() & 15u))) {
+    if (mc_on_ground && (mc_credits ? (cr_spike_ahead() & 1u) : !(mc_rnd() & 15u))) {
         mc_vy = mc_mini ? MINI_JUMP_FORCE : JUMP_FORCE;
         mc_on_ground = 0;
         if ((uint8_t)(mc_frame % 6u) == 0) { mc_frame = (uint8_t)((mc_frame + 1u) % 24u); mc_timer = 0; }
@@ -745,7 +751,13 @@ static void mc_step_cube(void) {
 }
 
 static void mc_step_ship(void) {
-    if (!(mc_rnd() & 15u)) mc_hold ^= 1;
+    if (mc_credits) {
+        // over a spike on the ground, under one from the band, else a gentle weave
+        uint8_t m = cr_spike_ahead();
+        uint8_t target = (m & 1u) ? 70u : (m & 2u) ? 96u : ((mc_x & 32) ? 78u : 90u);
+        int16_t yp = (int16_t)(mc_y >> 8) + (mc_vy >> 5);   // where it is in ~8 frames
+        mc_hold = (yp > (int16_t)target);
+    } else if (!(mc_rnd() & 15u)) mc_hold ^= 1;
     uint8_t falling = (mc_vy > 0);
     if (mc_mini) {
         if (mc_hold) mc_vy += falling ? -MINI_SHIP_GRAVITY_HOLD_FALL : MINI_SHIP_THRUST;
@@ -770,7 +782,15 @@ static void mc_step_ship(void) {
 }
 
 static void mc_step_ufo(void) {
-    if (!(mc_rnd() & 31u)) mc_vy = mc_mini ? MINI_UFO_JUMP_VEL : UFO_JUMP_VEL;
+    uint8_t hop;
+    if (mc_credits) {
+        // low, not rising, a spike close: hop (and now and then with none ahead)
+        uint8_t m = cr_spike_ahead();
+        hop = ((m & 1u) && mc_vy >= 0 && mc_y + (12u << 8) > mc_rest) || (!(m & 4u) && !(mc_rnd() & 63u));
+    } else {
+        hop = !(mc_rnd() & 31u);
+    }
+    if (hop) mc_vy = mc_mini ? MINI_UFO_JUMP_VEL : UFO_JUMP_VEL;
     if (mc_vy > (mc_mini ? MINI_UFO_MAX_FALL : UFO_MAX_FALL)) mc_vy -= UFO_GRAVITY;
     else mc_vy += UFO_GRAVITY;
     mc_move_y();
@@ -781,6 +801,34 @@ static void mc_step_ufo(void) {
     uint8_t target = (mc_vy > 0) ? (uint8_t)(UFO_FRAME_LEVEL + k) : (uint8_t)(UFO_FRAME_LEVEL - k);
     if (mc_tilt < target) mc_tilt++;
     else if (mc_tilt > target) mc_tilt--;
+}
+
+// credits: the ball switches gravity (mc_hold: on the band's edge) when a spike on its side comes
+static void cr_step_ball(void) {
+    mc_spin();
+    if (mc_on_ground) {
+        if (cr_spike_ahead() & (mc_hold ? 2u : 1u)) {
+            mc_hold ^= 1;
+            mc_on_ground = 0;
+            int16_t v = mc_mini ? MINI_BALL_SWITCH_VEL : BALL_SWITCH_VEL;
+            mc_vy = mc_hold ? -v : v;
+        }
+        return;
+    }
+    int16_t g = mc_mini ? MINI_BALL_GRAVITY : BALL_GRAVITY;
+    mc_vy += mc_hold ? -g : g;
+    if (mc_vy > MAX_FALL_SPEED) mc_vy = MAX_FALL_SPEED;
+    if (mc_vy < -MAX_FALL_SPEED) mc_vy = -MAX_FALL_SPEED;
+    mc_y += (uint16_t)mc_vy;
+    if (mc_hold && mc_y <= ((uint16_t)CR_TOP_Y << 8)) {
+        mc_y = (uint16_t)CR_TOP_Y << 8;
+        mc_vy = 0;
+        mc_on_ground = 1;
+    } else if (!mc_hold && mc_y >= mc_rest) {
+        mc_y = mc_rest;
+        mc_vy = 0;
+        mc_on_ground = 1;
+    }
 }
 
 // An image into RAM (it is in another ROM bank than this code: run from bank 0)
@@ -949,6 +997,7 @@ static void mc_update(void) {
     if (mc_mode == MODE_CUBE) mc_step_cube();
     else if (mc_mode == MODE_SHIP) mc_step_ship();
     else if (mc_mode == MODE_UFO) mc_step_ufo();
+    else if (mc_credits) cr_step_ball();
     else mc_spin();                     // the ball rolls along the ground
 
     uint8_t id, flip = 0;               // flip: the sprite flips
@@ -1303,7 +1352,8 @@ static const char * const cr_pages[CR_PAGES][CR_ROWS] = {
     { "~AND OF COURSE", "", "GEOMETRY DASH", "^BY ROBTOP GAMES", "", "", "~THANKS FOR PLAYING", "" },
 };
 
-// The runner of each page (| 0x80: mini). The cube pages have spikes on the ground to jump.
+// The runner of each page (| 0x80: mini). Spikes on the ground; on the ship and ball pages from
+// the text band too.
 static const uint8_t cr_page_mode[CR_PAGES] = {
     MODE_CUBE, MODE_SHIP, MODE_BALL, MODE_UFO, MODE_CUBE | 0x80u, MODE_SHIP | 0x80u, MODE_CUBE
 };
@@ -1321,34 +1371,41 @@ static const uint8_t cr_spike_tiles[64] = {
     0xF8, 0xF0, 0xF8, 0xF0, 0xFC, 0xF8, 0xFC, 0xF8, 0xFE, 0xFC, 0xFE, 0xFC, 0xFF, 0xFE, 0xFF, 0xFE,
 };
 
-// Once a frame, with the ground: the spikes move with it; a new one comes while a cube runs and
-// still has room to jump it. Far enough apart to land between two.
+// Once a frame, with the ground: the spikes move with it; a new one comes while the runner still
+// has room to get past it. Far enough apart to land (switch, turn) between two.
 static void cr_spikes(void) {
     for (uint8_t i = 0; i < 2u; i++) {
         uint8_t sx = mc_s.sp_x[i];
         if (sx) mc_s.sp_x[i] = sx = (sx > GROUND_SPEED) ? (uint8_t)(sx - GROUND_SPEED) : 0u;
     }
     if (mc_s.sp_timer) mc_s.sp_timer--;
-    else if (mc_mode == MODE_CUBE && !mc_wait && mc_x < (int16_t)(152 - mc_s.jump_d)) {
+    else if (!mc_wait && mc_x < (int16_t)(152 - ((mc_s.jump_d > 96u) ? 96u : mc_s.jump_d))) {
         uint8_t i = mc_s.sp_x[0] ? 1u : 0u;
         if (!mc_s.sp_x[i]) {
             mc_s.sp_x[i] = 184;         // just off the right edge
             mc_s.sp_timer = (uint8_t)(56u + (mc_rnd() & 31u));
+            // the ship and the ball also meet them hanging from the band
+            uint8_t b = (uint8_t)(1u << i);
+            if ((mc_mode == MODE_SHIP || mc_mode == MODE_BALL) && (mc_rnd() & 1u)) mc_s.sp_up |= b;
+            else mc_s.sp_up &= (uint8_t)~b;
         }
     }
     uint8_t cgb = (_cpu == CGB_TYPE);
     OAM_item_t *o = &shadow_OAM[cgb ? CR_SPIKE_OAM : CR_SPIKE_OAM + 4u];
     for (uint8_t i = 0; i < 2u; i++) {
         uint8_t sx = mc_s.sp_x[i];
+        uint8_t up = (mc_s.sp_up >> i) & 1u;
+        uint8_t y = up ? (uint8_t)(CR_TOP_Y + 16) : (uint8_t)(CR_SPIKE_Y + 16);   // OAM y of its top
+        uint8_t fl = up ? S_FLIPY : 0u;
         for (uint8_t c = 0; c < 2u; c++) {   // the two 8 px columns
             uint8_t ox = (uint8_t)(sx - 16u + (c << 3));   // OAM x = screen x + 8
             uint8_t on = sx && (uint8_t)(sx + (c << 3)) > 16u && ox < 168u;
             uint8_t t = (uint8_t)(CR_SPIKE_TILE + (c << 1));
-            if (cgb) {
-                o->y = on ? (uint8_t)(CR_SPIKE_Y + 16) : 0; o->x = ox; o->tile = t; o->prop = CR_SPIKE_PAL; o++;
-                o->y = on ? (uint8_t)(CR_SPIKE_Y + 24) : 0; o->x = ox; o->tile = (uint8_t)(t + 1u); o->prop = CR_SPIKE_PAL; o++;
-            } else {
-                o->y = on ? (uint8_t)(CR_SPIKE_Y + 16) : 0; o->x = ox; o->tile = t; o->prop = 0; o++;
+            if (cgb) {   // (upside down: the bottom tile on top)
+                o->y = on ? y : 0; o->x = ox; o->tile = (uint8_t)(t + up); o->prop = CR_SPIKE_PAL | fl; o++;
+                o->y = on ? (uint8_t)(y + 8u) : 0; o->x = ox; o->tile = (uint8_t)(t + 1u - up); o->prop = CR_SPIKE_PAL | fl; o++;
+            } else {     // (8x16: the hardware swaps the halves)
+                o->y = on ? y : 0; o->x = ox; o->tile = t; o->prop = fl; o++;
             }
         }
     }
