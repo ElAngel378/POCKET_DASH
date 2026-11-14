@@ -88,7 +88,8 @@ typedef struct {
     uint8_t jump_d;              // credits cube: jumps when a spike's middle is this close (px)
     uint8_t sp_x[2];             // credits: ground spikes, screen x + 24 (0: none)
     uint8_t sp_timer;            // frames before the next spike may come
-    uint8_t sp_up;               // bit i: spike i hangs from the text band (ship, ball pages)
+    uint8_t sp_up;               // bit i: spike i hangs from the text band (ship, ball pages);
+                                 // bit 2: the next one hangs
     // What the next update draws (the copy into the buffer not shown takes a frame: the sprites
     // keep to the same frame as their art, or the cut would be a frame off the buttons)
     uint8_t q_valid, q_copied, q_id, q_flip, q_cut, q_y;
@@ -1384,10 +1385,12 @@ static void cr_spikes(void) {
         if (!mc_s.sp_x[i]) {
             mc_s.sp_x[i] = 184;         // just off the right edge
             mc_s.sp_timer = (uint8_t)(56u + (mc_rnd() & 31u));
-            // the ship and the ball also meet them hanging from the band
+            // the ship and the ball meet them on the ground and hanging from the band in turn
+            // (bit 2: the next one hangs)
             uint8_t b = (uint8_t)(1u << i);
-            if ((mc_mode == MODE_SHIP || mc_mode == MODE_BALL) && (mc_rnd() & 1u)) mc_s.sp_up |= b;
+            if ((mc_mode == MODE_SHIP || mc_mode == MODE_BALL) && (mc_s.sp_up & 4u)) mc_s.sp_up |= b;
             else mc_s.sp_up &= (uint8_t)~b;
+            mc_s.sp_up ^= 4u;
         }
     }
     uint8_t cgb = (_cpu == CGB_TYPE);
