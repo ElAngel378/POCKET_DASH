@@ -38,6 +38,7 @@ VARIANT_SETS = {None: (None, None), "B": ("B", None), "SB": (None, "B"), "SC": (
 RESERVED = ({0, 12, 24, BG.SAW_CENTER_MT} | set(BG.SAW_METATILES) | BS.CGB_GROUND_LOOK)
 COL_TOP, COL_BOTTOM, COL_ALL, COL_DEATH, COL_QUAD_BASE = 0x05, 0x06, 0x07, 0x08, 0x20
 SOLID_CODES = {0x05, 0x06, 0x07, 0x09}
+COL_SPIKE_UPDOWN, COL_SPIKE_SIDE = 0x17, 0x18   # a whole spike pointing up or down / sideways
 COL_BREAKABLE, BRICK = 0x16, "gd143"       # on the grid; off it, a plain solid block
 SPECIAL_CODES = set(range(0x0A, 0x10))   # orbs, pads
 # fills: no collision, but opaque like the blocks they fill
@@ -387,13 +388,18 @@ class Composer:
                 key, shift = GO.HIT_LIKE[key]
                 dy += 0 if tf else shift
             like.append((key, dx, dy, tf))
+        # one whole spike on the grid, any way round: GDA's box for it (collision.h)
+        if len(like) == 1 and like[0][0] == "gd8" and not like[0][1] and not like[0][2]:
+            return (COL_SPIKE_SIDE if flags_of(like[0][3]) & GO.FLIP_D else COL_SPIKE_UPDOWN), None
         found = lookup(frozenset(like))
         if len(found) == 1:
             return self.t.col[found[0]], None
         if frozenset(like) in self.exact_col:
             return self.exact_col[frozenset(like)], None
         if any(self.kind[p[0]] == "special" for p in hit):
-            return None, "an orb or pad shares its cell with other solid / deadly objects"
+            # an orb's or pad's outline with solid / deadly objects in its cell: the cell collides as
+            # those (the orb or pad itself is its sprite; the outline's own type does nothing)
+            return self.collision([p for p in parts if self.kind[p[0]] != "special"], lookup)
         solid = deadly = 0
         for key, dx, dy, tf in hit:
             for qx, qy in self.LO.mask(key, flags_of(tf)):

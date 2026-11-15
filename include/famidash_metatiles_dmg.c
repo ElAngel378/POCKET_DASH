@@ -282,7 +282,7 @@ const uint8_t famidash_metatile_palettes[FAMIDASH_NUM_METATILES] = {
 
 const uint8_t famidash_metatile_collision[FAMIDASH_NUM_METATILES] = {
     0, 9, 9, 6, 17, 9, 9, 0, 4, 4, 3, 3, 4, 3, 2, 1,
-    7, 8, 16, 16, 17, 7, 7, 17, 16, 5, 8, 8, 8, 2, 17, 1,
+    7, 23, 16, 16, 17, 7, 7, 17, 16, 5, 24, 23, 24, 2, 17, 1,
     7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0,
     7, 7, 7, 7, 10, 11, 11, 51, 7, 7, 7, 4, 7, 7, 7, 7,
     7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0,

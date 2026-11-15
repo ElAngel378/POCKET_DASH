@@ -196,6 +196,11 @@ def collision_value(mt_name, col_name, tiles):
         if is_top_half:
             return values["COL_DEATH_BOTTOM_HALF"]
 
+    # whole spikes: GDA's boxes (include/collision.h COL_SPIKE_UPDOWN / COL_SPIKE_SIDE)
+    if col_name == "COL_DEATH" and mt_upper in ("SPIKE_UP", "SPIKE_DOWN"):
+        return 0x17
+    if col_name == "COL_DEATH" and mt_upper in ("SPIKE_LEFT", "SPIKE_RIGHT"):
+        return 0x18
     if col_name in values:
         return values[col_name]
     if col_name.startswith("COL_"):

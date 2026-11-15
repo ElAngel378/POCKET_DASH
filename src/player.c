@@ -237,7 +237,7 @@ static uint8_t spike_at(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
 }
 
 // The collision types spike_at can kill on (a superset is fine: it only gates the spike_at calls)
-#define IS_SPIKE_COL(col) ((uint8_t)((col) - COL_DEATH_RIGHT) < 4u || (col) == COL_DEATH || \
+#define IS_SPIKE_COL(col) ((uint8_t)((col) - COL_DEATH_RIGHT) < 4u || (col) == COL_DEATH || (uint8_t)((col) - COL_SPIKE_UPDOWN) < 2u || \
         (uint8_t)((col) - COL_DEATH_TOP_HALF) < 2u || \
         (uint8_t)((col) - (COL_QUAD_BASE + 12u)) < (uint8_t)(COL_QUAD_COUNT - 12))
 // The same as a table, for the check made on every frame (collision types are below 64)
@@ -575,7 +575,11 @@ static uint8_t spike_box(uint8_t mt, uint8_t *r) {
     if (mt == MT_PITSPIKES || mt == MT_BOTTOM_BACKGROUND_SPIKES) {
         x0 = 0; y0 = 12; x1 = 15; y1 = 15;      // a row of ground spikes (GDA: y + 12 down)
     } else switch (col) {
-        case COL_DEATH:                          // a spike, either way up or sideways: GDA's 2x6
+        case COL_SPIKE_UPDOWN:                   // a spike pointing up or down: GDA's 2x6
+            x0 = 7; y0 = 5; x1 = 8; y1 = 10; break;
+        case COL_SPIKE_SIDE:                     // ... pointing sideways: 6x2
+            x0 = 5; y0 = 7; x1 = 10; y1 = 8; break;
+        case COL_DEATH:                          // any other deadly cell: both
             r[0] = 7; r[1] = 5; r[2] = 8; r[3] = 10;
             r[4] = 5; r[5] = 7; r[6] = 10; r[7] = 8;
             return 2;

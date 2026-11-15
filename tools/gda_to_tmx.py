@@ -117,6 +117,11 @@ SPRITES = {
     "SMALL_PULSING_CIRCLE/r90": (57, 0, 0), "SMALL_PULSING_CIRCLE/r270": (56, 0, 0),
     "PULSING_STAR": (54, 0, 0),
 }
+# Our pads and orbs are sprites with no outline of their own: the outline is a background object at
+# the same place (GDA draws it in the sprite). Our sprite tile id -> (object, flags)
+OUTLINES = {10: ("fd_pad", 0), 13: ("fd_pad", 0), 37: ("fd_pad", 0),
+            12: ("fd_pad", FLIP_V), 14: ("fd_pad", FLIP_V), 38: ("fd_pad", FLIP_V),
+            11: ("fd_orb_ring", 0), 5: ("fd_orb_ring", 0), 6: ("fd_orb_ring", 0)}
 COINS = [7, 26, 27]                              # coin 1, 2, 3: GDA's in level order
 TRIGGERS = {"BG": 256, "GROUND": 257}            # colour trigger channel -> ours
 LEVEL_END = 15
@@ -240,6 +245,21 @@ def choose(piece, raw):
     return None, 0, ""
 
 
+def ground_colour(value):
+    """GDA's ground colour '#aaRRGGBB' -> ours. GDA's is the ground as it is drawn; ours is a colour of
+    the engine's table (NES) that the engine draws darker (x 0.75, gen_famidash_bg_tables.ground): so
+    the table colour whose drawn ground is the nearest, not the nearest table colour (too dark)."""
+    from tmx2sprites import TRIGGER_COLOURS
+    from gen_famidash_bg_tables import NES
+    def ycc(c):     # brightness and the two colour differences: plain RGB distance picks pale colours
+        y = 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
+        return y, (c[2] - y) * 0.564, (c[0] - y) * 0.713
+    want = ycc([int(value[-6:][k:k + 2], 16) for k in (0, 2, 4)])
+    drawn = lambda n: ycc([((NES[n] >> sh) & 255) * 0.75 for sh in (16, 8, 0)])
+    best = min(TRIGGER_COLOURS, key=lambda n: sum((a - b) ** 2 for a, b in zip(want, drawn(n))))
+    return "#ff%06x" % NES[best]
+
+
 def main(level, target, spans, add=False, base=None, allow_missing=False):
     w, h, layers, sprites = gda.read_level(level)
     if base:
@@ -247,7 +267,8 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
         gprops = {p.get("name"): p.get("value") for p in ET.parse(gda.LEVELS / (level + ".tmx")).getroot().findall("properties/property")}
         for ours_name, gda_name in (("BG colour", "BG"), ("Ground colour", "GROUND")):
             if gda_name in gprops:
-                btext = re.sub(r'(<property name="%s" type="color" value=")[^"]*' % ours_name, r"\g<1>" + gprops[gda_name], btext)
+                colour = ground_colour(gprops[gda_name]) if gda_name == "GROUND" else gprops[gda_name]
+                btext = re.sub(r'(<property name="%s" type="color" value=")[^"]*' % ours_name, r"\g<1>" + colour, btext)
         btext = re.sub(r'(<export target="../level_data/)[^"]*(\.csv")', r"\g<1>%s\2" % target, btext)
         with (TMX / (target + ".tmx")).open("w", newline="") as f:
             f.write(btext)
@@ -329,12 +350,19 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
             if v in SPRITES:
                 tid, dx, dy = SPRITES[v]
                 our_sprites.append((tid, o["x"] + dx + shift, o["y"] + dy + drop * 16, {}, v))
+                if tid in OUTLINES:
+                    key, flags = OUTLINES[tid]
+                    chosen[v + " outline"] = (key, flags, "outline")
+                    objects.append((v + " outline", key, flags, o["x"] + dx + shift, o["y"] + dy + drop * 16, False))
             elif name == "COIN":
                 our_sprites.append((COINS[min(coins.index(o), 2)], o["x"] + shift, o["y"] + drop * 16, {}, v))
             elif name == "COL_TRIGGER" and o["props"].get("Channel") in TRIGGERS:
                 frames = int(o["props"].get("Frames", "18"))
                 fade = min(FADES, key=lambda f: abs(f[1] - frames))[0]
-                props = {"Colour": ('type="color"', o["props"].get("Color", "#ffffffff")),
+                colour = o["props"].get("Color", "#ffffffff")
+                if o["props"]["Channel"] == "GROUND":
+                    colour = ground_colour(colour)
+                props = {"Colour": ('type="color"', colour),
                          "Fade": ('propertytype="FadeTime"', fade)}
                 if o["props"].get("Touch trigger") == "true":
                     notes["COL_TRIGGER touch: placed as a normal one (ours have no touch triggers)"] += 1

@@ -210,7 +210,7 @@ const Level level_stereomadness = {
   stereomadness_sp_dmg,
   37,
   18,
-  2,
+  18,
   1
 };
 
@@ -244,7 +244,7 @@ const Level level_polargeist = {
   polargeist_sp_dmg,
   37,
   42,
-  26,
+  42,
   1
 };
 
@@ -278,7 +278,7 @@ const Level level_baseafterbase = {
   baseafterbase_sp_dmg,
   37,
   18,
-  2,
+  18,
   1
 };
 
@@ -312,7 +312,7 @@ const Level level_jumper = {
   jumper_sp_dmg,
   37,
   19,
-  20,
+  19,
   1
 };
 
