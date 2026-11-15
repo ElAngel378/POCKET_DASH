@@ -565,6 +565,66 @@ static uint8_t saw_corner(const uint8_t *col_ptr, int16_t y, uint8_t xin, uint8_
     return (uint16_t)(saw_sq[dx] + saw_sq[dy]) < saw_sq[rad];   // dx, dy < rad <= 15
 }
 
+// Spikes as in GDA (collision.c col_*_spike_*): each kind of spike is a small box in its metatile,
+// and the player dies when its whole box touches one. Famidash tested six points of the player
+// against bigger zones, so a cube could land between ground spikes and jump off again.
+// spike_box fills { x0, y0, x1, y1 } (inclusive, in the metatile) and returns how many boxes.
+static uint8_t spike_box(uint8_t mt, uint8_t *r) {
+    uint8_t col = col_tab[mt];
+    uint8_t x0, y0, x1, y1;
+    if (mt == MT_PITSPIKES || mt == MT_BOTTOM_BACKGROUND_SPIKES) {
+        x0 = 0; y0 = 12; x1 = 15; y1 = 15;      // a row of ground spikes (GDA: y + 12 down)
+    } else switch (col) {
+        case COL_DEATH:                          // a spike, either way up or sideways: GDA's 2x6
+            r[0] = 7; r[1] = 5; r[2] = 8; r[3] = 10;
+            r[4] = 5; r[5] = 7; r[6] = 10; r[7] = 8;
+            return 2;
+        case COL_DEATH_BOTTOM:                   // small / ground spikes on the cell's floor
+        case COL_DEATH_TOP_HALF:
+            x0 = 6; y0 = 11; x1 = 9; y1 = 15; break;
+        case COL_DEATH_TOP:                      // ... hanging from its ceiling
+        case COL_DEATH_BOTTOM_HALF:
+            x0 = 6; y0 = 0; x1 = 9; y1 = 4; break;
+        case COL_DEATH_LEFT:
+            x0 = 0; y0 = 6; x1 = 5; y1 = 9; break;
+        case COL_DEATH_RIGHT:
+            x0 = 10; y0 = 6; x1 = 15; y1 = 9; break;
+        default: {
+            // spike blocks / half spikes: Famidash's zones (quad_spike_zone) as boxes
+            uint8_t q = (uint8_t)(col - COL_QUAD_BASE - 12u);
+            if (q >= COL_QUAD_COUNT - 12) return 0;
+            const uint8_t *z = quad_spike_zone[q];
+            y0 = z[0] == 0 ? 0u : z[0] == 1 ? 8u : 11u;
+            y1 = z[0] == 0 ? 7u : 15u;
+            x0 = z[1] & (uint8_t)~SPK_X7;
+            x1 = z[2];
+            if (z[1] & SPK_X7) {
+                r[0] = x0; r[1] = y0; r[2] = x1; r[3] = y1;
+                r[4] = (uint8_t)(x0 + 8u); r[5] = y0; r[6] = (uint8_t)(x1 + 8u); r[7] = y1;
+                return 2;
+            }
+        }
+    }
+    r[0] = x0; r[1] = y0; r[2] = x1; r[3] = y1;
+    return 1;
+}
+
+// Does the player box (bx, by: its top left in the window, w, h: size - 1) touch a spike box in
+// the metatile of collision column cp at row row? (cx: the column's x in the window: 0 or 16)
+static uint8_t spike_cell(const uint8_t *cp, uint8_t row, int8_t bx, int8_t by, uint8_t w, uint8_t h) {
+    uint8_t mt = cp[row];
+    if (!spike_col_tab[col_tab[mt] & 63u] && mt != MT_PITSPIKES && mt != MT_BOTTOM_BACKGROUND_SPIKES) return 0;
+    uint8_t r[8];
+    uint8_t n = spike_box(mt, r);
+    const uint8_t *b = r;
+    while (n--) {
+        if (bx <= (int8_t)b[2] && (int8_t)(bx + w) >= (int8_t)b[0] &&
+            by <= (int8_t)b[3] && (int8_t)(by + h) >= (int8_t)b[1]) return 1;
+        b += 4;
+    }
+    return 0;
+}
+
 // off: x offset of the probe point inside the player box
 #define COL_AT(off, y) col_at((int16_t)(y), (off))
 #define SPIKE(off, y) spike_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
@@ -672,8 +732,14 @@ uint8_t player_update(
     uint8_t box_r   = mini ? MINI_BOX_RIGHT : PLAYER_SIZE;
     uint8_t box_top = mini ? MINI_BOX_TOP : 0;
     uint8_t box_bot = mini ? MINI_BOX_BOTTOM : 16;
-    // Floors and ceilings as in Famidash (bg_coll_D / bg_coll_U): any of the 3 points (x, x+w/2,
-    // x+w) in a block lands, however deep (up to 15 px: it climbs a block edge it falls onto)
+    // Floors and ceilings as in GDA: any of the 3 points (x, x+w/2, x+w) in a block lands, but only
+    // when the player came from less than max_eject px into it (GDA gamemode_max_eject: cube and
+    // ball 6, ship and UFO 4). GDA moves in 4 steps a frame (2 px at most) and checks each: here the
+    // depth of the previous frame's position says the same. Deeper, the player is in the block's
+    // side, and its centre box (below) decides. (Famidash landed from any depth: up to 15 px, it
+    // climbed block edges it fell onto.)
+    uint8_t max_eject = (p->mode == MODE_SHIP || p->mode == MODE_UFO) ? 4u : 6u;
+    uint8_t prev_py = (uint8_t)(prev_y >> 8);
 
 #define GET_COL_FAST(off) ((off) < threshold ? c0 : c1)
 
@@ -699,7 +765,9 @@ uint8_t player_update(
                 ((foot_y & 15) >= 8 && hit_col == COL_ALL && !IS_SOLID(COL_AT(hit_off, foot_y - 8)))) {
                 block_top_y += 8;
             }
-            if (!p->gravity_flipped || p->mode == MODE_SHIP || p->mode == MODE_UFO) {
+            if ((int16_t)(prev_py + box_bot) - (int16_t)block_top_y >= (int16_t)max_eject) {
+                // came from deeper: no landing
+            } else if (!p->gravity_flipped || p->mode == MODE_SHIP || p->mode == MODE_UFO) {
                 p->world_y.b.h = block_top_y - box_bot;
                 p->world_y.b.l = 0;
                 p->vel_y.w = 0;
@@ -735,7 +803,9 @@ uint8_t player_update(
                 ((head_y & 15) < 8 && hit_col == COL_ALL && !IS_SOLID(COL_AT(hit_off, head_y + 8)))) {
                 block_bottom_y -= 8;
             }
-            if (p->gravity_flipped || p->mode == MODE_SHIP || p->mode == MODE_UFO) {
+            if ((int16_t)block_bottom_y - (int16_t)(prev_py + head_off) >= (int16_t)max_eject + 1) {
+                // came from deeper: no landing (the head probe rests 1 px inside for the ship / UFO)
+            } else if (p->gravity_flipped || p->mode == MODE_SHIP || p->mode == MODE_UFO) {
                 p->world_y.b.h = (uint8_t)(block_bottom_y - head_off -
                                            ((p->mode == MODE_SHIP || p->mode == MODE_UFO) ? 1u : 0u));
                 p->world_y.b.l = 0;
@@ -748,66 +818,45 @@ uint8_t player_update(
         }
     }
 
-    // Front wall collision
+    // GDA's centre box: the player dies when a 4x4 box at its middle (mini: 2x2) is inside a solid,
+    // from any side (Famidash: one point at the front, x + 15). A brick breaks instead.
     py = p->world_y.b.h;
-    // Famidash: mini cube probes the wall 2px above / 3px below its centre
-    // Normal size: Famidash's player y is our py + 1 (its feet probe y + 15 is our py + 16, its head
-    // probe y + 1 our py + 2), in both gravities; mini: its y is our py. Its centre probe (y + 7)
-    // is our py + 8, so a half block in front at the cube's height is hit.
-    uint8_t front_y = mini ? ((p->mode == MODE_CUBE) ? (p->gravity_flipped ? 10 : 5) : 7) : 8;
-    // Famidash bg_coll_R: the point at x + width (mini x + 8), at the box centre height
-    uint8_t front_center = COL_AT(box_r, py + front_y);
-    if (IS_SOLID(front_center)) {
-        // A brick breaks instead (GDA: the player's centre hitbox), solid on every other side
-        uint8_t fy = (uint8_t)(py + front_y);
-        if ((uint16_t)((int16_t)py + front_y) & 0xFF00u || col_tab[GET_COL_FAST(box_r)[fy >> 4]] != COL_BREAKABLE) {
-            DIE();
-        } else brick_break((uint16_t)(p->world_x + box_r) >> 4, (uint8_t)((uint16_t)(p->y_base + fy) >> 4));
-    }
-    // Most frames touch no spike: look at the (up to 4) metatiles the spike probes below lie in
-    // first, and only run the 6 spike_at calls when one of them is a spike type
-    uint8_t spike_near = 1;
-    uint8_t spike_mask = 0;            // full size: the probes spike_probes says can hit
-    if (mini) {
-        int16_t sy0 = (int16_t)py + 4;
-        int16_t sy1 = (int16_t)py + 10;
-        if (!(((uint16_t)sy0 | (uint16_t)sy1) & 0xFF00)) {
-            uint8_t r0 = (uint8_t)sy0 >> 4, r1 = (uint8_t)sy1 >> 4;
-            uint8_t k0 = col_tab[c0[r0]];
-            uint8_t k1 = col_tab[c0[r1]];
-            uint8_t k2 = col_tab[c1[r0]];
-            uint8_t k3 = col_tab[c1[r1]];
-            spike_near = spike_col_tab[k0 & 63u] | spike_col_tab[k1 & 63u] | spike_col_tab[k2 & 63u] | spike_col_tab[k3 & 63u];
+    {
+        uint8_t cx0 = mini ? 3u : 6u, cx1 = mini ? 5u : 10u;
+        uint8_t cy0 = mini ? 6u : 6u, cy1 = mini ? 8u : 10u;
+        uint8_t k;
+        for (k = 0; k < 4u; k++) {
+            uint8_t ox = (k & 1u) ? cx1 : cx0;
+            int16_t yy = (int16_t)py + ((k & 2u) ? cy1 : cy0);
+            if (IS_SOLID(COL_AT(ox, yy))) {
+                if (!((uint16_t)yy & 0xFF00u) && col_tab[GET_COL_FAST(ox)[(uint8_t)yy >> 4]] == COL_BREAKABLE) {
+                    brick_break((uint16_t)(p->world_x + ox) >> 4, (uint8_t)((uint16_t)(p->y_base + (uint8_t)yy) >> 4));
+                } else {
+                    DIE();
+                }
+            }
         }
-    } else {
-        spike_mask = spike_probes();
-        spike_near = spike_mask;
     }
-    if (!spike_near) {
-        // no spike probe can hit
-    } else if (mini) {
-        // Famidash's mini spike points: bg_coll_floor_spikes (x+3 / x+5 at the box top + 0 and
-        // bottom - 2), bg_coll_death (centre x+3, y+7) and the front side point (x+8)
-        if (py <= 245u) {
-            // every point inside the collision window: the walk in assembly
-            if (spike_hit(0x3F, spike_pts_mini[front_y == 5 ? 0 : front_y == 7 ? 1 : 2])) {
+    // Spikes: the player box against each spike's box (spike_box), in the up to 4 metatiles it is in
+    {
+        uint8_t bw = mini ? MINI_BOX_RIGHT : PLAYER_SIZE;
+        uint8_t top = mini ? MINI_BOX_TOP : 0u;
+        uint8_t bh = (uint8_t)((mini ? MINI_BOX_BOTTOM : 16u) - top - 1u);
+        int16_t ty = (int16_t)py + top;
+        int16_t by = ty + bh;
+        int8_t bx0 = (int8_t)x_mod_16;
+        uint8_t two_cols = (uint8_t)(x_mod_16 + bw) >= 16u;
+        uint8_t r;
+        for (r = 0; r < 2u; r++) {
+            int16_t yy = r ? by : ty;
+            if (r && ((uint8_t)ty >> 4) == ((uint8_t)by >> 4) && !((uint16_t)ty & 0xFF00u)) break;   // one row
+            if ((uint16_t)yy & 0xFF00u) continue;                     // outside the window
+            uint8_t row = (uint8_t)yy >> 4;
+            int8_t cell_by = (int8_t)(ty - (int16_t)(row << 4));
+            if (spike_cell(c0, row, bx0, cell_by, bw, bh) ||
+                (two_cols && spike_cell(c1, row, (int8_t)(bx0 - 16), cell_by, bw, bh))) {
                 DIE();
             }
-        } else if (SPIKE(3, py + 4) || SPIKE(5, py + 4) ||
-            SPIKE(3, py + 9) || SPIKE(5, py + 9) ||
-            SPIKE(3, py + 7) || SPIKE(MINI_BOX_RIGHT, py + front_y)) {
-            DIE();
-        }
-    } else if (spike_mask != 0xFF) {
-        if (spike_hit(spike_mask, spike_pts)) {
-            DIE();
-        }
-    } else {
-        // at the bottom of the 256 px window, where some points are past it (see spike_pts)
-        int16_t fy = (int16_t)py + 1;
-        if (SPIKE(3, fy + 2) || SPIKE(12, fy + 2) || SPIKE(3, fy + 13) || SPIKE(12, fy + 13) ||
-            SPIKE(6, fy + 7) || SPIKE(15, fy + 7)) {
-            DIE();
         }
     }
 
