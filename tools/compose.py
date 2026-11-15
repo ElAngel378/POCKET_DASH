@@ -203,6 +203,14 @@ class Composer:
                 return None if not any(px) else px
         raise SystemExit("no art for %s %s quarter %s" % (key, tf or "-", oq))
 
+    def covered(self, parts, q):
+        """Is quarter q of the cell under a solid object (a block, a slab's half)? Ground decorations
+        are behind the blocks (GD): ours are outlines over the sky, a decoration showed through them
+        and the quarter took its palette (the block's white outline turned green)"""
+        cqx, cqy = q % 2, q // 2
+        return any(self.kind[k] == "solid" and ((cqx * 8 - dx) // 8, (cqy * 8 - dy) // 8) in self.LO.mask(k, flags_of(tf))
+                   for k, dx, dy, tf in parts)
+
     def look(self, cgb, parts, frame=0):
         """parts: [(key, dx, dy, tf)] bottom to top -> 4 quarters: pixels or None (empty)"""
         out = []
@@ -212,9 +220,12 @@ class Composer:
             cqx, cqy = q % 2, q // 2
             target = targets[q] if targets else None
             acc = [None] * 64
+            hide = self.covered(parts, q)
             for key, dx, dy, tf in parts:
                 oq = ((cqx * 8 - dx) // 8, (cqy * 8 - dy) // 8)
                 if oq not in self.LO.mask(key, flags_of(tf)) or key in GO.INVISIBLE:
+                    continue
+                if hide and key in GO.GROUND_DECO:
                     continue
                 px = self.quarter(cgb, key, tf, oq, frame)
                 if px == GROUND:
@@ -312,9 +323,12 @@ class Composer:
         for q in range(4):
             cqx, cqy = q % 2, q // 2
             top = {}
+            hide = self.covered(parts, q)
             for k, dx, dy, tf in parts:
                 oq = ((cqx * 8 - dx) // 8, (cqy * 8 - dy) // 8)
                 if oq not in self.LO.mask(k, flags_of(tf)) or k in GO.INVISIBLE:
+                    continue
+                if hide and k in GO.GROUND_DECO:
                     continue
                 px = self.quarter(1, k, tf, oq)
                 if px is None or px == GROUND:
