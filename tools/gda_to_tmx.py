@@ -1,8 +1,15 @@
-"""A Geometry Dash Advance level, or a stretch of one, as our objects in one of our TMX levels. No
-sprites yet: only GDA's tile layers and the metatiles on its object layer.
+"""A Geometry Dash Advance level, or a stretch of one, as our objects in one of our TMX levels: GDA's
+tile layers, the metatiles on its object layer and its sprite objects (portals, orbs, pads, coins,
+colour triggers, decorations; off-grid spikes and blocks become objects on the offset layers).
 
     python tools/gda_to_tmx.py electromanadventures test                    the whole level
     python tools/gda_to_tmx.py electromanadventures test 282-322:12         columns 282..321 to column 12
+    python tools/gda_to_tmx.py stereomadness stereomadness_gda --base stereomadness
+                     a new TMX: a copy of stereomadness.tmx (its title, song, menu...) with GDA's level
+                     and start colours
+
+Nothing GDA has is left out silently: a piece or sprite with no counterpart here stops the
+conversion with a list of them (--allow-missing writes the level anyway, without them).
 
 Replaces everything in every layer of the TMX (--add keeps what is there). The whole level also sets the TMX's width to GDA's.
 Rows count from the bottom of the level.
@@ -51,13 +58,62 @@ BLOCK_FAMILIES = {
     "BRICKS_": GO.BRICK,
     "CHK_": GO.GRID,
 }
-# (name, object, how its direction is named), most specific first
+# (name, object, how its direction is named), most specific first. Medium spikes: gd39 like our 1.0
+# levels (gd103 is 8x8, it would sit off centre on the 8 px grid)
 NAMED = ((r"^1\.6_SMALL_SPIKE_(\w+)$", "gd179", ATTACHED),
          (r"^1\.6_SPIKE_(\w+)$", "gd177", {"UP": "", "DOWN": "R180", "LEFT": "R90", "RIGHT": "R270"}),
          (r"^FAKE_SPIKE_(\w+)$", "gd191", SIDES), (r"^GROUND_WAVY_SPIKE_(\w+)$", "gd61", ATTACHED),
-         (r"^GROUND_SPIKE_(\w+)$", "gda_ground_spikes", ATTACHED), (r"^MEDIUM_SPIKE_(\w+)$", "gd103", ATTACHED), (r"^SMALL_SPIKE_(\w+)$", "gd39", ATTACHED), (r"^BASIC_BLOCK$", "gd1", None), (r"^SPIKE_(\w+)$", "gd8", SIDES), (r"^1\.6_WAVE_DECO_MIDDLE(_UD)?$", "gd157", {"_UD": "V"}),
+         (r"^GROUND_SPIKE_(\w+)$", "gda_ground_spikes", ATTACHED), (r"^MEDIUM_SPIKE_(\w+)$", "gd39", ATTACHED), (r"^SMALL_SPIKE_(\w+)$", "gd39", ATTACHED), (r"^BASIC_BLOCK$", "gd1", None), (r"^SPIKE_(\w+)$", "gd8", SIDES), (r"^1\.6_WAVE_DECO_MIDDLE(_UD)?$", "gd157", {"_UD": "V"}),
          (r"^1\.6_WAVE_DECO_LFT(_UD)?$", "gd158", {"_UD": "V"}), (r"^1\.6_WAVE_DECO_RGT(_UD)?$", "gd159", {"_UD": "V"}),
-         (r"^BREAKABLE_BRICK$", "gd143", None), (r"^WAVY_SLAB_SINGLE_TOP$", "fd_wavy_top_s", None))
+         (r"^BREAKABLE_BRICK$", "gd143", None), (r"^WAVY_SLAB_SINGLE_TOP$", "fd_wavy_top_s", None),
+         # paired with our 1.0 levels by position (the same cells in GDA's and ours)
+         (r"^SLAB_UP$", "gd40", None), (r"^ENDING_WALL$", "gd5", None),
+         (r"^INVISIBLE_FLOOR_CEIL$", "fd_invis_block", None),
+         (r"^WAVY_SLAB_END_TOP$", "fd_wavy_top_r", None), (r"^WAVY_SLAB_MIDDLE_TOP$", "fd_wavy_top_m", None))
+# Pieces that go on a layer of their own: piece -> (object, layer)
+OWN_LAYER = {"SLAB_DOWN_FLIPPED": ("gd40", "Layer 2 +8y")}   # a slab on the cell's bottom half
+# GDA's ship ceiling (CEILING_1..C: 3 kinds of columns, the middle one twice, 4 rows) as our levels draw
+# it: ground fill, a ground strip line in the first middle column, the bottom row the fill's edge
+CEILING = "123456789ABC"
+
+
+def ceiling(piece, left):
+    """our object for ceiling piece CEILING_<c>, left: the piece to its left"""
+    i = CEILING.index(piece[-1])
+    bottom = i >= 9
+    strip = i % 3 == 1 and left is not None and left.startswith("CEILING_") and CEILING.index(left[-1]) % 3 == 0
+    if strip:
+        return "fd_ground_edge_bottom" if bottom else "fd_ground_bottom"
+    return "fd_bg5" if bottom else "fd_bg6"
+
+
+# Our sprites (tile ids of objects/sprites.tsx): GDA sprite[/v (vflip) /h (hflip) /r<angle>] ->
+# (tile id, dx, dy: ours - GDA's top left). Paired with our 1.0 levels by position.
+SPRITES = {
+    "CUBE_PORTAL": (0, 0, -16), "SHIP_PORTAL": (1, 0, -16),
+    "YELLOW_ORB": (11, 0, 0), "YELLOW_PAD": (10, 0, 0), "BLUE_PAD": (13, 0, 0),
+    "BLUE_GRAVITY_PORTAL/r270": (16, -16, 4), "BLUE_GRAVITY_PORTAL/r90": (17, 0, 16),
+    "BG_CHAINS": (45, 0, 0), "BG_CHAINS/v": (61, 0, 0),
+    "LARGE_PULSING_CIRCLE": (42, 0, 0),
+    "MEDIUM_PULSING_CIRCLE": (43, 0, 0), "MEDIUM_PULSING_CIRCLE/r90": (63, 0, 0),
+    "SMALL_PULSING_CIRCLE": (44, 0, 0), "SMALL_PULSING_CIRCLE/v": (60, 0, 0),
+    "SMALL_PULSING_CIRCLE/r90": (57, 0, 0), "SMALL_PULSING_CIRCLE/r270": (56, 0, 0),
+    "PULSING_STAR": (54, 0, 0),
+}
+COINS = [7, 26, 27]                              # coin 1, 2, 3: GDA's in level order
+TRIGGERS = {"BG": 256, "GROUND": 257}            # colour trigger channel -> ours
+LEVEL_END = 15
+FADES = [("instant", 0), ("0.3 s", 18), ("0.5 s", 30), ("1 s", 60), ("2 s", 120), ("4 s", 240), ("10 s", 600)]
+# GDA sprites that are objects here (hazards and blocks off the grid): -> (object, flags)
+SPRITE_OBJECTS = {"SPIKE_V": ("gd8", 0), "HALF_SPIKE_V": ("gd39", 0), "SPIKE_H": ("gd8", FLIP_D | FLIP_H),
+                  "BASIC_BLOCK_OBJ": ("gd1", 0), "BASIC_SLAB_OBJ": ("gd40", 0)}
+
+
+def variant(name, props):
+    v = name + ("/v" if props.get("vflip") == "true" else "") + ("/h" if props.get("hflip") == "true" else "")
+    if props.get("enable rotation") == "true" and props.get("rotation angle", "0") not in ("0", "360"):
+        v += "/r" + props["rotation angle"]
+    return v
 # GDA sprites that are objects here: sprite -> (object, cell of GDA's position from the canvas's left)
 DECO_SPRITES = {"BIG_BG_SPIKES": ("gd18", 32), "MEDIUM_BG_SPIKES": ("gd19", 32), "SMALL_BG_SPIKES": ("gd20", 16),
                 "TINY_BG_SPIKES": ("gd21", 0)}
@@ -167,8 +223,17 @@ def choose(piece, raw):
     return None, 0, ""
 
 
-def main(level, target, spans, add=False):
+def main(level, target, spans, add=False, base=None, allow_missing=False):
     w, h, layers, sprites = gda.read_level(level)
+    if base:
+        btext = (TMX / (base + ".tmx")).open(newline="").read()
+        gprops = {p.get("name"): p.get("value") for p in ET.parse(gda.LEVELS / (level + ".tmx")).getroot().findall("properties/property")}
+        for ours_name, gda_name in (("BG colour", "BG"), ("Ground colour", "GROUND")):
+            if gda_name in gprops:
+                btext = re.sub(r'(<property name="%s" type="color" value=")[^"]*' % ours_name, r"\g<1>" + gprops[gda_name], btext)
+        btext = re.sub(r'(<export target="../level_data/)[^"]*(\.csv")', r"\g<1>%s\2" % target, btext)
+        with (TMX / (target + ".tmx")).open("w", newline="") as f:
+            f.write(btext)
     table = gda.metatiles()
     names = [n for n, _, _ in table]
     tiles_of = {n: t for n, t, _ in reversed(table)}
@@ -202,17 +267,63 @@ def main(level, target, spans, add=False):
                     g = layers[src][row][col]
                     if g <= 1:
                         continue
-                    piece, (key, flags, _how) = piece_of(g)
+                    piece = names[g - 1]
+                    layer = dst
+                    if piece.startswith("CEILING_"):
+                        lg = layers[src][row][col - 1] if col else 0
+                        key, flags = ceiling(piece, names[lg - 1] if lg > 1 else None), 0
+                        chosen[piece] = (key, 0, "ceiling")
+                    elif piece in OWN_LAYER:
+                        (key, layer), flags = OWN_LAYER[piece], 0
+                        chosen[piece] = (key, 0, "own layer")
+                    else:
+                        piece, (key, flags, _how) = piece_of(g)
                     if key is None:
                         missing[piece] += 1
                         continue
                     count[piece] += 1
-                    out[dst][(row + drop) * root_w + to + col - a] = (GO.OBJECTS[key][0] + 1) | flags
+                    out[layer][(row + drop) * root_w + to + col - a] = (GO.OBJECTS[key][0] + 1) | flags
 
     objects = []
+    our_sprites = []      # (tile id, x, y (top), {property: (type attribute, value)}, what)
     sprite_names = gda.sprite_types()
+    coins = sorted((o for o in sprites if o["gid"] >= gda.SPRITE_GID and sprite_names[o["gid"] - gda.SPRITE_GID] == "COIN"),
+                   key=lambda o: o["x"])
     for o in sprites:
         name = sprite_names[o["gid"] - gda.SPRITE_GID] if o["gid"] >= gda.SPRITE_GID else None
+        span = next(((a, b, to) for a, b, to in spans if a <= o["x"] // 16 < b), None)
+        if name is not None and name not in DECO_SPRITES and span is not None:
+            shift = (span[2] - span[0]) * 16
+            v = variant(name, o["props"])
+            if v in SPRITES:
+                tid, dx, dy = SPRITES[v]
+                our_sprites.append((tid, o["x"] + dx + shift, o["y"] + dy + drop * 16, {}, v))
+            elif name == "COIN":
+                our_sprites.append((COINS[min(coins.index(o), 2)], o["x"] + shift, o["y"] + drop * 16, {}, v))
+            elif name == "COL_TRIGGER" and o["props"].get("Channel") in TRIGGERS:
+                frames = int(o["props"].get("Frames", "18"))
+                fade = min(FADES, key=lambda f: abs(f[1] - frames))[0]
+                props = {"Colour": ('type="color"', o["props"].get("Color", "#ffffffff")),
+                         "Fade": ('propertytype="FadeTime"', fade)}
+                if o["props"].get("Touch trigger") == "true":
+                    missing["COL_TRIGGER touch (placed as a normal one)"] += 1
+                our_sprites.append((TRIGGERS[o["props"]["Channel"]], o["x"] + shift, o["y"] + drop * 16, props, v))
+            elif name in SPRITE_OBJECTS:
+                key, flags = SPRITE_OBJECTS[name]
+                look = o["props"].get("metatile ID appearance")
+                if look is not None:
+                    piece = names[int(look)]
+                    key, flags, _how = choose(piece, indices(tiles_of[piece], chr_data))
+                    if key is None:
+                        missing[v + " looking like " + piece] += 1
+                        continue
+                flags = combine((FLIP_H if o["props"].get("hflip") == "true" else 0) |
+                                (FLIP_V if o["props"].get("vflip") == "true" else 0), flags)
+                chosen[v] = (key, flags, "sprite object")
+                objects.append((v, key, flags, o["x"] + shift, o["y"] + drop * 16, False))
+            else:
+                missing["sprite " + v] += 1
+            continue
         if name in DECO_SPRITES:
             span = next(((a, b, to) for a, b, to in spans if a <= o["x"] // 16 < b), None)
             if span is None:
@@ -292,10 +403,36 @@ def main(level, target, spans, add=False):
         high = 0
     final, placed, snapped, full = build(set(rarest[:high]))
     count.update(placed)
+    if missing and not allow_missing:
+        sys.exit("not converted (nothing written; --allow-missing writes the level without them):\n" +
+                 "\n".join("%6d %s" % (n, p) for p, n in missing.most_common()))
     if not add:
         final = re.sub(r'(<objectgroup [^>]*name="SP"[^>]*>).*?(</objectgroup>)', r'\1\2', final, flags=re.S)
+    root = ET.fromstring(final)
+    first = next(int(t.get("firstgid")) for t in root.findall("tileset") if t.get("source", "").endswith("sprites.tsx"))
+    next_id = int(root.get("nextobjectid", "1"))
+    if whole and base and not any(t == LEVEL_END for t, *_ in our_sprites):
+        old = re.search(r'<object [^>]*gid="%d" [^>]*y="([\d.]+)"' % (first + LEVEL_END), text)
+        our_sprites.append((LEVEL_END, (root_w - 1) * 16, float(old.group(1)) - 16 if old else 288, {}, "level end"))
+    xml = []
+    for tid, x, y, props, _v in our_sprites:
+        num = lambda f: ("%d" % f) if f == int(f) else ("%g" % f)
+        head = '  <object id="%d" gid="%d" x="%s" y="%s" width="16" height="16"' % (next_id, first + tid, num(x), num(y + 16))
+        next_id += 1
+        if props:
+            xml.append(head + ">\n   <properties>\n" + "".join(
+                '    <property name="%s" %s value="%s"/>\n' % (k, t, val) for k, (t, val) in props.items()) +
+                "   </properties>\n  </object>")
+        else:
+            xml.append(head + "/>")
+    final = re.sub(r'(<objectgroup [^>]*name="SP"[^>]*>)(.*?)(\s*</objectgroup>)',
+                   lambda m: m.group(1) + m.group(2) + ("\n" + "\n".join(xml) if xml else "") + m.group(3),
+                   final, count=1, flags=re.S)
+    final = re.sub(r'(<map [^>]*\bnextobjectid=")\d+', r"\g<1>%d" % next_id, final, count=1)
     with path.open("w", newline="") as f:
         f.write(final)
+    for v, n in Counter(v for *_r, v in our_sprites).most_common():
+        print("%5d sprite %s" % (n, v))
     flag_names = {FLIP_H: "H", FLIP_V: "V", FLIP_D: "D"}
     for piece, n in count.most_common():
         key, flags, how = chosen[piece]
@@ -305,12 +442,16 @@ def main(level, target, spans, add=False):
           % (dict(sorted(snapped.items())), high, len(rarest)))
     print("no free layer: %s" % dict(full))
     print("not placed: %s" % dict(missing))
+    return chosen
 
 
 if __name__ == "__main__":
     spans = []
     add = "--add" in sys.argv
-    for arg in [a for a in sys.argv[3:] if a != "--add"]:
+    allow = "--allow-missing" in sys.argv
+    base = sys.argv[sys.argv.index("--base") + 1] if "--base" in sys.argv else None
+    rest = [a for a in sys.argv[3:] if a not in ("--add", "--allow-missing", "--base", base)]
+    for arg in rest:
         a, b, to = re.fullmatch(r"(\d+)-(\d+):(\d+)", arg).groups()
         spans.append((int(a), int(b), int(to)))
-    main(sys.argv[1], sys.argv[2], spans, add)
+    main(sys.argv[1], sys.argv[2], spans, add, base, allow)

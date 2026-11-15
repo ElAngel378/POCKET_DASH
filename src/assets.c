@@ -202,7 +202,7 @@ const Level level_stereomadness = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   stereomadness_map,
-  BG_BASE_TILE_COUNT, 894, 64, 0, 0,
+  BG_BASE_TILE_COUNT, 891, 64, 0, 0,
   BANK(stereomadness_map),
   192,
   stereomadness_sp,
