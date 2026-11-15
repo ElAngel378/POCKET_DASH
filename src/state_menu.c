@@ -1003,6 +1003,8 @@ static void mc_update(void) {
 
     uint8_t id, flip = 0;               // flip: the sprite flips
     uint8_t half_steps = (uint8_t)((mc_frame << 1) + (mc_timer >= 11u ? 1u : 0u));
+    // credits ball on the band's edge: it rolls the other way, like the game's on the ceiling
+    if (mc_credits && mc_mode == MODE_BALL && mc_hold && half_steps) half_steps = (uint8_t)(48u - half_steps);
     if (mc_mini) {
         // ship image (0 steep down .. 30 steep up) -> mini image (30, 15, 0, -15, -30 degrees)
         static const uint8_t mini_ship_img[SHIP_FRAME_COUNT] = {
@@ -1359,17 +1361,18 @@ static const uint8_t cr_page_mode[CR_PAGES] = {
     MODE_CUBE, MODE_SHIP, MODE_BALL, MODE_UFO, MODE_CUBE | 0x80u, MODE_SHIP | 0x80u, MODE_CUBE
 };
 
-// Ground spikes: sprites, 16 x 16 (tiles TL, BL, TR, BR: one 8x16 column a pair on DMG), white
-// outline (colour 1), black (3). Sprite tiles 120..123 (MC_TILE's are below them).
+// Ground spikes: the game's spike (metatile SPIKE_UP, bg_tiles.png tiles 42, 43, 58, 59) as sprites,
+// 16 x 16 (tiles TL, BL, TR, BR: one 8x16 column a pair on DMG): white outline (colour 1), the
+// sky's dark shade (2), black (3). Sprite tiles 120..123 (MC_TILE's are below them).
 #define CR_SPIKE_TILE 120u
 #define CR_SPIKE_OAM  28u     // 28..35 (CGB, 8x8: 4 a spike), 32..35 (DMG, 8x16: 2 a spike)
 #define CR_SPIKE_PAL  4u
 #define CR_SPIKE_Y    (GROUND_ROW * 8 - 16)   // standing on the ground
 static const uint8_t cr_spike_tiles[64] = {
-    0x01, 0x00, 0x01, 0x00, 0x03, 0x01, 0x03, 0x01, 0x07, 0x03, 0x07, 0x03, 0x0F, 0x07, 0x0F, 0x07,
-    0x1F, 0x0F, 0x1F, 0x0F, 0x3F, 0x1F, 0x3F, 0x1F, 0x7F, 0x3F, 0x7F, 0x3F, 0xFF, 0x7F, 0xFF, 0x7F,
-    0x80, 0x00, 0x80, 0x00, 0xC0, 0x80, 0xC0, 0x80, 0xE0, 0xC0, 0xE0, 0xC0, 0xF0, 0xE0, 0xF0, 0xE0,
-    0xF8, 0xF0, 0xF8, 0xF0, 0xFC, 0xF8, 0xFC, 0xF8, 0xFE, 0xFC, 0xFE, 0xFC, 0xFF, 0xFE, 0xFF, 0xFE,
+    0x01, 0x00, 0x03, 0x01, 0x03, 0x01, 0x07, 0x03, 0x07, 0x03, 0x0D, 0x07, 0x0D, 0x07, 0x12, 0x0F,
+    0x10, 0x0F, 0x20, 0x1F, 0x20, 0x15, 0x40, 0x15, 0x40, 0x2A, 0x80, 0x00, 0x80, 0x00, 0xFF, 0x00,
+    0x80, 0x00, 0xC0, 0x80, 0xC0, 0x80, 0xE0, 0xC0, 0xE0, 0xC0, 0xB0, 0xE0, 0xB0, 0xE0, 0x48, 0xF0,
+    0x08, 0xF0, 0x04, 0xF8, 0x04, 0xA8, 0x02, 0xA8, 0x02, 0x54, 0x01, 0x00, 0x01, 0x00, 0xFF, 0x00,
 };
 
 // Once a frame, with the ground: the spikes move with it; a new one comes while the runner still
@@ -1528,8 +1531,9 @@ GameState update_credits_state(GameState back) BANKED {
     set_sprite_data(CR_SPIKE_TILE, 4, cr_spike_tiles);
     if (_cpu == CGB_TYPE) {
         palette_color_t pal[4];
-        pal[0] = RGB8(255, 255, 255); pal[1] = RGB8(255, 255, 255);
-        pal[2] = RGB8(0, 0, 0); pal[3] = RGB8(0, 0, 0);
+        // the game's level palette 0 (famidash_bg.c): white, the default sky's dark shade, black
+        pal[0] = RGB(31, 31, 31); pal[1] = RGB(31, 31, 31);
+        pal[2] = RGB(0, 4, 14); pal[3] = RGB(0, 0, 0);
         fade_set_sprite_palette(CR_SPIKE_PAL, 1, pal);
     }
     mc_seed = DIV_REG | 1u;
