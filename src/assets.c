@@ -226,8 +226,8 @@ const Level level_backontrack = {
   BANK(backontrack_sp),
   backontrack_sp_dmg,
   37,
-  20,
-  20,
+  21,
+  21,
   1
 };
 
@@ -236,7 +236,7 @@ const Level level_polargeist = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   polargeist_map,
-  BG_BASE_TILE_COUNT, 935, 64, 0, 0,
+  BG_BASE_TILE_COUNT, 932, 64, 0, 0,
   BANK(polargeist_map),
   193,
   polargeist_sp,
@@ -260,7 +260,7 @@ const Level level_dryout = {
   BANK(dryout_sp),
   dryout_sp_dmg,
   37,
-  22,
+  21,
   22,
   1
 };
@@ -270,15 +270,15 @@ const Level level_baseafterbase = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   baseafterbase_map,
-  BG_BASE_TILE_COUNT, 869, 64, 0, 0,
+  BG_BASE_TILE_COUNT, 866, 64, 0, 0,
   BANK(baseafterbase_map),
   183,
   baseafterbase_sp,
   BANK(baseafterbase_sp),
   baseafterbase_sp_dmg,
   37,
-  17,
-  17,
+  18,
+  2,
   1
 };
 
@@ -287,7 +287,7 @@ const Level level_cantletgo = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   cantletgo_map,
-  BG_BASE_TILE_COUNT, 837, 64, 0, 0,
+  BG_BASE_TILE_COUNT, 834, 64, 0, 0,
   BANK(cantletgo_map),
   196,
   cantletgo_sp,
@@ -295,7 +295,7 @@ const Level level_cantletgo = {
   cantletgo_sp_dmg,
   37,
   20,
-  4,
+  20,
   1
 };
 
@@ -304,7 +304,7 @@ const Level level_jumper = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   jumper_map,
-  BG_BASE_TILE_COUNT, 897, 64, 0, 0,
+  BG_BASE_TILE_COUNT, 895, 64, 0, 0,
   BANK(jumper_map),
   141,
   jumper_sp,
@@ -312,7 +312,7 @@ const Level level_jumper = {
   jumper_sp_dmg,
   37,
   19,
-  19,
+  20,
   1
 };
 

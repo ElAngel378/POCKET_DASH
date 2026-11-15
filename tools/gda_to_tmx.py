@@ -69,9 +69,20 @@ NAMED = ((r"^1\.6_SMALL_SPIKE_(\w+)$", "gd179", ATTACHED),
          # paired with our 1.0 levels by position (the same cells in GDA's and ours)
          (r"^SLAB_UP$", "gd40", None), (r"^ENDING_WALL$", "gd5", None),
          (r"^INVISIBLE_FLOOR_CEIL$", "fd_invis_block", None),
-         (r"^WAVY_SLAB_END_TOP$", "fd_wavy_top_r", None), (r"^WAVY_SLAB_MIDDLE_TOP$", "fd_wavy_top_m", None))
+         (r"^WAVY_SLAB_END_TOP$", "fd_wavy_top_r", None), (r"^WAVY_SLAB_MIDDLE_TOP$", "fd_wavy_top_m", None),
+         (r"^WAVY_SLAB_MIDDLE_BOTTOM$", "fd_wavy_bot_m", None))
 # Pieces that go on a layer of their own: piece -> (object, layer)
-OWN_LAYER = {"SLAB_DOWN_FLIPPED": ("gd40", "Layer 2 +8y")}   # a slab on the cell's bottom half
+OWN_LAYER = {"SLAB_DOWN_FLIPPED": ("gd40", "Layer 2 +8y"),    # a slab on the cell's bottom half
+             "SLAB_DOWN": ("gd40", "Layer 2 +8y")}
+# GD blocks half a cell off the grid: GDA draws the half in each cell it covers. One block (gd1) at
+# its real place: piece -> where the block's top left is from the cell's (px)
+HALF_BLOCKS = {"BASIC_BLOCK_RIGHT": [(8, 0)], "BASIC_BLOCK_LEFT": [(-8, 0)],
+               "BASIC_BLOCK_LEFT_RIGHT": [(-8, 0), (8, 0)],
+               "BASIC_BLOCK_BOTTOM": [(0, 8)], "BASIC_BLOCK_TOP": [(0, -8)]}
+# Nothing to draw: GDA's empty piece; and GDA's own decorations in background colours (LBG_, COL<n>_
+# copies) that GD doesn't have, when there is no art for them here (a note, not an error)
+NOTHING = re.compile(r"^EMPTY$")
+GDA_DECORATION = re.compile(r"^(LBG|COL\d)_")
 # GDA's ship ceiling (CEILING_1..C: 3 kinds of columns, the middle one twice, 4 rows) as our levels draw
 # it: ground fill, a ground strip line in the first middle column, the bottom row the fill's edge
 CEILING = "123456789ABC"
@@ -91,9 +102,13 @@ def ceiling(piece, left):
 # (tile id, dx, dy: ours - GDA's top left). Paired with our 1.0 levels by position.
 SPRITES = {
     "CUBE_PORTAL": (0, 0, -16), "SHIP_PORTAL": (1, 0, -16),
+    "BLUE_GRAVITY_PORTAL": (8, 0, -16), "YELLOW_GRAVITY_PORTAL": (9, 0, -16),
+    "YELLOW_GRAVITY_PORTAL/r270": (18, -16, 4), "YELLOW_GRAVITY_PORTAL/r90": (19, 0, 16),
+    "MEDIUM_PULSING_CIRCLE/v": (59, 0, 0), "MEDIUM_PULSING_CIRCLE/r270": (62, 0, 0),
     # a turned portal still works in GD (Stereo Madness's last ship portal): ours stands upright
     "SHIP_PORTAL/r90": (1, 0, -16),
     "YELLOW_ORB": (11, 0, 0), "YELLOW_PAD": (10, 0, 0), "BLUE_PAD": (13, 0, 0),
+    "YELLOW_PAD/v": (12, 0, 0), "PINK_PAD": (37, 0, 0), "PINK_PAD/v": (38, 0, 0), "BLUE_PAD/v": (14, 0, 0),
     "BLUE_GRAVITY_PORTAL/r270": (16, -16, 4), "BLUE_GRAVITY_PORTAL/r90": (17, 0, 16),
     "BG_CHAINS": (45, 0, 0), "BG_CHAINS/v": (61, 0, 0),
     "LARGE_PULSING_CIRCLE": (42, 0, 0),
@@ -107,7 +122,7 @@ TRIGGERS = {"BG": 256, "GROUND": 257}            # colour trigger channel -> our
 LEVEL_END = 15
 FADES = [("instant", 0), ("0.3 s", 18), ("0.5 s", 30), ("1 s", 60), ("2 s", 120), ("4 s", 240), ("10 s", 600)]
 # GDA sprites that are objects here (hazards and blocks off the grid): -> (object, flags)
-SPRITE_OBJECTS = {"SPIKE_V": ("gd8", 0), "HALF_SPIKE_V": ("gd39", 0), "SPIKE_H": ("gd8", FLIP_D | FLIP_H),
+SPRITE_OBJECTS = {"GROUND_SPIKE_V": ("gda_ground_spikes", 0), "SPIKE_V": ("gd8", 0), "HALF_SPIKE_V": ("gd39", 0), "SPIKE_H": ("gd8", FLIP_D | FLIP_H),
                   "BASIC_BLOCK_OBJ": ("gd1", 0), "BASIC_SLAB_OBJ": ("gd40", 0)}
 
 
@@ -252,6 +267,8 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
     drop = root_h - GO.ROWS_BELOW - h
     out = {n: [0] * (root_w * root_h) for n in re.findall(r'<layer [^>]*name="([^"]+)"', text)}
     chosen, count, missing, snapped, full = {}, Counter(), Counter(), Counter(), Counter()
+    notes = Counter()     # converted, but not quite as GDA has it
+    half_blocks = set()   # (x, y) px of GD blocks half a cell off the grid (HALF_BLOCKS)
     if add:
         for m in re.finditer(r'<layer [^>]*name="([^"]+)"[^>]*>\s*<data encoding="csv">(.*?)</data>', text, flags=re.S):
             out[m.group(1)] = [int(v) for v in m.group(2).replace(chr(10), "").replace(chr(13), "").split(",") if v.strip()]
@@ -272,6 +289,14 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
                         continue
                     piece = names[g - 1]
                     layer = dst
+                    if piece in HALF_BLOCKS:
+                        for dx, dy in HALF_BLOCKS[piece]:
+                            half_blocks.add(((to + col - a) * 16 + dx, (row + drop) * 16 + dy))
+                        count[piece] += 1
+                        chosen[piece] = ("gd1", 0, "half block")
+                        continue
+                    if NOTHING.match(piece):
+                        continue
                     if piece.startswith("CEILING_"):
                         lg = layers[src][row][col - 1] if col else 0
                         key, flags = ceiling(piece, names[lg - 1] if lg > 1 else None), 0
@@ -282,12 +307,14 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
                     else:
                         piece, (key, flags, _how) = piece_of(g)
                     if key is None:
-                        missing[piece] += 1
+                        if GDA_DECORATION.match(piece):
+                            notes["GDA decoration with no art here, left out: " + piece] += 1
+                        else:
+                            missing[piece] += 1
                         continue
                     count[piece] += 1
                     out[layer][(row + drop) * root_w + to + col - a] = (GO.OBJECTS[key][0] + 1) | flags
 
-    notes = Counter()     # converted, but not quite as GDA has it
     objects = []
     our_sprites = []      # (tile id, x, y (top), {property: (type attribute, value)}, what)
     sprite_names = gda.sprite_types()
@@ -345,12 +372,27 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
         span = next(((a, b, to) for a, b, to in spans if a <= x // 16 < b), None)
         if span is None:
             continue
+        piece = names[o["gid"] - 1]
+        if NOTHING.match(piece):
+            continue
+        if piece in HALF_BLOCKS:
+            for dx, dy in HALF_BLOCKS[piece]:
+                half_blocks.add((int(round(x)) + dx + (span[2] - span[0]) * 16, int(round(y)) + dy))
+            continue
         piece, (key, flags, _how) = piece_of(o["gid"])
         if key is None:
-            missing[piece] += 1
+            if GDA_DECORATION.match(piece):
+                notes["GDA decoration with no art here, left out: " + piece] += 1
+            else:
+                missing[piece] += 1
             continue
         flags = combine(o["raw_gid"] & (FLIP_H | FLIP_V | FLIP_D), flags)
         objects.append((piece, key, flags, x + (span[2] - span[0]) * 16, y, False))
+
+    for x, y in sorted(half_blocks):
+        objects.append(("GD block off the grid", "gd1", 0, x, y, False))
+    if half_blocks:
+        chosen["GD block off the grid"] = ("gd1", 0, "half blocks")
 
     def build(on_grid):
         """the TMX text with the tile layers and these objects; those in on_grid go on whole cells"""

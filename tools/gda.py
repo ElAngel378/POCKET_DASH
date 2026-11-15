@@ -52,6 +52,9 @@ def read_level(name):
     dict(gid, x, y (top left, px), w, h, props); gids keep their flip bits stripped."""
     root = ET.parse(LEVELS / (name + ".tmx")).getroot()
     w, h = int(root.get("width")), int(root.get("height"))
+    # sprites.tsx is at gid 16385 in most levels, not all (Dry Out 2049): read sprite gids as if
+    first = next((int(t.get("firstgid")) for t in root.findall("tileset") if t.get("source", "").endswith("sprites.tsx")), SPRITE_GID)
+    fix = lambda g: g - first + SPRITE_GID if (g & 0x0FFFFFFF) >= first else g
     layers = {}
     for layer in root.findall("layer"):
         v = [int(x) & 0x0FFFFFFF for x in layer.find("data").text.replace("\n", "").split(",") if x.strip()]
@@ -63,7 +66,9 @@ def read_level(name):
                 continue
             props = {p.get("name"): p.get("value") for p in o.findall("properties/property")}
             ow, oh = float(o.get("width", 16)), float(o.get("height", 16))
-            objs.append(dict(gid=int(o.get("gid")) & 0x0FFFFFFF, raw_gid=int(o.get("gid")),
+            g = int(o.get("gid"))
+            g = (g & 0xF0000000) | fix(g & 0x0FFFFFFF)
+            objs.append(dict(gid=g & 0x0FFFFFFF, raw_gid=g,
                              x=float(o.get("x")), y=float(o.get("y")) - oh, w=ow, h=oh,
                              rot=float(o.get("rotation", 0)), props=props, group=og.get("name")))
     return w, h, layers, objs
