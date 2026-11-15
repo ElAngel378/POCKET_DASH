@@ -672,7 +672,7 @@ uint8_t player_update(
         p->vel_y.w += accel;
     } else {
         uint16_t gravity_val;
-        int16_t max_fall = level_max_fall_7 ? MAX_FALL_SPEED_7 : MAX_FALL_SPEED;
+        int16_t max_fall = (level_max_fall_7 & LEVEL_MAX_FALL_7) ? MAX_FALL_SPEED_7 : MAX_FALL_SPEED;
         if (p->mode == MODE_BALL) {
             gravity_val = mini ? MINI_BALL_GRAVITY : BALL_GRAVITY;
             max_fall = mini ? MINI_BALL_MAX_FALL : MAX_FALL_SPEED;
@@ -683,8 +683,9 @@ uint8_t player_update(
             gravity_val = mini ? MINI_GRAVITY : GRAVITY;
         }
         // Famidash common_gravity_routine: no clamp; past the max fall speed the gravity pulls
-        // the other way for a frame (the speed hovers around it)
-        if (p->gravity_flipped) {
+        // the other way for a frame (the speed hovers around it). GDA's cube: after the move
+        if (GDA_PHYSICS && p->mode == MODE_CUBE) {
+        } else if (p->gravity_flipped) {
             if (p->vel_y.w < -max_fall) p->vel_y.w += gravity_val;
             else p->vel_y.w -= gravity_val;
         } else {
@@ -696,6 +697,7 @@ uint8_t player_update(
     // Movement & collision resolution
     uint16_t prev_y = p->world_y.w;
     p->world_y.w += p->vel_y.w;
+
 
     // Famidash clamps ship velocity AFTER position integration
     // (common_gravity_routine then clamp in ship_movement)
@@ -724,6 +726,17 @@ uint8_t player_update(
         p->world_y.w = 0xFF00;
         p->vel_y.w = 0;
         DIE();
+    }
+
+    // GDA's cube (do_cube_gravity): move, then gravity, the speed clamped (after the out-of-bounds checks: they read the move's direction from the speed)
+    if (GDA_PHYSICS && p->mode == MODE_CUBE) {
+        if (p->gravity_flipped) {
+            p->vel_y.w -= GDA_CUBE_GRAVITY;
+            if (p->vel_y.w < -GDA_CUBE_MAX_FALL) p->vel_y.w = -GDA_CUBE_MAX_FALL;
+        } else {
+            p->vel_y.w += GDA_CUBE_GRAVITY;
+            if (p->vel_y.w > GDA_CUBE_MAX_FALL) p->vel_y.w = GDA_CUBE_MAX_FALL;
+        }
     }
 
     uint8_t py = p->world_y.b.h;
@@ -900,6 +913,12 @@ uint8_t player_update(
         if (joy & J_A) {
             if (p->mode == MODE_CUBE) {
                 int16_t jf = mini ? MINI_JUMP_FORCE : JUMP_FORCE;
+                if (GDA_PHYSICS) {
+                    // GDA cube_gamemode: a new press jumps a little lower than a held one
+                    uint8_t fresh = !(p->last_joy & J_A);
+                    jf = (int16_t)-(int16_t)(mini ? (fresh ? GDA_MINI_CUBE_FIRST_JUMP : GDA_MINI_CUBE_JUMP)
+                                                  : (fresh ? GDA_CUBE_FIRST_JUMP : GDA_CUBE_JUMP));
+                }
                 p->vel_y.w = (p->gravity_flipped) ? -jf : jf;
                 p->on_ground = 0;
             } else if (p->mode == MODE_BALL && !p->ball_switched) {

@@ -211,7 +211,7 @@ const Level level_stereomadness = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_backontrack = {
@@ -228,7 +228,7 @@ const Level level_backontrack = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_polargeist = {
@@ -245,7 +245,7 @@ const Level level_polargeist = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_dryout = {
@@ -262,7 +262,7 @@ const Level level_dryout = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_baseafterbase = {
@@ -279,7 +279,7 @@ const Level level_baseafterbase = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_cantletgo = {
@@ -296,7 +296,7 @@ const Level level_cantletgo = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_jumper = {
@@ -313,7 +313,7 @@ const Level level_jumper = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_timemachine = {
@@ -330,7 +330,7 @@ const Level level_timemachine = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_cycles = {
@@ -347,7 +347,7 @@ const Level level_cycles = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_xstep = {

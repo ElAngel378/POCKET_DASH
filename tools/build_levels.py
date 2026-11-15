@@ -42,7 +42,9 @@ def level_settings(tmx_path):
     props = {p.get('name'): p.get('value') for p in ET.parse(tmx_path).getroot().findall('properties/property')}
     def colour(name):
         return level_colours.slot(tmx_path, props.get(name, level_colours.DEFAULT_LEVEL))
-    return colour('BG colour'), colour('Ground colour'), 1 if props.get('Max fall') == '7' else 0
+    # physics flags (include/player.h): 1 Famidash max fall 7, 2 GDA's physics
+    flags = (1 if props.get('Max fall') == '7' else 0) | (2 if props.get('Physics') == 'GDA' else 0)
+    return colour('BG colour'), colour('Ground colour'), flags
 
 
 def read_uge_tempo(uge_path):

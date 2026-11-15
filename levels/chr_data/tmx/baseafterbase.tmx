@@ -1,10 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="866" height="30" tilewidth="16" tileheight="16" infinite="0" nextlayerid="14" nextobjectid="2779">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="866" height="30" tilewidth="16" tileheight="16" infinite="0" nextlayerid="14" nextobjectid="2929">
  <editorsettings>
   <chunksize width="16" height="27" />
   <export target="baseafterbase.csv" format="csv" />
  </editorsettings>
  <properties>
+  <property name="Physics" value="GDA"/>
   <property name="BG colour" type="color" value="#ff283eff"/>
   <property name="Difficulty" propertytype="Difficulty" value="Hard"/>
   <property name="Ground colour" type="color" value="#ff0013c8"/>
@@ -330,214 +331,214 @@
 </data>
  </layer>
  <objectgroup id="2" name="SP">
-  <object id="2629" gid="10046" x="672" y="368" width="16" height="16"/>
-  <object id="2630" gid="10044" x="624" y="416" width="16" height="16"/>
-  <object id="2631" gid="10045" x="1120" y="400" width="16" height="16"/>
-  <object id="2632" gid="10046" x="1280" y="304" width="16" height="16"/>
-  <object id="2633" gid="10046" x="1312" y="320" width="16" height="16"/>
-  <object id="2634" gid="10044" x="1184" y="384" width="16" height="16"/>
-  <object id="2635" gid="10044" x="1280" y="368" width="16" height="16"/>
-  <object id="2636" gid="10258" x="1104" y="384" width="16" height="16">
+  <object id="2779" gid="10046" x="672" y="368" width="16" height="16"/>
+  <object id="2780" gid="10044" x="624" y="416" width="16" height="16"/>
+  <object id="2781" gid="10045" x="1120" y="400" width="16" height="16"/>
+  <object id="2782" gid="10046" x="1280" y="304" width="16" height="16"/>
+  <object id="2783" gid="10046" x="1312" y="320" width="16" height="16"/>
+  <object id="2784" gid="10044" x="1184" y="384" width="16" height="16"/>
+  <object id="2785" gid="10044" x="1280" y="368" width="16" height="16"/>
+  <object id="2786" gid="10258" x="1104" y="384" width="16" height="16">
    <properties>
     <property name="Colour" type="color" value="#ff9000b7"/>
     <property name="Fade" propertytype="FadeTime" value="0.5 s"/>
    </properties>
   </object>
-  <object id="2637" gid="10257" x="1104" y="400" width="16" height="16">
+  <object id="2787" gid="10257" x="1104" y="400" width="16" height="16">
    <properties>
     <property name="Colour" type="color" value="#ffad00fc"/>
     <property name="Fade" propertytype="FadeTime" value="0.5 s"/>
    </properties>
   </object>
-  <object id="2638" gid="10044" x="1392" y="368" width="16" height="16"/>
-  <object id="2639" gid="10011" x="1632" y="352" width="16" height="16"/>
-  <object id="2640" gid="10044" x="2000" y="400" width="16" height="16"/>
-  <object id="2641" gid="10044" x="2168" y="384" width="16" height="16"/>
-  <object id="2642" gid="10044" x="2248" y="384" width="16" height="16"/>
-  <object id="2643" gid="10046" x="2080" y="320" width="16" height="16"/>
-  <object id="2644" gid="10046" x="2336" y="384" width="16" height="16"/>
-  <object id="2645" gid="10046" x="2624" y="384" width="16" height="16"/>
-  <object id="2646" gid="10046" x="2704" y="352" width="16" height="16"/>
-  <object id="2647" gid="10046" x="2384" y="336" width="16" height="16"/>
-  <object id="2648" gid="10046" x="2368" y="336" width="16" height="16"/>
-  <object id="2649" gid="10046" x="2400" y="400" width="16" height="16"/>
-  <object id="2650" gid="10046" x="2464" y="384" width="16" height="16"/>
-  <object id="2651" gid="10046" x="2528" y="368" width="16" height="16"/>
-  <object id="2652" gid="10012" x="1568" y="376" width="16" height="16"/>
-  <object id="2653" gid="10012" x="2784" y="344" width="16" height="16"/>
-  <object id="2654" gid="10046" x="2864" y="352" width="16" height="16"/>
-  <object id="2655" gid="10046" x="2912" y="304" width="16" height="16"/>
-  <object id="2656" gid="10046" x="2896" y="304" width="16" height="16"/>
-  <object id="2657" gid="10046" x="2944" y="384" width="16" height="16"/>
-  <object id="2658" gid="10011" x="3088" y="368" width="16" height="16"/>
-  <object id="2659" gid="10057" x="2992" y="407" width="16" height="16"/>
-  <object id="2660" gid="10057" x="2992" y="391" width="16" height="16"/>
-  <object id="2661" gid="10057" x="2992" y="423" width="16" height="16"/>
-  <object id="2662" gid="10046" x="3360" y="320" width="16" height="16"/>
-  <object id="2663" gid="10046" x="3248" y="416" width="16" height="16"/>
-  <object id="2664" gid="10046" x="3200" y="416" width="16" height="16"/>
-  <object id="2665" gid="10011" x="3120" y="424" width="16" height="16"/>
-  <object id="2666" gid="10044" x="3792" y="384" width="16" height="16"/>
-  <object id="2667" gid="10046" x="3664" y="336" width="16" height="16"/>
-  <object id="2668" gid="10046" x="3536" y="320" width="16" height="16"/>
-  <object id="2669" gid="10046" x="3472" y="336" width="16" height="16"/>
-  <object id="2670" gid="10046" x="3456" y="336" width="16" height="16"/>
-  <object id="2671" gid="10044" x="4000" y="352" width="16" height="16"/>
-  <object id="2672" gid="10012" x="3872" y="384" width="16" height="16"/>
-  <object id="2673" gid="10012" x="4120" y="368" width="16" height="16"/>
-  <object id="2674" gid="10044" x="4368" y="336" width="16" height="16"/>
-  <object id="2675" gid="10012" x="4624" y="400" width="16" height="16"/>
-  <object id="2676" gid="10012" x="4552" y="392" width="16" height="16"/>
-  <object id="2677" gid="10046" x="4704" y="400" width="16" height="16"/>
-  <object id="2678" gid="10046" x="4736" y="400" width="16" height="16"/>
-  <object id="2679" gid="10012" x="4792" y="400" width="16" height="16"/>
-  <object id="2680" gid="10257" x="4800" y="288" width="16" height="16">
+  <object id="2788" gid="10044" x="1392" y="368" width="16" height="16"/>
+  <object id="2789" gid="10011" x="1632" y="352" width="16" height="16"/>
+  <object id="2790" gid="10044" x="2000" y="400" width="16" height="16"/>
+  <object id="2791" gid="10044" x="2168" y="384" width="16" height="16"/>
+  <object id="2792" gid="10044" x="2248" y="384" width="16" height="16"/>
+  <object id="2793" gid="10046" x="2080" y="320" width="16" height="16"/>
+  <object id="2794" gid="10046" x="2336" y="384" width="16" height="16"/>
+  <object id="2795" gid="10046" x="2624" y="384" width="16" height="16"/>
+  <object id="2796" gid="10046" x="2704" y="352" width="16" height="16"/>
+  <object id="2797" gid="10046" x="2384" y="336" width="16" height="16"/>
+  <object id="2798" gid="10046" x="2368" y="336" width="16" height="16"/>
+  <object id="2799" gid="10046" x="2400" y="400" width="16" height="16"/>
+  <object id="2800" gid="10046" x="2464" y="384" width="16" height="16"/>
+  <object id="2801" gid="10046" x="2528" y="368" width="16" height="16"/>
+  <object id="2802" gid="10012" x="1568" y="376" width="16" height="16"/>
+  <object id="2803" gid="10012" x="2784" y="344" width="16" height="16"/>
+  <object id="2804" gid="10046" x="2864" y="352" width="16" height="16"/>
+  <object id="2805" gid="10046" x="2912" y="304" width="16" height="16"/>
+  <object id="2806" gid="10046" x="2896" y="304" width="16" height="16"/>
+  <object id="2807" gid="10046" x="2944" y="384" width="16" height="16"/>
+  <object id="2808" gid="10011" x="3088" y="368" width="16" height="16"/>
+  <object id="2809" gid="10057" x="2992" y="407" width="16" height="16"/>
+  <object id="2810" gid="10057" x="2992" y="391" width="16" height="16"/>
+  <object id="2811" gid="10057" x="2992" y="423" width="16" height="16"/>
+  <object id="2812" gid="10046" x="3360" y="320" width="16" height="16"/>
+  <object id="2813" gid="10046" x="3248" y="416" width="16" height="16"/>
+  <object id="2814" gid="10046" x="3200" y="416" width="16" height="16"/>
+  <object id="2815" gid="10011" x="3120" y="424" width="16" height="16"/>
+  <object id="2816" gid="10044" x="3792" y="384" width="16" height="16"/>
+  <object id="2817" gid="10046" x="3664" y="336" width="16" height="16"/>
+  <object id="2818" gid="10046" x="3536" y="320" width="16" height="16"/>
+  <object id="2819" gid="10046" x="3472" y="336" width="16" height="16"/>
+  <object id="2820" gid="10046" x="3456" y="336" width="16" height="16"/>
+  <object id="2821" gid="10044" x="4000" y="352" width="16" height="16"/>
+  <object id="2822" gid="10012" x="3872" y="384" width="16" height="16"/>
+  <object id="2823" gid="10012" x="4120" y="368" width="16" height="16"/>
+  <object id="2824" gid="10044" x="4368" y="336" width="16" height="16"/>
+  <object id="2825" gid="10012" x="4624" y="400" width="16" height="16"/>
+  <object id="2826" gid="10012" x="4552" y="392" width="16" height="16"/>
+  <object id="2827" gid="10046" x="4704" y="400" width="16" height="16"/>
+  <object id="2828" gid="10046" x="4736" y="400" width="16" height="16"/>
+  <object id="2829" gid="10012" x="4792" y="400" width="16" height="16"/>
+  <object id="2830" gid="10257" x="4800" y="288" width="16" height="16">
    <properties>
     <property name="Colour" type="color" value="#ff000000"/>
     <property name="Fade" propertytype="FadeTime" value="0.5 s"/>
    </properties>
   </object>
-  <object id="2681" gid="10258" x="4800" y="272" width="16" height="16">
+  <object id="2831" gid="10258" x="4800" y="272" width="16" height="16">
    <properties>
     <property name="Colour" type="color" value="#ff000000"/>
     <property name="Fade" propertytype="FadeTime" value="0.5 s"/>
    </properties>
   </object>
-  <object id="2682" gid="10257" x="2256" y="304" width="16" height="16">
+  <object id="2832" gid="10257" x="2256" y="304" width="16" height="16">
    <properties>
     <property name="Colour" type="color" value="#ffc60059"/>
     <property name="Fade" propertytype="FadeTime" value="0.5 s"/>
    </properties>
   </object>
-  <object id="2683" gid="10258" x="2256" y="288" width="16" height="16">
+  <object id="2833" gid="10258" x="2256" y="288" width="16" height="16">
    <properties>
     <property name="Colour" type="color" value="#ff540031"/>
     <property name="Fade" propertytype="FadeTime" value="0.5 s"/>
    </properties>
   </object>
-  <object id="2684" gid="10046" x="6944" y="256" width="16" height="16"/>
-  <object id="2685" gid="10046" x="6896" y="240" width="16" height="16"/>
-  <object id="2686" gid="10046" x="6848" y="224" width="16" height="16"/>
-  <object id="2687" gid="10062" x="6688" y="368" width="16" height="16"/>
-  <object id="2688" gid="10046" x="6496" y="208" width="16" height="16"/>
-  <object id="2689" gid="10046" x="6320" y="240" width="16" height="16"/>
-  <object id="2690" gid="10046" x="6352" y="256" width="16" height="16"/>
-  <object id="2691" gid="10046" x="6224" y="208" width="16" height="16"/>
-  <object id="2692" gid="10046" x="5600" y="272" width="16" height="16"/>
-  <object id="2693" gid="10046" x="5696" y="272" width="16" height="16"/>
-  <object id="2694" gid="10061" x="5600" y="336" width="16" height="16"/>
-  <object id="2695" gid="10061" x="5696" y="336" width="16" height="16"/>
-  <object id="2696" gid="10061" x="6224" y="272" width="16" height="16"/>
-  <object id="2697" gid="10045" x="6592" y="272" width="16" height="16"/>
-  <object id="2698" gid="10045" x="6704" y="272" width="16" height="16"/>
-  <object id="2699" gid="10061" x="6816" y="296" width="16" height="16"/>
-  <object id="2700" gid="10061" x="6848" y="312" width="16" height="16"/>
-  <object id="2701" gid="10061" x="6896" y="328" width="16" height="16"/>
-  <object id="2702" gid="10061" x="6944" y="344" width="16" height="16"/>
-  <object id="2703" gid="10046" x="7056" y="256" width="16" height="16"/>
-  <object id="2704" gid="10046" x="7120" y="256" width="16" height="16"/>
-  <object id="2705" gid="10046" x="7248" y="256" width="16" height="16"/>
-  <object id="2706" gid="10046" x="7184" y="256" width="16" height="16"/>
-  <object id="2707" gid="10011" x="7072" y="336" width="16" height="16"/>
-  <object id="2708" gid="10011" x="7144" y="336" width="16" height="16"/>
-  <object id="2709" gid="10011" x="7216" y="336" width="16" height="16"/>
-  <object id="2710" gid="10061" x="7056" y="360" width="16" height="16"/>
-  <object id="2711" gid="10061" x="7128" y="360" width="16" height="16"/>
-  <object id="2712" gid="10061" x="7200" y="360" width="16" height="16"/>
-  <object id="2713" gid="10046" x="7264" y="368" width="16" height="16"/>
-  <object id="2714" gid="10046" x="7328" y="368" width="16" height="16"/>
-  <object id="2715" gid="10002" x="7348.27" y="338.13" width="16" height="16"/>
-  <object id="2716" gid="10257" x="7348.27" y="309.33" width="16" height="16">
+  <object id="2834" gid="10046" x="6944" y="256" width="16" height="16"/>
+  <object id="2835" gid="10046" x="6896" y="240" width="16" height="16"/>
+  <object id="2836" gid="10046" x="6848" y="224" width="16" height="16"/>
+  <object id="2837" gid="10062" x="6688" y="368" width="16" height="16"/>
+  <object id="2838" gid="10046" x="6496" y="208" width="16" height="16"/>
+  <object id="2839" gid="10046" x="6320" y="240" width="16" height="16"/>
+  <object id="2840" gid="10046" x="6352" y="256" width="16" height="16"/>
+  <object id="2841" gid="10046" x="6224" y="208" width="16" height="16"/>
+  <object id="2842" gid="10046" x="5600" y="272" width="16" height="16"/>
+  <object id="2843" gid="10046" x="5696" y="272" width="16" height="16"/>
+  <object id="2844" gid="10061" x="5600" y="336" width="16" height="16"/>
+  <object id="2845" gid="10061" x="5696" y="336" width="16" height="16"/>
+  <object id="2846" gid="10061" x="6224" y="272" width="16" height="16"/>
+  <object id="2847" gid="10045" x="6592" y="272" width="16" height="16"/>
+  <object id="2848" gid="10045" x="6704" y="272" width="16" height="16"/>
+  <object id="2849" gid="10061" x="6816" y="296" width="16" height="16"/>
+  <object id="2850" gid="10061" x="6848" y="312" width="16" height="16"/>
+  <object id="2851" gid="10061" x="6896" y="328" width="16" height="16"/>
+  <object id="2852" gid="10061" x="6944" y="344" width="16" height="16"/>
+  <object id="2853" gid="10046" x="7056" y="256" width="16" height="16"/>
+  <object id="2854" gid="10046" x="7120" y="256" width="16" height="16"/>
+  <object id="2855" gid="10046" x="7248" y="256" width="16" height="16"/>
+  <object id="2856" gid="10046" x="7184" y="256" width="16" height="16"/>
+  <object id="2857" gid="10011" x="7072" y="336" width="16" height="16"/>
+  <object id="2858" gid="10011" x="7144" y="336" width="16" height="16"/>
+  <object id="2859" gid="10011" x="7216" y="336" width="16" height="16"/>
+  <object id="2860" gid="10061" x="7056" y="360" width="16" height="16"/>
+  <object id="2861" gid="10061" x="7128" y="360" width="16" height="16"/>
+  <object id="2862" gid="10061" x="7200" y="360" width="16" height="16"/>
+  <object id="2863" gid="10046" x="7264" y="368" width="16" height="16"/>
+  <object id="2864" gid="10046" x="7328" y="368" width="16" height="16"/>
+  <object id="2865" gid="10002" x="7348.27" y="338.13" width="16" height="16"/>
+  <object id="2866" gid="10257" x="7348.27" y="309.33" width="16" height="16">
    <properties>
     <property name="Colour" type="color" value="#ff5d004d"/>
     <property name="Fade" propertytype="FadeTime" value="0.5 s"/>
    </properties>
   </object>
-  <object id="2717" gid="10258" x="7348.27" y="325.33" width="16" height="16">
+  <object id="2867" gid="10258" x="7348.27" y="325.33" width="16" height="16">
    <properties>
     <property name="Colour" type="color" value="#ff27011c"/>
     <property name="Fade" propertytype="FadeTime" value="0.5 s"/>
    </properties>
   </object>
-  <object id="2718" gid="10057" x="8400" y="423" width="16" height="16"/>
-  <object id="2719" gid="10057" x="8400" y="343" width="16" height="16"/>
-  <object id="2720" gid="10045" x="8784" y="352" width="16" height="16"/>
-  <object id="2721" gid="10061" x="8896" y="304" width="16" height="16"/>
-  <object id="2722" gid="10061" x="8672" y="304" width="16" height="16"/>
-  <object id="2723" gid="10061" x="9040" y="336" width="16" height="16"/>
-  <object id="2724" gid="10045" x="9184" y="384" width="16" height="16"/>
-  <object id="2725" gid="10061" x="9264" y="336" width="16" height="16"/>
-  <object id="2726" gid="10061" x="9328" y="336" width="16" height="16"/>
-  <object id="2727" gid="10058" x="9344" y="320" width="16" height="16"/>
-  <object id="2728" gid="10043" x="9488" y="352" width="16" height="16"/>
-  <object id="2729" gid="10044" x="9520" y="352" width="16" height="16"/>
-  <object id="2730" gid="10045" x="9552" y="352" width="16" height="16"/>
-  <object id="2731" gid="10001" x="9584" y="320" width="16" height="16"/>
-  <object id="2732" gid="10058" x="9600" y="368" width="16" height="16"/>
-  <object id="2733" gid="10046" x="9856" y="288" width="16" height="16"/>
-  <object id="2734" gid="10046" x="9968" y="288" width="16" height="16"/>
-  <object id="2735" gid="10046" x="10144" y="288" width="16" height="16"/>
-  <object id="2736" gid="10046" x="10256" y="288" width="16" height="16"/>
-  <object id="2737" gid="10060" x="10432" y="384" width="16" height="16"/>
-  <object id="2738" gid="10060" x="10608" y="384" width="16" height="16"/>
-  <object id="2739" gid="10060" x="10720" y="384" width="16" height="16"/>
-  <object id="2740" gid="10062" x="11088" y="400" width="16" height="16"/>
-  <object id="2741" gid="10062" x="11232" y="400" width="16" height="16"/>
-  <object id="2742" gid="10060" x="11440" y="336" width="16" height="16"/>
-  <object id="2743" gid="10060" x="11568" y="336" width="16" height="16"/>
-  <object id="2744" gid="10060" x="11600" y="336" width="16" height="16"/>
-  <object id="2745" gid="10060" x="11728" y="368" width="16" height="16"/>
-  <object id="2746" gid="10010" x="9848" y="344" width="16" height="16"/>
-  <object id="2747" gid="10009" x="11808" y="384" width="16" height="16"/>
-  <object id="2748" gid="10046" x="13680" y="348" width="16" height="16"/>
-  <object id="2749" gid="10046" x="13504" y="352" width="16" height="16"/>
-  <object id="2750" gid="10046" x="13520" y="352" width="16" height="16"/>
-  <object id="2751" gid="10046" x="13440" y="352" width="16" height="16"/>
-  <object id="2752" gid="10046" x="13414" y="352" width="16" height="16"/>
-  <object id="2753" gid="10046" x="13312" y="352" width="16" height="16"/>
-  <object id="2754" gid="10046" x="13296" y="352" width="16" height="16"/>
-  <object id="2755" gid="10046" x="12960" y="352" width="16" height="16"/>
-  <object id="2756" gid="10046" x="13072" y="352" width="16" height="16"/>
-  <object id="2757" gid="10046" x="13184" y="352" width="16" height="16"/>
-  <object id="2758" gid="10044" x="12920" y="400" width="16" height="16"/>
-  <object id="2759" gid="10046" x="12736" y="400" width="16" height="16"/>
-  <object id="2760" gid="10046" x="12848" y="400" width="16" height="16"/>
-  <object id="2761" gid="10046" x="12464" y="352" width="16" height="16"/>
-  <object id="2762" gid="10046" x="12640" y="352" width="16" height="16"/>
-  <object id="2763" gid="10044" x="12400" y="320" width="16" height="16"/>
-  <object id="2764" gid="10044" x="12208" y="336" width="16" height="16"/>
-  <object id="2765" gid="10046" x="12128" y="368" width="16" height="16"/>
-  <object id="2766" gid="10046" x="12160" y="368" width="16" height="16"/>
-  <object id="2767" gid="10044" x="12048" y="384" width="16" height="16"/>
-  <object id="2768" gid="10043" x="11984" y="400" width="16" height="16"/>
-  <object id="2769" gid="10257" x="11808" y="208" width="16" height="16">
+  <object id="2868" gid="10057" x="8400" y="423" width="16" height="16"/>
+  <object id="2869" gid="10057" x="8400" y="343" width="16" height="16"/>
+  <object id="2870" gid="10045" x="8784" y="352" width="16" height="16"/>
+  <object id="2871" gid="10061" x="8896" y="304" width="16" height="16"/>
+  <object id="2872" gid="10061" x="8672" y="304" width="16" height="16"/>
+  <object id="2873" gid="10061" x="9040" y="336" width="16" height="16"/>
+  <object id="2874" gid="10045" x="9184" y="384" width="16" height="16"/>
+  <object id="2875" gid="10061" x="9264" y="336" width="16" height="16"/>
+  <object id="2876" gid="10061" x="9328" y="336" width="16" height="16"/>
+  <object id="2877" gid="10058" x="9344" y="320" width="16" height="16"/>
+  <object id="2878" gid="10043" x="9488" y="352" width="16" height="16"/>
+  <object id="2879" gid="10044" x="9520" y="352" width="16" height="16"/>
+  <object id="2880" gid="10045" x="9552" y="352" width="16" height="16"/>
+  <object id="2881" gid="10001" x="9584" y="320" width="16" height="16"/>
+  <object id="2882" gid="10058" x="9600" y="368" width="16" height="16"/>
+  <object id="2883" gid="10046" x="9856" y="288" width="16" height="16"/>
+  <object id="2884" gid="10046" x="9968" y="288" width="16" height="16"/>
+  <object id="2885" gid="10046" x="10144" y="288" width="16" height="16"/>
+  <object id="2886" gid="10046" x="10256" y="288" width="16" height="16"/>
+  <object id="2887" gid="10060" x="10432" y="384" width="16" height="16"/>
+  <object id="2888" gid="10060" x="10608" y="384" width="16" height="16"/>
+  <object id="2889" gid="10060" x="10720" y="384" width="16" height="16"/>
+  <object id="2890" gid="10062" x="11088" y="400" width="16" height="16"/>
+  <object id="2891" gid="10062" x="11232" y="400" width="16" height="16"/>
+  <object id="2892" gid="10060" x="11440" y="336" width="16" height="16"/>
+  <object id="2893" gid="10060" x="11568" y="336" width="16" height="16"/>
+  <object id="2894" gid="10060" x="11600" y="336" width="16" height="16"/>
+  <object id="2895" gid="10060" x="11728" y="368" width="16" height="16"/>
+  <object id="2896" gid="10010" x="9848" y="344" width="16" height="16"/>
+  <object id="2897" gid="10009" x="11808" y="384" width="16" height="16"/>
+  <object id="2898" gid="10046" x="13680" y="348" width="16" height="16"/>
+  <object id="2899" gid="10046" x="13504" y="352" width="16" height="16"/>
+  <object id="2900" gid="10046" x="13520" y="352" width="16" height="16"/>
+  <object id="2901" gid="10046" x="13440" y="352" width="16" height="16"/>
+  <object id="2902" gid="10046" x="13414" y="352" width="16" height="16"/>
+  <object id="2903" gid="10046" x="13312" y="352" width="16" height="16"/>
+  <object id="2904" gid="10046" x="13296" y="352" width="16" height="16"/>
+  <object id="2905" gid="10046" x="12960" y="352" width="16" height="16"/>
+  <object id="2906" gid="10046" x="13072" y="352" width="16" height="16"/>
+  <object id="2907" gid="10046" x="13184" y="352" width="16" height="16"/>
+  <object id="2908" gid="10044" x="12920" y="400" width="16" height="16"/>
+  <object id="2909" gid="10046" x="12736" y="400" width="16" height="16"/>
+  <object id="2910" gid="10046" x="12848" y="400" width="16" height="16"/>
+  <object id="2911" gid="10046" x="12464" y="352" width="16" height="16"/>
+  <object id="2912" gid="10046" x="12640" y="352" width="16" height="16"/>
+  <object id="2913" gid="10044" x="12400" y="320" width="16" height="16"/>
+  <object id="2914" gid="10044" x="12208" y="336" width="16" height="16"/>
+  <object id="2915" gid="10046" x="12128" y="368" width="16" height="16"/>
+  <object id="2916" gid="10046" x="12160" y="368" width="16" height="16"/>
+  <object id="2917" gid="10044" x="12048" y="384" width="16" height="16"/>
+  <object id="2918" gid="10043" x="11984" y="400" width="16" height="16"/>
+  <object id="2919" gid="10257" x="11808" y="208" width="16" height="16">
    <properties>
     <property name="Colour" type="color" value="#fff312de"/>
     <property name="Fade" propertytype="FadeTime" value="0.5 s"/>
    </properties>
   </object>
-  <object id="2770" gid="10258" x="11808" y="224" width="16" height="16">
+  <object id="2920" gid="10258" x="11808" y="224" width="16" height="16">
    <properties>
     <property name="Colour" type="color" value="#ff6e106e"/>
     <property name="Fade" propertytype="FadeTime" value="0.5 s"/>
    </properties>
   </object>
-  <object id="2771" gid="10258" x="9584" y="256" width="16" height="16">
+  <object id="2921" gid="10258" x="9584" y="256" width="16" height="16">
    <properties>
     <property name="Colour" type="color" value="#ff365800"/>
     <property name="Fade" propertytype="FadeTime" value="0.5 s"/>
    </properties>
   </object>
-  <object id="2772" gid="10257" x="9584" y="272" width="16" height="16">
+  <object id="2922" gid="10257" x="9584" y="272" width="16" height="16">
    <properties>
     <property name="Colour" type="color" value="#ff96e513"/>
     <property name="Fade" propertytype="FadeTime" value="0.5 s"/>
    </properties>
   </object>
-  <object id="2773" gid="10019" x="6528" y="416" width="16" height="16"/>
-  <object id="2774" gid="10018" x="6720" y="176" width="16" height="16"/>
-  <object id="2775" gid="10008" x="3120" y="416" width="16" height="16"/>
-  <object id="2776" gid="10027" x="6544" y="416" width="16" height="16"/>
-  <object id="2777" gid="10028" x="9348" y="292" width="16" height="16"/>
-  <object id="2778" gid="10016" x="13840" y="352" width="16" height="16"/></objectgroup>
+  <object id="2923" gid="10019" x="6528" y="416" width="16" height="16"/>
+  <object id="2924" gid="10018" x="6720" y="176" width="16" height="16"/>
+  <object id="2925" gid="10008" x="3120" y="416" width="16" height="16"/>
+  <object id="2926" gid="10027" x="6544" y="416" width="16" height="16"/>
+  <object id="2927" gid="10028" x="9348" y="292" width="16" height="16"/>
+  <object id="2928" gid="10016" x="13840" y="352" width="16" height="16"/></objectgroup>
 </map>

@@ -277,6 +277,11 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
                 colour = colour_of(gprops[gda_name])
                 btext = re.sub(r'(<property name="%s" type="color" value=")[^"]*' % ours_name, r"\g<1>" + colour, btext)
         btext = re.sub(r'(<export target="../level_data/)[^"]*(\.csv")', r"\g<1>%s\2" % target, btext)
+        # GDA's physics for the level (include/player.h LEVEL_GDA)
+        if '<property name="Physics"' in btext:
+            btext = re.sub(r'(<property name="Physics" value=")[^"]*', r"\g<1>GDA", btext)
+        else:
+            btext = btext.replace("<properties>", "<properties>" + chr(10) + '  <property name="Physics" value="GDA"/>', 1)   # the map's own come first
         with (TMX / (target + ".tmx")).open("w", newline="") as f:
             f.write(btext)
     table = gda.metatiles()

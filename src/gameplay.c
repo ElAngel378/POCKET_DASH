@@ -1652,7 +1652,7 @@ void play_level(uint8_t idx) BANKED {
         uint16_t px_curr = px_prev;
 
         if (end_anim_state == END_ANIM_INACTIVE && cam_px < max_scroll_px) {
-            scroll_acc += SCROLL_SPEED_FP;
+            scroll_acc += GDA_PHYSICS ? GDA_SCROLL_SPEED_FP : SCROLL_SPEED_FP;
             cam_px += scroll_acc >> 8;
             // the parallax drifts against the scrolling: not while the camera is still (level
             // start: the player first runs to PLAYER_SCREEN_X)

@@ -24,8 +24,20 @@
 #define BLUE_ORB_FORCE     420   // Famidash 0x01A0 (416) - ONLY for Ball!
 #define MAX_FALL_SPEED   1549  // Famidash 0x0600 (1536)
 #define MAX_FALL_SPEED_7 1807  // cube, header max fall $07: + DASH_END_VEL_RESET 0x0100 (1792)
-// The level's Famidash header max fall speed is $07 (Level.max_fall_7), set by play_level
+// The level's physics flags (Level.max_fall_7), set by play_level: LEVEL_MAX_FALL_7, LEVEL_GDA
 extern uint8_t level_max_fall_7;
+#define LEVEL_MAX_FALL_7 1u   // Famidash header max fall speed $07: the cube falls up to 7 px a frame
+#define LEVEL_GDA        2u   // GDA's physics (map property Physics = GDA): its per-frame values,
+                              // the GBA running at the Game Boy's ~59.73 Hz
+#define GDA_PHYSICS (level_max_fall_7 & LEVEL_GDA)
+// GDA (include/physics_defines.h), 16.16 -> our 8.8
+#define GDA_CUBE_GRAVITY         107    // 0x6B21
+#define GDA_CUBE_MAX_FALL        1880   // 0x75800
+#define GDA_CUBE_FIRST_JUMP      1364   // sqrt(2 g 2.119 blocks): a new press
+#define GDA_CUBE_JUMP            1379   // sqrt(2 g 2.1669 blocks): held
+#define GDA_MINI_CUBE_FIRST_JUMP 1091   // x 0.8
+#define GDA_MINI_CUBE_JUMP       1103
+#define GDA_SCROLL_SPEED_FP      712    // 10.386 blocks a second
 
 // Ball specific orb/pad forces
 #define BALL_YELLOW_ORB  -1049  // (Famidash -1040)
