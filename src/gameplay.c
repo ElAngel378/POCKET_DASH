@@ -929,8 +929,9 @@ static uint8_t pause_menu(uint8_t idx) {
         }
     }
 
-    // Hide all pause menu UI sprites immediately
-    for (uint8_t i = 0; i < 34; i++) {
+    // Hide all pause menu UI sprites immediately (all 40: CGB's practice diamond is in 33 and 34;
+    // 34 stayed on screen in a gameplay palette until a level sprite took its slot)
+    for (uint8_t i = 0; i < 40; i++) {
         shadow_OAM[i].y = 0;
     }
     percent_hud_hide();   // redrawn next frame (the pause menu used its slots)
