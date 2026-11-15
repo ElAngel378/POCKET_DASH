@@ -765,7 +765,9 @@ uint8_t player_update(
                 ((foot_y & 15) >= 8 && hit_col == COL_ALL && !IS_SOLID(COL_AT(hit_off, foot_y - 8)))) {
                 block_top_y += 8;
             }
-            if ((int16_t)(prev_py + box_bot) - (int16_t)block_top_y >= (int16_t)max_eject) {
+            // (16-bit: the floor under the window is at 256, block_top_y wraps to 0 there)
+            int16_t top16 = (foot_y & ~15) + (int16_t)(uint8_t)(block_top_y - (uint8_t)(foot_y & ~15));
+            if ((int16_t)prev_py + box_bot - top16 >= (int16_t)max_eject) {
                 // came from deeper: no landing
             } else if (!p->gravity_flipped || p->mode == MODE_SHIP || p->mode == MODE_UFO) {
                 p->world_y.b.h = block_top_y - box_bot;
@@ -803,7 +805,8 @@ uint8_t player_update(
                 ((head_y & 15) < 8 && hit_col == COL_ALL && !IS_SOLID(COL_AT(hit_off, head_y + 8)))) {
                 block_bottom_y -= 8;
             }
-            if ((int16_t)block_bottom_y - (int16_t)(prev_py + head_off) >= (int16_t)max_eject + 1) {
+            int16_t bot16 = (head_y & ~15) + 16 - (int16_t)(uint8_t)((uint8_t)((head_y & ~15) + 16) - block_bottom_y);
+            if (bot16 - ((int16_t)prev_py + head_off) >= (int16_t)max_eject + 1) {
                 // came from deeper: no landing (the head probe rests 1 px inside for the ship / UFO)
             } else if (p->gravity_flipped || p->mode == MODE_SHIP || p->mode == MODE_UFO) {
                 p->world_y.b.h = (uint8_t)(block_bottom_y - head_off -
