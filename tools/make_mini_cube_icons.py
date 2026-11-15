@@ -34,8 +34,9 @@ BANK = 60
 FRAMES = 12
 ANGLES = [15 * k for k in range(FRAMES)]
 DEFAULT_PAIR = 58     # include/famidash_sprites.h MINI_PLAYER_TILE_BASE / 2
-# Icon box slot -> mini icon. A cube with none gets the game's default mini cube.
-SLOT_MINI = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12, 13: 13,
+# Icon box slot -> mini icon. A cube with none gets the game's default mini cube (hand-drawn), and so
+# does the default icon (slot 0: the user's choice; its mini icon 0 is left to the menus' random ones).
+SLOT_MINI = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12, 13: 13,
              18: 14, 28: 15, 29: 16, 30: 17, 31: 18, 33: 19, 34: 20, 35: 21, 36: 22, 37: 23, 38: 24,
              39: 25, 40: 26, 41: 27, 42: 28, 43: 29, 44: 30, 45: 31}
 COLOURS = {0: 0, 1: 3, 2: 2, 3: 1}   # to the game's: 1 secondary, 2 primary, 3 black (like Famidash's icons)

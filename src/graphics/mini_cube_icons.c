@@ -7,7 +7,7 @@
 #include "mini_cube_frames.h"
 
 BANKREF(mini_cube_icons)
-static const uint8_t mini_of_icon[46] = { 0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13, 32, 32, 32, 32, 14, 32, 32, 32, 32, 32, 32, 32, 32, 32, 15, 12, 3, 16, 17, 18, 32, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+static const uint8_t mini_of_icon[46] = { 32, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13, 32, 32, 32, 32, 14, 32, 32, 32, 32, 32, 32, 32, 32, 32, 15, 12, 3, 16, 17, 18, 32, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
 // each mini icon upright (the first of its turned images)
 static const uint8_t mini_cube_upright[528] = {
     0xFF, 0xFF, 0x81, 0xFF, 0xBD, 0xFF, 0xBD, 0xE7, 0xBD, 0xE7, 0xBD, 0xFF, 0x81, 0xFF, 0xFF, 0xFF,
