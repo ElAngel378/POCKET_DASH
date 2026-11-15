@@ -1375,6 +1375,17 @@ static const uint8_t cr_spike_tiles[64] = {
     0x08, 0xF0, 0x04, 0xF8, 0x04, 0xA8, 0x02, 0xA8, 0x02, 0x54, 0x01, 0x00, 0x01, 0x00, 0xFF, 0x00,
 };
 
+// CGB: like the game's level palette 0 (famidash_bg.c): white outline, the sky's dark shade (the
+// default sky RGB(1, 9, 24) has RGB(0, 4, 14): about half), black. The sky: the rainbow's (palette 0)
+static void cr_spike_palette(void) {
+    palette_color_t sky = shadow_bkg_palettes[0];
+    palette_color_t pal[4];
+    pal[0] = pal[1] = RGB(31, 31, 31);
+    pal[2] = (palette_color_t)((sky >> 1) & 0x3DEFu);   // each channel halved
+    pal[3] = RGB(0, 0, 0);
+    fade_set_sprite_palette(CR_SPIKE_PAL, 1, pal);
+}
+
 // Once a frame, with the ground: the spikes move with it; a new one comes while the runner still
 // has room to get past it. Far enough apart to land (switch, turn) between two.
 static void cr_spikes(void) {
@@ -1529,13 +1540,7 @@ GameState update_credits_state(GameState back) BANKED {
     mc_s.page_mode = cr_page_mode[0];
     mc_s.sp_timer = 30;
     set_sprite_data(CR_SPIKE_TILE, 4, cr_spike_tiles);
-    if (_cpu == CGB_TYPE) {
-        palette_color_t pal[4];
-        // the game's level palette 0 (famidash_bg.c): white, the default sky's dark shade, black
-        pal[0] = RGB(31, 31, 31); pal[1] = RGB(31, 31, 31);
-        pal[2] = RGB(0, 4, 14); pal[3] = RGB(0, 0, 0);
-        fade_set_sprite_palette(CR_SPIKE_PAL, 1, pal);
-    }
+    if (_cpu == CGB_TYPE) cr_spike_palette();
     mc_seed = DIV_REG | 1u;
     mc_art = (uint8_t *)(((uint16_t)mc_s.art_ram + 15u) & 0xFFF0u);
     mc_front = 0;
@@ -1595,6 +1600,7 @@ GameState update_credits_state(GameState back) BANKED {
         cr_spikes();
         if (_cpu == CGB_TYPE && (frame_counter & 15) == 0) {
             apply_rainbow_palette((uint8_t)(frame_counter >> 4));
+            cr_spike_palette();
         }
 
         // The runner belongs to the page: a new one only if it can cross before the page goes
