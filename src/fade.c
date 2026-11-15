@@ -258,7 +258,12 @@ typedef struct {
     uint8_t open_l, open_r; // the opening: [open_l, open_r)
     uint8_t cov_l, cov_r;   // covered so far: [cov_l, open_l) and [open_r, cov_r)
     uint8_t band;           // mt_band of rows
+    uint8_t k;              // frames of closing so far
 } curtain_t;
+// Closing takes CU_FRAMES frames whatever the VBlank handler has room for (it could write up to
+// 3 columns a frame, so the speed went with how busy the frames were): after frame k the screen's
+// k / CU_FRAMES of 11 columns on the left and 10 on the right are covered
+#define CU_FRAMES 14u
 #define CU (*(curtain_t *)step_bkg)
 // the fade's own, in the place of the sprite palette it leaves alone (the HUD's)
 #define DZ_F (((uint8_t *)step_spr)[56])    // frames so far
@@ -452,10 +457,15 @@ static void cu_frame(uint8_t scx) {
         // the columns the scroll brings in first, a column before they show
         while (n < 3u && (int8_t)(CU.cov_r - (uint8_t)(s + 22u)) < 0) CU.x[n++] = (uint8_t)(CU.cov_r++ & 31u);
         while (n < 3u && (int8_t)(CU.cov_l - (uint8_t)(s - 1u)) > 0) CU.x[n++] = (uint8_t)(--CU.cov_l & 31u);
-        // then the side of the opening that is further from the middle of the screen
+        // then the opening narrows from both sides on time
+        uint8_t k = CU.k;
+        if (k < CU_FRAMES) CU.k = ++k;
+        uint8_t l = (uint8_t)(s + (uint8_t)((uint8_t)(k * 11u + (CU_FRAMES - 1u)) / CU_FRAMES));
+        uint8_t r = (uint8_t)(s + 21u - (uint8_t)((uint8_t)(k * 10u + (CU_FRAMES - 1u)) / CU_FRAMES));
         while (n < 3u && CU.open_l != CU.open_r) {
-            if ((uint8_t)(CU.open_l - s) <= (uint8_t)(s + 21u - CU.open_r)) CU.x[n++] = (uint8_t)(CU.open_l++ & 31u);
-            else CU.x[n++] = (uint8_t)(--CU.open_r & 31u);
+            if ((int8_t)(CU.open_l - l) < 0) CU.x[n++] = (uint8_t)(CU.open_l++ & 31u);
+            else if ((int8_t)(CU.open_r - r) > 0) CU.x[n++] = (uint8_t)(--CU.open_r & 31u);
+            else break;
         }
         if (n) bg_fx_pending = n;
         else if (CU.open_l == CU.open_r) mirror_fx_state = MIRROR_FX_CLOSED;
@@ -539,6 +549,7 @@ void mirror_fx_frame(uint8_t scx) BANKED {
         CU.s = s;
         CU.open_l = CU.cov_l = s;
         CU.open_r = CU.cov_r = (uint8_t)(s + 21u);
+        CU.k = 0;
         cu_rows();
         mirror_fx_state = MIRROR_FX_CLOSING;
     }
