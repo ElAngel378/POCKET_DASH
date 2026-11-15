@@ -123,7 +123,7 @@ SPRITES = {
     "BG_CHAINS": (45, 0, 0), "BG_CHAINS/v": (61, 0, 0),
     "LARGE_PULSING_CIRCLE": (42, 0, 0),
     "MEDIUM_PULSING_CIRCLE": (43, 0, 0), "MEDIUM_PULSING_CIRCLE/r90": (63, 0, 4),
-    "SMALL_PULSING_CIRCLE": (44, 0, 0), "SMALL_PULSING_CIRCLE/v": (60, 0, 8),   # GDA's small rod is 24 px: flipped, its circle 8 px lower
+    "SMALL_PULSING_CIRCLE": (44, 0, 0), "SMALL_PULSING_CIRCLE/v": (60, 0, 0),   # (GDA's is 24 px: its base on the cell's top, as ours)
     "SMALL_PULSING_CIRCLE/r90": (57, 0, 0), "SMALL_PULSING_CIRCLE/r270": (56, 0, 7),
     "PULSING_STAR": (54, 0, 0),
 }
