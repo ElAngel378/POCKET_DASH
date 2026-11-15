@@ -23,6 +23,9 @@
 // access, which made the per-frame object loops several times slower (DMG frame drops).
 extern SpCache active_sp;
 #define cache (&active_sp)
+// The level end fires when its object is this far ahead of the player: the object's column at the
+// screen's right edge (160 - PLAYER_SCREEN_X - 16)
+#define LEVEL_END_TRIGGER_PX (160u - PLAYER_SCREEN_X - 16u)
 
 // ID Mappings for SP Layer Logic
 #define OBJ_CUBE_PORTAL   0
@@ -991,7 +994,9 @@ void process_sprite_logic(
         uint8_t obj = cache->obj[i];
 
         if (obj == OBJ_LEVEL_END) {
-            if (end_anim_state == END_ANIM_INACTIVE && px >= (obj_x - 180u)) {
+            // as in GDA: once the end object's column is on screen (the end wall in view), not
+            // Famidash's 180 px ahead, which stopped the camera with the wall still off screen
+            if (end_anim_state == END_ANIM_INACTIVE && px + LEVEL_END_TRIGGER_PX >= obj_x) {
                 end_trigger_requested = 1;
                 end_trigger_obj_x = obj_x;
                 end_trigger_obj_y = cache->py[i];

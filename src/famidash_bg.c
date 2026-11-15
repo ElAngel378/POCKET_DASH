@@ -374,13 +374,14 @@ uint8_t famidash_bkg_palettes_dirty = 0;
 #include "famidash_bg_tables.h"   // Famidash's NES colours: the block outline triggers
 #include "level_colours.h"
 #include "gameplay.h"             // selected: the level being played
+#include "settings.h"
 
 // Shades of a level colour, as fractions of it (x / 256, like GDA's fades to black). The same in
 // tools/level_colours.py SHADES (the Tiled previews)
 #define SHADE_SKY_DARKER    192u
-#define SHADE_BORDER        177u
-#define SHADE_BODY          215u
-#define SHADE_SHADOW        136u
+// The parallax boxes: border, body, shadow. [0] GDA's background shades, [1] the old ones (more
+// contrast), setting_bg_contrast
+static const uint8_t parallax_shades[2][3] = { { 177u, 215u, 136u }, { 133u, 174u, 102u } };
 #define SHADE_GROUND_DARKER 192u
 #define SHADE_GRID_18       159u
 #define SHADE_GRID_9         41u
@@ -432,9 +433,10 @@ void famidash_apply_bg_trigger(uint8_t color_id, uint8_t time) BANKED {
 
     // Palette 3: Parallax BG
     famidash_bg_target[12] = c;
-    famidash_bg_target[13] = shade(c, SHADE_BORDER);
-    famidash_bg_target[14] = shade(c, SHADE_BODY);
-    famidash_bg_target[15] = shade(c, SHADE_SHADOW);
+    const uint8_t *k = parallax_shades[setting_bg_contrast & 1u];
+    famidash_bg_target[13] = shade(c, k[0]);
+    famidash_bg_target[14] = shade(c, k[1]);
+    famidash_bg_target[15] = shade(c, k[2]);
 
     // Palette 4: Ground Grid (Color 0 is the top white line, always pure white)
     famidash_bg_target[16] = RGB(31, 31, 31);

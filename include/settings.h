@@ -13,6 +13,7 @@ extern uint8_t setting_effects_enabled;
 extern uint8_t setting_show_percent;
 extern uint8_t setting_old_ship_cam;   // ship camera: 0 = corridor, 1 = the cube dead zone
 extern uint8_t setting_auto_checkpoints;
+extern uint8_t setting_bg_contrast;    // parallax shades: 0 = GDA's (brighter), 1 = the old ones (more contrast)
 extern uint8_t setting_legacy_music;   // LEGACY: the hUGETracker songs (hUGEDriver) instead of the Furnace ones
 
 #endif // SETTINGS_H

@@ -107,8 +107,11 @@ def ceiling(piece, left):
 SPRITES = {
     "CUBE_PORTAL": (0, 0, -16), "SHIP_PORTAL": (1, 0, -16),
     "BLUE_GRAVITY_PORTAL": (8, 0, -16), "YELLOW_GRAVITY_PORTAL": (9, 0, -16),
+    "BALL_PORTAL": (2, 0, -16), "ORANGE_MIRROR_PORTAL": (126, 0, -16), "BLUE_MIRROR_PORTAL": (121, 0, -16),
+    "PINK_ORB": (6, 0, 0),    # GDA draws it like the yellow orb (same art, same origin)
+    "LARGE_PULSING_CIRCLE/v": (58, 0, 0),
     "YELLOW_GRAVITY_PORTAL/r270": (18, -16, 4), "YELLOW_GRAVITY_PORTAL/r90": (19, 0, 16),
-    "MEDIUM_PULSING_CIRCLE/v": (59, 0, 0), "MEDIUM_PULSING_CIRCLE/r270": (62, 0, 0),
+    "MEDIUM_PULSING_CIRCLE/v": (59, 0, 0), "MEDIUM_PULSING_CIRCLE/r270": (62, -8, 0),   # GDA's medium rod reaches 8 px past its cell
     # a turned portal still works in GD (Stereo Madness's last ship portal): ours stands upright
     "SHIP_PORTAL/r90": (1, 0, -16),
     "YELLOW_ORB": (11, 0, 0), "YELLOW_PAD": (10, 0, 0), "BLUE_PAD": (13, 0, 0),
@@ -438,11 +441,14 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
     if half_blocks:
         chosen["GD block off the grid"] = ("gd1", 0, "half blocks")
 
-    def build(on_grid):
-        """the TMX text with the tile layers and these objects; those in on_grid go on whole cells"""
+    def build(on_grid, skip=frozenset()):
+        """the TMX text with the tile layers and these objects; those in on_grid go on whole cells,
+        those in skip are left out"""
         layer_data = {n: list(d) for n, d in out.items()}
         placed, moved, no_layer = Counter(), Counter(), Counter()
         for i, (piece, key, flags, x, y, deco) in enumerate(objects):
+            if i in skip:
+                continue
             step = 16 if i in on_grid else 8
             x2, y2 = round(x / step) * step // 8, round(y / step) * step // 8
             moved[int(max(abs(x2 * 8 - x), abs(y2 * 8 - y)))] += 1
@@ -519,7 +525,32 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
     else:
         high = 0
     on_grid = set(rarest[:high])
-    final, placed, snapped, full = build(on_grid)
+    # Still too many cell types: leave out decorations, those in the rarest cells first, as few as fit
+    dropped = frozenset()
+    if high == len(rarest) and not fits(build(on_grid)[0]):
+        root = ET.fromstring(build(on_grid)[0])
+        at = {}
+        for key, x, y, fl in LO.tmx_objects(root):
+            for c, part in LO.cells_of(key, x, y, fl).items():
+                at.setdefault(c, set()).add(part)
+        combos = Counter(frozenset(v) for v in at.values())
+
+        def rarity(i):
+            _p, key, flags, x, y, _d = objects[i]
+            step = 16 if i in on_grid else 8
+            cs = LO.cells_of(key, round(x / step) * step, round(y / step) * step, flags)
+            return min((combos[frozenset(at[c])] for c in cs if c in at), default=0)
+        decos = sorted((i for i, o in enumerate(objects) if o[5]), key=rarity)
+        low, high_d = 0, len(decos)
+        while high_d - low > 1:
+            mid = (low + high_d) // 2
+            if fits(build(on_grid, frozenset(decos[:mid]))[0]):
+                high_d = mid
+            else:
+                low = mid
+        dropped = frozenset(decos[:high_d])
+        notes["decorations left out to fit the level's cell types: %d of %d" % (len(dropped), len(decos))] += 1
+    final, placed, snapped, full = build(on_grid, dropped)
     # The outline is a background tile on the 8 px grid (16 px when the level is short of cell types):
     # its pad / orb sprite goes where the outline went, as in our own levels
     for oi, si in outline_of.items():

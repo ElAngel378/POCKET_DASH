@@ -1474,7 +1474,8 @@ void play_level(uint8_t idx) BANKED {
     loaded_r = BKG_MT_W - 1;
     stream_jobs_reset();
     broken_reset();
-    max_scroll_px = ((level_map_w - VIEW_MT_W) << 4);
+    // the camera stops with the map's last column at the screen's right edge (GDA: its end wall)
+    max_scroll_px = ((level_map_w - VIEW_MT_W) << 4) + PLAYER_SCREEN_X;
 
     reduce_flash = (setting_dmg_gradient || sgb_present) ? 0 : 1;   // (SGB: no gradient, it would leave theme 1)
     target_bg_idx = dmg_start_bg_idx();
