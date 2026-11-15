@@ -4,7 +4,8 @@
 
 levels/chr_data/game_art/mini_cube_icons.chr (NES CHR, 8x8 icons, blank tiles skipped; colours 1
 outline, 2 primary, 3 secondary), and the game's own mini cube (sprite_tiles.png, the top half of
-pair MINI_PLAYER_TILE_BASE / 2) for the icons with none ->
+pair MINI_PLAYER_TILE_BASE / 2, and its hand-drawn turned images in the next two) for the icons
+with none ->
 
 - src/graphics/mini_cube_frames.c (bank 60, alone in it: GDMA source, 16 byte aligned): per mini
   icon its turned images like the big cube's, 0..165 degrees clockwise in 15 degree steps (the other
@@ -76,11 +77,22 @@ def turned(img):
     return out
 
 
-def default_mini():
+def default_mini(pr=DEFAULT_PAIR):
     st = Image.open(SPRITES).convert("L")
     idx = lambda v: min(range(4), key=lambda i: abs(v - SHADE[i]))
-    pr = DEFAULT_PAIR
     return [[idx(st.getpixel(((pr % 16) * 8 + x, (pr // 16) * 16 + y))) for x in range(8)] for y in range(8)]
+
+
+def default_turned():
+    """The game's own mini cube: its 3 hand-drawn images (0, 22.5, 45 degrees, pairs 58..60) as the
+    game used them before the turned images: 15 and 30 degrees the 22.5 one, 60 and 75 it mirrored"""
+    hand = [default_mini(DEFAULT_PAIR + i) for i in range(3)]
+    out = []
+    for k in range(FRAMES):
+        q = k % 6
+        img = hand[(0, 1, 1, 2, 1, 1)[q]]
+        out.append([row[::-1] for row in img] if q >= 4 else [row[:] for row in img])
+    return out
 
 
 def carr(data):
@@ -96,7 +108,7 @@ def main():
     sheet = Image.new("L", (FRAMES * 9 * 2, len(icons) * 9), 128)
     for r, img in enumerate(icons):
         upright += encode(img)
-        for k, f in enumerate(turned(img)):
+        for k, f in enumerate(default_turned() if r == default else turned(img)):
             frames += encode(f) + [0] * 16
             for y in range(8):
                 for x in range(8):
