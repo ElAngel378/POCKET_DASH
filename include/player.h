@@ -30,14 +30,7 @@ extern uint8_t level_max_fall_7;
 #define LEVEL_GDA        2u   // GDA's physics (map property Physics = GDA): its per-frame values,
                               // the GBA running at the Game Boy's ~59.73 Hz
 #define GDA_PHYSICS (level_max_fall_7 & LEVEL_GDA)
-// GDA (include/physics_defines.h), 16.16 -> our 8.8
-#define GDA_CUBE_GRAVITY         107    // 0x6B21
-#define GDA_CUBE_MAX_FALL        1880   // 0x75800
-#define GDA_CUBE_FIRST_JUMP      1364   // sqrt(2 g 2.119 blocks): a new press
-#define GDA_CUBE_JUMP            1379   // sqrt(2 g 2.1669 blocks): held
-#define GDA_MINI_CUBE_FIRST_JUMP 1091   // x 0.8
-#define GDA_MINI_CUBE_JUMP       1103
-#define GDA_SCROLL_SPEED_FP      712    // 10.386 blocks a second
+#include "gda_physics.h"   // GDA's values in our units (tools/gda_physics.py)
 
 // Ball specific orb/pad forces
 #define BALL_YELLOW_ORB  -1049  // (Famidash -1040)

@@ -633,6 +633,84 @@ static uint8_t spike_cell(const uint8_t *cp, uint8_t row, int8_t bx, int8_t by, 
 #define COL_AT(off, y) col_at((int16_t)(y), (off))
 #define SPIKE(off, y) spike_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
 
+// GDA run_coll(BOTTOM) / (TOP): the top (bottom) of the solid at the probe (player x + off, y),
+// NO_SOLID when there is none. Half blocks and quadrants as in the Famidash floor code below.
+#define NO_SOLID 0x7FFF
+static int16_t solid_top(uint8_t off, int16_t y) {
+    uint8_t c = COL_AT(off, y);
+    if (!IS_SOLID(c)) return NO_SOLID;
+    int16_t t = y & ~15;
+    if (c == COL_BOTTOM || ((y & 15) >= 8 && c == COL_ALL && !IS_SOLID(COL_AT(off, y - 8)))) t += 8;
+    return t;
+}
+static int16_t solid_bottom(uint8_t off, int16_t y) {
+    uint8_t c = COL_AT(off, y);
+    if (!IS_SOLID(c)) return NO_SOLID;
+    int16_t b = (y & ~15) + 16;
+    if (c == COL_TOP || ((y & 15) < 8 && c == COL_ALL && !IS_SOLID(COL_AT(off, y + 8)))) b -= 8;
+    return b;
+}
+
+// GDA's cube (cube_gamemode, NUM_STEPS 4): each frame in 4 steps of a quarter of the speed, each
+// step: a jump when on the floor with A held, the move, the gravity (do_cube_gravity), then the
+// floor (collision_cube: points x, x + w/2, x + w, landing from less than 6 px in). So the cube
+// lands and jumps again inside a frame, as GDA's does. Returns GDA_LANDED, GDA_NO_CENTRE (GDA
+// check_center = FALSE: moving away from a floor it is less than 6 px in), GDA_OUT (left the map).
+#define GDA_LANDED    1u
+#define GDA_NO_CENTRE 2u
+#define GDA_OUT       4u
+static uint8_t gda_cube_steps(uint8_t joy, uint8_t mini) {
+    int32_t yy = (int32_t)(uint16_t)player.world_y.w;
+    int16_t v = player.vel_y.w;
+    uint8_t flip = player.gravity_flipped;
+    uint8_t box_r = mini ? MINI_BOX_RIGHT : 16u;
+    uint8_t box_top = mini ? MINI_BOX_TOP : 0u;
+    uint8_t box_bot = mini ? MINI_BOX_BOTTOM : 16u;
+    uint8_t res = player.on_ground ? GDA_LANDED : 0u, k;   // (on_floor from the last frame)
+    for (k = 0; k < 4u; k++) {
+        if ((res & GDA_LANDED) && (joy & J_A)) {
+            uint8_t fresh = !(player.last_joy & J_A);
+            v = (int16_t)(mini ? (fresh ? GDA_MINI_CUBE_FIRST_JUMP : GDA_MINI_CUBE_JUMP)
+                               : (fresh ? GDA_CUBE_FIRST_JUMP : GDA_CUBE_JUMP));
+            if (!flip) v = (int16_t)-v;
+        }
+        res = 0;
+        yy += (k < 3u) ? (int16_t)(v / 4) : (int16_t)(v - 3 * (v / 4));
+        if (yy < 0 || yy > 0xFFFF) return GDA_OUT;
+        // the frame's gravity in 4 parts (26, 27, 27, 27: GDA 0x6B21 / 4 a step)
+        int16_t g = (int16_t)(((k + 1u) * GDA_CUBE_GRAVITY >> 2) - (k * GDA_CUBE_GRAVITY >> 2));
+        if (flip) {
+            v -= g;
+            if (v < -GDA_CUBE_MAX_FALL) v = -GDA_CUBE_MAX_FALL;
+        } else {
+            v += g;
+            if (v > GDA_CUBE_MAX_FALL) v = GDA_CUBE_MAX_FALL;
+        }
+        int16_t ypx = (int16_t)(yy >> 8);
+        uint8_t i;
+        for (i = 0; i < 3u; i++) {
+            uint8_t off = i == 0 ? 0u : i == 1 ? (uint8_t)(box_r >> 1) : box_r;
+            if (!flip) {
+                int16_t foot = ypx + box_bot;
+                int16_t t = solid_top(off, foot);
+                if (t == NO_SOLID || foot - t >= 6) continue;
+                if (v >= 0) { yy = (int32_t)(t - box_bot) << 8; v = 0; res = GDA_LANDED; }
+                else res = GDA_NO_CENTRE;
+            } else {
+                int16_t head = ypx + box_top - 1;     // GDA run_coll(TOP): the pixel above
+                int16_t b = solid_bottom(off, head);
+                if (b == NO_SOLID || b - head >= 6) continue;
+                if (v <= 0) { yy = (int32_t)(b - box_top) << 8; v = 0; res = GDA_LANDED; }
+                else res = GDA_NO_CENTRE;
+            }
+            break;
+        }
+    }
+    player.world_y.w = (uint16_t)yy;
+    player.vel_y.w = v;
+    return res;
+}
+
 uint8_t player_update(
         Player* p_arg,
         uint8_t joy,
@@ -649,8 +727,14 @@ uint8_t player_update(
     uint8_t mini = p->mini;
     uint8_t was_on_ground = p->on_ground;
 
-    // Acceleration & gravity
-    if (p->mode == MODE_SHIP) {
+    // Acceleration & gravity (GDA: after the move, gda_gravity)
+    if (GDA_PHYSICS) {
+        // GDA ball_gamemode: the speed clamped before the move
+        if (p->mode == MODE_BALL) {
+            if (p->vel_y.w > GDA_BALL_MAX) p->vel_y.w = GDA_BALL_MAX;
+            else if (p->vel_y.w < -GDA_BALL_MAX) p->vel_y.w = -GDA_BALL_MAX;
+        }
+    } else if (p->mode == MODE_SHIP) {
         // Famidash ship_movement() 4-state model (60fps, non-mini):
         //   holding + falling  -> SHIP_GRAVITY_HOLD_FALL (52)
         //   holding + rising   -> SHIP_GRAVITY_BASE (42)
@@ -683,9 +767,8 @@ uint8_t player_update(
             gravity_val = mini ? MINI_GRAVITY : GRAVITY;
         }
         // Famidash common_gravity_routine: no clamp; past the max fall speed the gravity pulls
-        // the other way for a frame (the speed hovers around it). GDA's cube: after the move
-        if (GDA_PHYSICS && p->mode == MODE_CUBE) {
-        } else if (p->gravity_flipped) {
+        // the other way for a frame (the speed hovers around it)
+        if (p->gravity_flipped) {
             if (p->vel_y.w < -max_fall) p->vel_y.w += gravity_val;
             else p->vel_y.w -= gravity_val;
         } else {
@@ -696,12 +779,22 @@ uint8_t player_update(
 
     // Movement & collision resolution
     uint16_t prev_y = p->world_y.w;
-    p->world_y.w += p->vel_y.w;
-
+    uint8_t gda_cube = GDA_PHYSICS && p->mode == MODE_CUBE;
+    uint8_t gda_res = 0;
+    if (gda_cube) {
+        gda_res = gda_cube_steps(joy, mini);
+        if (gda_res & GDA_OUT) {
+            p->world_y.w = (p->vel_y.w < 0) ? 0 : 0xFF00;
+            p->vel_y.w = 0;
+            DIE();
+        }
+    } else {
+        p->world_y.w += p->vel_y.w;
+    }
 
     // Famidash clamps ship velocity AFTER position integration
     // (common_gravity_routine then clamp in ship_movement)
-    if (p->mode == MODE_SHIP) {
+    if (p->mode == MODE_SHIP && !GDA_PHYSICS) {
         // Famidash hard-codes these for both sizes (its mini SHIP_MAX_FALLSPEED is unused)
         int16_t vup = SHIP_MAX_VEL_UP;
         int16_t vdown = SHIP_MAX_VEL_DOWN;
@@ -714,29 +807,51 @@ uint8_t player_update(
         }
     }
 
-    // Out of bounds check: ceiling underflow (going above top of screen/map)
-    if (p->vel_y.w < 0 && p->world_y.w > prev_y) {
+    // Out of bounds check: ceiling underflow (going above top of screen/map; GDA's cube: in its steps)
+    if (gda_cube) {
+    } else if (p->vel_y.w < 0 && p->world_y.w > prev_y) {
         p->world_y.w = 0;
         p->vel_y.w = 0;
         DIE();
     }
 
     // Out of bounds check: floor overflow
-    if (p->vel_y.w > 0 && p->world_y.w < prev_y) {
+    if (!gda_cube && p->vel_y.w > 0 && p->world_y.w < prev_y) {
         p->world_y.w = 0xFF00;
         p->vel_y.w = 0;
         DIE();
     }
 
-    // GDA's cube (do_cube_gravity): move, then gravity, the speed clamped (after the out-of-bounds checks: they read the move's direction from the speed)
-    if (GDA_PHYSICS && p->mode == MODE_CUBE) {
-        if (p->gravity_flipped) {
-            p->vel_y.w -= GDA_CUBE_GRAVITY;
-            if (p->vel_y.w < -GDA_CUBE_MAX_FALL) p->vel_y.w = -GDA_CUBE_MAX_FALL;
+    // GDA (do_*_gravity): gravity after the move (and after the out-of-bounds checks: they read
+    // the move's direction from the speed). Worked out with down = the player's gravity side.
+    // (The cube: gda_cube_steps)
+    if (GDA_PHYSICS && !gda_cube) {
+        int16_t vd = p->gravity_flipped ? (int16_t)-p->vel_y.w : p->vel_y.w;
+        uint8_t falling = (vd > 0);
+        if (p->mode == MODE_SHIP) {
+            if (joy & (J_A | J_UP)) {
+                vd -= mini ? (falling ? GDA_MINI_SHIP_GRAVITY_HOLD_FALL : GDA_MINI_SHIP_GRAVITY_HOLD)
+                           : (falling ? GDA_SHIP_GRAVITY_HOLD_FALL : GDA_SHIP_GRAVITY_HOLD);
+                int16_t rise = mini ? GDA_MINI_SHIP_MAX_RISE : GDA_SHIP_MAX_RISE;
+                if (vd < -rise) vd = (int16_t)-rise;
+            } else {
+                vd += mini ? (falling ? GDA_MINI_SHIP_GRAVITY_RELEASE_FALL : GDA_MINI_SHIP_GRAVITY_RELEASE_RISE)
+                           : (falling ? GDA_SHIP_GRAVITY_RELEASE_FALL : GDA_SHIP_GRAVITY_RELEASE_RISE);
+                int16_t fall = mini ? GDA_MINI_SHIP_MAX_FALL : GDA_SHIP_MAX_FALL;
+                if (vd > fall) vd = fall;
+            }
+        } else if (p->mode == MODE_BALL) {
+            vd += GDA_BALL_GRAVITY;
+        } else if (p->mode == MODE_UFO) {
+            vd += mini ? (falling ? GDA_MINI_UFO_GRAVITY_FALL : GDA_MINI_UFO_GRAVITY_RISE)
+                       : (falling ? GDA_UFO_GRAVITY_FALL : GDA_UFO_GRAVITY_RISE);
+            int16_t fall = mini ? GDA_MINI_UFO_MAX_FALL : GDA_UFO_MAX_FALL;
+            if (vd > fall) vd = fall;
         } else {
-            p->vel_y.w += GDA_CUBE_GRAVITY;
-            if (p->vel_y.w > GDA_CUBE_MAX_FALL) p->vel_y.w = GDA_CUBE_MAX_FALL;
+            vd += GDA_CUBE_GRAVITY;
+            if (vd > GDA_CUBE_MAX_FALL) vd = GDA_CUBE_MAX_FALL;
         }
+        p->vel_y.w = p->gravity_flipped ? (int16_t)-vd : vd;
     }
 
     uint8_t py = p->world_y.b.h;
@@ -746,7 +861,8 @@ uint8_t player_update(
     uint8_t x_mod_16 = wx & 0x0F;
     uint8_t threshold = 16 - x_mod_16;
     // Box: x .. x+box_r (inclusive), y+box_top .. y+box_bot-1
-    uint8_t box_r   = mini ? MINI_BOX_RIGHT : PLAYER_SIZE;
+    // (GDA: x .. x+16, its boxes are w + 1 wide: is_colliding, run_coll at x + w)
+    uint8_t box_r   = mini ? MINI_BOX_RIGHT : (GDA_PHYSICS ? 16u : PLAYER_SIZE);
     uint8_t box_top = mini ? MINI_BOX_TOP : 0;
     uint8_t box_bot = mini ? MINI_BOX_BOTTOM : 16;
     // Floors and ceilings as in GDA: any of the 3 points (x, x+w/2, x+w) in a block lands, but only
@@ -762,8 +878,13 @@ uint8_t player_update(
 
     p->on_ground = 0;
 
-    // Floor collision
-    if (p->vel_y.w >= 0) {
+    // Floor collision (GDA's cube: gda_cube_steps did it)
+    if (gda_cube) {
+        if (gda_res & GDA_LANDED) {
+            p->on_ground = 1;
+            p->orb_buffered = 0;
+        }
+    } else if (p->vel_y.w >= 0) {
         int16_t foot_y = py + box_bot;
         uint8_t hit_off = 0;
         uint8_t hit_col = COL_AT(0, foot_y);
@@ -803,7 +924,7 @@ uint8_t player_update(
     // cube and ball rest with that point just below the ceiling (cube_eject / ball_eject), the
     // ship and UFO with it in the ceiling's last row (ufo_ship_eject: one more pixel).
     uint8_t head_off = (uint8_t)(box_top + (mini ? 1u : 2u));
-    if (p->vel_y.w < 0) {
+    if (!gda_cube && p->vel_y.w < 0) {
         int16_t head_y = py + head_off;
         uint8_t hit_off = 0;
         uint8_t hit_col = COL_AT(0, head_y);
@@ -841,7 +962,7 @@ uint8_t player_update(
     // GDA's centre box: the player dies when a 4x4 box at its middle (mini: 2x2) is inside a solid,
     // from any side (Famidash: one point at the front, x + 15). A brick breaks instead.
     py = p->world_y.b.h;
-    {
+    if (!(gda_res & GDA_NO_CENTRE)) {
         uint8_t cx0 = mini ? 3u : 6u, cx1 = mini ? 5u : 10u;
         uint8_t cy0 = mini ? 6u : 6u, cy1 = mini ? 8u : 10u;
         uint8_t k;
@@ -859,9 +980,10 @@ uint8_t player_update(
     }
     // Spikes: the player box against each spike's box (spike_box), in the up to 4 metatiles it is in
     {
-        uint8_t bw = mini ? MINI_BOX_RIGHT : PLAYER_SIZE;
+        // (GDA is_colliding: the player is x .. x+16, y .. y+16)
+        uint8_t bw = box_r;
         uint8_t top = mini ? MINI_BOX_TOP : 0u;
-        uint8_t bh = (uint8_t)((mini ? MINI_BOX_BOTTOM : 16u) - top - 1u);
+        uint8_t bh = (uint8_t)((mini ? MINI_BOX_BOTTOM : 16u) - top - ((GDA_PHYSICS && !mini) ? 0u : 1u));
         int16_t ty = (int16_t)py + top;
         int16_t by = ty + bh;
         int8_t bx0 = (int8_t)x_mod_16;
@@ -912,18 +1034,15 @@ uint8_t player_update(
     if (p->on_ground) {
         if (joy & J_A) {
             if (p->mode == MODE_CUBE) {
-                int16_t jf = mini ? MINI_JUMP_FORCE : JUMP_FORCE;
-                if (GDA_PHYSICS) {
-                    // GDA cube_gamemode: a new press jumps a little lower than a held one
-                    uint8_t fresh = !(p->last_joy & J_A);
-                    jf = (int16_t)-(int16_t)(mini ? (fresh ? GDA_MINI_CUBE_FIRST_JUMP : GDA_MINI_CUBE_JUMP)
-                                                  : (fresh ? GDA_CUBE_FIRST_JUMP : GDA_CUBE_JUMP));
+                // (GDA's cube jumps in gda_cube_steps, at the next frame's first step)
+                if (!gda_cube) {
+                    int16_t jf = mini ? MINI_JUMP_FORCE : JUMP_FORCE;
+                    p->vel_y.w = (p->gravity_flipped) ? -jf : jf;
+                    p->on_ground = 0;
                 }
-                p->vel_y.w = (p->gravity_flipped) ? -jf : jf;
-                p->on_ground = 0;
             } else if (p->mode == MODE_BALL && !p->ball_switched) {
                 p->gravity_flipped = !p->gravity_flipped;
-                int16_t sv = mini ? MINI_BALL_SWITCH_VEL : BALL_SWITCH_VEL;
+                int16_t sv = GDA_PHYSICS ? GDA_BALL_SWITCH : (mini ? MINI_BALL_SWITCH_VEL : BALL_SWITCH_VEL);
                 p->vel_y.w = (p->gravity_flipped) ? -sv : sv;
                 p->on_ground = 0;
                 p->ball_switched = 1;
@@ -935,7 +1054,8 @@ uint8_t player_update(
     // UFO (Famidash ufo_movement): every new press jumps, on the ground or in the air, unless an
     // orb took it (sp_draw.c sets ufo_orbed before this runs)
     if (p->mode == MODE_UFO && (joy & J_A) && !(p->last_joy & J_A) && !p->ufo_orbed) {
-        int16_t jv = mini ? MINI_UFO_JUMP_VEL : UFO_JUMP_VEL;
+        int16_t jv = GDA_PHYSICS ? (int16_t)-(int16_t)(mini ? GDA_MINI_UFO_JUMP : GDA_UFO_JUMP)
+                                 : (mini ? MINI_UFO_JUMP_VEL : UFO_JUMP_VEL);
         p->vel_y.w = (p->gravity_flipped) ? -jv : jv;
         p->on_ground = 0;
     }

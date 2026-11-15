@@ -1,4 +1,5 @@
 #pragma bank 13
+#define GDA_PHYSICS_TABLES   // include/gda_physics.h: its tables here (before any include)
 
 #include <gb/gb.h>
 #include "music.h"
@@ -95,7 +96,10 @@ static const int16_t launch_force[2][5][4] = {
       { -1017,  -484,  -920, -339 },
       { -2114, -1743, -1468, -1372 } },
 };
-#define LAUNCH(p, kind) launch_force[(p)->mini][(kind)][(p)->mode]
+// GDA levels (include/player.h LEVEL_GDA): GDA's launches in the modes ported so far
+#define GDA_ON(p) GDA_PHYSICS
+#define LAUNCH(p, kind) (GDA_ON(p) ? gda_launch[(p)->mini][(kind)][(p)->mode] : launch_force[(p)->mini][(kind)][(p)->mode])
+#define BLUE_FORCE(p, pad, famidash) (GDA_ON(p) ? gda_blue[(p)->mini][(p)->mode][(pad)] : (famidash))
 
 // Colour triggers fire this far ahead of the player. tools/tmx2sprites.py (TRIGGER_LEAD_PX) adds
 // the same distance to their x, so in Tiled a trigger fires when the player reaches it.
@@ -623,7 +627,12 @@ static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t ob
                     uint8_t mode = obj;
                     // Famidash: the ship, ball and UFO portals halve the speed when the mode
                     // changes, the cube portal keeps it
-                    if (mode != MODE_CUBE && mode != p->mode) p->vel_y.w /= 2;
+                    // GDA (portal_transition_speed, gamemode_cap_lut): halved on these changes,
+                    // a bit per mode it goes to, by the mode it comes from (cube, ship, ball, UFO)
+                    static const uint8_t gda_cap[4] = { 0x0A, 0x0D, 0x0A, 0x07 };
+                    if (GDA_PHYSICS) {
+                        if (gda_cap[p->mode] & (1u << mode)) p->vel_y.w /= 2;
+                    } else if (mode != MODE_CUBE && mode != p->mode) p->vel_y.w /= 2;
                     p->mode = mode;
                     cam_portal_y = obj_y;
                     *act = 1;
@@ -658,20 +667,22 @@ static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t ob
             // Famidash: 15 x 3, at +5 on the floor (+ the 8 of its floor pad offset, which the
             // level export leaves out, see tools/tmx2sprites.py), at +0 on the ceiling
             uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP || obj == OBJ_PAD_PINK_UP || obj == OBJ_PAD_RED_UP);
-            if (touch_box(obj_x, obj_y, 0, 15, is_ceiling ? 0 : 13, 3)) {
+            // GDA: a pad fires once (Famidash: every frame it is touched)
+            if (touch_box(obj_x, obj_y, 0, 15, is_ceiling ? 0 : 13, 3) && !(GDA_ON(p) && *act)) {
+                if (GDA_ON(p)) *act = 1;
                 // Famidash pad_stuff: yellow / pink pads launch on every frame the player
                 // touches them (going up through one, it launches twice); blue pads only while
                 // the gravity is still the one they flip
                 if (obj == OBJ_PAD_BLUE) {
                     if (!p->gravity_flipped) {
                         p->gravity_flipped = 1;
-                        p->vel_y.w = -BLUE_PAD_FORCE;
+                        p->vel_y.w = -BLUE_FORCE(p, 1, BLUE_PAD_FORCE);
                         p->on_ground = 0;
                     }
                 } else if (obj == OBJ_PAD_BLUE_UP) {
                     if (p->gravity_flipped) {
                         p->gravity_flipped = 0;
-                        p->vel_y.w = BLUE_PAD_FORCE;
+                        p->vel_y.w = BLUE_FORCE(p, 1, BLUE_PAD_FORCE);
                         p->on_ground = 0;
                     }
                 } else if (obj == OBJ_PAD_PINK || obj == OBJ_PAD_PINK_UP) {
@@ -679,7 +690,7 @@ static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t ob
                     p->vel_y.w = (p->gravity_flipped) ? -force : force;
                     p->on_ground = 0;
                 } else if (obj == OBJ_PAD_RED || obj == OBJ_PAD_RED_UP) {
-                    int16_t force = LAUNCH(p, 4);
+                    int16_t force = launch_force[p->mini][4][p->mode];   // (GDA has no red pad)
                     p->vel_y.w = (p->gravity_flipped) ? -force : force;
                     p->on_ground = 0;
                 } else {
@@ -708,7 +719,7 @@ static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t ob
                         p->ufo_orbed = 1;    // the UFO does not also jump on this press
                         if (obj == OBJ_ORB_BLUE) {
                             p->gravity_flipped = !p->gravity_flipped;
-                            int16_t force = (p->mode == MODE_BALL) ? BLUE_ORB_FORCE : BLUE_PAD_FORCE;
+                            int16_t force = BLUE_FORCE(p, 0, (p->mode == MODE_BALL) ? BLUE_ORB_FORCE : BLUE_PAD_FORCE);
                             p->vel_y.w = (p->gravity_flipped) ? -force : force;
                         } else if (obj == OBJ_ORB_PINK) {
                             int16_t force = LAUNCH(p, 2);
