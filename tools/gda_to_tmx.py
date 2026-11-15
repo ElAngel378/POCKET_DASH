@@ -20,6 +20,7 @@ object and direction from GDA's name for the piece. A piece with neither is left
 Metatiles on the object layer go on the free layers, on the nearest 8 px position. A level has 256
 cell types: if the objects need more, the rarest ones go on whole cells instead.
 """
+import math
 import re
 import sys
 from collections import Counter
@@ -120,7 +121,7 @@ SPRITES = {
     "BG_CHAINS": (45, 0, 0), "BG_CHAINS/v": (61, 0, 0),
     "LARGE_PULSING_CIRCLE": (42, 0, 0),
     "MEDIUM_PULSING_CIRCLE": (43, 0, 0), "MEDIUM_PULSING_CIRCLE/r90": (63, 0, 0),
-    "SMALL_PULSING_CIRCLE": (44, 0, 0), "SMALL_PULSING_CIRCLE/v": (60, 0, 0),
+    "SMALL_PULSING_CIRCLE": (44, 0, 0), "SMALL_PULSING_CIRCLE/v": (60, 0, 8),   # GDA's small rod is 24 px: flipped, its circle 8 px lower
     "SMALL_PULSING_CIRCLE/r90": (57, 0, 0), "SMALL_PULSING_CIRCLE/r270": (56, 0, 0),
     "PULSING_STAR": (54, 0, 0),
 }
@@ -250,6 +251,12 @@ def choose(piece, raw):
             if oriented(rows, flags) == art:
                 return key, flags, "exact"
     return None, 0, ""
+
+
+def half_up(v):
+    """v rounded, halves up (Python's round() takes halves to the even number: objects half a cell
+    apart, 21.5 and 22.5, both went to 22)"""
+    return math.floor(v + 0.5)
 
 
 def colour_of(value):
@@ -424,7 +431,7 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
             continue
         if piece in HALF_BLOCKS:
             for dx, dy in HALF_BLOCKS[piece]:
-                half_blocks.add((int(round(x)) + dx + (span[2] - span[0]) * 16, int(round(y)) + dy))
+                half_blocks.add((int(half_up(x)) + dx + (span[2] - span[0]) * 16, int(half_up(y)) + dy))
             continue
         piece, (key, flags, _how) = piece_of(o["gid"])
         if key is None:
@@ -450,7 +457,7 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
             if i in skip:
                 continue
             step = 16 if i in on_grid else 8
-            x2, y2 = round(x / step) * step // 8, round(y / step) * step // 8
+            x2, y2 = half_up(x / step) * step // 8, half_up(y / step) * step // 8
             moved[int(max(abs(x2 * 8 - x), abs(y2 * 8 - y)))] += 1
             col, row = x2 >> 1, y2 >> 1
             if not (0 <= col < root_w and 0 <= row < root_h):
@@ -502,7 +509,7 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
             if len(run) < 2:
                 continue
             anchor = next((i for i, x in enumerate(run) if x % 16 == 0), 0)
-            cell = round(run[anchor] / 16) - anchor
+            cell = half_up(run[anchor] / 16) - anchor
             for i, x in enumerate(run):
                 squeezed[(key, x)] = (cell + i) * 16
     if squeezed:
@@ -511,24 +518,26 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
         column = {x: nx for (_k, x), nx in squeezed.items()}   # decorations go with their column
         objects = [(p, k, f, column.get(x, x) if d else squeezed.get((k, x), x), y, d)
                    for p, k, f, x, y, d in objects]
-    how_common = Counter((key, flags, round(x / 8) & 1, round(y / 8) & 1) for _p, key, flags, x, y, _d in objects)
+    how_common = Counter((key, flags, half_up(x / 8) & 1, half_up(y / 8) & 1) for _p, key, flags, x, y, _d in objects)
     rarest = sorted((i for i, (_p, _k, _f, x, y, _d) in enumerate(objects) if x % 16 or y % 16),
-                    key=lambda i: how_common[(objects[i][1], objects[i][2], round(objects[i][3] / 8) & 1, round(objects[i][4] / 8) & 1)])
-    low, high = 0, len(rarest)
-    if not fits(build(set())[0]):
+                    key=lambda i: how_common[(objects[i][1], objects[i][2], half_up(objects[i][3] / 8) & 1, half_up(objects[i][4] / 8) & 1)])
+    def least(n, ok):
+        """the smallest k in 0..n with ok(k) (ok(n) holds; more never hurts)"""
+        low, high = -1, n
         while high - low > 1:
             mid = (low + high) // 2
-            if fits(build(set(rarest[:mid]))[0]):
+            if ok(mid):
                 high = mid
             else:
                 low = mid
-    else:
-        high = 0
-    on_grid = set(rarest[:high])
-    # Still too many cell types: leave out decorations, those in the rarest cells first, as few as fit
-    dropped = frozenset()
-    if high == len(rarest) and not fits(build(on_grid)[0]):
-        root = ET.fromstring(build(on_grid)[0])
+        return high
+
+    # Too many cell types: first leave out decorations (no collision), those in the rarest cells
+    # first, as few as fit; only if that is not enough, the rarest off-grid objects go on whole cells
+    # (moved up to 8 px: gameplay changes, so the last resort)
+    on_grid, dropped = set(), frozenset()
+    if not fits(build(set())[0]):
+        root = ET.fromstring(build(set())[0])
         at = {}
         for key, x, y, fl in LO.tmx_objects(root):
             for c, part in LO.cells_of(key, x, y, fl).items():
@@ -537,19 +546,18 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
 
         def rarity(i):
             _p, key, flags, x, y, _d = objects[i]
-            step = 16 if i in on_grid else 8
-            cs = LO.cells_of(key, round(x / step) * step, round(y / step) * step, flags)
+            cs = LO.cells_of(key, half_up(x / 8) * 8, half_up(y / 8) * 8, flags)
             return min((combos[frozenset(at[c])] for c in cs if c in at), default=0)
         decos = sorted((i for i, o in enumerate(objects) if o[5]), key=rarity)
-        low, high_d = 0, len(decos)
-        while high_d - low > 1:
-            mid = (low + high_d) // 2
-            if fits(build(on_grid, frozenset(decos[:mid]))[0]):
-                high_d = mid
-            else:
-                low = mid
-        dropped = frozenset(decos[:high_d])
-        notes["decorations left out to fit the level's cell types: %d of %d" % (len(dropped), len(decos))] += 1
+        if fits(build(set(), frozenset(decos))[0]):
+            dropped = frozenset(decos[:least(len(decos), lambda k: fits(build(set(), frozenset(decos[:k]))[0]))])
+        else:
+            dropped = frozenset(decos)
+            on_grid = set(rarest[:least(len(rarest), lambda k: k == len(rarest) or fits(build(set(rarest[:k]), dropped)[0]))])
+        if dropped:
+            notes["decorations left out to fit the level's cell types: %d of %d: %s" % (len(dropped), len(decos), ", ".join(
+                "%s at %d,%d" % (objects[i][0], objects[i][3] // 16, objects[i][4] // 16) for i in sorted(dropped)))] += 1
+    high = len(on_grid)
     final, placed, snapped, full = build(on_grid, dropped)
     # The outline is a background tile on the 8 px grid (16 px when the level is short of cell types):
     # its pad / orb sprite goes where the outline went, as in our own levels
@@ -557,7 +565,7 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
         step = 16 if oi in on_grid else 8
         tid, _x, _y, props, v = our_sprites[si]
         x, y = objects[oi][3], objects[oi][4]
-        our_sprites[si] = (tid, round(x / step) * step, round(y / step) * step, props, v)
+        our_sprites[si] = (tid, half_up(x / step) * step, half_up(y / step) * step, props, v)
     count.update(placed)
     if missing and not allow_missing:
         sys.exit("not converted (nothing written; --allow-missing writes the level without them):\n" +

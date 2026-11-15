@@ -301,6 +301,9 @@ static void apply_level_bg_tiles_(uint8_t level, uint8_t reversed) {
     read_level_info(level, &info);
     mt_big_saws = info.big_saws;
     saw_on = info.saws;
+    // a level without saws gives the saw metatile ids to its own cells (tools/compose.py SAW_IDS):
+    // drawn as saws only where the level has saws
+    mt_saws = (uint8_t)(cgb && info.saws);
     saw_reversed = reversed;
     // Every level uses the RAM tables (CGB: build_mt_rows writes the ground look tiles into them;
     // the mirrored table is only there, not in ROM)

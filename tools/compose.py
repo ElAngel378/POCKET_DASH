@@ -36,6 +36,7 @@ QUARTER_PAIRS = ((0, 2), (0, 7), (2, 7), (0, 6))
 VARIANT_SETS = {None: (None, None), "B": ("B", None), "SB": (None, "B"), "SC": (None, "C"), "NS": (None, None)}
 # metatile ids the engine treats by id: never given another look
 RESERVED = ({0, 12, 24, BG.SAW_CENTER_MT} | set(BG.SAW_METATILES) | BS.CGB_GROUND_LOOK)
+SAW_IDS = {BG.SAW_CENTER_MT} | set(BG.SAW_METATILES)   # reserved only in levels with saws
 COL_TOP, COL_BOTTOM, COL_ALL, COL_DEATH, COL_QUAD_BASE = 0x05, 0x06, 0x07, 0x08, 0x20
 SOLID_CODES = {0x05, 0x06, 0x07, 0x09}
 COL_SPIKE_UPDOWN, COL_SPIKE_SIDE = 0x17, 0x18   # a whole spike pointing up or down / sideways
@@ -454,7 +455,10 @@ class Composer:
         from collections import Counter
         used = {m for row in grid for m in row if m >= 0}
         cells, out, warn = {}, {}, []
-        free = [m for m in range(256) if m not in used and m not in RESERVED]
+        # a level without saws gives their ids to its own cells (the engine's saw handling is off there:
+        # bg_level_info saws, built from the Famidash ids the level uses, build_bg_tiles.py)
+        reserved = RESERVED if used & SAW_IDS else RESERVED - SAW_IDS
+        free = [m for m in range(256) if m not in used and m not in reserved]
         todo = []       # the cells with fading objects (never painted)
         plain = {}      # cell -> its look without paint: (key, spin, is a metatile of the level's own)
         for cx, cy, parts in novel:
@@ -534,7 +538,7 @@ class Composer:
         def plain_of(c):
             if c not in plain:
                 m = grid[c[1]][c[0]]
-                if m in RESERVED - {0, 12, 24}:   # (12, 24: background and pit spikes, nothing goes by their ids)
+                if m in reserved - {0, 12, 24}:   # (12, 24: background and pit spikes, nothing goes by their ids)
                     plain[c] = None
                 else:
                     if m not in fixed:
