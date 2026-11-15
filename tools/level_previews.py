@@ -17,7 +17,7 @@ from pathlib import Path
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import gen_famidash_bg_tables as BG
+import level_colours as LC
 import tmx2sprites as T
 from gd_objects import ROWS_BELOW
 
@@ -36,19 +36,20 @@ def scaled(colour, f):
     return tuple(int(v * f) for v in colour)
 
 
-def sky_shades(i):
-    """colours 0..3 of the parallax palette (gen_famidash_bg_tables.py sky)"""
-    c = BG.rgb8(i)
-    return (c, scaled(c, 0.52), scaled(c, 0.68), scaled(c, 0.40))
+def _rgb(c):
+    return (c >> 16) & 255, (c >> 8) & 255, c & 255
 
 
-def ground_shades(i):
-    """colours 0..3 of the ground grid palette (gen_famidash_bg_tables.py ground)"""
-    c = BG.rgb8(i)
-    dark, grid = BG.rgb8(BG.one_shade_darker(i)), scaled(c, 0.16)
-    if i < 0x10:
-        dark, grid = scaled(c, 0.62), scaled(c, 0.36)
-    return (_WHITE, c, dark, grid)
+def sky_shades(c):
+    """colours 0..3 of the parallax palette (src/famidash_bg.c, LC.SHADES)"""
+    f = lambda k: scaled(_rgb(c), LC.SHADES[k] / 256)
+    return (_rgb(c), f("border"), f("body"), f("shadow"))
+
+
+def ground_shades(c):
+    """colours 0..3 of the ground grid palette (src/famidash_bg.c, LC.SHADES)"""
+    f = lambda k: scaled(_rgb(c), LC.SHADES[k] / 256)
+    return (_WHITE, _rgb(c), f("grid_18"), f("grid_9_dark" if LC.is_dark(c) else "grid_9"))
 
 
 def master(path):
@@ -105,7 +106,7 @@ def preview(path, parallax, ground):
     first = next(int(t.get("firstgid")) for t in root.findall("tileset") if t.get("source", "").endswith("sprites.tsx"))
 
     def index(value):
-        return T.TRIGGER_COLOURS[T.nearest_colour(value, T.TRIGGER_COLOURS, lambda n: T.NES[n])]
+        return LC.rgb(value)
 
     triggers = {T.BG_TRIGGER: [], T.GROUND_TRIGGER: []}
     for group in root.findall("objectgroup"):
@@ -114,8 +115,8 @@ def preview(path, parallax, ground):
                 tile = int(o.get("gid", first)) - first
                 if tile in triggers:
                     p = {q.get("name"): q.get("value") for q in o.findall("properties/property")}
-                    triggers[tile].append((int(float(o.get("x"))), index(p.get("Colour", "#fffffeff")), SECONDS.get(p.get("Fade", "0.3 s"), 0.3)))
-    default = "#ff%06x" % T.NES[17]
+                    triggers[tile].append((int(float(o.get("x"))), index(p.get("Colour", LC.DEFAULT_TRIGGER)), SECONDS.get(p.get("Fade", "0.3 s"), 0.3)))
+    default = LC.DEFAULT_LEVEL
     OUT.mkdir(exist_ok=True)
     paint(tiled_strip(parallax, w, h, (116 - h) % PARALLAX_H), track(w, index(props.get("BG colour", default)), triggers[T.BG_TRIGGER], sky_shades)).save(OUT / (name + "_bg.png"))
     paint(tiled_strip(ground, w, GROUND_H), track(w, index(props.get("Ground colour", default)), triggers[T.GROUND_TRIGGER], ground_shades)).save(OUT / (name + "_ground.png"))

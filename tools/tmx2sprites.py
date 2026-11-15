@@ -8,6 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gen_famidash_bg_tables import NES
 from gd_objects import ROWS_BELOW
+import level_colours
 
 SPRITES_FIRSTGID = 10001
 # Colour trigger tiles of objects/sprites.tsx (properties Colour, Fade) -> engine ids: base + colour
@@ -19,8 +20,6 @@ TRIGGER_LEAD_PX = 160
 # Fade property -> include/famidash_bg.h FAMIDASH_FADE_* (written as the trigger's y: the engine
 # never reads a colour trigger's position other than its x)
 FADE_NAMES = {"0.3 s": 0, "instant": 1, "0.5 s": 2, "1 s": 3, "2 s": 4, "4 s": 5, "10 s": 6}
-# Colours the BG and ground triggers can be: not Famidash's repeated blacks and its toggles
-TRIGGER_COLOURS = [i for i in range(48) if i not in (13, 14, 29, 30, 31, 45, 46, 47)]
 OUTLINE_NES = [int(v, 0) for v in re.search(r'outline_nes_color\[16\] = \{(.*?)\}',
     (Path(__file__).resolve().parent.parent / 'src' / 'famidash_bg.c').read_text(), re.S).group(1).replace(' ', '').replace('\n', '').split(',') if v]
 
@@ -36,11 +35,10 @@ def nearest_colour(value, choices, nes_of):
 
 def trigger_id(tile, props, tmx):
     """The engine id of a colour trigger object"""
-    colour = props.get('Colour', '#ff%06x' % NES[0x20])
+    colour = props.get('Colour', level_colours.DEFAULT_TRIGGER)
     if tile == OUTLINE_TRIGGER:
         return 176 + nearest_colour(colour, OUTLINE_NES, lambda n: NES[n])
-    i = TRIGGER_COLOURS[nearest_colour(colour, TRIGGER_COLOURS, lambda n: NES[n])]
-    return (128 if tile == BG_TRIGGER else 192) + i
+    return (128 if tile == BG_TRIGGER else 192) + level_colours.slot(tmx, colour)
 
 def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, skip=None):
     """skip(x_px, y_px, obj_id) -> True drops that object"""

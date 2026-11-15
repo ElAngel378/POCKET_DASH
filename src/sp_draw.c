@@ -892,13 +892,7 @@ static void bg_trigger(uint8_t obj, uint8_t time, uint8_t *target_bg_idx) {
         return;
     }
 
-    if (pal_idx < 16) {
-        *target_bg_idx = (pal_idx == 15) ? 3 : 2;
-    } else if (pal_idx < 32) {
-        *target_bg_idx = 1;
-    } else {
-        *target_bg_idx = 0;
-    }
+    *target_bg_idx = famidash_colour_band(pal_idx);
 }
 
 void process_sprite_logic(

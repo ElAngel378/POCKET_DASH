@@ -86,6 +86,10 @@ GDA_DECORATION = re.compile(r"^(LBG|COL\d)_")
 # GDA's ship ceiling (CEILING_1..C: 3 kinds of columns, the middle one twice, 4 rows) as our levels draw
 # it: ground fill, a ground strip line in the first middle column, the bottom row the fill's edge
 CEILING = "123456789ABC"
+# A ceiling GDA draws itself (its invisible floor / ceiling row, is_ceiling), as our levels draw it:
+# [plain column, column with the ground strip line (every 4th, as on the floor)]; same collision
+CEILING_EDGE = ["fd_bg5", "fd_ground_edge_bottom"]      # the ceiling's bottom row
+CEILING_FILL = ["fd_bg6", "fd_ground_bottom"]           # above it, up to the top
 
 
 def ceiling(piece, left):
@@ -245,19 +249,10 @@ def choose(piece, raw):
     return None, 0, ""
 
 
-def ground_colour(value):
-    """GDA's ground colour '#aaRRGGBB' -> ours. GDA's is the ground as it is drawn; ours is a colour of
-    the engine's table (NES) that the engine draws darker (x 0.75, gen_famidash_bg_tables.ground): so
-    the table colour whose drawn ground is the nearest, not the nearest table colour (too dark)."""
-    from tmx2sprites import TRIGGER_COLOURS
-    from gen_famidash_bg_tables import NES
-    def ycc(c):     # brightness and the two colour differences: plain RGB distance picks pale colours
-        y = 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
-        return y, (c[2] - y) * 0.564, (c[0] - y) * 0.713
-    want = ycc([int(value[-6:][k:k + 2], 16) for k in (0, 2, 4)])
-    drawn = lambda n: ycc([((NES[n] >> sh) & 255) * 0.75 for sh in (16, 8, 0)])
-    best = min(TRIGGER_COLOURS, key=lambda n: sum((a - b) ** 2 for a, b in zip(want, drawn(n))))
-    return "#ff%06x" % NES[best]
+def colour_of(value):
+    """GDA's colour '#aaRRGGBB' -> ours '#ffRRGGBB': the engine shows the exact colour (each level has
+    its own colour table, tools/level_colours.py), and like GDA it draws the ground's shades below it"""
+    return "#ff" + value[-6:]
 
 
 def main(level, target, spans, add=False, base=None, allow_missing=False):
@@ -267,7 +262,7 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
         gprops = {p.get("name"): p.get("value") for p in ET.parse(gda.LEVELS / (level + ".tmx")).getroot().findall("properties/property")}
         for ours_name, gda_name in (("BG colour", "BG"), ("Ground colour", "GROUND")):
             if gda_name in gprops:
-                colour = ground_colour(gprops[gda_name]) if gda_name == "GROUND" else gprops[gda_name]
+                colour = colour_of(gprops[gda_name])
                 btext = re.sub(r'(<property name="%s" type="color" value=")[^"]*' % ours_name, r"\g<1>" + colour, btext)
         btext = re.sub(r'(<export target="../level_data/)[^"]*(\.csv")', r"\g<1>%s\2" % target, btext)
         with (TMX / (target + ".tmx")).open("w", newline="") as f:
@@ -300,6 +295,13 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
             chosen[piece] = choose(piece, indices(tiles_of[piece], chr_data))
         return piece, chosen[piece]
 
+    def is_ceiling(col, row):
+        """GDA's invisible floor / ceiling row as a ceiling: nothing above it. GDA draws the ground there
+        upside down; our levels draw it as ground pieces (CEILING_EDGE, CEILING_FILL)"""
+        empty = lambda r: all(layers[ln][r][col] <= 1 for ln in ("l1", "l2"))
+        return all(empty(r) for r in range(row))
+
+    ceiling_fill = []     # (layer, column, top row, strip line) of ceilings: ground fill goes above them
     # GDA's two tile layers on Layers 2 and 3: Layer 1, drawn under them, is the ground decorations'
     for src, dst in (("l2", "Layer 2"), ("l1", "Layer 3")):
         for a, b, to in spans:
@@ -318,10 +320,20 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
                         continue
                     if NOTHING.match(piece):
                         continue
+                    if piece == "INVISIBLE_FLOOR_CEIL" and is_ceiling(col, row):
+                        c = to + col - a
+                        key = CEILING_EDGE[c % 4 == 0]
+                        chosen[piece + " (ceiling)"] = (key, 0, "drawn ceiling")
+                        count[piece + " (ceiling)"] += 1
+                        out[layer][(row + drop) * root_w + c] = GO.OBJECTS[key][0] + 1
+                        ceiling_fill.append((layer, c, row + drop, c % 4 == 0))
+                        continue
                     if piece.startswith("CEILING_"):
                         lg = layers[src][row][col - 1] if col else 0
                         key, flags = ceiling(piece, names[lg - 1] if lg > 1 else None), 0
                         chosen[piece] = (key, 0, "ceiling")
+                        if CEILING.index(piece[-1]) < 3 and is_ceiling(col, row):   # its top row
+                            ceiling_fill.append((layer, to + col - a, row + drop, key == "fd_ground_bottom"))
                     elif piece in OWN_LAYER:
                         (key, layer), flags = OWN_LAYER[piece], 0
                         chosen[piece] = (key, 0, "own layer")
@@ -336,8 +348,13 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
                     count[piece] += 1
                     out[layer][(row + drop) * root_w + to + col - a] = (GO.OBJECTS[key][0] + 1) | flags
 
+    for layer, c, r, strip in ceiling_fill:     # ground fill above a ceiling, up to the top
+        for rr in range(r):
+            if not out[layer][rr * root_w + c]:
+                out[layer][rr * root_w + c] = GO.OBJECTS[CEILING_FILL[strip]][0] + 1
     objects = []
     our_sprites = []      # (tile id, x, y (top), {property: (type attribute, value)}, what)
+    outline_of = {}       # objects index of a pad / orb outline -> our_sprites index of its pad / orb
     sprite_names = gda.sprite_types()
     coins = sorted((o for o in sprites if o["gid"] >= gda.SPRITE_GID and sprite_names[o["gid"] - gda.SPRITE_GID] == "COIN"),
                    key=lambda o: o["x"])
@@ -353,15 +370,14 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
                 if tid in OUTLINES:
                     key, flags = OUTLINES[tid]
                     chosen[v + " outline"] = (key, flags, "outline")
+                    outline_of[len(objects)] = len(our_sprites) - 1
                     objects.append((v + " outline", key, flags, o["x"] + dx + shift, o["y"] + dy + drop * 16, False))
             elif name == "COIN":
                 our_sprites.append((COINS[min(coins.index(o), 2)], o["x"] + shift, o["y"] + drop * 16, {}, v))
             elif name == "COL_TRIGGER" and o["props"].get("Channel") in TRIGGERS:
                 frames = int(o["props"].get("Frames", "18"))
                 fade = min(FADES, key=lambda f: abs(f[1] - frames))[0]
-                colour = o["props"].get("Color", "#ffffffff")
-                if o["props"]["Channel"] == "GROUND":
-                    colour = ground_colour(colour)
+                colour = colour_of(o["props"].get("Color", "#ffffffff"))
                 props = {"Colour": ('type="color"', colour),
                          "Fade": ('propertytype="FadeTime"', fade)}
                 if o["props"].get("Touch trigger") == "true":
@@ -462,6 +478,33 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
 
     # A level has 256 cell types and off-grid objects make the most: the rarest ones go on whole cells
     # until the level fits
+    # GDA squeezes objects of a kind closer than a cell (spikes 13 px apart): on the 8 px grid they
+    # would overlap, so a run of them goes on neighbouring whole cells (anchored on a member already on
+    # a cell). Objects at one x (a pillar's block and spikes) give the same cells.
+    squeezed = {}   # (object, x) -> x
+    for key in {k for _p, k, _f, _x, _y, deco in objects if not deco}:
+        xs = sorted({x for _p, k, _f, x, _y, deco in objects if k == key and not deco})
+        runs, run = [], xs[:1]
+        for a, b in zip(xs, xs[1:]):
+            if 10 <= b - a < 16:
+                run.append(b)
+            else:
+                runs.append(run)
+                run = [b]
+        runs.append(run)
+        for run in runs:
+            if len(run) < 2:
+                continue
+            anchor = next((i for i, x in enumerate(run) if x % 16 == 0), 0)
+            cell = round(run[anchor] / 16) - anchor
+            for i, x in enumerate(run):
+                squeezed[(key, x)] = (cell + i) * 16
+    if squeezed:
+        notes["objects closer than a cell in GDA, put on neighbouring cells: %s" % ", ".join(
+            "%s x %g->%d" % (k, x, nx) for (k, x), nx in sorted(squeezed.items(), key=lambda kv: kv[0][1]))] += 1
+        column = {x: nx for (_k, x), nx in squeezed.items()}   # decorations go with their column
+        objects = [(p, k, f, column.get(x, x) if d else squeezed.get((k, x), x), y, d)
+                   for p, k, f, x, y, d in objects]
     how_common = Counter((key, flags, round(x / 8) & 1, round(y / 8) & 1) for _p, key, flags, x, y, _d in objects)
     rarest = sorted((i for i, (_p, _k, _f, x, y, _d) in enumerate(objects) if x % 16 or y % 16),
                     key=lambda i: how_common[(objects[i][1], objects[i][2], round(objects[i][3] / 8) & 1, round(objects[i][4] / 8) & 1)])
@@ -475,7 +518,15 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
                 low = mid
     else:
         high = 0
-    final, placed, snapped, full = build(set(rarest[:high]))
+    on_grid = set(rarest[:high])
+    final, placed, snapped, full = build(on_grid)
+    # The outline is a background tile on the 8 px grid (16 px when the level is short of cell types):
+    # its pad / orb sprite goes where the outline went, as in our own levels
+    for oi, si in outline_of.items():
+        step = 16 if oi in on_grid else 8
+        tid, _x, _y, props, v = our_sprites[si]
+        x, y = objects[oi][3], objects[oi][4]
+        our_sprites[si] = (tid, round(x / step) * step, round(y / step) * step, props, v)
     count.update(placed)
     if missing and not allow_missing:
         sys.exit("not converted (nothing written; --allow-missing writes the level without them):\n" +

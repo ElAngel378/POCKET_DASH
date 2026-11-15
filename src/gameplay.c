@@ -520,13 +520,12 @@ static const uint8_t bg_pals[] = {
 };
 
 // DMG background theme (bg_pals index) a level starts with: the same mapping as the colour triggers
-// in process_sprite_logic, applied to the level's starting background colour (NES colour id) so
+// in process_sprite_logic, applied to the level's starting background colour (colour id) so
 // the first stretch before the first trigger already has the right shades.
 static uint8_t dmg_start_bg_idx(void) {
     if (_cpu == CGB_TYPE) return 0;
     if (sgb_present) return 1;   // SGB: one theme, the colour triggers change the SGB colours (like CGB)
-    uint8_t c = l->bg_color;
-    return (c < 16) ? ((c == 15) ? 3 : 2) : ((c < 32) ? 1 : 0);
+    return famidash_colour_band(l->bg_color);
 }
 
 // The theme actually shown: "gradient" off keeps the inverse themes (1, 2) on the normal one

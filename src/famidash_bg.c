@@ -371,42 +371,70 @@ static palette_color_t current_g_color = RGB( 9, 25,  4);
 
 uint8_t famidash_bkg_palettes_dirty = 0;
 
-#include "famidash_bg_tables.h"
+#include "famidash_bg_tables.h"   // Famidash's NES colours: the block outline triggers
+#include "level_colours.h"
+#include "gameplay.h"             // selected: the level being played
+
+// Shades of a level colour, as fractions of it (x / 256, like GDA's fades to black). The same in
+// tools/level_colours.py SHADES (the Tiled previews)
+#define SHADE_SKY_DARKER    192u
+#define SHADE_BORDER        177u
+#define SHADE_BODY          215u
+#define SHADE_SHADOW        136u
+#define SHADE_GROUND_DARKER 192u
+#define SHADE_GRID_18       159u
+#define SHADE_GRID_9         41u
+#define SHADE_GRID_9_DARK    92u
+
+static palette_color_t shade(palette_color_t c, uint8_t k) {
+    uint8_t r = (uint8_t)(((uint16_t)(c & 31u) * k) >> 8);
+    uint8_t g = (uint8_t)(((uint16_t)((c >> 5) & 31u) * k) >> 8);
+    uint8_t b = (uint8_t)(((uint16_t)((c >> 10) & 31u) * k) >> 8);
+    return RGB(r, g, b);
+}
+
+static const level_colour_t *level_colour(uint8_t color_id) {
+    return &level_colours[selected][color_id];
+}
 
 // The sky colour and its darker shade of a background colour id (colours 0 and 1 of palette 0 after
 // famidash_apply_bg_trigger), for the SGB palette
 void famidash_sky_colors(uint8_t color_id, palette_color_t *out) BANKED {
-    const famidash_sky_shades_t *shades = &famidash_sky_table[(color_id == 31u) ? 0x2Cu : (color_id & 0x3Fu)];
-    out[0] = shades->color;
-    out[1] = shades->darker;
+    palette_color_t c = level_colour(color_id)->color;
+    out[0] = c;
+    out[1] = shade(c, SHADE_SKY_DARKER);
+}
+
+uint8_t famidash_colour_band(uint8_t color_id) BANKED {
+    return level_colour(color_id)->band;
 }
 
 void famidash_apply_bg_trigger(uint8_t color_id, uint8_t time) BANKED {
-    uint8_t idx = (color_id == 31u) ? 0x2Cu : (color_id & 0x3Fu);
-    const famidash_sky_shades_t *shades = &famidash_sky_table[idx];
-    if (shades->color == current_sky_color) return;
+    palette_color_t c = level_colour(color_id)->color;
+    if (c == current_sky_color) return;
 
-    current_sky_color = shades->color;
+    current_sky_color = c;
+    palette_color_t darker = shade(c, SHADE_SKY_DARKER);
 
     // Palette 0: Normal level tiles
-    famidash_bg_target[0] = shades->color;
-    famidash_bg_target[1] = shades->darker;
+    famidash_bg_target[0] = c;
+    famidash_bg_target[1] = darker;
     famidash_bg_target[2] = RGB(0, 0, 0);
 
     // Palette 1: Accent / Ground (preserve ground color in 5 and 6)
-    famidash_bg_target[4] = shades->color;
+    famidash_bg_target[4] = c;
 
     // Palette 2: BG Spikes / Hazards
-    famidash_bg_target[8] = shades->color;
-    famidash_bg_target[9] = shades->darker;
+    famidash_bg_target[8] = c;
+    famidash_bg_target[9] = darker;
     famidash_bg_target[10] = RGB(0, 0, 0);
     famidash_bg_target[11] = bg_accent;
 
     // Palette 3: Parallax BG
-    famidash_bg_target[12] = shades->color;
-    famidash_bg_target[13] = shades->border;
-    famidash_bg_target[14] = shades->body;
-    famidash_bg_target[15] = shades->shadow;
+    famidash_bg_target[12] = c;
+    famidash_bg_target[13] = shade(c, SHADE_BORDER);
+    famidash_bg_target[14] = shade(c, SHADE_BODY);
+    famidash_bg_target[15] = shade(c, SHADE_SHADOW);
 
     // Palette 4: Ground Grid (Color 0 is the top white line, always pure white)
     famidash_bg_target[16] = RGB(31, 31, 31);
@@ -437,24 +465,21 @@ void famidash_apply_outline_trigger(uint8_t n) BANKED {
 }
 
 void famidash_apply_g_trigger(uint8_t color_id, uint8_t time) BANKED {
-    uint8_t idx = (color_id == 31u) ? 0x2Cu : (color_id & 0x3Fu);
-
-    const famidash_sky_shades_t *sky_entry = &famidash_sky_table[idx];
-    palette_color_t color = sky_entry->color;
+    const level_colour_t *e = level_colour(color_id);
+    palette_color_t color = e->color;
     if (color == current_g_color) return;
 
     current_g_color = color;
-    const famidash_ground_shades_t *shades = &famidash_ground_table[idx];
 
     // Palette 1: Ground color
-    famidash_bg_target[5] = shades->darker;
+    famidash_bg_target[5] = shade(color, SHADE_GROUND_DARKER);
     famidash_bg_target[6] = color;
 
-    // Palette 4: Ground Grid
+    // Palette 4: Ground Grid (dark colours: a lighter darkest shade, still visible)
     famidash_bg_target[16] = RGB(31, 31, 31);
     famidash_bg_target[17] = color;
-    famidash_bg_target[18] = shades->grid_18;
-    famidash_bg_target[19] = shades->grid_9;
+    famidash_bg_target[18] = shade(color, SHADE_GRID_18);
+    famidash_bg_target[19] = shade(color, (e->band >= 2u) ? SHADE_GRID_9_DARK : SHADE_GRID_9);
 
     fade_time = (time <= FAMIDASH_FADE_10S) ? time : FAMIDASH_FADE_DEFAULT;
     fade_restart = 1;
@@ -462,8 +487,8 @@ void famidash_apply_g_trigger(uint8_t color_id, uint8_t time) BANKED {
 
 void famidash_reset_bg_palettes(uint8_t idx) BANKED {
     uint8_t i;
-    uint8_t bg_col = 17;
-    uint8_t g_col = 17;
+    uint8_t bg_col = 0;
+    uint8_t g_col = 0;
     if (idx < MAX_LEVELS && game_levels[idx]) {
         bg_col = game_levels[idx]->bg_color;
         g_col = game_levels[idx]->g_color;
