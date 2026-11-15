@@ -111,18 +111,20 @@ SPRITES = {
     "BALL_PORTAL": (2, 0, -16), "ORANGE_MIRROR_PORTAL": (126, 0, -16), "BLUE_MIRROR_PORTAL": (121, 0, -16),
     "PINK_ORB": (6, 0, 0),    # GDA draws it like the yellow orb (same art, same origin)
     "LARGE_PULSING_CIRCLE/v": (58, 0, 0),
-    "YELLOW_GRAVITY_PORTAL/r270": (18, -16, 4), "YELLOW_GRAVITY_PORTAL/r90": (19, 0, 16),
-    "MEDIUM_PULSING_CIRCLE/v": (59, 0, 0), "MEDIUM_PULSING_CIRCLE/r270": (62, -8, 0),   # GDA's medium rod reaches 8 px past its cell
+    # lying portals: GDA turns its 48 px portal about its cell's centre; ours is drawn 16 px left of
+    # its cell's centre
+    "YELLOW_GRAVITY_PORTAL/r270": (18, -16, 0), "YELLOW_GRAVITY_PORTAL/r90": (19, -16, 0),
+    "MEDIUM_PULSING_CIRCLE/v": (59, 0, 0), "MEDIUM_PULSING_CIRCLE/r270": (62, -8, 4),   # GDA's medium rod reaches 8 px past its cell
     # a turned portal still works in GD (Stereo Madness's last ship portal): ours stands upright
     "SHIP_PORTAL/r90": (1, 0, -16),
     "YELLOW_ORB": (11, 0, 0), "YELLOW_PAD": (10, 0, 0), "BLUE_PAD": (13, 0, 0),
     "YELLOW_PAD/v": (12, 0, 0), "PINK_PAD": (37, 0, 0), "PINK_PAD/v": (38, 0, 0), "BLUE_PAD/v": (14, 0, 0),
-    "BLUE_GRAVITY_PORTAL/r270": (16, -16, 4), "BLUE_GRAVITY_PORTAL/r90": (17, 0, 16),
+    "BLUE_GRAVITY_PORTAL/r270": (16, -16, 0), "BLUE_GRAVITY_PORTAL/r90": (17, -16, 0),
     "BG_CHAINS": (45, 0, 0), "BG_CHAINS/v": (61, 0, 0),
     "LARGE_PULSING_CIRCLE": (42, 0, 0),
-    "MEDIUM_PULSING_CIRCLE": (43, 0, 0), "MEDIUM_PULSING_CIRCLE/r90": (63, 0, 0),
+    "MEDIUM_PULSING_CIRCLE": (43, 0, 0), "MEDIUM_PULSING_CIRCLE/r90": (63, 0, 4),
     "SMALL_PULSING_CIRCLE": (44, 0, 0), "SMALL_PULSING_CIRCLE/v": (60, 0, 8),   # GDA's small rod is 24 px: flipped, its circle 8 px lower
-    "SMALL_PULSING_CIRCLE/r90": (57, 0, 0), "SMALL_PULSING_CIRCLE/r270": (56, 0, 0),
+    "SMALL_PULSING_CIRCLE/r90": (57, 0, 0), "SMALL_PULSING_CIRCLE/r270": (56, 0, 7),
     "PULSING_STAR": (54, 0, 0),
 }
 # Our pads and orbs are sprites with no outline of their own: the outline is a background object at
@@ -404,8 +406,13 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
                         continue
                 flags = combine((FLIP_H if o["props"].get("hflip") == "true" else 0) |
                                 (FLIP_V if o["props"].get("vflip") == "true" else 0), flags)
+                y = o["y"]
+                # GDA draws a slab object as the top 8 px of its look, flipped in place: ours is a half
+                # cell slab, which a vertical flip moves to the cell's bottom half, so it goes 8 px up
+                if name == "BASIC_SLAB_OBJ" and flags & FLIP_V:
+                    y -= 8
                 chosen[v] = (key, flags, "sprite object")
-                objects.append((v, key, flags, o["x"] + shift, o["y"] + drop * 16, False))
+                objects.append((v, key, flags, o["x"] + shift, y + drop * 16, False))
             else:
                 missing["sprite " + v] += 1
             continue
@@ -415,10 +422,20 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
                 continue
             key, cell = DECO_SPRITES[name]
             chosen[name] = (key, 0, "deco")
-            h2 = GO.OBJECTS[key][2][1]
+            w2, h2 = GO.OBJECTS[key][2]
             flags = (FLIP_H if o["props"].get("hflip") == "true" else 0) | (FLIP_V if o["props"].get("vflip") == "true" else 0)
-            y = o["y"] + drop * 16 + (h2 - 16 if flags & FLIP_V else 0)
-            objects.append((name, key, flags, o["x"] - cell + (span[2] - span[0]) * 16, y, True))
+            x, y = o["x"] - cell, o["y"] + (h2 - 16 if flags & FLIP_V else 0)
+            # rotated in GDA's editor (clockwise, about the centre of its cell; the art is centred on
+            # the cell across its width and stands on the cell's bottom): turned the same way here
+            # (x, y: the left and the top of the object's bottom cell, as for the other objects)
+            rot = o["props"].get("rotation angle", "0") if o["props"].get("enable rotation") == "true" else "0"
+            if rot == "90":
+                flags, x, y = FLIP_D | FLIP_H, o["x"], o["y"] - cell + w2 - 16
+            elif rot == "270":
+                flags, x, y = FLIP_D | FLIP_V, o["x"] + 16 - h2, o["y"] + cell
+            elif rot not in ("0", "360"):
+                notes["%s rotated %s: placed unrotated" % (name, rot)] += 1
+            objects.append((name, key, flags, x + (span[2] - span[0]) * 16, y + drop * 16, True))
             continue
         if o["gid"] >= gda.SPRITE_GID or o["gid"] <= 1:
             continue
@@ -548,7 +565,8 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
             _p, key, flags, x, y, _d = objects[i]
             cs = LO.cells_of(key, half_up(x / 8) * 8, half_up(y / 8) * 8, flags)
             return min((combos[frozenset(at[c])] for c in cs if c in at), default=0)
-        decos = sorted((i for i, o in enumerate(objects) if o[5]), key=rarity)
+        # (rotated ones last: they line walls and pillars, where nothing else stands for them)
+        decos = sorted((i for i, o in enumerate(objects) if o[5]), key=lambda i: (bool(objects[i][2] & FLIP_D), rarity(i)))
         if fits(build(set(), frozenset(decos))[0]):
             dropped = frozenset(decos[:least(len(decos), lambda k: fits(build(set(), frozenset(decos[:k]))[0]))])
         else:
