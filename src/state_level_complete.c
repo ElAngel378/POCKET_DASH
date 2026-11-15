@@ -327,20 +327,32 @@ static GameState leave(GameState next) {
     return next;
 }
 
-// The colour the level shows around the text: the most common colour of the tile left of it
+// The colour the level shows around the text: the sky's. The most common colour of the first sky
+// (parallax, palette 3) tile along the text's rows; a block there (a level's end wall) would make it
+// black. With none in sight, the sky's own colour.
 static palette_color_t level_colour(void) {
     if (_cpu != CGB_TYPE) return 0;
-    uint8_t mx = (uint8_t)((map_x0 + 1) & 31), my = (uint8_t)((map_y0 + TEXT_Y + 1) & 31);
-    uint8_t t = get_bkg_tile_xy(mx, my), buf[16], cnt[4] = { 0, 0, 0, 0 }, i, x, best = 0;
-    VBK_REG = 1;
-    uint8_t attr = get_bkg_tile_xy(mx, my);
-    VBK_REG = 0;
-    if (attr & 8) return shadow_bkg_palettes[(attr & 7) << 2];      // bank 1 tile: its palette's colour 0
-    get_bkg_data(t, 1, buf);
-    for (i = 0; i < 16; i += 2)
-        for (x = 0; x < 8; x++) cnt[((buf[i + 1] >> x) & 1) << 1 | ((buf[i] >> x) & 1)]++;
-    for (i = 1; i < 4; i++) if (cnt[i] > cnt[best]) best = i;
-    return shadow_bkg_palettes[((attr & 7) << 2) + best];
+    uint8_t buf[16], cnt[4], i, x, best, row, col;
+    for (row = 0; row < LEVEL_COMPLETE_TEXT_ROWS; row++) {
+        uint8_t my = (uint8_t)((map_y0 + TEXT_Y + row) & 31);
+        for (col = 0; col < 20u; col++) {
+            uint8_t mx = (uint8_t)((map_x0 + col) & 31);
+            VBK_REG = 1;
+            uint8_t attr = get_bkg_tile_xy(mx, my);
+            VBK_REG = 0;
+            if ((attr & 7) != 3) continue;
+            if (attr & 8) return shadow_bkg_palettes[12];      // bank 1 tile: its palette's colour 0
+            uint8_t t = get_bkg_tile_xy(mx, my);
+            get_bkg_data(t, 1, buf);
+            cnt[0] = cnt[1] = cnt[2] = cnt[3] = 0;
+            for (i = 0; i < 16; i += 2)
+                for (x = 0; x < 8; x++) cnt[((buf[i + 1] >> x) & 1) << 1 | ((buf[i] >> x) & 1)]++;
+            best = 0;
+            for (i = 1; i < 4; i++) if (cnt[i] > cnt[best]) best = i;
+            return shadow_bkg_palettes[12 + best];
+        }
+    }
+    return shadow_bkg_palettes[12];
 }
 
 GameState update_level_complete_state(void) BANKED {

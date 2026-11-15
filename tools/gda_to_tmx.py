@@ -91,6 +91,8 @@ def ceiling(piece, left):
 # (tile id, dx, dy: ours - GDA's top left). Paired with our 1.0 levels by position.
 SPRITES = {
     "CUBE_PORTAL": (0, 0, -16), "SHIP_PORTAL": (1, 0, -16),
+    # a turned portal still works in GD (Stereo Madness's last ship portal): ours stands upright
+    "SHIP_PORTAL/r90": (1, 0, -16),
     "YELLOW_ORB": (11, 0, 0), "YELLOW_PAD": (10, 0, 0), "BLUE_PAD": (13, 0, 0),
     "BLUE_GRAVITY_PORTAL/r270": (16, -16, 4), "BLUE_GRAVITY_PORTAL/r90": (17, 0, 16),
     "BG_CHAINS": (45, 0, 0), "BG_CHAINS/v": (61, 0, 0),
@@ -260,7 +262,8 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
             chosen[piece] = choose(piece, indices(tiles_of[piece], chr_data))
         return piece, chosen[piece]
 
-    for src, dst in (("l2", "Layer 1"), ("l1", "Layer 2")):
+    # GDA's two tile layers on Layers 2 and 3: Layer 1, drawn under them, is the ground decorations'
+    for src, dst in (("l2", "Layer 2"), ("l1", "Layer 3")):
         for a, b, to in spans:
             for col in range(a, b):
                 for row in range(h):
@@ -284,6 +287,7 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
                     count[piece] += 1
                     out[layer][(row + drop) * root_w + to + col - a] = (GO.OBJECTS[key][0] + 1) | flags
 
+    notes = Counter()     # converted, but not quite as GDA has it
     objects = []
     our_sprites = []      # (tile id, x, y (top), {property: (type attribute, value)}, what)
     sprite_names = gda.sprite_types()
@@ -306,7 +310,7 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
                 props = {"Colour": ('type="color"', o["props"].get("Color", "#ffffffff")),
                          "Fade": ('propertytype="FadeTime"', fade)}
                 if o["props"].get("Touch trigger") == "true":
-                    missing["COL_TRIGGER touch (placed as a normal one)"] += 1
+                    notes["COL_TRIGGER touch: placed as a normal one (ours have no touch triggers)"] += 1
                 our_sprites.append((TRIGGERS[o["props"]["Channel"]], o["x"] + shift, o["y"] + drop * 16, props, v))
             elif name in SPRITE_OBJECTS:
                 key, flags = SPRITE_OBJECTS[name]
@@ -442,6 +446,8 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
           % (dict(sorted(snapped.items())), high, len(rarest)))
     print("no free layer: %s" % dict(full))
     print("not placed: %s" % dict(missing))
+    for what, n in notes.items():
+        print("note: %d %s" % (n, what))
     return chosen
 
 

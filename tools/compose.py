@@ -258,7 +258,9 @@ class Composer:
     def palette(self, parts):
         if self.shade_cell(parts):
             return 6
-        if any(p[0] in GO.GROUND_DECO for p in parts):
+        # ground decoration alone: its own palette. With a block or spike in the cell the usual choice
+        # (per quarter if that shows more): the decoration's palette has no white, outlines went green
+        if all(p[0] in GO.GROUND_DECO or p[0] in GO.INVISIBLE for p in parts):
             return GO.DRAWN_PAL
         split = self.quarter_split(parts)
         return split[0] if split else self.mixed_palette(parts)
