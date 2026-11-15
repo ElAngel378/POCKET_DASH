@@ -46,6 +46,8 @@ BANKREF_EXTERN(fs_schemingweasel)
 extern const fur_song_t fs_schemingweasel;
 BANKREF_EXTERN(fs_stayinsideme)
 extern const fur_song_t fs_stayinsideme;
+BANKREF_EXTERN(fs_splash)
+extern const fur_song_t fs_splash;
 
 const FurSong fur_songs[] = {
     { &fs_menuloop, BANK(fs_menuloop) },
@@ -69,6 +71,7 @@ const FurSong fur_songs[] = {
     { &fs_ultimate, BANK(fs_ultimate) },
     { &fs_schemingweasel, BANK(fs_schemingweasel) },
     { &fs_stayinsideme, BANK(fs_stayinsideme) },
+    { &fs_splash, BANK(fs_splash) },
 };
 
 // beat timelines: group (bank file furnace_beats_<group>.c) and index of each song
@@ -78,8 +81,8 @@ void fur_beats_start_1(uint8_t k) BANKED;
 uint8_t fur_beats_poll_1(void) BANKED;
 void fur_beats_start_2(uint8_t k) BANKED;
 uint8_t fur_beats_poll_2(void) BANKED;
-static const uint8_t fbeat_group[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2 };
-static const uint8_t fbeat_index[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 0 };
+static const uint8_t fbeat_group[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2 };
+static const uint8_t fbeat_index[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 0, 1 };
 extern const uint8_t *fur_bp;
 extern uint8_t fur_bgroup;   // music_select.c: the group of the song playing, 0xFF none
 

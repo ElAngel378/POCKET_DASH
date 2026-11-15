@@ -191,9 +191,13 @@ static const uint8_t fbeats_stayinsideme[] = {
     4, 2, 3, 1, 5, 1, 2, 1, 4, 1, 3, 1, 7, 2, 4, 2, 3, 2, 7, 1, 4, 1, 3, 1,
     7, 2, 4, 2, 3, 1, 5, 1, 9, 1, 14, 2, 7, 1, 4, 1, 3, 2, 7, 2, 7, 255,
 };
+static const uint8_t fbeats_splash[] = {
+    67, 254,
+};
 
 static const uint8_t * const fbeats[][2] = {
     { fbeats_stayinsideme, fbeats_stayinsideme + 2380 },
+    { fbeats_splash, 0 },
 };
 
 extern volatile uint16_t music_ticks;

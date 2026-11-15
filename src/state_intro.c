@@ -13,6 +13,7 @@
 #include "logo.h"
 #include "music.h"
 #include "settings.h"
+#include "furnace_songs.h"
 
 #define STRIP_ROWS  18          // map rows: strip rows 18..35 the page (put_row)
 #define PAGE_SCY    144         // the screen shows the page
@@ -110,6 +111,12 @@ GameState update_intro_state(void) BANKED {
 
     SHOW_BKG;
     DISPLAY_ON;
+#ifdef FUR_SPLASH
+    if (setting_music_enabled) {   // the jingle (music/Furnace/Splash.fur): one pass, ~1.1 s
+        music_play_fur(FUR_SPLASH);
+        music_ready = 1;
+    }
+#endif
     fade_from_black(2);
 
     uint8_t prev_joy = joypad();
@@ -125,7 +132,7 @@ GameState update_intro_state(void) BANKED {
     HIDE_SPRITES;
     SCX_REG = 0;
     SCY_REG = 0;
-    if (setting_music_enabled) {   // main.c leaves the boot silent
+    if (setting_music_enabled) {   // (main.c leaves the boot to the jingle)
         music_play_menu();
         music_ready = 1;
     }
