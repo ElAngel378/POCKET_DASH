@@ -608,7 +608,7 @@ uint8_t player_update(
         p->vel_y.w += accel;
     } else {
         uint16_t gravity_val;
-        int16_t max_fall = level_max_fall_7 ? MAX_FALL_SPEED_7 : MAX_FALL_SPEED;
+        int16_t max_fall = (level_max_fall_7 & LEVEL_MAX_FALL_7) ? MAX_FALL_SPEED_7 : MAX_FALL_SPEED;
         if (p->mode == MODE_BALL) {
             gravity_val = mini ? MINI_BALL_GRAVITY : BALL_GRAVITY;
             max_fall = mini ? MINI_BALL_MAX_FALL : MAX_FALL_SPEED;

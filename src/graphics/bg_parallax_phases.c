@@ -9,6 +9,7 @@
 
 volatile uint8_t bg_gdma_pending;
 volatile uint8_t bg_gdma_phase;
+volatile uint8_t bg_gdma_shown;   // the phase in VRAM (the last one uploaded)
 volatile uint8_t bg_gdma_isr_on;
 volatile uint8_t bg_vbl_on;
 volatile uint8_t bg_vbl_seen;
@@ -47,6 +48,7 @@ static void saw_gdma(void);
 void set_bg_parallax_phase(uint8_t phase) {
     if (_cpu == CGB_TYPE) {
         bg_gdma_pending = 0;
+        bg_gdma_shown = phase;
         parallax_gdma(phase);
     }
 }
@@ -390,6 +392,7 @@ static void parallax_try(void) {
     uint8_t ly = LY_REG;
     if (ly >= 144u && ly <= 149u) {
         bg_gdma_pending = 0;
+        bg_gdma_shown = bg_gdma_phase;
         parallax_gdma(bg_gdma_phase);
     }
 #if defined(DEBUG_PROFILE) && !defined(PROF_NO_MARKS)

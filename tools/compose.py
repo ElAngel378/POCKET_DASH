@@ -36,6 +36,7 @@ QUARTER_PAIRS = ((0, 2), (0, 7), (2, 7), (0, 6))
 VARIANT_SETS = {None: (None, None), "B": ("B", None), "SB": (None, "B"), "SC": (None, "C"), "NS": (None, None)}
 # metatile ids the engine treats by id: never given another look
 RESERVED = ({0, 12, 24, BG.SAW_CENTER_MT} | set(BG.SAW_METATILES) | BS.CGB_GROUND_LOOK)
+SAW_IDS = {BG.SAW_CENTER_MT} | set(BG.SAW_METATILES)   # reserved only in levels with saws
 COL_TOP, COL_BOTTOM, COL_ALL, COL_DEATH, COL_QUAD_BASE = 0x05, 0x06, 0x07, 0x08, 0x20
 SOLID_CODES = {0x05, 0x06, 0x07, 0x09}
 COL_BREAKABLE, BRICK = 0x16, "gd143"       # on the grid; off it, a plain solid block
@@ -203,6 +204,14 @@ class Composer:
                 return None if not any(px) else px
         raise SystemExit("no art for %s %s quarter %s" % (key, tf or "-", oq))
 
+    def covered(self, parts, q):
+        """Is quarter q of the cell under a solid object (a block, a slab's half)? Ground decorations
+        are behind the blocks (GD): ours are outlines over the sky, a decoration showed through them
+        and the quarter took its palette (the block's white outline turned green)"""
+        cqx, cqy = q % 2, q // 2
+        return any(self.kind[k] == "solid" and ((cqx * 8 - dx) // 8, (cqy * 8 - dy) // 8) in self.LO.mask(k, flags_of(tf))
+                   for k, dx, dy, tf in parts)
+
     def look(self, cgb, parts, frame=0):
         """parts: [(key, dx, dy, tf)] bottom to top -> 4 quarters: pixels or None (empty)"""
         out = []
@@ -212,9 +221,12 @@ class Composer:
             cqx, cqy = q % 2, q // 2
             target = targets[q] if targets else None
             acc = [None] * 64
+            hide = self.covered(parts, q)
             for key, dx, dy, tf in parts:
                 oq = ((cqx * 8 - dx) // 8, (cqy * 8 - dy) // 8)
                 if oq not in self.LO.mask(key, flags_of(tf)) or key in GO.INVISIBLE:
+                    continue
+                if hide and key in GO.GROUND_DECO:
                     continue
                 px = self.quarter(cgb, key, tf, oq, frame)
                 if px == GROUND:
@@ -258,7 +270,9 @@ class Composer:
     def palette(self, parts):
         if self.shade_cell(parts):
             return 6
-        if any(p[0] in GO.GROUND_DECO for p in parts):
+        # ground decoration alone: its own palette. With a block or spike in the cell the usual choice
+        # (per quarter if that shows more): the decoration's palette has no white, outlines went green
+        if all(p[0] in GO.GROUND_DECO or p[0] in GO.INVISIBLE for p in parts):
             return GO.DRAWN_PAL
         split = self.quarter_split(parts)
         return split[0] if split else self.mixed_palette(parts)
@@ -310,9 +324,12 @@ class Composer:
         for q in range(4):
             cqx, cqy = q % 2, q // 2
             top = {}
+            hide = self.covered(parts, q)
             for k, dx, dy, tf in parts:
                 oq = ((cqx * 8 - dx) // 8, (cqy * 8 - dy) // 8)
                 if oq not in self.LO.mask(k, flags_of(tf)) or k in GO.INVISIBLE:
+                    continue
+                if hide and k in GO.GROUND_DECO:
                     continue
                 px = self.quarter(1, k, tf, oq)
                 if px is None or px == GROUND:
@@ -377,7 +394,9 @@ class Composer:
         if frozenset(like) in self.exact_col:
             return self.exact_col[frozenset(like)], None
         if any(self.kind[p[0]] == "special" for p in hit):
-            return None, "an orb or pad shares its cell with other solid / deadly objects"
+            # an orb's or pad's outline with solid / deadly objects in its cell: the cell collides as
+            # those (the orb or pad itself is its sprite; the outline's own type does nothing)
+            return self.collision([p for p in parts if self.kind[p[0]] != "special"], lookup)
         solid = deadly = 0
         for key, dx, dy, tf in hit:
             for qx, qy in self.LO.mask(key, flags_of(tf)):
@@ -432,7 +451,10 @@ class Composer:
         from collections import Counter
         used = {m for row in grid for m in row if m >= 0}
         cells, out, warn = {}, {}, []
-        free = [m for m in range(256) if m not in used and m not in RESERVED]
+        # a level without saws gives their ids to its own cells (the engine's saw handling is off there:
+        # bg_level_info saws, built from the Famidash ids the level uses, build_bg_tiles.py)
+        reserved = RESERVED if used & SAW_IDS else RESERVED - SAW_IDS
+        free = [m for m in range(256) if m not in used and m not in reserved]
         todo = []       # the cells with fading objects (never painted)
         plain = {}      # cell -> its look without paint: (key, spin, is a metatile of the level's own)
         for cx, cy, parts in novel:
@@ -512,7 +534,7 @@ class Composer:
         def plain_of(c):
             if c not in plain:
                 m = grid[c[1]][c[0]]
-                if m in RESERVED - {0, 12, 24}:   # (12, 24: background and pit spikes, nothing goes by their ids)
+                if m in reserved - {0, 12, 24}:   # (12, 24: background and pit spikes, nothing goes by their ids)
                     plain[c] = None
                 else:
                     if m not in fixed:

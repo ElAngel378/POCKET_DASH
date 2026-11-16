@@ -106,6 +106,7 @@ LOADS = [  # condition, VRAM bank, first tile, count, source section, first tile
     (CGB, 1, 66, 16, "BANK1", 66),         # PULSE_SMALL: pulsing decorations between beats
     (CGB, 1, 82, 8, "PULSE_GDP", 0),       # the pulsing ring and heart, big then small
     (CGB, 1, 234, 16, "BANK1", 234),       # pad / orb animation frames 2, 3 (Famidash $FB $FD, $9D $9F, $BD $BF, $5D $5F)
+    (CGB, 1, 126, 2, "BANK1", 126),        # orb ring (left half, drawn mirrored on the right), white: sp_draw.c ORB_RING_TILE
     # coins: levels/chr_data/game_art/coin.chr (tools/make_coin_tiles.py), loaded by famidash_sprite_tiles.c
 ]
 

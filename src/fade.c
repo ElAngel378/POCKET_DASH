@@ -184,6 +184,9 @@ void fade_apply_pause_box_palettes(void) BANKED {
     if (_cpu == CGB_TYPE) {
         // All eight palettes are in use in a level, so the whole screen dims, as on DMG
         uint8_t i;
+        // the level's colours as on screen: shadow_bkg_palettes catches up with a colour trigger's
+        // fade only at its end, so a pause during one showed (and restored) the colours before it
+        for (i = 0; i < 20; i++) shadow_bkg_palettes[i] = famidash_bg_palettes[i];
         for (i = 0; i < 32; i++) {
             step_bkg[i] = dim_color(shadow_bkg_palettes[i], 1);
         }

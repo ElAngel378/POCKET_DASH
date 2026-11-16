@@ -136,6 +136,8 @@ static const SettingItem settings_list[] = {
     { "30 FPS",       SETTING_TYPE_TOGGLE, &setting_dmg_30fps,        0, 1, toggle_labels, on_setting_change, NULL },
     { "SHOW BG",      SETTING_TYPE_TOGGLE, &setting_show_bg_enabled,  0, 1, toggle_labels, on_show_bg_change, NULL },
     { "PARALLAX",     SETTING_TYPE_TOGGLE, &setting_parallax_enabled, 0, 1, toggle_labels, on_parallax_change, NULL },
+    // the background boxes' shades: OFF the old ones (more contrast), ON GDA's (brighter)
+    { "BG SHADES",    SETTING_TYPE_TOGGLE, &setting_bg_shades,        0, 1, toggle_labels,  on_setting_change, NULL },
     { "EFFECTS",      SETTING_TYPE_TOGGLE, &setting_effects_enabled,  0, 1, toggle_labels, on_setting_change, NULL },
     { "SHOW %",       SETTING_TYPE_TOGGLE, &setting_show_percent,     0, 1, toggle_labels, on_setting_change, NULL },
     { "SHIP CAM",     SETTING_TYPE_TOGGLE, &setting_old_ship_cam,     0, 1, ship_cam_labels, on_setting_change, NULL },

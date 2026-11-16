@@ -42,9 +42,9 @@ typedef struct {
   uint8_t sp_bank;
   const SpDef *sp_list_dmg;
   uint8_t map_top;      // first map row of the level (rows above it are padding, see build_levels.py)
-  uint8_t bg_color;     // Starting background NES color ID from metadata
-  uint8_t g_color;      // Starting ground NES color ID from metadata
-  uint8_t max_fall_7;   // Famidash header max fall speed $07: the cube falls up to 7 px a frame, not 6
+  uint8_t bg_color;     // Starting background colour: position in the level's colour table (level_colours.h)
+  uint8_t g_color;      // Starting ground colour: position in the level's colour table
+  uint8_t max_fall_7;   // level flags (player.h): LEVEL_MAX_FALL_7, LEVEL_ORB_RINGS
 } Level;
 
 // Per-level song pointers (same order as game_levels[]; NULL = silent)

@@ -294,8 +294,9 @@ def main():
             col_tabs[name] = [novel[m]["col"] if m in novel else fd_col[m] for m in range(256)]
             pal_tabs[name] = [novel[m]["pal"] if m in novel else fd_pal[m] for m in range(256)]
         level_mts = set(level_map)
+        fd_mts = level_mts - set(novel)     # Famidash metatiles: a level's own cells may use saw ids
         # metatile 120 is also Xstep's diamond: it is the big saw's centre only where big saws are
-        big_saw = bool(level_mts & BIG_SAW_PARTS)
+        big_saw = bool(fd_mts & BIG_SAW_PARTS)
         saw_mts = {m: t for m, t in SAW_METATILES.items() if m != SAW_CENTER_MT or big_saw}
 
         # The level's other tiles (its metatiles, its Famidash tile sets, DMG fake spikes) are
@@ -309,15 +310,15 @@ def main():
         # DMG: the saw tiles the level shows, in sprite tiles DMG never draws (DMG_SHARED_SLOTS,
         # and DMG_MIRROR_SLOTS without mirror portals), then BG slots from the top
         mirror = has_mirror_portal(name)
-        saw_k = sorted({saw_mts[m][q] for m in level_mts if m in saw_mts for q in range(4)
+        saw_k = sorted({saw_mts[m][q] for m in fd_mts if m in saw_mts for q in range(4)
                         if saw_mts[m][q] is not None})
         cands = DMG_SHARED_SLOTS + ([] if mirror else DMG_MIRROR_SLOTS) +             [t for t in range(DMG_BG_SLOTS - 1, -1, -1) if t not in DMG_RESERVED_TILES]
         saw_slot = dict(zip(saw_k, cands))
         loads = [(0, saw_slot[k_], 1, first["SAWS_0"] + k_) for k_ in saw_k]
-        overrides = [(m, q, saw_slot[saw_mts[m][q]]) for m in sorted(level_mts) if m in saw_mts
+        overrides = [(m, q, saw_slot[saw_mts[m][q]]) for m in sorted(fd_mts) if m in saw_mts
                      for q in range(4) if saw_mts[m][q] is not None]
         dmg = stream(loads, [], [], overrides)
-        streams.append((lv, name, cgb, dmg, big_saw, any(m in saw_mts for m in level_mts)))
+        streams.append((lv, name, cgb, dmg, big_saw, any(m in saw_mts for m in fd_mts)))
         pools.append((name, [level_map[x * 64:(x + 1) * 64] for x in range(len(level_map) // 64)],
                       [t for t in range(160) if t not in (12, BLACK_FILL_SLOT)],
                       [t for t in list(range(DMG_BG_SLOTS)) + DMG_OBJECT_SLOTS

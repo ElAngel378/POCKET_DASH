@@ -892,13 +892,7 @@ static void bg_trigger(uint8_t obj, uint8_t time, uint8_t *target_bg_idx) {
         return;
     }
 
-    if (pal_idx < 16) {
-        *target_bg_idx = (pal_idx == 15) ? 3 : 2;
-    } else if (pal_idx < 32) {
-        *target_bg_idx = 1;
-    } else {
-        *target_bg_idx = 0;
-    }
+    *target_bg_idx = famidash_colour_band(pal_idx);
 }
 
 void process_sprite_logic(
@@ -1746,6 +1740,11 @@ static uint8_t portal_front_cols(uint8_t obj) {
 // to dmgd_slow for draw_sprites. Uses the dmgd_* inputs (draw_sprites_dmg's) and:
 static uint8_t cgb_deco_n;               // decorations drawn this frame (at most CGB_DECO_MAX)
 #define CGB_DECO_MAX 12
+// Orbs in levels whose orbs have no background ring (LEVEL_ORB_RINGS, tools/build_levels.py): their
+// white ring by sprite (CGB bank 1 tiles 126, 127, tools/build_sprite_tiles.py), in palette 7's
+// colour 3 (white; the orb palettes have none free), so an orb can sit off the ring's 8 px grid
+#define ORB_RING_TILE 126
+#define ORB_RING_PROPS (7 | 0x08)   // S_PAL(7) | S_BANK
 static uint8_t cgbf_sy;                  // screen y of the object
 static uint8_t cgbf_w;                   // decoration width - 8 (its mirrored x)
 // Pads / orbs: animation kind (1 pad, 2 orb, 3 pink orb, 4 pink pad; 0: not animated) and, per
@@ -2060,6 +2059,51 @@ static void cgb_object_loop(void) __naked {
         or      a, (hl)
         call    00040$
         ld      (de), a
+        ; orb in a level whose orbs have no background ring (LEVEL_ORB_RINGS): its white ring under
+        ; it, 2 more sprites (ORB_RING_TILE, mirrored on the right; the ring is symmetric, so mirror
+        ; mode draws it the same)
+        ld      a, (_level_max_fall_7)
+        and     a, #LEVEL_ORB_RINGS
+        jr      Z, 00025$
+        ld      a, (_dmgd_obj)
+        cp      a, #OBJ_ORB_YELLOW
+        jr      Z, 00024$
+        cp      a, #OBJ_ORB_BLUE
+        jr      Z, 00024$
+        cp      a, #OBJ_ORB_PINK
+        jr      NZ, 00025$
+00024$:
+        ld      a, (_dmgd_oam)
+        cp      a, #(MAX_HARDWARE_SPRITES - 1)
+        jr      NC, 00025$              ; OAM full: the orb without its ring
+        add     a, #2
+        ld      (_dmgd_oam), a
+        inc     e
+        ld      a, (_cgbf_sy)
+        ld      (de), a
+        inc     e
+        ld      a, (_dmgd_sx)
+        ld      (de), a
+        inc     e
+        ld      a, #ORB_RING_TILE
+        ld      (de), a
+        inc     e
+        ld      a, #ORB_RING_PROPS
+        ld      (de), a
+        inc     e
+        ld      a, (_cgbf_sy)
+        ld      (de), a
+        inc     e
+        ld      a, (_dmgd_sx)
+        add     a, #8
+        ld      (de), a
+        inc     e
+        ld      a, #ORB_RING_TILE
+        ld      (de), a
+        inc     e
+        ld      a, #(ORB_RING_PROPS | 0x20)
+        ld      (de), a
+00025$:
         pop     bc
         jp      00009$
 00040$:

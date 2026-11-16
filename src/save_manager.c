@@ -96,6 +96,7 @@ uint8_t setting_effects_enabled = 1;
 uint8_t setting_show_percent    = 1;
 uint8_t setting_old_ship_cam    = 0;
 uint8_t setting_auto_checkpoints = 1;
+uint8_t setting_bg_shades        = 0;   // saved in bit 2 of the gradient / 30 FPS byte
 uint8_t setting_legacy_music;   // not in HRAM: GBDK's runtime uses the top HRAM bytes
 
 static uint8_t calc_checksum(const uint8_t *data, uint8_t len) {
@@ -213,6 +214,7 @@ void init_save_system(void) BANKED {
                 setting_sfx_enabled      = sram[5 + V10_SAVE_LEVELS * 2 + 1] ? 1 : 0;
                 setting_dmg_gradient     = sram[5 + V10_SAVE_LEVELS * 2 + 2] & 1u;   // (bit 1: 30 FPS)
                 setting_dmg_30fps        = (sram[5 + V10_SAVE_LEVELS * 2 + 2] >> 1) & 1u;
+                setting_bg_shades        = (sram[5 + V10_SAVE_LEVELS * 2 + 2] >> 2) & 1u;
                 setting_show_bg_enabled  = sram[5 + V10_SAVE_LEVELS * 2 + 3] ? 1 : 0;
                 setting_parallax_enabled = sram[5 + V10_SAVE_LEVELS * 2 + 4] ? 1 : 0;
                 setting_effects_enabled  = sram[5 + V10_SAVE_LEVELS * 2 + 5] ? 1 : 0;
@@ -318,6 +320,7 @@ void init_save_system(void) BANKED {
     setting_show_percent    = 1;
     setting_old_ship_cam    = 0;
     setting_auto_checkpoints = 1;
+    setting_bg_shades       = 0;
     selected_icon           = 0;
     selected_color_primary  = 0;
     selected_color_secondary = 1;
@@ -344,7 +347,7 @@ void save_game_data(void) BANKED {
 
     sram[5 + V10_SAVE_LEVELS * 2 + 0] = setting_music_enabled;
     sram[5 + V10_SAVE_LEVELS * 2 + 1] = setting_sfx_enabled;
-    sram[5 + V10_SAVE_LEVELS * 2 + 2] = (uint8_t)(setting_dmg_gradient | (setting_dmg_30fps << 1));
+    sram[5 + V10_SAVE_LEVELS * 2 + 2] = (uint8_t)(setting_dmg_gradient | (setting_dmg_30fps << 1) | (setting_bg_shades << 2));
     sram[5 + V10_SAVE_LEVELS * 2 + 3] = setting_show_bg_enabled;
     sram[5 + V10_SAVE_LEVELS * 2 + 4] = setting_parallax_enabled;
     sram[5 + V10_SAVE_LEVELS * 2 + 5] = setting_effects_enabled;

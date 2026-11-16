@@ -24,8 +24,10 @@
 #define BLUE_ORB_FORCE     420   // Famidash 0x01A0 (416) - ONLY for Ball!
 #define MAX_FALL_SPEED   1549  // Famidash 0x0600 (1536)
 #define MAX_FALL_SPEED_7 1807  // cube, header max fall $07: + DASH_END_VEL_RESET 0x0100 (1792)
-// The level's Famidash header max fall speed is $07 (Level.max_fall_7), set by play_level
+// The level's flags (Level.max_fall_7), set by play_level
 extern uint8_t level_max_fall_7;
+#define LEVEL_MAX_FALL_7 1    // Famidash header max fall speed $07: the cube falls up to 7 px a frame
+#define LEVEL_ORB_RINGS  2    // no orb has a background ring: CGB draws the rings by sprite (sp_draw.c)
 
 // Ball specific orb/pad forces
 #define BALL_YELLOW_ORB  -1049  // (Famidash -1040)

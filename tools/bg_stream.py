@@ -93,7 +93,7 @@ class Stream:
         """novel: the level's own metatiles (tools/compose.py): id -> {"cgb": 4 quarters, "dmg": ...}"""
         self.name, self.cgb = name, cgb
         self.own = sorted(novel or {})
-        big_saw = any(m in BG.BIG_SAW_PARTS for col in grid for m in col)
+        big_saw = any(m in BG.BIG_SAW_PARTS and m not in (novel or {}) for col in grid for m in col)
         novel = novel or {}
         # DMG: an id with "dmg_at" [[first column, quarters], ...] (tools/compose.py: the cells with the
         # DMG's painted objects) looks different from each of those columns on. Here it is one

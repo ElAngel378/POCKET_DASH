@@ -209,8 +209,8 @@ const Level level_stereomadness = {
   BANK(stereomadness_sp),
   stereomadness_sp_dmg,
   37,
-  18,
-  2,
+  0,
+  1,
   1
 };
 
@@ -226,8 +226,8 @@ const Level level_backontrack = {
   BANK(backontrack_sp),
   backontrack_sp_dmg,
   37,
-  20,
-  20,
+  0,
+  1,
   1
 };
 
@@ -243,8 +243,8 @@ const Level level_polargeist = {
   BANK(polargeist_sp),
   polargeist_sp_dmg,
   37,
-  42,
-  26,
+  0,
+  1,
   1
 };
 
@@ -260,8 +260,8 @@ const Level level_dryout = {
   BANK(dryout_sp),
   dryout_sp_dmg,
   37,
-  22,
-  22,
+  0,
+  1,
   1
 };
 
@@ -277,8 +277,8 @@ const Level level_baseafterbase = {
   BANK(baseafterbase_sp),
   baseafterbase_sp_dmg,
   37,
-  17,
-  17,
+  0,
+  1,
   1
 };
 
@@ -294,8 +294,8 @@ const Level level_cantletgo = {
   BANK(cantletgo_sp),
   cantletgo_sp_dmg,
   37,
-  20,
-  4,
+  0,
+  1,
   1
 };
 
@@ -311,8 +311,8 @@ const Level level_jumper = {
   BANK(jumper_sp),
   jumper_sp_dmg,
   37,
-  19,
-  19,
+  0,
+  1,
   1
 };
 
@@ -328,8 +328,8 @@ const Level level_timemachine = {
   BANK(timemachine_sp),
   timemachine_sp_dmg,
   37,
-  42,
-  26,
+  0,
+  1,
   1
 };
 
@@ -345,8 +345,8 @@ const Level level_cycles = {
   BANK(cycles_sp),
   cycles_sp_dmg,
   37,
-  4,
-  20,
+  0,
+  1,
   1
 };
 
@@ -362,8 +362,8 @@ const Level level_xstep = {
   BANK(xstep_sp),
   xstep_sp_dmg,
   37,
-  28,
-  12,
+  0,
+  1,
   1
 };
 
@@ -379,8 +379,8 @@ const Level level_clutterfunk = {
   BANK(clutterfunk_sp),
   clutterfunk_sp_dmg,
   37,
-  22,
-  6,
+  0,
+  1,
   1
 };
 
@@ -396,8 +396,8 @@ const Level level_theoryofeverything = {
   BANK(theoryofeverything_sp),
   theoryofeverything_sp_dmg,
   7,
-  5,
-  21,
+  0,
+  1,
   1
 };
 
@@ -413,7 +413,7 @@ const Level level_electromanadventures = {
   BANK(electromanadventures_sp),
   electromanadventures_sp_dmg,
   37,
-  2,
+  0,
   1,
   1
 };
@@ -430,8 +430,8 @@ const Level level_clubstep = {
   BANK(clubstep_sp),
   clubstep_sp_dmg,
   24,
-  15,
-  15,
+  0,
+  0,
   1
 };
 
@@ -447,8 +447,8 @@ const Level level_bestautomaticlvl = {
   BANK(bestautomaticlvl_sp),
   bestautomaticlvl_sp_dmg,
   28,
-  22,
-  16,
+  0,
+  1,
   1
 };
 
@@ -464,8 +464,8 @@ const Level level_leveleasy = {
   BANK(leveleasy_sp),
   leveleasy_sp_dmg,
   37,
-  44,
-  28,
+  0,
+  1,
   0
 };
 
@@ -481,8 +481,8 @@ const Level level_subzero = {
   BANK(subzero_sp),
   subzero_sp_dmg,
   37,
-  1,
-  1,
+  0,
+  0,
   1
 };
 
@@ -498,8 +498,8 @@ const Level level_ultiatedestruction = {
   BANK(ultiatedestruction_sp),
   ultiatedestruction_sp_dmg,
   24,
-  17,
-  17,
+  0,
+  0,
   1
 };
 
@@ -515,8 +515,8 @@ const Level level_everymadness = {
   BANK(everymadness_sp),
   everymadness_sp_dmg,
   37,
-  18,
-  2,
+  0,
+  1,
   0
 };
 
@@ -532,8 +532,8 @@ const Level level_demonpark = {
   BANK(demonpark_sp),
   demonpark_sp_dmg,
   37,
-  22,
-  6,
+  0,
+  1,
   0
 };
 
@@ -549,8 +549,8 @@ const Level level_thelightningroad = {
   BANK(thelightningroad_sp),
   thelightningroad_sp_dmg,
   29,
-  15,
-  15,
+  0,
+  0,
   0
 };
 
@@ -566,8 +566,8 @@ const Level level_test = {
   BANK(test_sp),
   test_sp_dmg,
   32,
-  17,
-  17,
+  0,
+  0,
   0
 };
 
@@ -583,8 +583,8 @@ const Level level_test2 = {
   BANK(test2_sp),
   test2_sp_dmg,
   37,
-  17,
-  17,
+  0,
+  0,
   0
 };
 
