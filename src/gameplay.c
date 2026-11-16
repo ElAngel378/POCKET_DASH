@@ -1849,6 +1849,10 @@ void play_level(uint8_t idx) BANKED {
                 uint8_t rev0 = (cube_mirror == 1u || cube_mirror == 2u), rev1 = (mir == 1u || mir == 2u);
                 uint8_t s1 = (rev0 != rev1 && s0) ? (uint8_t)(48u - s0) : s0;
                 player.anim_frame = (uint8_t)(s1 >> 1);   // the half step bit is kept (parity)
+                if (rev0 != rev1) {   // GDA's angles too (player.c gda_cube_steps)
+                    player.gda_rot = (uint16_t)-player.gda_rot;
+                    player.gda_rot_shown = (uint16_t)-player.gda_rot_shown;
+                }
                 // the ship's tilt is counted toward the rest surface: drawn flipped upside down
                 // from now on, the same tilt on screen is the mirrored one
                 if ((mir ^ cube_mirror) & 1u) ship_tilt = (uint8_t)(SHIP_FRAME_COUNT - 1u - ship_tilt);

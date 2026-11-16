@@ -32,6 +32,9 @@ static uint8_t draw_was_flipped;
 // pixel is taken up at once at the flip, the picture must not jump.
 static uint8_t draw_dy_wanted(void) {
     if (!player.gravity_flipped) return 0;
+    // GDA levels (big): the player rests flush with the ceiling (Famidash: 2 px in, ship / UFO 3),
+    // so 2 px less (cube / ball: none) and 3 less (ship / UFO)
+    if (GDA_PHYSICS && !player.mini) return (player.mode == MODE_SHIP || player.mode == MODE_UFO) ? 2u : 0u;
     if (player.mode != MODE_SHIP && player.mode != MODE_UFO) return (uint8_t)(2u - player.mini);
     return player.mini ? 2 : 5;
 }
@@ -70,7 +73,8 @@ void player_init(Player* p, uint16_t start_x, int16_t start_y) BANKED {
     p->touching_orb = 0;
     p->level_complete = 0;
     p->mini = 0;
-    p->sp_idx = 0;
+    p->gda_rot_shown = 0;
+    p->gda_rot = 0;
     p->ufo_orbed = 0;
 }
 
@@ -667,6 +671,7 @@ static uint8_t gda_cube_steps(uint8_t joy, uint8_t mini) {
     uint8_t box_top = mini ? MINI_BOX_TOP : 0u;
     uint8_t box_bot = mini ? MINI_BOX_BOTTOM : 16u;
     uint8_t res = player.on_ground ? GDA_LANDED : 0u, k;   // (on_floor from the last frame)
+    uint16_t rot = player.gda_rot;
     for (k = 0; k < 4u; k++) {
         if ((res & GDA_LANDED) && (joy & J_A)) {
             uint8_t fresh = !(player.last_joy & J_A);
@@ -674,6 +679,10 @@ static uint8_t gda_cube_steps(uint8_t joy, uint8_t mini) {
                                : (fresh ? GDA_CUBE_FIRST_JUMP : GDA_CUBE_JUMP));
             if (!flip) v = (int16_t)-v;
         }
+        // GDA's spin (cube_gamemode): 0x500 a frame in the air, a quarter each step; on the floor
+        // (landed last step) snapped to the nearest quarter turn. In our turning direction
+        // (gameplay.c cube_turn mirrors it on the ceiling / in mirror mode, as GDA's sign does)
+        rot = (res & GDA_LANDED) ? (uint16_t)((rot + 0x2000u) & 0xC000u) : (uint16_t)(rot + 0x140u);
         res = 0;
         yy += (k < 3u) ? (int16_t)(v / 4) : (int16_t)(v - 3 * (v / 4));
         if (yy < 0 || yy > 0xFFFF) return GDA_OUT;
@@ -706,6 +715,7 @@ static uint8_t gda_cube_steps(uint8_t joy, uint8_t mini) {
             break;
         }
     }
+    player.gda_rot = rot;
     player.world_y.w = (uint16_t)yy;
     player.vel_y.w = v;
     return res;
@@ -923,7 +933,10 @@ uint8_t player_update(
     // py + 5): the box needs a 15 px gap (mini 7) between floor and ceiling, as in Famidash. The
     // cube and ball rest with that point just below the ceiling (cube_eject / ball_eject), the
     // ship and UFO with it in the ceiling's last row (ufo_ship_eject: one more pixel).
-    uint8_t head_off = (uint8_t)(box_top + (mini ? 1u : 2u));
+    // GDA levels (big): GDA's top probe, 1 px above the player, which rests flush (y = the
+    // ceiling's bottom) in every mode
+    uint8_t gda_top = GDA_PHYSICS && !mini;
+    int8_t head_off = gda_top ? -1 : (int8_t)(box_top + (mini ? 1u : 2u));
     if (!gda_cube && p->vel_y.w < 0) {
         int16_t head_y = py + head_off;
         uint8_t hit_off = 0;
@@ -944,10 +957,10 @@ uint8_t player_update(
                 block_bottom_y -= 8;
             }
             int16_t bot16 = (head_y & ~15) + 16 - (int16_t)(uint8_t)((uint8_t)((head_y & ~15) + 16) - block_bottom_y);
-            if (bot16 - ((int16_t)prev_py + head_off) >= (int16_t)max_eject + 1) {
+            if (bot16 - ((int16_t)prev_py + head_off) >= (int16_t)max_eject + (gda_top ? 0 : 1)) {
                 // came from deeper: no landing (the head probe rests 1 px inside for the ship / UFO)
             } else if (p->gravity_flipped || p->mode == MODE_SHIP || p->mode == MODE_UFO) {
-                p->world_y.b.h = (uint8_t)(block_bottom_y - head_off -
+                p->world_y.b.h = gda_top ? block_bottom_y : (uint8_t)(block_bottom_y - head_off -
                                            ((p->mode == MODE_SHIP || p->mode == MODE_UFO) ? 1u : 0u));
                 p->world_y.b.l = 0;
                 p->vel_y.w = 0;
@@ -1023,7 +1036,7 @@ uint8_t player_update(
 
 
     // Falling off a ledge / block: start rotation at frame 1 if resting flat (frame 0)
-    if (was_on_ground && !p->on_ground && p->mode == MODE_CUBE) {
+    if (was_on_ground && !p->on_ground && p->mode == MODE_CUBE && !gda_cube) {
         if (p->anim_frame == 0 || mod6_table[p->anim_frame] == 0) {
             p->anim_frame = (uint8_t)((p->anim_frame + 1u) % 24u);
             p->anim_timer = 0;
@@ -1062,7 +1075,21 @@ uint8_t player_update(
     p->ufo_orbed = 0;
 
     // Animation Update
-    if (p->on_ground && p->mode != MODE_BALL) {
+    if (gda_cube) {
+        // GDA draw_player: the angle shown goes half the way to the cube's angle each frame
+        // (lerp_angle, divisor 2), all the way when that moves it less than 0x300; shown in our
+        // 48 half steps (anim_frame, anim_timer >= 11), the nearest one
+        uint16_t tgt = p->gda_rot;
+        int16_t t = (int16_t)(p->gda_rot_shown - tgt);
+        uint16_t nw = (uint16_t)(tgt + (uint16_t)(t - t / 2));
+        int16_t ch = (int16_t)(nw - p->gda_rot_shown);
+        if (ch < 0x300 && ch > -0x300) nw = tgt;
+        p->gda_rot_shown = nw;
+        uint8_t s = (uint8_t)((uint16_t)((nw >> 4) * 3u + 128u) >> 8);
+        if (s >= 48u) s = 0;
+        p->anim_frame = (uint8_t)(s >> 1);
+        p->anim_timer = (s & 1u) ? 11u : 0u;
+    } else if (p->on_ground && p->mode != MODE_BALL) {
         // Landed mid-spin: settle onto the NEAREST square side, in half steps (7.5 deg, 12 a
         // quarter turn; the half step is anim_timer >= 11, as drawn in the air), 2 a frame.
         // Past 45 deg -> finish the spin forwards; before it -> roll backwards instead.
@@ -1084,6 +1111,12 @@ uint8_t player_update(
             p->anim_frame++;
             if (p->anim_frame >= 24) p->anim_frame = 0;
         }
+    }
+
+    // GDA levels, the other modes: the cube's angle is the picture's, so a cube carries on from it
+    if (GDA_PHYSICS && !gda_cube) {
+        uint8_t s = (uint8_t)((p->anim_frame << 1) + (p->anim_timer >= 11u ? 1u : 0u));
+        p->gda_rot = p->gda_rot_shown = (uint16_t)(s * 1365u);   // (0x10000 / 48)
     }
 
     // Bottom bounds check (falling below playable map)
