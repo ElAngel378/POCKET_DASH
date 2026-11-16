@@ -54,7 +54,7 @@ uint8_t selected_dmg_secondary = 1;
 #define V9_DMG1_OFS  (5 + V8_DATA_LEN)
 #define V9_DMG2_OFS  (V9_DMG1_OFS + 1)
 #define V9_DATA_LEN  (V8_DATA_LEN + 2)
-// Version 10: version 9 + 1 byte, once the FURNACE test setting; unused (LEGACY isn't saved)
+// Version 10: version 9 + 1 byte, once the FURNACE test setting (always written 0); now CUBE CAM
 #define V10_FURNACE_OFS (5 + V9_DATA_LEN)
 #define V10_DATA_LEN (V9_DATA_LEN + 1)
 // Version 11: version 10 + the progress normal, practice and coins of the slots after the first
@@ -95,6 +95,7 @@ uint8_t setting_parallax_enabled = 1;
 uint8_t setting_effects_enabled = 1;
 uint8_t setting_show_percent    = 1;
 uint8_t setting_old_ship_cam    = 0;
+uint8_t setting_cube_cam        = 0;   // saved in the version 10 byte (once FURNACE)
 uint8_t setting_auto_checkpoints = 1;
 uint8_t setting_bg_shades        = 0;   // saved in bit 2 of the gradient / 30 FPS byte
 uint8_t setting_legacy_music;   // not in HRAM: GBDK's runtime uses the top HRAM bytes
@@ -220,6 +221,8 @@ void init_save_system(void) BANKED {
                 setting_effects_enabled  = sram[5 + V10_SAVE_LEVELS * 2 + 5] ? 1 : 0;
                 setting_show_percent     = v5 ? (sram[V5_SHOW_PCT_OFS] ? 1 : 0) : 1;
                 setting_old_ship_cam     = v6 ? (sram[V6_SHIP_CAM_OFS] ? 1 : 0) : 0;
+                setting_cube_cam         = v10 ? sram[V10_FURNACE_OFS] : 0;
+                if (setting_cube_cam > 2) setting_cube_cam = 0;
                 setting_auto_checkpoints = v7 ? (sram[V7_AUTO_CP_OFS] ? 1 : 0) : 1;
                 selected_icon            = v9 ? sram[V8_ICON_OFS] : 0;
                 selected_color_primary   = v8 ? sram[V8_COL1_OFS] : 0;
@@ -319,6 +322,7 @@ void init_save_system(void) BANKED {
     setting_effects_enabled = 1;
     setting_show_percent    = 1;
     setting_old_ship_cam    = 0;
+    setting_cube_cam        = 0;
     setting_auto_checkpoints = 1;
     setting_bg_shades       = 0;
     selected_icon           = 0;
@@ -364,7 +368,7 @@ void save_game_data(void) BANKED {
     sram[V8_COL2_OFS] = selected_color_secondary;
     sram[V9_DMG1_OFS] = selected_dmg_primary;
     sram[V9_DMG2_OFS] = selected_dmg_secondary;
-    sram[V10_FURNACE_OFS] = 0;
+    sram[V10_FURNACE_OFS] = setting_cube_cam;   // CUBE CAM (the old FURNACE byte, always 0 before)
     // (the extra slots, V11_*_OFS, stay as they are in SRAM)
     sram[5 + V11_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V11_DATA_LEN);
     DISABLE_RAM;

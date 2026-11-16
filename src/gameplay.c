@@ -133,6 +133,16 @@ static uint8_t bg_drift_px = 0;
 // 1..CAM_Y_MAX_STEP px) and never leave the player off screen.
 #define CAM_Y_TOP_ZONE 20      // cube: dead zone (screen rows the player may move in)
 #define CAM_Y_BOTTOM_ZONE 100
+// CUBE CAM B / C: the player's top row 44 .. 84 (its centre 20 px above .. below the screen's)
+#define CAM_Y_NEW_TOP_ZONE 44
+#define CAM_Y_NEW_BOTTOM_ZONE 84
+// CUBE CAM B / C: camera px per frame by (px past the zone) / 4, 32 px and more -> the last one.
+// Never more than the distance (no overshoot), never more than CAM_Y_MAX_STEP (VRAM streaming).
+// B: about linear (a quarter of the distance). C: curved: slower close to the zone, faster far.
+static const uint8_t cam_y_ease_step[2][9] = {
+    { 1, 1, 2, 2, 3, 4, 5, 6, 8 },
+    { 1, 1, 1, 2, 3, 5, 7, 8, 8 },
+};
 #define CAM_SHIP_H 160u
 #define CAM_SHIP_MARGIN 8u     // ship: px of the level shown above / below the corridor
 #define CAM_Y_MAX_STEP 8      // the VRAM band streams one map row (16px) per 2 frames
@@ -1376,25 +1386,30 @@ static void update_camera_y(void) {
 
     if (player.mode == MODE_CUBE) {
         // Cube: the dead zone camera with slight easing (softens the edge transitions)
+        // CUBE CAM B / C: the zones 40 px apart around the centre, and the follow speed grows
+        // with the player's distance past the zone (gentle just past it, fast far past it)
+        uint8_t nc = setting_cube_cam;
         int16_t py = (int16_t)wy - (int16_t)cam_py;
         int16_t c;
-        if (py < CAM_Y_TOP_ZONE) c = (int16_t)wy - CAM_Y_TOP_ZONE;
-        else if (py > CAM_Y_BOTTOM_ZONE) c = (int16_t)wy - CAM_Y_BOTTOM_ZONE;
+        if (py < (nc ? CAM_Y_NEW_TOP_ZONE : CAM_Y_TOP_ZONE)) c = (int16_t)wy - (nc ? CAM_Y_NEW_TOP_ZONE : CAM_Y_TOP_ZONE);
+        else if (py > (nc ? CAM_Y_NEW_BOTTOM_ZONE : CAM_Y_BOTTOM_ZONE)) c = (int16_t)wy - (nc ? CAM_Y_NEW_BOTTOM_ZONE : CAM_Y_BOTTOM_ZONE);
         else return;
         if (c < (int16_t)level_top_px) c = (int16_t)level_top_px;
         if ((uint16_t)c > cam_py_max) c = (int16_t)cam_py_max;
 
         uint16_t target = (uint16_t)c;
-        if (target > cam_py) {
-            uint16_t step = (target - cam_py) >> 1;
-            if (!step) step = 1;
-            else if (step > CAM_Y_MAX_STEP) step = CAM_Y_MAX_STEP;
-            cam_py += step;
-        } else if (target < cam_py) {
-            uint16_t step = (cam_py - target) >> 1;
-            if (!step) step = 1;
-            else if (step > CAM_Y_MAX_STEP) step = CAM_Y_MAX_STEP;
-            cam_py -= step;
+        if (target != cam_py) {
+            uint8_t up = (target < cam_py);
+            uint16_t d = up ? (cam_py - target) : (target - cam_py);
+            uint8_t step;
+            if (nc) {
+                step = cam_y_ease_step[nc - 1u][(d >= 32u) ? 8u : (uint8_t)(d >> 2)];
+            } else {
+                step = (d >= 16u) ? CAM_Y_MAX_STEP : (uint8_t)(d >> 1);
+                if (!step) step = 1;
+            }
+            if (up) cam_py -= step;
+            else cam_py += step;
         }
         if (cam_py > wy) cam_py = wy;
         if (cam_py + (CAM_VIEW_H - 16u) < wy) cam_py = wy - (CAM_VIEW_H - 16u);
