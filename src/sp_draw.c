@@ -593,8 +593,8 @@ static uint16_t t_px, t_front, t_py, t_bottom;
 
 // Famidash check_collision against the object's box (sprite_x/y_offset, sprite_widths/heights):
 // x + xo .. x + xo + w, y + yo .. y + yo + h, edges included
-static uint8_t touch_box(uint16_t ox, uint16_t oy, uint8_t xo, uint8_t w, int8_t yo, uint8_t h) {
-    uint16_t l = ox + xo;
+static uint8_t touch_box(uint16_t ox, uint16_t oy, int8_t xo, uint8_t w, int8_t yo, uint8_t h) {
+    uint16_t l = ox + (int16_t)xo;
     uint16_t t = oy + (int16_t)yo;
     return l <= t_front && t_px <= l + w && t <= t_bottom && t_py <= t + h;
 }
@@ -707,8 +707,9 @@ static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t ob
         case OBJ_ORB_BLUE:
         {
             if (joy & J_A) {
-                // Famidash: 16 x 18 at -1
-                if (!touch_box(obj_x, obj_y, 0, 16, -1, 18)) break;
+                // Famidash: 16 x 18 at -1. GDA (obj_hitbox YELLOW_ORB...): 20 x 20 at -2, -2
+                // (the x prefilters let objects up to 2 px past t_front through for it)
+                if (GDA_ON(p) ? !touch_box(obj_x, obj_y, -2, 20, -2, 20) : !touch_box(obj_x, obj_y, 0, 16, -1, 18)) break;
                 // Famidash sprite_gamemode_main: the ball holding on an orb uses up the hold,
                 // landing does not switch gravity until A is released
                 if (p->mode == MODE_BALL) p->ball_switched = 1;
@@ -861,7 +862,7 @@ static void psl_filter(void) __naked {
         sub     a, #16
         cp      a, #4
         jp      C, 00007$
-        ; overlapping the player in x (obj_x <= t_front, px <= obj_x + 24): to C (touch_object)
+        ; overlapping the player in x (obj_x <= t_front + 2, px <= obj_x + 24): to C (touch_object)
         ld      a, (_psl_rel)
         ld      e, a
         ld      a, (_psl_rel_tfront)
@@ -932,10 +933,10 @@ void process_sprite_logic(
         psl_rel_lead = (uint8_t)(48u + BG_TRIGGER_LEAD_PX);
         psl_rel_near = 96u;
         if (p->mini) {
-            psl_rel_tfront = (uint8_t)(48u + MINI_BOX_RIGHT + 1u);
+            psl_rel_tfront = (uint8_t)(48u + MINI_BOX_RIGHT + 1u + 2u);
             psl_rel_pf16 = (uint8_t)(48u + MINI_BOX_RIGHT + 16u);
         } else {
-            psl_rel_tfront = (uint8_t)(48u + 15u + 1u);
+            psl_rel_tfront = (uint8_t)(48u + 15u + 1u + 2u);
             psl_rel_pf16 = (uint8_t)(48u + 15u + 16u);
         }
         psl_rel_x24 = 24u;
@@ -970,7 +971,7 @@ void process_sprite_logic(
             psl_rel_ahead = (uint8_t)(lim_ahead - lim_back);
             psl_rel_lead = (uint8_t)(lim_lead - lim_back);
             psl_rel_near = (uint8_t)(lim_near - lim_back);
-            psl_rel_tfront = (uint8_t)(t_front - lim_back);
+            psl_rel_tfront = (uint8_t)(t_front + 2u - lim_back);
             psl_rel_pf16 = (uint8_t)(p_front + 16u - lim_back);
             psl_rel_x24 = (px >= lim_back + 24u) ? (uint8_t)(px - 24u - lim_back) : 0;   // px <= obj_x + 24
             psl_filter();
@@ -1083,7 +1084,7 @@ void process_sprite_logic(
                 }
                 cache->activated[i] = 1;
             }
-        } else if (obj_x <= t_front && px <= obj_x + 24u) {
+        } else if (obj_x <= t_front + 2u && px <= obj_x + 24u) {
             // (the mini / growth portal box is 8px right of the object: touch_object checks x)
             touch_object(p, obj, obj_x, obj_y, joy, &cache->activated[i]);
         } else if (obj_x > p_front + 16) {
@@ -1756,6 +1757,11 @@ static uint8_t portal_front_cols(uint8_t obj) {
 // to dmgd_slow for draw_sprites. Uses the dmgd_* inputs (draw_sprites_dmg's) and:
 static uint8_t cgb_deco_n;               // decorations drawn this frame (at most CGB_DECO_MAX)
 #define CGB_DECO_MAX 12
+// Orbs: their white ring (CGB bank 1 tiles 126, 127, tools/build_sprite_tiles.py), in palette 7's
+// colour 3 (white; the orb palettes have none free). Drawn by sprite, the orb goes anywhere: GDA's
+// orbs are off the 8 px grid of the background ring (tools/gda_to_tmx.py leaves that out)
+#define ORB_RING_TILE 126
+#define ORB_RING_PROPS (7 | 0x08)   // S_PAL(7) | S_BANK
 static uint8_t cgbf_sy;                  // screen y of the object
 static uint8_t cgbf_w;                   // decoration width - 8 (its mirrored x)
 // Pads / orbs: animation kind (1 pad, 2 orb, 3 pink orb, 4 pink pad; 0: not animated) and, per
@@ -2070,6 +2076,47 @@ static void cgb_object_loop(void) __naked {
         or      a, (hl)
         call    00040$
         ld      (de), a
+        inc     e
+        ; orb: its white ring under it, 2 more sprites (ORB_RING_TILE, mirrored on the right; the
+        ; ring is symmetric, so mirror mode draws it the same)
+        ld      a, (_dmgd_obj)
+        cp      a, #OBJ_ORB_YELLOW
+        jr      Z, 00024$
+        cp      a, #OBJ_ORB_BLUE
+        jr      Z, 00024$
+        cp      a, #OBJ_ORB_PINK
+        jr      NZ, 00025$
+00024$:
+        ld      a, (_dmgd_oam)
+        cp      a, #(MAX_HARDWARE_SPRITES - 1)
+        jr      NC, 00025$              ; OAM full: the orb without its ring
+        add     a, #2
+        ld      (_dmgd_oam), a
+        ld      a, (_cgbf_sy)
+        ld      (de), a
+        inc     e
+        ld      a, (_dmgd_sx)
+        ld      (de), a
+        inc     e
+        ld      a, #ORB_RING_TILE
+        ld      (de), a
+        inc     e
+        ld      a, #ORB_RING_PROPS
+        ld      (de), a
+        inc     e
+        ld      a, (_cgbf_sy)
+        ld      (de), a
+        inc     e
+        ld      a, (_dmgd_sx)
+        add     a, #8
+        ld      (de), a
+        inc     e
+        ld      a, #ORB_RING_TILE
+        ld      (de), a
+        inc     e
+        ld      a, #(ORB_RING_PROPS | 0x20)
+        ld      (de), a
+00025$:
         pop     bc
         jp      00009$
 00040$:

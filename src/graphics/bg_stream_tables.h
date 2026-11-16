@@ -74,37 +74,37 @@ extern const uint8_t bs_test_dmg_recs[];
 BANKREF_EXTERN(bs_test2)
 extern const uint8_t bs_test2_cgb_recs[];
 extern const uint8_t bs_test2_dmg_recs[];
-#define BS_TILE_BANK 241
+#define BS_TILE_BANK 240
 #define BS_SPIN_BASE 28
 #define BS_SPIN_FRAMES 3
 // per level: its spinning tiles (CGB): first tile in the space, number
-static const uint16_t bs_spin_first[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7883, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13630, 0 };
+static const uint16_t bs_spin_first[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8227, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13974, 0 };
 static const uint8_t bs_spin_count[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0 };
 // per level: the CGB data, then the DMG data (DMG: the tiles, then the same tiles mirrored)
 static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {
     0, 147,
     603, 712,
-    1044, 1170,
-    1578, 1769,
-    2355, 2518,
-    3092, 3208,
-    3606, 3755,
-    4301, 4568,
-    5122, 5462,
-    6162, 6289,
-    6949, 7037,
-    7705, 7958,
-    8998, 9107,
-    9687, 9796,
-    10544, 10602,
-    10834, 10898,
-    11178, 11240,
-    11606, 11658,
-    11896, 11959,
-    12249, 12326,
-    12890, 12953,
-    13387, 13642,
-    14130, 14146,
+    1044, 1166,
+    1716, 1903,
+    2489, 2648,
+    3304, 3416,
+    3856, 4000,
+    4568, 4848,
+    5420, 5768,
+    6506, 6633,
+    7293, 7381,
+    8049, 8302,
+    9342, 9451,
+    10031, 10140,
+    10888, 10946,
+    11178, 11242,
+    11522, 11584,
+    11950, 12002,
+    12240, 12303,
+    12593, 12670,
+    13234, 13297,
+    13731, 13986,
+    14474, 14490,
 };
 static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
     bs_stereomadness_cgb_recs, bs_stereomadness_dmg_recs,
@@ -134,29 +134,29 @@ static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
 // per level: its fading cells (tools/compose.py): first metatile, how many; each one's hidden look is that many further
 static const uint8_t bs_fade[BS_LEVEL_COUNT * 2] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 3 };
 static const uint8_t bs_banks[BS_LEVEL_COUNT] = {
-    240,   // stereomadness
-    240,   // backontrack
-    240,   // polargeist
-    239,   // dryout
-    239,   // baseafterbase
-    239,   // cantletgo
-    238,   // jumper
-    238,   // timemachine
-    237,   // cycles
-    237,   // xstep
-    236,   // clutterfunk
-    235,   // theoryofeverything
-    234,   // electromanadventures
-    233,   // clubstep
-    233,   // bestautomaticlvl
-    233,   // leveleasy
-    232,   // subzero
-    232,   // ultiatedestruction
-    232,   // everymadness
-    232,   // demonpark
-    232,   // thelightningroad
-    232,   // test
-    231,   // test2
+    239,   // stereomadness
+    239,   // backontrack
+    239,   // polargeist
+    238,   // dryout
+    238,   // baseafterbase
+    238,   // cantletgo
+    237,   // jumper
+    237,   // timemachine
+    236,   // cycles
+    236,   // xstep
+    235,   // clutterfunk
+    234,   // theoryofeverything
+    233,   // electromanadventures
+    232,   // clubstep
+    232,   // bestautomaticlvl
+    232,   // leveleasy
+    231,   // subzero
+    231,   // ultiatedestruction
+    231,   // everymadness
+    231,   // demonpark
+    231,   // thelightningroad
+    231,   // test
+    230,   // test2
 };
 
 #endif

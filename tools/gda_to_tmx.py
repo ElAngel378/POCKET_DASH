@@ -130,8 +130,9 @@ SPRITES = {
 # Our pads and orbs are sprites with no outline of their own: the outline is a background object at
 # the same place (GDA draws it in the sprite). Our sprite tile id -> (object, flags)
 OUTLINES = {10: ("fd_pad", 0), 13: ("fd_pad", 0), 37: ("fd_pad", 0),
-            12: ("fd_pad", FLIP_V), 14: ("fd_pad", FLIP_V), 38: ("fd_pad", FLIP_V),
-            11: ("fd_orb_ring", 0), 5: ("fd_orb_ring", 0), 6: ("fd_orb_ring", 0)}
+            12: ("fd_pad", FLIP_V), 14: ("fd_pad", FLIP_V), 38: ("fd_pad", FLIP_V)}
+# Orbs (yellow, blue, pink) draw their own white ring (src/sp_draw.c ORB_RING_TILE): no background
+# ring, so they stay where GDA has them (off the 8 px grid, which the ring would round them to)
 COINS = [7, 26, 27]                              # coin 1, 2, 3: GDA's in level order
 TRIGGERS = {"BG": 256, "GROUND": 257}            # colour trigger channel -> ours
 LEVEL_END = 15
@@ -598,7 +599,7 @@ def main(level, target, spans, add=False, base=None, allow_missing=False):
     root = ET.fromstring(final)
     first = next(int(t.get("firstgid")) for t in root.findall("tileset") if t.get("source", "").endswith("sprites.tsx"))
     next_id = int(root.get("nextobjectid", "1"))
-    if whole and base and not any(t == LEVEL_END for t, *_ in our_sprites):
+    if whole and not any(t == LEVEL_END for t, *_ in our_sprites):   # (the level's own, or the base's)
         old = re.search(r'<object [^>]*gid="%d" [^>]*y="([\d.]+)"' % (first + LEVEL_END), text)
         our_sprites.append((LEVEL_END, (root_w - 1) * 16, float(old.group(1)) - 16 if old else 288, {}, "level end"))
     xml = []
