@@ -354,7 +354,8 @@ static uint8_t practice_mode = 0;
 #define PL_MINI 200
 #define PL_MINI_CUBE (PL_MINI + MINI_FRAME_COUNT)
 static uint8_t mini_cube_m;  // the selected icon's mini icon (mini_cube_frames.h)
-// ship / UFO: tilted images, drawn mirrored (no half turn), 1 px higher than the cube
+// ship / UFO: tilted images, drawn mirrored (no half turn); the UFO 1 px higher than the cube, the
+// ship 1 px lower (its image, rows 2..14, then rests on the bottom of the collision box)
 #define PL_TILTED(id) ((id) >= PL_UFO || ((id) >= PL_SHIP && (id) < PL_BALL))
 static metasprite_t cube_ms[3];
 static uint8_t cube_front;   // buffer shown: tiles 0..3 / 4..7
@@ -513,7 +514,7 @@ static const metasprite_t *player_frame_metasprite(uint8_t want) {
     uint8_t undo = tilted ? (uint8_t)(cube_img_mir ^ cube_mirror) : 0;
     if (undo & 1u) flip ^= S_FLIPY;
     if (undo & 2u) { uint8_t x = l; l = r; r = x; flip ^= S_FLIPX; }
-    int8_t dy = tilted ? -1 : 0;                         // the ship and the UFO a pixel higher,
+    int8_t dy = !tilted ? 0 : (show < PL_BALL) ? 1 : -1;  // the ship a pixel lower, the UFO higher,
     int8_t dx = (show >= PL_BALL && !tilted) ? 0 : -1;   // the ball a pixel further right
     flip |= S_PALETTE;   // DMG: OBP1, the player's palette (CGB: ignored)
     cube_ms[0].dy = dy; cube_ms[0].dx = dx; cube_ms[0].dtile = l; cube_ms[0].props = flip;

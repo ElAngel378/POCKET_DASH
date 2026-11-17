@@ -19,9 +19,9 @@ BANKREF(fs_dryout)
 const fur_song_t fs_dryout = {
     3, /* chunks */
     2, /* wave pool chunk */
-    1, /* anti-click */
-    36408, /* anti-click step at 57.6 Hz */
-    1165084UL, /* tick period in 1/16 cycles */
-    { { 0, 0 }, { 0, 174 }, { 0, 3733 }, { 0, 11074 }, { 1, 10552 } }, /* stream entry points */
+    0, /* anti-click */
+    0, /* anti-click step at 57.6901 Hz */
+    1163264UL, /* tick period in 1/16 cycles */
+    { { 0, 0 }, { 0, 1233 }, { 0, 5867 }, { 1, 1021 }, { 1, 7061 } }, /* stream entry points */
     fs_dryout_chunks
 };
