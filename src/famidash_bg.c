@@ -38,7 +38,7 @@ static FadeCh fade_ch[60];
 static uint8_t fade_col[20];
 static uint8_t fade_n;
 static uint8_t fade_nch;            // 3 * fade_n, read by fade_channels
-static uint8_t fade_left;           // steps to go, 0: not fading
+uint8_t famidash_fade_left;                  // steps to go, 0: not fading (DMG: band steps)
 static uint8_t fade_div, fade_wait; // frames a step (10 s: 5, else 1), frames to the next step
 static uint8_t fade_restart;        // a trigger changed famidash_bg_target this frame
 static uint8_t fade_time;           // that trigger's fade time (FAMIDASH_FADE_*)
@@ -46,7 +46,7 @@ static uint8_t fade_time;           // that trigger's fade time (FAMIDASH_FADE_*
 // 8.8 step for a channel change of d = index - 31: d * 256 / frames, for 18 frames (~= d * 57 / 4)
 // and 30. 1, 2 and 4 s halve the 30 frame step (one table each did not fit the bank).
 // (FAMIDASH_FADE_INSTANT: 1 frame, the last one copies the target, the steps are never seen)
-// 10 s: the 2 s steps, one every 5 frames (600 frames do not fit fade_left, and a 600 frame step
+// 10 s: the 2 s steps, one every 5 frames (600 frames do not fit famidash_fade_left, and a 600 frame step
 // rounds small changes to nothing)
 static const uint8_t bg_fade_frames[FAMIDASH_FADE_10S + 1] = { BG_FADE_FRAMES, 1, 30, 60, 120, 240, 120 };
 static const uint8_t step_tab_lo[2][63] = {
@@ -255,7 +255,7 @@ static void start_fade(void) {
     fade_scan();
     n = fade_n;
     fade_nch = (uint8_t)(n * 3u);
-    fade_left = n ? bg_fade_frames[fade_time] : 0;
+    famidash_fade_left = n ? bg_fade_frames[fade_time] : 0;
 }
 
 // Adds every channel's 8.8 step (fade_nch > 0 channels)
@@ -322,10 +322,10 @@ void famidash_bg_fade_step(void) BANKED {
         start_fade();
         return;
     }
-    if (!fade_left) return;
+    if (!famidash_fade_left) return;
     if (--fade_wait) return;
     fade_wait = fade_div;
-    if (--fade_left == 0) {
+    if (--famidash_fade_left == 0) {
         memcpy(famidash_bg_palettes, famidash_bg_target, sizeof(famidash_bg_target));
         // the pause box and the death fade start from shadow_bkg_palettes
         memcpy(shadow_bkg_palettes, famidash_bg_palettes, 20 * sizeof(palette_color_t));
@@ -350,7 +350,7 @@ void famidash_bg_set_now(const palette_color_t *pal) BANKED {
     memcpy(famidash_bg_palettes, pal, sizeof(famidash_bg_target));
     memcpy(shadow_bkg_palettes, pal, 20 * sizeof(palette_color_t));
     shadow_fake_spike_palette();
-    fade_left = 0;
+    famidash_fade_left = 0;
     fade_restart = 0;
 }
 static palette_color_t current_sky_color = RGB( 1,  9, 24);
@@ -424,9 +424,44 @@ void famidash_sky_colors(uint8_t color_id, palette_color_t *out) BANKED {
 }
 
 // The DMG theme (bg_pals index) of a background colour id: from its nearest NES colour
-uint8_t famidash_colour_band(uint8_t color_id) BANKED {
+static uint8_t colour_band(uint8_t color_id) {
     uint8_t c = level_colour(color_id)->nes;
     return (c < 16u) ? ((c == 15u) ? 3u : 2u) : ((c < 32u) ? 1u : 0u);
+}
+
+uint8_t famidash_colour_band(uint8_t color_id) BANKED {
+    return colour_band(color_id);
+}
+
+// DMG (not SGB): the theme goes to a background trigger's band over the trigger's fade time, one
+// band at a time, each when the fade is halfway between two bands (about where CGB's colour
+// crosses): a 10 s fade to black stays coloured a while (xStep's ship part) instead of going
+// black at once. It uses the CGB fade's variables, idle on DMG: famidash_fade_left the steps to
+// go, fade_n the band it goes to, fade_wait / fade_div 4-frame ticks to the next step / a step,
+// fade_nch the frames of a tick.
+static const uint8_t dmg_fade_ticks[FAMIDASH_FADE_10S + 1] = { 5, 0, 8, 15, 30, 60, 150 };
+
+void famidash_dmg_band_trigger(uint8_t color_id, uint8_t time, uint8_t *idx) BANKED {
+    uint8_t to = colour_band(color_id);
+    uint8_t from = *idx;
+    uint8_t steps = (to > from) ? (uint8_t)(to - from) : (uint8_t)(from - to);
+    uint8_t tick = (uint8_t)(dmg_fade_ticks[(time <= FAMIDASH_FADE_10S) ? time : 0] / (uint8_t)(steps ? steps : 1u));
+    famidash_fade_left = 0;
+    if (!steps) return;
+    if (tick < 2u) { *idx = to; return; }   // instant (or too short to show the bands between)
+    fade_n = to;
+    fade_div = tick;
+    fade_wait = (uint8_t)(tick >> 1);
+    fade_nch = 0;
+    famidash_fade_left = steps;
+}
+
+void famidash_dmg_band_step(uint8_t *idx) BANKED {
+    if (++fade_nch & 3u) return;
+    if (--fade_wait) return;
+    fade_wait = fade_div;
+    if (fade_n > *idx) ++*idx; else --*idx;
+    --famidash_fade_left;
 }
 
 void famidash_apply_bg_trigger(uint8_t color_id, uint8_t time) BANKED {

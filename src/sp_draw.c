@@ -887,12 +887,12 @@ static void bg_trigger(uint8_t obj, uint8_t time, uint8_t *target_bg_idx) {
 
     if (_cpu == CGB_TYPE) {
         famidash_apply_bg_trigger(pal_idx, time);
+        *target_bg_idx = famidash_colour_band(pal_idx);
     } else if (sgb_present) {
         sgb_set_sky(pal_idx);   // the SGB colours change, the DMG theme stays (bg_pals[1])
-        return;
+    } else {
+        famidash_dmg_band_trigger(pal_idx, time, target_bg_idx);   // over the fade time
     }
-
-    *target_bg_idx = famidash_colour_band(pal_idx);
 }
 
 void process_sprite_logic(

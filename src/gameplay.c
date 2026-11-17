@@ -610,6 +610,7 @@ static void reload_level_state(uint8_t idx) {
     stream_jobs_reset();
     broken_reset();   // broken bricks come back
     target_bg_idx = dmg_start_bg_idx();
+    if (_cpu != CGB_TYPE) famidash_fade_left = 0;   // no DMG theme step left over
     pause_suppress_jump = 0;
     end_anim_state = END_ANIM_INACTIVE;
     end_anim_frame = 0;
@@ -1281,6 +1282,7 @@ static void practice_respawn(uint8_t idx) {
     scroll_acc = cp->scroll_acc;
     bg_drift_px = cp->bg_drift_px;
     target_bg_idx = cp->target_bg_idx;
+    if (_cpu != CGB_TYPE) famidash_fade_left = 0;   // (CGB: famidash_bg_set_now below)
     last_cp_cam_px = cp->cam_px;
 
     player = cp->player;
@@ -1500,6 +1502,7 @@ void play_level(uint8_t idx) BANKED {
 
     reduce_flash = (setting_dmg_gradient || sgb_present) ? 0 : 1;   // (SGB: no gradient, it would leave theme 1)
     target_bg_idx = dmg_start_bg_idx();
+    if (_cpu != CGB_TYPE) famidash_fade_left = 0;   // no DMG theme step left over
     level_max_fall_7 = game_levels[idx]->max_fall_7;
     player_init(&player, 0, 240);
     player.y_base = Y_BASE_MAX;
@@ -1713,6 +1716,7 @@ void play_level(uint8_t idx) BANKED {
             player.orb_buffered = 1;
         }
         process_sprite_logic(&active_sp, cam_px, &player, joy, &target_bg_idx);
+        if (_cpu != CGB_TYPE && famidash_fade_left) famidash_dmg_band_step(&target_bg_idx);
         PROF_MARK(3);   // collision columns, player physics
 
         if (end_trigger_requested && end_anim_state == END_ANIM_INACTIVE) start_end_anim();

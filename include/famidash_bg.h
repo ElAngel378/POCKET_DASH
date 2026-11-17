@@ -22,6 +22,13 @@ void famidash_sky_colors(uint8_t color_id, palette_color_t *out) BANKED;
 // The DMG theme (bg_pals index) of a background colour id
 uint8_t famidash_colour_band(uint8_t color_id) BANKED;
 
+// DMG (not SGB): a background trigger moves the theme *idx to its band over its fade time (one
+// band at a time); famidash_dmg_band_step(idx) every frame while famidash_fade_left (CGB: its
+// own fade's steps), famidash_fade_left = 0 stops it
+void famidash_dmg_band_trigger(uint8_t color_id, uint8_t time, uint8_t *idx) BANKED;
+void famidash_dmg_band_step(uint8_t *idx) BANKED;
+extern uint8_t famidash_fade_left;
+
 // A colour trigger's fade time: the y of its SpDef (tools/tmx2sprites.py, from the fade time
 // marker in its column)
 #define FAMIDASH_FADE_DEFAULT 0   // 0.3 s
