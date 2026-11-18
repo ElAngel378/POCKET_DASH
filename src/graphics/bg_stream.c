@@ -179,6 +179,15 @@ void bg_stream_to(uint16_t col) BANKED {
         }
         fur_copy_banked(&bs_col, bs_rp, 2, bs_bank);
         bs_rp += 2;
+        if (bs_col == 0xFFFEu) {
+            // the records go on at the start of another bank (tools/bg_stream.py: a level with
+            // more than a bank of them)
+            fur_copy_banked(&bs_bank, bs_rp, 1, bs_bank);
+            bsu_bank = bs_bank;
+            bs_rp = (const uint8_t *)0x4000;
+            fur_copy_banked(&bs_col, bs_rp, 2, bs_bank);
+            bs_rp += 2;
+        }
     }
     run_flush();
     if (off && !bs_dmg) VBK_REG = vbk;

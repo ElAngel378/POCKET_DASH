@@ -494,9 +494,10 @@ class Composer:
         # The cells without paint that are the level's own: a look is an id.
         own = {c: p[0] for c, p in plain.items() if p is not None}
         own_count = Counter(own.values())
-        if len(own_count) > len(free):
-            raise SystemExit("%s: no metatile id left: too many different cells (%d, %d ids)"
-                             % (name, len(own_count), len(free)))
+        # Too many for an id each ("wide"): the level's own cells share ids like the painted ones
+        # below, any two looks with the same palette and collision, SHARE_GAP columns apart. The id then changes look on CGB as well
+        # ("cgb_at"); its palette and collision stay, the game reads those by id.
+        wide = len(own_count) > len(free)
         # The cells with paint differ from the cell under the paint on the DMG only, so painted looks
         # of the same cell share an id where they are SHARE_GAP columns apart: the id shows one, then
         # the other (tools/bg_stream.py points its quarters at other tiles there: "dmg_at").
@@ -504,7 +505,7 @@ class Composer:
 
         def tracks(painted):
             """{(cgb look, palette, collision): [[(first column, last column, look), ...] of an id]}
-            (not sharing: an id each look)"""
+            (not sharing: an id each look; wide: cgb look None)"""
             cols = {}
             for (cx, _), k in painted.items():
                 cols.setdefault(k, set()).add(cx)
@@ -514,7 +515,8 @@ class Composer:
                 first = cs[0]
                 for i, c in enumerate(cs):
                     if i + 1 == len(cs) or (share and cs[i + 1] - c >= SHARE_GAP):
-                        items.setdefault((k[0], k[2], k[3]), []).append((first, c, k))
+                        base = (None if wide else k[0], k[2], k[3])
+                        items.setdefault(base, []).append((first, c, k))
                         first = cs[i + 1] if i + 1 < len(cs) else None
             out = {}
             for base, its in items.items():
@@ -546,8 +548,15 @@ class Composer:
         # (ids are only shared in a level that has too few: its tiles' records then say where the ids
         # point, so a respawn has to read them all again, bg_stream.c bs_tables_ok)
         h, w = len(grid), len(grid[0])
+        if wide:
+            share = True
+            painted, own_count = dict(own), Counter()
+            n = sum(len(t) for t in tracks(painted).values())
+            if n > len(free):
+                raise SystemExit("%s: no metatile id left: too many different cells (%d, %d ids with sharing, %d ids)"
+                                 % (name, len(set(own.values())), n, len(free)))
         start = (own_count, painted)
-        for share in (False, True):
+        for share in ((True,) if wide else (False, True)):
             own_count, painted = start
             paint, dropped = {}, 0
             for px in over or []:
@@ -570,7 +579,7 @@ class Composer:
                         own2[k] -= 1
                         if not own2[k]:
                             del own2[k]
-                    if kd[1] != k[1]:
+                    if kd[1] != k[1] or (wide and mine):
                         painted2[c] = kd
                     elif mine:
                         own2[k] += 1
@@ -593,13 +602,18 @@ class Composer:
             grid[c[1]][c[0]] = cells[k]
         spin = {}
         for c, k in painted.items():
-            spin.setdefault((k[0], k[2], k[3]), set()).update(plain[c][1])
+            spin.setdefault(k, set()).update(plain[c][1])
         where = {}      # painted look -> [(first column, last column, id)]
-        for base, ids in sorted(tracks(painted).items(), key=lambda kv: min(t[0][:2] for t in kv[1])):
+        for base, ids in sorted(tracks(painted).items(), key=lambda kv: (min(t[0][:2] for t in kv[1]), kv[0][0] is None)):
             for t in ids:
                 m = free.pop(0)
-                out[m] = (base[0], t[0][2][1], base[2], base[1], sorted(spin[base]), None,
-                          [[it[0], it[2][1]] for it in t] if len(t) > 1 else None)
+                sp = sorted(set().union(*(spin[it[2]] for it in (t if wide else (x for ts in ids for x in ts)))))
+                if wide:
+                    dmg_at = [[it[0], it[2][1]] for it in t] if len({it[2][1] for it in t}) > 1 else None
+                    cgb_at = [[it[0], it[2][0]] for it in t] if len({it[2][0] for it in t}) > 1 else None
+                else:
+                    dmg_at, cgb_at = ([[it[0], it[2][1]] for it in t] if len(t) > 1 else None), None
+                out[m] = (t[0][2][0], t[0][2][1], base[2], base[1], sp, None, dmg_at, cgb_at)
                 for first, last, k in t:
                     where.setdefault(k, []).append((first, last, m))
         for (cx, cy), k in painted.items():

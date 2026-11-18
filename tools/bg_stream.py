@@ -23,6 +23,7 @@ TRANSPARENT = 12       # sheet tile: empty (CGB: the parallax)
 SPIN_BASE = 28         # the spinning objects' tiles: BG slots from here (CGB, bg_stream.c)
 SPIN_MAX = 52          # ... at most: what VBlank can carry (13 tiles a VBlank, a step every 4+)
 SPIN_FRAMES = 3
+MAIN_PART = 8192       # a level with more records than a bank: each platform's first bytes in the shared bank
 PER_COLUMN = {1: 4, 0: 2}     # records a column may take in play: CGB, DMG (bg_stream_feed: 4 and 2 tiles a
                               # frame; a column takes 3 frames at the top speed)
 BLACK_FILL_SLOT = 26
@@ -95,11 +96,13 @@ class Stream:
         self.own = sorted(novel or {})
         big_saw = any(m in BG.BIG_SAW_PARTS and m not in (novel or {}) for col in grid for m in col)
         novel = novel or {}
-        # DMG: an id with "dmg_at" [[first column, quarters], ...] (tools/compose.py: the cells with the
+        # An id with "dmg_at" [[first column, quarters], ...] (tools/compose.py: the cells with the
         # DMG's painted objects) looks different from each of those columns on. Here it is one
         # metatile (id, n) per look; its quarters are pointed at their tiles where a column shows it
         # (self.repoint), not by the tiles' records.
-        self.at = {m: novel[m]["dmg_at"] for m in novel if not cgb and novel[m].get("dmg_at")}
+        # CGB: "cgb_at" the same way (a level with more cells than ids: they share ids, compose.py "wide")
+        tag = "cgb_at" if cgb else "dmg_at"
+        self.at = {m: novel[m][tag] for m in novel if novel[m].get(tag)}
 
         def shown(m, x):
             if m not in self.at:
@@ -121,8 +124,10 @@ class Stream:
         moving, tiles_of = [], {}
         for m in dict.fromkeys(m for col in real for m in col):
             if m in novel and cgb:
+                # (an id with looks by column: the tiles of all of them)
+                looks = [v for v in used if isinstance(v, tuple) and v[0] == m] if m in self.at else [m]
                 for key in novel[m].get("spin", ()):
-                    for px in self.mq[m]:
+                    for px in (px for v in looks for px in self.mq[v]):
                         if px is not None and len(px) == SPIN_FRAMES:
                             tiles_of.setdefault(key, {})[px] = 1
         for key, tiles in tiles_of.items():
@@ -279,10 +284,11 @@ def tile_bytes(px):
     return bytes(out)
 
 
-def record_bytes(st):
+def record_bytes(st, starts=None):
     """Pool size (16 bits), flags (1: every tile has one record, so a reload of the same level can
     skip the metatile table), then the columns with records, in order: column (16 bits), n, n x
-    (slot, pool tile (16 bits; 0xFFFF: no tile to load), k, k x (metatile, quarter)); then 0xFFFF"""
+    (slot, pool tile (16 bits; 0xFFFF: no tile to load), k, k x (metatile, quarter)); then 0xFFFF.
+    starts: a list to get where each column's records begin"""
     tiles = [t for rec in st.records for t, _ in rec]
     n = len(st.pool)
     out = bytearray([n & 0xFF, n >> 8, 1 if len(tiles) == len(set(tiles)) and not any(st.repoint) else 0])
@@ -297,6 +303,8 @@ def record_bytes(st):
             continue
         n = len(rec) + len(points) + (len(groups) if c == 0 else 0)
         assert n < 256, "%s: %d records in column %d" % (st.name, n, c)
+        if starts is not None:
+            starts.append(len(out))
         out += bytes([c & 0xFF, c >> 8, n])
         if c == 0:
             for g in groups:
@@ -340,6 +348,7 @@ def write(pools):
     first = {}             # (level, platform) -> its first tile in the space
     spin = {}              # level -> (its spinning tiles' first tile in the space, their number)
     for name, cols, cgb_slots, dmg_slots, novel in pools:
+        parts, arrays = {}, []
         # (a cell's hidden look is shown in the column of the cell itself: its tiles are needed there)
         cols = [list(c) + [novel[m]["hide"] for m in sorted(set(c))
                            if m in novel and novel[m].get("hide") is not None] for c in cols]
@@ -360,7 +369,8 @@ def write(pools):
             tiles = b"".join(tile_bytes(px[0] if len(px) == SPIN_FRAMES else px) for px in st.pool)
             if not cgb:
                 tiles += b"".join(tile_bytes(flipped(px)) for px in st.pool)
-            recs = record_bytes(st)
+            starts = []
+            recs = record_bytes(st, starts)
             tag = "cgb" if cgb else "dmg"
             first[(name, tag)] = len(space) // 16
             space += tiles
@@ -371,13 +381,27 @@ def write(pools):
                     space += bytes(16384 - len(space) % 16384)
                 spin[name] = (len(space) // 16, len(st.spin))
                 space += data
-            L += c_array("bs_%s_%s_recs" % (name, tag), recs)
-            size += len(recs)
-        files[name] = (L, size)
+            parts[tag] = (recs, starts)
+        # A level with more records than a bank: each platform's first MAIN_PART bytes here, the
+        # rest in banks of their own, each piece starting its bank (0x4000). A piece ends in the
+        # column 0xFFFE and the next piece's bank (bg_stream.c bg_stream_to).
+        big = sum(len(r) for r, _ in parts.values()) > 16384
+        for tag, (recs, starts) in parts.items():
+            pieces, at, limit = [], 0, MAIN_PART
+            cuts = starts + [len(recs) - 2]
+            while big and len(recs) - at > limit:
+                cut = max(x for x in cuts if x <= at + limit - 3)
+                assert cut > at, "%s: one column's records are more than a bank" % name
+                pieces.append(recs[at:cut])
+                at, limit = cut, 16384
+            pieces.append(recs[at:])
+            arrays.append(("bs_%s_%s_recs" % (name, tag), pieces))
+            size += len(pieces[0]) + (3 if len(pieces) > 1 else 0)
+        files[name] = (L, size, arrays)
 
     # banks: top down, skipping every bank other files use
     for old in gfx.glob("bg_stream_*.c"):
-        if old.stem[len("bg_stream_"):] not in files:
+        if old.stem[len("bg_stream_"):] not in files and not old.stem.startswith("bg_stream_more_"):
             old.unlink()
     used = set()
     for f in (ROOT / "src").rglob("*.c"):
@@ -397,7 +421,8 @@ def write(pools):
         (gfx / ("bg_stream_tiles_%d.c" % i)).write_text("\n".join(T) + "\n", encoding="utf-8")
     bank, room = None, 0
     bank_of = {}
-    for name, (L, size) in files.items():
+    more = 0
+    for name, (L, size, arrays) in files.items():
         if size > room:
             bank = max(b for b in range(2, 255) if b not in used)
             used.add(bank)
@@ -405,7 +430,23 @@ def write(pools):
         room -= size
         L[1] = L[1] % bank
         bank_of[name] = bank
+        for array, pieces in arrays:
+            # the pieces past the first: a bank each, from the last one (each ends in the next's bank)
+            nxt = None
+            for i in range(len(pieces) - 1, 0, -1):
+                b = max(b for b in range(2, 255) if b not in used)
+                used.add(b)
+                T = ["/* Generated by tools/bg_stream.py - do not edit */", "#pragma bank %d" % b,
+                     "#include <stdint.h>", "", "// %s, piece %d: at the start of the bank" % (array, i), ""]
+                T += c_array("%s_%d" % (array, i), pieces[i] + (bytes([0xFE, 0xFF, nxt]) if nxt else b""))
+                (gfx / ("bg_stream_more_%d.c" % more)).write_text("\n".join(T) + "\n", encoding="utf-8")
+                more += 1
+                nxt = b
+            L += c_array(array, pieces[0] + (bytes([0xFE, 0xFF, nxt]) if nxt else b""))
         (gfx / ("bg_stream_%s.c" % name)).write_text("\n".join(L) + "\n", encoding="utf-8")
+    for old in gfx.glob("bg_stream_more_*.c"):
+        if int(old.stem[len("bg_stream_more_"):]) >= more:
+            old.unlink()
 
     H = ["/* Generated by tools/bg_stream.py - do not edit */", "#ifndef BG_STREAM_TABLES_H",
          "#define BG_STREAM_TABLES_H", "", "#include <gbdk/platform.h>", "",

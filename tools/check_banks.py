@@ -21,6 +21,14 @@ def main():
         end = int(start, 16) + int(size, 16)
         if end > 0x4000:
             bad.append("bank 0 %s ends at 0x%04X (%d over 16384)" % (name, end, end - 0x4000))
+    # a level's stream records past their first bank: the game reads each piece from its bank's
+    # start (tools/bg_stream.py, bg_stream.c bg_stream_to)
+    import os
+    noi = os.path.splitext(sys.argv[1])[0] + ".noi"
+    syms = open(noi, encoding="latin1").read() if os.path.exists(noi) else ""
+    for name, addr in re.findall(r"^DEF (_bs_\w+_recs_\d+) 0x([0-9A-Fa-f]+)", syms, re.M):
+        if int(addr, 16) & 0xFFFF != 0x4000:
+            bad.append("%s is at 0x%04X, not at its bank's start (0x4000)" % (name, int(addr, 16) & 0xFFFF))
     if bad:
         print("ROM bank overflow:\n  " + "\n  ".join(bad))
         sys.exit(1)
