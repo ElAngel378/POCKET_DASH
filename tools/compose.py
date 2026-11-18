@@ -42,7 +42,7 @@ SOLID_CODES = {0x05, 0x06, 0x07, 0x09}
 COL_BREAKABLE, BRICK = 0x16, "gd143"       # on the grid; off it, a plain solid block
 SPECIAL_CODES = set(range(0x0A, 0x10))   # orbs, pads
 # fills: no collision, but opaque like the blocks they fill
-DMG_SLOT_MARGIN = 6       # wide levels: DMG streaming slots kept free (fading looks, Famidash tile variants)
+DMG_SLOT_MARGIN = 20      # wide levels: DMG streaming slots kept free (fading looks, Famidash tile variants)
 SHARE_GAP = BS.RING + 1    # columns between two looks of one id: the first has left the VRAM ring
 FADED_PAL = 7       # the faded look of fading cells on CGB (famidash_bg.c): their tiles, nearer the sky
 FILLS = {"gd5", "gd120", "fd_x_none", "fd_black_none", "fd_bg5", "fd_bg6"}
@@ -505,9 +505,11 @@ class Composer:
         # the other (tools/bg_stream.py points its quarters at other tiles there: "dmg_at").
         painted = {}
 
+        solo = set()    # wide: looks with an id of their own (below)
+
         def tracks(painted):
             """{(cgb look, palette, collision): [[(first column, last column, look), ...] of an id]}
-            (not sharing: an id each look; wide: cgb look and palette None)"""
+            (not sharing: an id each look; wide: cgb look and palette None, but for the looks in solo)"""
             cols = {}
             for (cx, _), k in painted.items():
                 cols.setdefault(k, set()).add(cx)
@@ -517,7 +519,7 @@ class Composer:
                 first = cs[0]
                 for i, c in enumerate(cs):
                     if i + 1 == len(cs) or (share and cs[i + 1] - c >= SHARE_GAP):
-                        base = (None, None, k[3]) if wide else (k[0], k[2], k[3])
+                        base = ((k[0], k[2], k[3], k) if k in solo else (None, None, k[3])) if wide else (k[0], k[2], k[3])
                         items.setdefault(base, []).append((first, c, k))
                         first = cs[i + 1] if i + 1 < len(cs) else None
             out = {}
@@ -634,6 +636,17 @@ class Composer:
             warn.append("%s: no metatile ids left to paint %d of the DMG's objects and decorations" % (name, dropped))
         if dmg_full:
             warn.append("%s: %d of the DMG's objects and decorations not painted: too many tiles in 16 columns" % (name, dmg_full))
+        if wide:
+            # The ids left over go to the looks shown in the most places: an id of their own, so
+            # the game never applies a look change for them (each one costs a stream record a
+            # column, bs_apply)
+            runs = Counter(it[2] for ids in tracks(painted).values() for t in ids for it in t)
+            for k, r in runs.most_common():
+                if r < 2:
+                    break
+                solo.add(k)
+                if sum(len(t) for t in tracks(painted).values()) > len(free):
+                    solo.discard(k)
         for c in sorted(own):
             if c in painted:
                 continue

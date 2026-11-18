@@ -379,11 +379,21 @@ void fade_update(uint8_t scx) BANKED {
     if (broken_todo && !bg_rj_pending && brick_cell()) return;
     if (!fade_n) return;
     uint8_t reversed = view_rev;
-    uint16_t want = 0, bit = 1;
-    for (uint8_t s = 0; s < 16u; s++, bit <<= 1) {
-        uint8_t sx = (uint8_t)((uint8_t)((reversed ? (uint8_t)-(int8_t)s : s) << 4) - scx);
-        if (sx >= FADE_FROM && sx < FADE_TO) want |= bit;
-    }
+    // the ring slots s whose screen x ((s or -s) * 16 - scx) is in FADE_FROM .. FADE_TO - 1: in
+    // 8 bits (16-bit shifts made this a few % of every DMG frame)
+    uint8_t sx = (uint8_t)-scx, step = reversed ? (uint8_t)-16 : 16u, w0 = 0, w1 = 0, b = 1;
+    do {
+        if ((uint8_t)(sx - FADE_FROM) < (uint8_t)(FADE_TO - FADE_FROM)) w0 |= b;
+        sx += step;
+        b <<= 1;
+    } while (b);
+    b = 1;
+    do {
+        if ((uint8_t)(sx - FADE_FROM) < (uint8_t)(FADE_TO - FADE_FROM)) w1 |= b;
+        sx += step;
+        b <<= 1;
+    } while (b);
+    uint16_t want = w0 | ((uint16_t)w1 << 8), bit;
     // (a slot without fading cells just follows)
     fade_on = (fade_on & fade_any) | (want & ~fade_any);
     uint16_t todo = ((want ^ fade_on) | fade_unknown) & fade_any;

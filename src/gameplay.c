@@ -2049,6 +2049,12 @@ void play_level(uint8_t idx) BANKED {
             request_mt_column_slice(col_job_slot, col_job_step);
             col_job_issued = 1;
         }
+        // With time left (not in a column's first slice, which applies its records): the next
+        // column's stream records now, so its first slice has less to do. Safe while this column
+        // is built: their tiles go to slots of columns that left the ring, the oldest ring
+        // column is ~4 behind the screen, and shared ids change look only 17 columns after
+        // their previous look (bg_stream.py, compose.py SHARE_GAP)
+        if (col_job_step != 0 && LY_REG < 100u) BG_STREAM_TO(col_job_col + 1u);
         }
 
         PROF_MARK(8);   // band, parallax, palettes, row job requests

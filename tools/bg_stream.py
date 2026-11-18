@@ -24,8 +24,9 @@ SPIN_BASE = 28         # the spinning objects' tiles: BG slots from here (CGB, b
 SPIN_MAX = 52          # ... at most: what VBlank can carry (13 tiles a VBlank, a step every 4+)
 SPIN_FRAMES = 3
 MAIN_PART = 8192       # a level with more records than a bank: each platform's first bytes in the shared bank
-PER_COLUMN = {1: 4, 0: 2}     # records a column may take in play: CGB, DMG (bg_stream_feed: 4 and 2 tiles a
-                              # frame; a column takes 3 frames at the top speed)
+PER_COLUMN = {1: 4, 0: 4}     # records a column may take in play: CGB, DMG (bg_stream_feed: 4 and 2 tiles a
+                              # frame; a column takes 3 frames at the top speed. DMG 2 left runs of
+                              # heavy columns at their own column: 25 tiles at once, the game waited)
 BLACK_FILL_SLOT = 26
 CGB_GROUND_LOOK = {1, 2, 5, 6, 136, 137}   # mt_renderer.c gnd_look_tab
 
