@@ -1306,7 +1306,11 @@
    </properties>
   </object>
   <object id="555" gid="6229" x="5605" y="272" width="16" height="16"/>
-  <object id="556" gid="6224" x="6532.13" y="328" width="16" height="16"/>
+  <object id="556" gid="6224" x="6532.13" y="328" width="16" height="16">
+   <properties>
+    <property name="Instant" type="bool" value="true"/>
+   </properties>
+  </object>
   <object id="557" gid="6229" x="8420.36" y="343.636" width="16" height="16"/>
   <object id="558" gid="6224" x="9344.82" y="343.909" width="16" height="16"/>
  </objectgroup>
