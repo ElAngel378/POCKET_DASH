@@ -1382,6 +1382,11 @@ static void mj_write_run_asm(void) __naked {
 // map at map_hi << 8 (0x98 / 0x9C). CGB, display on.
 void mj_prepare_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t part) BANKED {
     if (!part) {
+        // its stream records first, like prepare_mt_column: the other map goes a column or two
+        // further than the ring, and those columns were built with the tables of before (old
+        // tiles and looks at the switch, in a level that streams as it plays)
+        bm_info_update();
+        BG_STREAM_TO(map_col);
         get_map_column(map_col, map, map_bank, mj_col, mt_band);
         if (broken_n) broken_fix_ring(map_col, mj_col);
     }
