@@ -63,10 +63,7 @@ USER_ART = {
     "gd157": ("1p6blocks", False, (0, 32, 16, 48)),
     "gd158": ("1p6blocks", False, (0, 32, 16, 48), "H"),
     "gd159": ("1p6blocks", False, (0, 32, 16, 48)),
-    "gd186": ("1p6blocks", False, (16, 32, 40, 56)),     # top left quarter of the saw
-    "gd187": ("1p6blocks", False, (64, 32, 96, 64)),
     "gd188": ("1p6blocks", False, (96, 32, 128, 64)),
-    "pd_saw_star_small": ("1p6blocks", False, (0, 48, 16, 64)),
 }
 # Clutterfunk's thin lines: a line along the block's edge, nothing to draw (x0, y0, x1, y1)
 LINES = {"gd76": (3, 0, 13, 1), "gd77": (3, 0, 13, 1), "gd78": (3, 0, 13, 1), "gd81": (3, 0, 13, 1),
@@ -88,6 +85,10 @@ SPIKES = {"gd144": ("FADING_SPIKE_V", None), "gd145": ("FADING_MEDIUM_SPIKE_V", 
           "gd179": ("ONE_POINT_SIX_MEDIUM_SPIKE_V", None)}
 BLACK_SAWS = {"gd183": ("ALT_BIG_OUTLINE_SAW", (8, 8, 32, 32)),      # top left quarter
               "gd184": ("ALT_MEDIUM_OUTLINE_SAW", None), "gd185": ("ALT_SMALL_OUTLINE_SAW", None)}
+# the 1.6 saws from GDA (the user's choice, 2026-11-18): an outline, all in white (palette 0)
+OUTLINE_SAWS = {"gd186": ("BIG_OUTLINE_SAW", (8, 8, 32, 32)),          # top left quarter
+                "gd187": ("MEDIUM_OUTLINE_SAW", None),
+                "pd_saw_star_small": ("SMALL_OUTLINE_SAW", (6, 6, 26, 26))}    # 20 px: scaled to 16
 # wheels that are not square: on a canvas with room to turn in, the hub in the middle
 # key -> where the hub is in the GDA image
 HUB = {"gd155": (16, 15), "gd184": (16, 16), "gd185": (16, 16)}
@@ -223,6 +224,18 @@ def main():
         img = gda.sprite_art(names.index(sprite))[0]
         img = img.crop(box) if box else img
         save(key, on_canvas(key, img.point([0 if not c else 3 for c in range(256)])))
+    save_outline_saws()
+
+
+def save_outline_saws():
+    names = gda.sprite_types()
+    for key, (sprite, box) in OUTLINE_SAWS.items():
+        img = gda.sprite_art(names.index(sprite))[0]
+        img = img.crop(box) if box else img
+        if img.size != GO.OBJECTS[key][2]:
+            img = img.point([0 if not c else 255 for c in range(256)]).resize(GO.OBJECTS[key][2], Image.BOX)
+            img = img.point([0 if v < 100 else 1 for v in range(256)])
+        save(key, img.point([0 if not c else 3 for c in range(256)]))
 
 
 if __name__ == "__main__":
