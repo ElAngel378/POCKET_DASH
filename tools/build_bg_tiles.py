@@ -284,6 +284,7 @@ def main():
     a = csrc.index("famidash_metatile_palettes[FAMIDASH_NUM_METATILES] =")
     fd_pal = list(map(int, re.findall(r'\d+', csrc[csrc.index("{", a):csrc.index("};", a)])))
     pal_tabs = {}  # level name -> its CGB palette table (the same levels)
+    pal_more = {}
     for lv in order:
         name = ident[lv]
         level_map = (ROOT / "levels" / "level_data" / ("%s.bin" % name)).read_bytes()
@@ -293,6 +294,8 @@ def main():
         if novel:
             col_tabs[name] = [novel[m]["col"] if m in novel else fd_col[m] for m in range(256)]
             pal_tabs[name] = [novel[m]["pal"] if m in novel else fd_pal[m] for m in range(256)]
+            # (the palettes ids change to as the level goes, compose.py "pal_at")
+            pal_more[name] = [v for m in novel for _, v in (novel[m].get("pal_at") or [])]
         level_mts = set(level_map)
         fd_mts = level_mts - set(novel)     # Famidash metatiles: a level's own cells may use saw ids
         # metatile 120 is also Xstep's diamond: it is the big saw's centre only where big saws are
@@ -350,7 +353,7 @@ def main():
             ("level_pal_%s" % s[1]) if own else "famidash_metatile_palettes",
             ("bg_sheet_%s" % s[1]) if sheet else "0",
             ("BANK(bg_sheet_%s)" % s[1]) if sheet else "0",
-            int(s[5]), int(s[4]), rest_of.get(s[1], 0), int(own and any(v & 0x81 == 0x81 for v in pal_tabs[s[1]]))))
+            int(s[5]), int(s[4]), rest_of.get(s[1], 0), int(own and any(v & 0x81 == 0x81 for v in pal_tabs[s[1]] + pal_more.get(s[1], [])))))
     C.append("};")
     (ROOT / "src" / "level_collision.c").write_text("\n".join(C) + "\n", encoding="utf-8")
 

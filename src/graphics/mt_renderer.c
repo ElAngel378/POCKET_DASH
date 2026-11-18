@@ -743,6 +743,33 @@ static void build_rows_dmg_asm(void) __naked {
     __endasm;
 }
 
+// CGB: bm_info for this level, built before a column's stream records are applied (they change the
+// palettes of ids that change look, tools/bg_stream.py) and before the column is built
+static void bm_info_update(void) {
+    if (!gnd_look_init) gnd_look_setup();
+    // ground looks only with the RAM table (their tiles are written into it below)
+    uint8_t gnd_on = (&mt_tab[0][0] == &mt_ram[0][0][0]);
+    uint8_t key = (uint8_t)((mt_saws << 1) | mt_big_saws | (gnd_on << 2));
+    if (key != bm_info_key) {
+        // the level's palette table: Famidash's, or its own (levels with metatiles of their own)
+        BgLevelInfo info;
+        info.pal = famidash_metatile_palettes;
+        info.mixed = 0;
+        if (col_level < BG_LEVEL_COUNT) read_level_info(col_level, &info);
+        bm_mixed = info.mixed;
+        fur_copy_banked(bm_info, info.pal, 256, LEVEL_TABLES_BANK);
+        uint8_t n = 0;
+        do {
+            uint8_t info = bm_info[n];
+            if (saw_mt_index[n] && mt_saws && (n != SAW_CENTER_MT || mt_big_saws)) info |= 0x80;
+            // like the ground strip: bank 1, palette 4, never X flipped (+ Y flip on the ceiling)
+            if (gnd_on && gnd_look_tab[n]) info = (gnd_look_tab[n] == 1 + GND_EDGE_BOTTOM) ? 0x5C : 0x1C;
+            bm_info[n] = info;
+        } while (++n);
+        bm_info_key = key;
+    }
+}
+
 // ids: the column's 16 metatile ids (VRAM rows), out: 64 tile bytes then 64 attribute bytes
 static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, uint8_t reversed, uint8_t r_start, uint8_t r_end) {
     bm_src = ids + r_start;
@@ -767,28 +794,8 @@ static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, ui
         row_r0_band = mt_band;
     }
     bm_r0p = row_r0 + r_start;
-    if (!gnd_look_init) gnd_look_setup();
-    // ground looks only with the RAM table (their tiles are written into it below)
+    bm_info_update();
     uint8_t gnd_on = (&mt_tab[0][0] == &mt_ram[0][0][0]);
-    uint8_t key = (uint8_t)((mt_saws << 1) | mt_big_saws | (gnd_on << 2));
-    if (key != bm_info_key) {
-        // the level's palette table: Famidash's, or its own (levels with metatiles of their own)
-        BgLevelInfo info;
-        info.pal = famidash_metatile_palettes;
-        info.mixed = 0;
-        if (col_level < BG_LEVEL_COUNT) read_level_info(col_level, &info);
-        bm_mixed = info.mixed;
-        fur_copy_banked(bm_info, info.pal, 256, LEVEL_TABLES_BANK);
-        uint8_t n = 0;
-        do {
-            uint8_t info = bm_info[n];
-            if (saw_mt_index[n] && mt_saws && (n != SAW_CENTER_MT || mt_big_saws)) info |= 0x80;
-            // like the ground strip: bank 1, palette 4, never X flipped (+ Y flip on the ceiling)
-            if (gnd_on && gnd_look_tab[n]) info = (gnd_look_tab[n] == 1 + GND_EDGE_BOTTOM) ? 0x5C : 0x1C;
-            bm_info[n] = info;
-        } while (++n);
-        bm_info_key = key;
-    }
     // the ground look metatiles' tiles for this strip column (see gnd_look_tab)
     uint8_t gkey = (uint8_t)(tl_x | (reversed << 3));
     if (gkey != gnd_tab_key && gnd_on) {
@@ -830,6 +837,7 @@ static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, ui
 uint8_t rt_ids[16];
 
 void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED {
+    if (_cpu == CGB_TYPE) bm_info_update();
     BG_STREAM_TO(map_col);
     cur_map_col = map_col;
     get_map_column(map_col, map, map_bank, col_buf, mt_band);
@@ -848,6 +856,7 @@ extern volatile uint8_t gpmark;
 void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t step) BANKED {
     PROF_MARK(11);
     if (step == 0) {
+        if (_cpu == CGB_TYPE) bm_info_update();
         BG_STREAM_TO(map_col);
         cur_map_col = map_col;
         get_map_column(map_col, map, map_bank, col_buf, mt_band);

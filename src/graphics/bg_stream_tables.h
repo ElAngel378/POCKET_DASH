@@ -78,7 +78,7 @@ extern const uint8_t bs_test2_dmg_recs[];
 #define BS_SPIN_BASE 28
 #define BS_SPIN_FRAMES 3
 // per level: its spinning tiles (CGB): first tile in the space, number
-static const uint16_t bs_spin_first[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5434, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12493, 0 };
+static const uint16_t bs_spin_first[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5434, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12667, 0 };
 static const uint8_t bs_spin_count[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0 };
 // per level: the CGB data, then the DMG data (DMG: the tiles, then the same tiles mirrored)
 static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {
@@ -95,16 +95,16 @@ static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {
     4500, 4588,
     5256, 5509,
     6549, 7096,
-    8550, 8659,
-    9407, 9465,
-    9697, 9761,
-    10041, 10103,
-    10469, 10521,
-    10759, 10822,
-    11112, 11189,
-    11753, 11816,
-    12250, 12505,
-    12993, 13009,
+    8724, 8833,
+    9581, 9639,
+    9871, 9935,
+    10215, 10277,
+    10643, 10695,
+    10933, 10996,
+    11286, 11363,
+    11927, 11990,
+    12424, 12679,
+    13167, 13183,
 };
 static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
     bs_stereomadness_cgb_recs, bs_stereomadness_dmg_recs,
@@ -147,16 +147,16 @@ static const uint8_t bs_banks[BS_LEVEL_COUNT] = {
     239,   // clutterfunk
     238,   // theoryofeverything
     237,   // electromanadventures
-    233,   // clubstep
-    233,   // bestautomaticlvl
-    233,   // leveleasy
-    232,   // subzero
-    232,   // ultiatedestruction
-    232,   // everymadness
-    232,   // demonpark
-    232,   // thelightningroad
-    232,   // test
-    231,   // test2
+    232,   // clubstep
+    232,   // bestautomaticlvl
+    232,   // leveleasy
+    231,   // subzero
+    231,   // ultiatedestruction
+    231,   // everymadness
+    231,   // demonpark
+    231,   // thelightningroad
+    231,   // test
+    230,   // test2
 };
 
 #endif

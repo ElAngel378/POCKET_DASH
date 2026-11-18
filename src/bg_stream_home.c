@@ -15,7 +15,8 @@ uint8_t bsu_out[BSU_MAX * 3];
 // Applies bsu_n records (at most BSU_MAX) at bsu_src in bank bsu_bank. A record: slot, tile (16
 // bits; 0xFFFF: none), k, k x (metatile, quarter). The quarters are pointed at the slot in the
 // normal and in the mirrored table (there the left and right quarters are swapped), unless
-// bsu_skip (the tables are the level's already). The tiles to load are copied to their slots
+// bsu_skip (the tables are the level's already). Tile 0xFEFF: k x (metatile, value) for bm_info
+// (the CGB palettes of ids that change look, tools/bg_stream.py). The tiles to load are copied to their slots
 // (bsu_copy: display off) or come back in bsu_out (slot, tile lo, hi), bsu_m of them; bsu_src is
 // where the records end.
 // In C, a byte at a time through a buffer, a column with a dozen records took half a DMG frame.
@@ -41,6 +42,8 @@ void bs_apply(void) NONBANKED __naked {
         ld      a, (hl+)
         ld      c, a                    ; tile lo
         ld      a, (hl+)                ; tile hi
+        cp      a, #0xFE
+        jp      Z, 20$                  ; 0xFEFF: palettes
         and     a, c
         inc     a
         jr      Z, 2$                   ; 0xFFFF: no tile to load
@@ -123,6 +126,28 @@ void bs_apply(void) NONBANKED __naked {
         ld      (__current_bank), a
         ld      (0x2000), a
         ret
+
+    20$:
+        ; palettes (CGB, a level whose cells share ids): k x (metatile, bm_info value)
+        ld      a, (hl+)
+        or      a, a
+        jp      Z, 5$
+        ld      c, a
+        push    de
+        ld      d, #0
+    21$:
+        ld      a, (hl+)
+        ld      e, a
+        ld      a, (hl+)
+        push    hl
+        ld      hl, #_bm_info
+        add     hl, de
+        ld      (hl), a
+        pop     hl
+        dec     c
+        jr      NZ, 21$
+        pop     de
+        jp      5$
 
     7$:
         ; copy tile (c, hi at hl - 1) to slot bsu_slot: g = tile + bsu_base, from bank

@@ -42,6 +42,7 @@ SOLID_CODES = {0x05, 0x06, 0x07, 0x09}
 COL_BREAKABLE, BRICK = 0x16, "gd143"       # on the grid; off it, a plain solid block
 SPECIAL_CODES = set(range(0x0A, 0x10))   # orbs, pads
 # fills: no collision, but opaque like the blocks they fill
+DMG_SLOT_MARGIN = 6       # wide levels: DMG streaming slots kept free (fading looks, Famidash tile variants)
 SHARE_GAP = BS.RING + 1    # columns between two looks of one id: the first has left the VRAM ring
 FADED_PAL = 7       # the faded look of fading cells on CGB (famidash_bg.c): their tiles, nearer the sky
 FILLS = {"gd5", "gd120", "fd_x_none", "fd_black_none", "fd_bg5", "fd_bg6"}
@@ -495,8 +496,9 @@ class Composer:
         own = {c: p[0] for c, p in plain.items() if p is not None}
         own_count = Counter(own.values())
         # Too many for an id each ("wide"): the level's own cells share ids like the painted ones
-        # below, any two looks with the same palette and collision, SHARE_GAP columns apart. The id then changes look on CGB as well
-        # ("cgb_at"); its palette and collision stay, the game reads those by id.
+        # below, any two looks with the same collision, SHARE_GAP columns apart. The id then changes
+        # look on CGB as well ("cgb_at") and its CGB palette ("pal_at"); its collision stays, the game
+        # reads that by id.
         wide = len(own_count) > len(free)
         # The cells with paint differ from the cell under the paint on the DMG only, so painted looks
         # of the same cell share an id where they are SHARE_GAP columns apart: the id shows one, then
@@ -505,7 +507,7 @@ class Composer:
 
         def tracks(painted):
             """{(cgb look, palette, collision): [[(first column, last column, look), ...] of an id]}
-            (not sharing: an id each look; wide: cgb look None)"""
+            (not sharing: an id each look; wide: cgb look and palette None)"""
             cols = {}
             for (cx, _), k in painted.items():
                 cols.setdefault(k, set()).add(cx)
@@ -515,7 +517,7 @@ class Composer:
                 first = cs[0]
                 for i, c in enumerate(cs):
                     if i + 1 == len(cs) or (share and cs[i + 1] - c >= SHARE_GAP):
-                        base = (None if wide else k[0], k[2], k[3])
+                        base = (None, None, k[3]) if wide else (k[0], k[2], k[3])
                         items.setdefault(base, []).append((first, c, k))
                         first = cs[i + 1] if i + 1 < len(cs) else None
             out = {}
@@ -556,6 +558,23 @@ class Composer:
                 raise SystemExit("%s: no metatile id left: too many different cells (%d, %d ids with sharing, %d ids)"
                                  % (name, len(set(own.values())), n, len(free)))
         start = (own_count, painted)
+        if wide:
+            # With ids to spare the DMG's streaming slots are what runs out: an object is painted only
+            # while no 16 columns (the VRAM ring) need more different tiles than the slots hold
+            # (tools/bg_stream.py allocate; the saws' tiles have slots of their own)
+            saw_tiles = {BG.SAW_METATILES[m][q] for row in grid for m in row
+                         if m in BG.SAW_METATILES and m not in own_count and (m != BG.SAW_CENTER_MT or big_saw)
+                         for q in range(4) if BG.SAW_METATILES[m][q] is not None}
+            tile_room = len([t for t in list(range(BG.DMG_BG_SLOTS)) + BG.DMG_OBJECT_SLOTS
+                             if t not in BG.DMG_RESERVED_TILES]) - len(saw_tiles) - DMG_SLOT_MARGIN
+            col_t = [Counter() for _ in range(w)]
+            for y in range(h):
+                for x in range(w):
+                    p = plain_of((x, y))
+                    for px in (p[0][1] if p else ()):
+                        if px:
+                            col_t[x][px] += 1
+        dmg_full = 0
         for share in ((True,) if wide else (False, True)):
             own_count, painted = start
             paint, dropped = {}, 0
@@ -565,6 +584,7 @@ class Composer:
                     if 0 <= x < w * 16 and 0 <= y < h * 16:
                         by_cell.setdefault((x // 16, y // 16), {})[(x % 16, y % 16)] = v
                 new, own2, painted2 = {}, Counter(own_count), dict(painted)
+                delta = {}      # wide: column -> Counter of DMG tiles it gains (+) and loses (-)
                 for c, o in by_cell.items():
                     p = plain_of(c)
                     if p is None:
@@ -573,6 +593,14 @@ class Composer:
                     merged = {**paint.get(c, {}), **o}
                     kd = (k[0], self.painted(k[1], merged), k[2], k[3])
                     new[c] = merged
+                    if wide:
+                        d = delta.setdefault(c[0], Counter())
+                        for px in (painted2[c][1] if c in painted2 else k[1]):
+                            if px:
+                                d[px] -= 1
+                        for px in kd[1]:
+                            if px:
+                                d[px] += 1
                     if c in painted2:
                         del painted2[c]
                     elif mine:
@@ -586,12 +614,26 @@ class Composer:
                 if len(own2) + sum(len(t) for t in tracks(painted2).values()) > len(free):
                     dropped += 1
                     continue
+                if wide and delta:
+                    after = {x: col_t[x] + Counter() for x in delta}
+                    for x, d in delta.items():
+                        after[x].update(d)
+                        after[x] += Counter()     # (drops the tiles no longer there)
+                    lo, hi = min(delta), max(delta)
+                    if any(len(set().union(*(after.get(x, col_t[x]) for x in range(max(0, a), min(w, a + BS.RING)))))
+                           > tile_room for a in range(lo - BS.RING + 1, hi + 1)):
+                        dmg_full += 1
+                        continue
+                    for x in delta:
+                        col_t[x] = after[x]
                 own_count, painted = own2, painted2
                 paint.update(new)
             if not dropped:
                 break
         if dropped:
             warn.append("%s: no metatile ids left to paint %d of the DMG's objects and decorations" % (name, dropped))
+        if dmg_full:
+            warn.append("%s: %d of the DMG's objects and decorations not painted: too many tiles in 16 columns" % (name, dmg_full))
         for c in sorted(own):
             if c in painted:
                 continue
@@ -611,9 +653,10 @@ class Composer:
                 if wide:
                     dmg_at = [[it[0], it[2][1]] for it in t] if len({it[2][1] for it in t}) > 1 else None
                     cgb_at = [[it[0], it[2][0]] for it in t] if len({it[2][0] for it in t}) > 1 else None
+                    pal_at = [[it[0], it[2][2]] for it in t] if len({it[2][2] for it in t}) > 1 else None
                 else:
-                    dmg_at, cgb_at = ([[it[0], it[2][1]] for it in t] if len(t) > 1 else None), None
-                out[m] = (t[0][2][0], t[0][2][1], base[2], base[1], sp, None, dmg_at, cgb_at)
+                    dmg_at, cgb_at, pal_at = ([[it[0], it[2][1]] for it in t] if len(t) > 1 else None), None, None
+                out[m] = (t[0][2][0], t[0][2][1], base[2], t[0][2][2], sp, None, dmg_at, cgb_at, pal_at)
                 for first, last, k in t:
                     where.setdefault(k, []).append((first, last, m))
         for (cx, cy), k in painted.items():

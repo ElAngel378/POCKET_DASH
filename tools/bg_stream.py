@@ -162,6 +162,17 @@ class Stream:
         # repoint[c]: [(slot, id, quarter)] after column c's records: the quarters of the looks column
         # c shows that are not at their tiles yet (another look of the id was shown, or the tile
         # came back in another slot)
+        # CGB: an id with "pal_at" [[first column, palette], ...] changes palette (bm_info) where
+        # a column shows another of its looks: pal_rec[c] = [(id, palette)]
+        self.pal_rec = [[] for _ in grid]
+        pal_at = {m: novel[m]["pal_at"] for m in novel if cgb and novel[m].get("pal_at")}
+        pal_now = {m: novel[m]["pal"] for m in pal_at}
+        for c, col in enumerate(real if pal_at else []):
+            for m in sorted(set(col) & set(pal_at)):
+                v = pal_at[m][max(i for i, (first, _) in enumerate(pal_at[m]) if first <= c or not i)][1]
+                if pal_now[m] != v:
+                    pal_now[m] = v
+                    self.pal_rec[c].append((m, v))
         self.repoint = [[] for _ in grid]
         slot_of, at = {}, {}
         for c, col in enumerate(grid if self.at else []):
@@ -288,10 +299,12 @@ def record_bytes(st, starts=None):
     """Pool size (16 bits), flags (1: every tile has one record, so a reload of the same level can
     skip the metatile table), then the columns with records, in order: column (16 bits), n, n x
     (slot, pool tile (16 bits; 0xFFFF: no tile to load), k, k x (metatile, quarter)); then 0xFFFF.
+    A record with tile 0xFEFF sets palettes (CGB): k x (metatile, bm_info value).
     starts: a list to get where each column's records begin"""
     tiles = [t for rec in st.records for t, _ in rec]
     n = len(st.pool)
-    out = bytearray([n & 0xFF, n >> 8, 1 if len(tiles) == len(set(tiles)) and not any(st.repoint) else 0])
+    out = bytearray([n & 0xFF, n >> 8, 1 if len(tiles) == len(set(tiles)) and not any(st.repoint)
+                     and not any(st.pal_rec) else 0])
     # the empty quarters of the level's own metatiles show the transparent tile: records of no tile
     empty = [(m, q) for m in st.own if m in st.mq for q, px in enumerate(st.mq[m]) if px is None]
     groups = [empty[i:i + 255] for i in range(0, len(empty), 255)]
@@ -299,9 +312,10 @@ def record_bytes(st, starts=None):
         points = {}
         for sl, m, q in st.repoint[c]:
             points.setdefault(sl, []).append((m, q))
-        if not rec and not points and not (c == 0 and groups):
+        pals = st.pal_rec[c]
+        if not rec and not points and not pals and not (c == 0 and groups):
             continue
-        n = len(rec) + len(points) + (len(groups) if c == 0 else 0)
+        n = len(rec) + len(points) + (len(groups) if c == 0 else 0) + (1 if pals else 0)
         assert n < 256, "%s: %d records in column %d" % (st.name, n, c)
         if starts is not None:
             starts.append(len(out))
@@ -317,6 +331,8 @@ def record_bytes(st, starts=None):
                 out += bytes([m, q])
         for sl, g in points.items():
             out += bytes([sl, 0xFF, 0xFF, len(g)]) + bytes(v for mq in g for v in mq)
+        if pals:
+            out += bytes([0, 0xFF, 0xFE, len(pals)]) + bytes(v for mv in pals for v in mv)
     return bytes(out + bytes([255, 255]))
 
 
