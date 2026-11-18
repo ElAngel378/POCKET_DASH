@@ -296,7 +296,8 @@ palette_color_t famidash_bg_accent2 = RGB(0, 31, 31);
 //   the way from the sky to the outline colour (GDA: 30..50 %, tools/gd_objects.py SHADES)
 // 7 (the fading objects' faded look, bg_stream.c: colours 2, 3 of palette 0 most of the way to the
 //   sky): sky, accent 2 (the decorations in the player's colour 2: tools/compose.py), 3/4 sky, and
-//   the outline colour a quarter of the way from the sky
+//   palette 6's colour 3 (3/8 of the way to the outline colour): a cell where a player colour 2
+//   decoration meets a wave hill shows both in this palette
 static void shadow_fake_spike_palette(void) {
     shadow_bkg_palettes[20] = shadow_bkg_palettes[24] = shadow_bkg_palettes[28] = famidash_bg_palettes[0];
     shadow_bkg_palettes[21] = famidash_bg_palettes[1];
@@ -309,9 +310,9 @@ static void shadow_fake_spike_palette(void) {
     uint8_t r3 = (uint8_t)(sr + sr + sr), g3 = (uint8_t)(sg + sg + sg), b3 = (uint8_t)(sb + sb + sb);
     shadow_bkg_palettes[26] = RGB((uint8_t)(sr >> 2), (uint8_t)(sg >> 2), (uint8_t)(sb >> 2));
     shadow_bkg_palettes[30] = RGB((uint8_t)(r3 >> 2), (uint8_t)(g3 >> 2), (uint8_t)(b3 >> 2));
-    shadow_bkg_palettes[31] = RGB((uint8_t)((r3 + r) >> 2), (uint8_t)((g3 + g) >> 2), (uint8_t)((b3 + b) >> 2));
     r = (uint8_t)(r + r + r); g = (uint8_t)(g + g + g); b = (uint8_t)(b + b + b);
-    shadow_bkg_palettes[27] = RGB((uint8_t)((r3 + sr + sr + r) >> 3), (uint8_t)((g3 + sg + sg + g) >> 3), (uint8_t)((b3 + sb + sb + b) >> 3));
+    shadow_bkg_palettes[27] = shadow_bkg_palettes[31] =
+        RGB((uint8_t)((r3 + sr + sr + r) >> 3), (uint8_t)((g3 + sg + sg + g) >> 3), (uint8_t)((b3 + sb + sb + b) >> 3));
 }
 
 // Once per frame (CGB): next step of a running fade

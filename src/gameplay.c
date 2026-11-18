@@ -1165,23 +1165,29 @@ static void mirror_switch(uint16_t px) {
     mirror_fx_open();
 }
 
-// Mirror portal: reload the (mirrored) tileset and redraw the visible columns
-static void mirror_reload(uint8_t idx, uint8_t enable_display) {
+// Mirror portal: reload the (mirrored) tileset and redraw the visible columns. portal: a mirror
+// portal (the camera where it was), not a checkpoint (the camera moved back: the stream restarts)
+static void mirror_reload(uint8_t idx, uint8_t enable_display, uint8_t portal) {
     stream_jobs_reset();
     DISPLAY_OFF;
     bg_map_reset();
     view_rev = player.reversed;
     PROF_MARK(14);   // mirror: tileset
 
-    // CGB flip mode: the normal sheet, the X flip attribute mirrors it
-    const uint8_t* target_tiles = (player.reversed && !mt_cgb_flip)
-        ? l->tiles_rev
-        : level_tiles;
-    load_level_bg_sheet(idx, player.reversed && !mt_cgb_flip, target_tiles, level_tile_count, level_tiles_bank);
-    PROF_MARK(15);   // mirror: level tiles
-    apply_level_bg_tiles(idx, player.reversed);
-    if (!setting_show_bg_enabled) {
-        set_bkg_data(12, 1, blank_bg_tile);
+    if (mt_cgb_flip && portal) {
+        // CGB flip mode: the tiles in VRAM stay as they are (the X flip attribute mirrors them),
+        // and so do the stream and its tables. Reloading the sheet wiped the streamed tiles and
+        // the stream replayed from column 0: a second or more with the screen off in a level
+        // that streams as it plays
+        saw_set_reversed(player.reversed);
+    } else {
+        const uint8_t* target_tiles = player.reversed ? l->tiles_rev : level_tiles;
+        load_level_bg_sheet(idx, player.reversed, target_tiles, level_tile_count, level_tiles_bank);
+        PROF_MARK(15);   // mirror: level tiles
+        apply_level_bg_tiles(idx, player.reversed);
+        if (!setting_show_bg_enabled) {
+            set_bkg_data(12, 1, blank_bg_tile);
+        }
     }
     PROF_MARK(16);   // mirror: columns
 
@@ -1292,7 +1298,7 @@ static void practice_respawn(uint8_t idx) {
     mt_band = band_for_cam(cam_py, BAND_MAX);
     band_cam_row = 0xFF;
 
-    mirror_reload(idx, 0);
+    mirror_reload(idx, 0, 0);
 
     uint16_t scroll_px = player.reversed
         ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
@@ -1727,16 +1733,16 @@ void play_level(uint8_t idx) BANKED {
             if (_cpu != CGB_TYPE) {
                 dmg_mirror_due = 1;
             } else if (!seamless) {
-                mirror_reload(idx, 1);
+                mirror_reload(idx, 1, 1);
             } else if (mirror_fx_state == MIRROR_FX_CLOSED && mirror_job_ready(px_curr)) {
                 mirror_switch(px_curr);
                 needs_render = 0;
                 mj_switched = 1;
             } else if (++mj_wait > MJ_MAX_WAIT) {
-                mirror_reload(idx, 1);
+                mirror_reload(idx, 1, 1);
             }
         } else if (MIRROR_FX_CLOSES()) {
-            mirror_reload(idx, 1);   // back through a portal while the view closed
+            mirror_reload(idx, 1, 1);   // back through a portal while the view closed
         }
 
         // Move the collision window when the player nears its top or bottom

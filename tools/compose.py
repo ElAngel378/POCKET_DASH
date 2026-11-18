@@ -27,7 +27,7 @@ GROUND = "ground"
 # What the colours of the CGB palettes that objects use are (src/famidash_bg.c)
 COLOURS = {0: ("sky", "dark", "black", "white"), 2: ("sky", "dark", "black", "player"),
            5: ("sky", "dark", "black", "black"), 6: ("sky", "white", "deep sky", "light sky"),
-           7: ("sky", "player2", "mid sky", "faded")}
+           7: ("sky", "player2", "mid sky", "light sky")}   # (7's light sky: palette 6's, so a ring over a hill keeps both)
 # A cell has one palette: a colour it hasn't becomes the nearest one it has
 NEAR = {"player2": ("player", "white"), "player": ("player2", "white"), "white": ("player", "player2")}
 # A cell whose objects fit no one palette: its 8x8 quarters choose between two palettes. Its palette

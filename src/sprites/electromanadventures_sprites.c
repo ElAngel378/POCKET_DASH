@@ -3,7 +3,7 @@
 
 BANKREF(electromanadventures_sp)
 
-// Extracted 445 objects from SP layer
+// Extracted 449 objects from SP layer
 const SpDef electromanadventures_sp[] = {
     {160, 6, 164},
     {160, 6, 239},
@@ -136,7 +136,7 @@ const SpDef electromanadventures_sp[] = {
     {3872, 944, 176},
     {3872, 2, 136},
     {3872, 2, 194},
-    {3952, 928, 11},
+    {3944, 928, 11},
     {4016, 912, 14},
     {4040, 944, 13},
     {4064, 912, 14},
@@ -195,6 +195,7 @@ const SpDef electromanadventures_sp[] = {
     {5521, 0, 131},
     {5536, 832, 5},
     {5576, 896, 10},
+    {5605, 848, 126},
     {5615, 1, 132},
     {5616, 848, 0},
     {5637, 0, 131},
@@ -221,6 +222,7 @@ const SpDef electromanadventures_sp[] = {
     {6424, 1, 150},
     {6446, 0, 151},
     {6464, 888, 44},
+    {6532, 904, 121},
     {6541, 1, 152},
     {6544, 904, 3},
     {6544, 904, 8},
@@ -284,6 +286,7 @@ const SpDef electromanadventures_sp[] = {
     {8352, 976, 54},
     {8400, 944, 54},
     {8402, 1, 158},
+    {8420, 919, 126},
     {8424, 0, 157},
     {8432, 920, 3},
     {8432, 920, 24},
@@ -311,6 +314,7 @@ const SpDef electromanadventures_sp[] = {
     {9264, 928, 54},
     {9328, 944, 54},
     {9330, 1, 161},
+    {9344, 919, 121},
     {9352, 920, 1},
     {9352, 0, 152},
     {9392, 944, 54},
@@ -453,7 +457,7 @@ const SpDef electromanadventures_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 160 gameplay-critical objects for DMG mode
+// Extracted 164 gameplay-critical objects for DMG mode
 const SpDef electromanadventures_sp_dmg[] = {
     {160, 6, 164},
     {720, 976, 10},
@@ -484,7 +488,7 @@ const SpDef electromanadventures_sp_dmg[] = {
     {3840, 960, 13},
     {3872, 912, 12},
     {3872, 2, 136},
-    {3952, 928, 11},
+    {3944, 928, 11},
     {4016, 912, 14},
     {4040, 944, 13},
     {4064, 912, 14},
@@ -518,6 +522,7 @@ const SpDef electromanadventures_sp_dmg[] = {
     {5521, 0, 131},
     {5536, 832, 5},
     {5576, 896, 10},
+    {5605, 848, 126},
     {5615, 1, 132},
     {5616, 848, 0},
     {5637, 0, 131},
@@ -530,6 +535,7 @@ const SpDef electromanadventures_sp_dmg[] = {
     {6288, 912, 5},
     {6424, 1, 150},
     {6446, 0, 151},
+    {6532, 904, 121},
     {6541, 1, 152},
     {6544, 904, 3},
     {6544, 904, 8},
@@ -552,6 +558,7 @@ const SpDef electromanadventures_sp_dmg[] = {
     {8286, 1, 156},
     {8308, 0, 153},
     {8402, 1, 158},
+    {8420, 919, 126},
     {8424, 0, 157},
     {8432, 920, 3},
     {8432, 920, 24},
@@ -563,6 +570,7 @@ const SpDef electromanadventures_sp_dmg[] = {
     {9214, 1, 159},
     {9236, 0, 147},
     {9330, 1, 161},
+    {9344, 919, 121},
     {9352, 920, 1},
     {9352, 0, 152},
     {9504, 0, 162},
