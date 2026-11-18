@@ -144,6 +144,10 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
                 continue
             if gid not in portals_map:
                 continue
+            if portals_map[gid] in (121, 126):
+                # Mirror portal "Instant" (CGB: no seamless switch, the picture is redrawn with the
+                # screen off at once): an odd x, sp_draw.c touch_object (at most 1 px off)
+                x_px = (x_px | 1) if props.get('Instant') == 'true' else (x_px & ~1)
             portal_data.append((x_px, y_px, portals_map[gid]))
 
     if not sp_layer_found:

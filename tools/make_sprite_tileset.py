@@ -81,6 +81,12 @@ def main():
             if TRIGGERS[cell][2]:
                 lines.append('   <property name="Fade" propertytype="FadeTime" value="0.3 s"/>')
             lines.append('  </properties>')
+        if cell in MIRRORS:
+            # CGB: no seamless switch at this portal, the picture redrawn with the screen off at once
+            # (tools/tmx2sprites.py)
+            lines.append('  <properties>')
+            lines.append('   <property name="Instant" type="bool" value="false"/>')
+            lines.append('  </properties>')
         lines.append('  <image width="16" height="16" source="sprites/s%d.png"/>' % cell)
         lines.append(' </tile>')
     lines.append('</tileset>')

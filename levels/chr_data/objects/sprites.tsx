@@ -161,9 +161,15 @@
   <image width="16" height="16" source="sprites/s113.png"/>
  </tile>
  <tile id="121" type="Mirror portal, exit">
+  <properties>
+   <property name="Instant" type="bool" value="false"/>
+  </properties>
   <image width="16" height="16" source="sprites/s121.png"/>
  </tile>
  <tile id="126" type="Mirror portal">
+  <properties>
+   <property name="Instant" type="bool" value="false"/>
+  </properties>
   <image width="16" height="16" source="sprites/s126.png"/>
  </tile>
  <tile id="253" type="Blue pad, invisible">

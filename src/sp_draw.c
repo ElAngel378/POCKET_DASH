@@ -22,6 +22,7 @@
 // SpCache* parameter SDCC reloads the pointer from the stack for every cache->x[i]
 // access, which made the per-frame object loops several times slower (DMG frame drops).
 extern SpCache active_sp;
+extern uint8_t mirror_instant;   // gameplay.c
 #define cache (&active_sp)
 
 // ID Mappings for SP Layer Logic
@@ -727,6 +728,7 @@ static void touch_object(Player* p_arg, uint8_t obj, uint16_t obj_x, uint16_t ob
             if (touch_box(obj_x, obj_y, 0, 15, -1, 46)) {
                 if (!*act) {
                     p->reversed = (obj == OBJ_MIRROR_PORTAL) ? 1 : 0;
+                    mirror_instant = (uint8_t)(obj_x & 1u);   // the portal's "Instant" (tools/tmx2sprites.py)
                     *act = 1;
                 }
             }

@@ -300,6 +300,7 @@ uint8_t view_rev;   // the orientation on screen (player.reversed: the one the g
 #define MJ_LY_RUSH 116u        // through the portal, the view still the old one: any step before this line
 #define MJ_MAX_WAIT 48u        // frames the switch may wait (then mirror_reload, screen off); the view closes in ~12
 static uint8_t seamless;       // this level uses the seamless switch
+uint8_t mirror_instant;        // the last mirror portal touched is "Instant": no seamless switch (sp_draw.c)
 static uint8_t mj_active;      // building the other map (2: column mj_next is worked out, not written)
 static uint8_t mj_target;      // its orientation (!view_rev)
 static uint8_t mj_map_hi;      // its address >> 8 (0x98 / 0x9C)
@@ -1732,7 +1733,7 @@ void play_level(uint8_t idx) BANKED {
         if (player.reversed != view_rev) {
             if (_cpu != CGB_TYPE) {
                 dmg_mirror_due = 1;
-            } else if (!seamless) {
+            } else if (!seamless || mirror_instant) {
                 mirror_reload(idx, 1, 1);
             } else if (mirror_fx_state == MIRROR_FX_CLOSED && mirror_job_ready(px_curr)) {
                 mirror_switch(px_curr);
