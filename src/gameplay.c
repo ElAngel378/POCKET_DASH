@@ -296,8 +296,9 @@ uint8_t view_rev;   // the orientation on screen (player.reversed: the one the g
 #define MJ_LY_PART 108u        // work out a part (4 rows) of a column only before this line (~13 lines)
 #define MJ_LY_PART_MIXED 104u  // the same with palettes per quarter (~17)
 #define MJ_LY_WRITE 108u       // write a worked out column only before this line (~20 lines)
-#define MJ_AHEAD_PX 320u        // the build starts this far before a mirror portal (cam x)
+#define MJ_AHEAD_PX 512u        // the build starts this far before a mirror portal (cam x)
 #define MJ_LY_RUSH 116u        // through the portal, the view still the old one: any step before this line
+#define MJ_LY_CLOSED 124u      // the same while the view is fully closed (a part: ~11 lines)
 #define MJ_MAX_WAIT 48u        // frames the switch may wait (then mirror_reload, screen off); the view closes in ~12
 static uint8_t seamless;       // this level uses the seamless switch
 uint8_t mirror_instant;        // the last mirror portal touched is "Instant": no seamless switch (sp_draw.c)
@@ -1115,6 +1116,8 @@ static void mirror_job(uint16_t px) {
     // The player is through the portal and still sees the old view: finishing comes first (a step
     // that runs into VBlank costs a frame, the wrong view lasted ten in a busy part of a level)
     if (needed) limit = part_limit = write_limit = MJ_LY_RUSH;
+    // the view fully closed (only the sky and the HUD on screen): parts a little later still
+    if (mirror_fx_state == MIRROR_FX_CLOSED) limit = part_limit = MJ_LY_CLOSED;
     while (bg_vbl_frames == mj_frame) {
         if (mj_active == 2) {
             if (mj_row_pending == 0xFF) {
@@ -2013,6 +2016,9 @@ void play_level(uint8_t idx) BANKED {
         // Level sprites: drawn as if the player were at PLAYER_SCREEN_X. At the level start the
         // screen stays put until the player gets there (scroll_px 0): the sprites too.
         uint16_t sp_cam_px = (!view_rev && cam_px < PLAYER_SCREEN_X) ? PLAYER_SCREEN_X : cam_px;
+        // (a mirror portal's view fully closed hides them all, fade.c cu_clip: the time goes to
+        // building the mirrored map, mirror_job)
+        if (mirror_fx_state != MIRROR_FX_CLOSED)
         oam_index = draw_sprites(
             &active_sp, (uint16_t)((int16_t)sp_cam_px + cur_shake_x), (uint16_t)((int16_t)cam_py + cur_shake_y),
             view_rev, oam_index
@@ -2076,7 +2082,9 @@ void play_level(uint8_t idx) BANKED {
         // top speed; checked after it, a row took 3 frames and a long climb outran the band)
         if (row0_job_issued && !bg_rj_pending) { row0_job_issued = 0; row0_job_pos += ROW_JOB_PER_FRAME; }
         uint8_t cam_row = (uint8_t)(cam_py >> 4);
-        if (row0_job_pos >= 16 && cam_row != band_cam_row) {
+        // (not while a mirror portal's view closes: the old map's new rows are sky by then, and two
+        // moves before the mirrored map got the first row restarted its whole build)
+        if (row0_job_pos >= 16 && cam_row != band_cam_row && !MIRROR_FX_CLOSES()) {
             uint8_t target_band = band_for_cam(cam_py, mt_band);
             if (target_band == mt_band) band_cam_row = cam_row;   // settled: skip until the camera row changes
             if (target_band != mt_band) {
@@ -2142,7 +2150,13 @@ void play_level(uint8_t idx) BANKED {
         // interrupt itself the instant VBlank starts (see bg_parallax_phases.c),
         // so it never depends on how late this thread wakes up.
         if (row0_job_pos < 16 && !row0_job_issued && !mj_switched) {
-            request_row_slots(row0_job_pos, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, view_rev);
+            if (mirror_fx_state == MIRROR_FX_CLOSED) {
+                // the view fully closed: the row is all sky (mirror_fx_row), nothing to build
+                bg_rj_x = (uint8_t)(row0_job_pos << 1);
+                bg_rj_y = (uint8_t)((row_job_row & 15u) << 1);
+            } else {
+                request_row_slots(row0_job_pos, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, view_rev);
+            }
             if (MIRROR_FX_CLOSES()) mirror_fx_row(row_job_row);
             row0_job_issued = 1;
         }

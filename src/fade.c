@@ -503,10 +503,82 @@ static uint16_t dz_part(uint16_t c, uint8_t k) {
     if (k & 1u) m += (c >> 3) & 0x0C63u;
     return m;
 }
+#define DZ_N (((uint8_t *)step_spr)[60])    // colours dz_mix_asm does
+// dst[i] = DZ_SKY + DZ_T eighths of src[i], DZ_N colours. DZ_T is 2, 4, 6 or 8 (dz_part in C was
+// ~30 lines of a double speed frame for the 32 colours of the background)
+static void dz_mix_asm(palette_color_t *dst, const palette_color_t *src) __naked {
+    (void)dst; (void)src;
+    __asm
+        ; de = dst, bc = src
+        ld      a, (_step_spr + 60)
+        push    af
+    1$:
+        ld      a, (bc)
+        inc     bc
+        ld      l, a
+        ld      a, (bc)
+        inc     bc
+        ld      h, a                    ; hl = the colour
+        push    bc
+        push    de
+        ld      a, (_step_spr + 57)     ; DZ_T
+        bit     3, a
+        jr      NZ, 5$                  ; all of it
+        ld      de, #0
+        ld      b, h
+        ld      c, l
+        srl     b
+        rr      c                       ; bc = colour >> 1
+        bit     2, a
+        jr      Z, 2$
+        ld      a, c
+        and     a, #0xEF
+        ld      e, a
+        ld      a, b
+        and     a, #0x3D
+        ld      d, a                    ; de = half
+    2$:
+        ld      a, (_step_spr + 57)
+        bit     1, a
+        jr      Z, 3$
+        srl     b
+        rr      c                       ; bc = colour >> 2
+        ld      a, c
+        and     a, #0xE7
+        add     a, e
+        ld      e, a
+        ld      a, b
+        and     a, #0x1C
+        adc     a, d
+        ld      d, a                    ; + a quarter
+    3$:
+        ld      h, d
+        ld      l, e
+    5$:
+        ld      a, (_step_spr + 58)     ; + DZ_SKY
+        add     a, l
+        ld      l, a
+        ld      a, (_step_spr + 59)
+        adc     a, h
+        ld      h, a
+        pop     de
+        ld      a, l
+        ld      (de), a
+        inc     de
+        ld      a, h
+        ld      (de), a
+        inc     de
+        pop     bc
+        pop     af
+        dec     a
+        ret     Z
+        push    af
+        jr      1$
+    __endasm;
+}
 static void dz_mix(palette_color_t *dst, const palette_color_t *src, uint8_t n) {
-    uint8_t t = DZ_T;
-    uint16_t sky = DZ_SKY;
-    do { *dst++ = (uint16_t)(sky + dz_part(*src++, t)); } while (--n);
+    DZ_N = n;
+    dz_mix_asm(dst, src);
 }
 // The palettes at t eighths between the sky's colour and their own, into the step buffers
 static void dz_bkg(uint8_t t) {
