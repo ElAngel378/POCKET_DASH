@@ -150,6 +150,47 @@ static void enqueue(uint8_t s, uint16_t t) {
     bs_q_n++;
 }
 
+// Display off, far ahead of the stream (a practice checkpoint, a reload from column 0): the saved
+// stream state nearest before `col` (tools/bg_stream.py snapshot_bytes: every slot's tile and the
+// quarters pointing at it, the palettes), then the records from there, instead of every record from
+// column 0 (that took up to ~1 s with the display off at the end of a long level)
+static void bs_skip(uint16_t col) {
+    uint8_t k = (uint8_t)((bs_level << 1) | bs_dmg);
+    uint8_t n = bs_skip_n[k], lb = bs_banks[bs_level];
+    const BsSkip *p = bs_skips[k];
+    BsSkip best;               // (one on the stack: the nearest so far, read again at the end)
+    const BsSkip *at = 0;
+    for (; n; n--, p++) {
+        fur_copy_banked(&best, p, sizeof(BsSkip), lb);
+        if (best.k > col) break;
+        if (best.k >= bs_col) at = p;
+    }
+    if (!at) return;
+    fur_copy_banked(&best, at, sizeof(BsSkip), lb);
+    const uint8_t *src = best.sp;
+    for (;;) {
+        uint8_t m;
+        fur_copy_banked(&m, src, 1, best.sbank);
+        src++;
+        if (!m) break;
+        while (m) {
+            uint8_t j = (m > BSU_MAX) ? BSU_MAX : m;
+            m -= j;
+            bsu_bank = best.sbank;
+            bsu_src = src;
+            bsu_n = j;
+            bs_apply();
+            src = bsu_src;
+            const uint8_t *o = bsu_out;
+            for (j = bsu_m; j; j--, o += 3) run_add(o[0], o[1] | ((uint16_t)o[2] << 8));
+        }
+    }
+    bs_rp = best.rp;
+    bs_bank = best.rbank;
+    bs_col = best.col;
+    bsu_bank = bs_bank;
+}
+
 void bg_stream_to(uint16_t col) BANKED {
     if (bs_level >= BS_LEVEL_COUNT) return;
     if (col >= bs_reached) bs_reached = col + 1u;
@@ -162,6 +203,7 @@ void bg_stream_to(uint16_t col) BANKED {
     bsu_copy = (uint8_t)(off && bs_dmg);
     bsu_base = bs_tile_base + (bs_rev ? bs_pool : 0u);
     bsu_tbank = BS_TILE_BANK;
+    if (off && bs_skip_n[(uint8_t)((bs_level << 1) | bs_dmg)]) bs_skip(col);
     while (bs_col <= col) {
         // n, the n records (bs_apply: the metatile quarters; here the tiles), the next column
         uint8_t n;

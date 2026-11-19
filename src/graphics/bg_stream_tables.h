@@ -106,6 +106,80 @@ static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {
     12394, 12649,
     13137, 13153,
 };
+// per level: the CGB, then the DMG saved stream states (tools/bg_stream.py snapshot_bytes)
+typedef struct { uint16_t k, col; const uint8_t *rp, *sp; uint8_t rbank, sbank; } BsSkip;
+extern const BsSkip bs_stereomadness_cgb_skips[];
+extern const BsSkip bs_stereomadness_dmg_skips[];
+extern const BsSkip bs_backontrack_cgb_skips[];
+extern const BsSkip bs_backontrack_dmg_skips[];
+extern const BsSkip bs_polargeist_cgb_skips[];
+extern const BsSkip bs_polargeist_dmg_skips[];
+extern const BsSkip bs_dryout_cgb_skips[];
+extern const BsSkip bs_dryout_dmg_skips[];
+extern const BsSkip bs_baseafterbase_cgb_skips[];
+extern const BsSkip bs_baseafterbase_dmg_skips[];
+extern const BsSkip bs_cantletgo_cgb_skips[];
+extern const BsSkip bs_cantletgo_dmg_skips[];
+extern const BsSkip bs_jumper_cgb_skips[];
+extern const BsSkip bs_jumper_dmg_skips[];
+extern const BsSkip bs_timemachine_cgb_skips[];
+extern const BsSkip bs_timemachine_dmg_skips[];
+extern const BsSkip bs_cycles_cgb_skips[];
+extern const BsSkip bs_cycles_dmg_skips[];
+extern const BsSkip bs_xstep_cgb_skips[];
+extern const BsSkip bs_xstep_dmg_skips[];
+extern const BsSkip bs_clutterfunk_cgb_skips[];
+extern const BsSkip bs_clutterfunk_dmg_skips[];
+extern const BsSkip bs_theoryofeverything_cgb_skips[];
+extern const BsSkip bs_theoryofeverything_dmg_skips[];
+extern const BsSkip bs_electromanadventures_cgb_skips[];
+extern const BsSkip bs_electromanadventures_dmg_skips[];
+extern const BsSkip bs_clubstep_cgb_skips[];
+extern const BsSkip bs_clubstep_dmg_skips[];
+extern const BsSkip bs_bestautomaticlvl_cgb_skips[];
+extern const BsSkip bs_bestautomaticlvl_dmg_skips[];
+extern const BsSkip bs_leveleasy_cgb_skips[];
+extern const BsSkip bs_leveleasy_dmg_skips[];
+extern const BsSkip bs_subzero_cgb_skips[];
+extern const BsSkip bs_subzero_dmg_skips[];
+extern const BsSkip bs_ultiatedestruction_cgb_skips[];
+extern const BsSkip bs_ultiatedestruction_dmg_skips[];
+extern const BsSkip bs_everymadness_cgb_skips[];
+extern const BsSkip bs_everymadness_dmg_skips[];
+extern const BsSkip bs_demonpark_cgb_skips[];
+extern const BsSkip bs_demonpark_dmg_skips[];
+extern const BsSkip bs_thelightningroad_cgb_skips[];
+extern const BsSkip bs_thelightningroad_dmg_skips[];
+extern const BsSkip bs_test_cgb_skips[];
+extern const BsSkip bs_test_dmg_skips[];
+extern const BsSkip bs_test2_cgb_skips[];
+extern const BsSkip bs_test2_dmg_skips[];
+static const BsSkip * const bs_skips[BS_LEVEL_COUNT * 2] = {
+    bs_stereomadness_cgb_skips, bs_stereomadness_dmg_skips,
+    bs_backontrack_cgb_skips, bs_backontrack_dmg_skips,
+    bs_polargeist_cgb_skips, bs_polargeist_dmg_skips,
+    bs_dryout_cgb_skips, bs_dryout_dmg_skips,
+    bs_baseafterbase_cgb_skips, bs_baseafterbase_dmg_skips,
+    bs_cantletgo_cgb_skips, bs_cantletgo_dmg_skips,
+    bs_jumper_cgb_skips, bs_jumper_dmg_skips,
+    bs_timemachine_cgb_skips, bs_timemachine_dmg_skips,
+    bs_cycles_cgb_skips, bs_cycles_dmg_skips,
+    bs_xstep_cgb_skips, bs_xstep_dmg_skips,
+    bs_clutterfunk_cgb_skips, bs_clutterfunk_dmg_skips,
+    bs_theoryofeverything_cgb_skips, bs_theoryofeverything_dmg_skips,
+    bs_electromanadventures_cgb_skips, bs_electromanadventures_dmg_skips,
+    bs_clubstep_cgb_skips, bs_clubstep_dmg_skips,
+    bs_bestautomaticlvl_cgb_skips, bs_bestautomaticlvl_dmg_skips,
+    bs_leveleasy_cgb_skips, bs_leveleasy_dmg_skips,
+    bs_subzero_cgb_skips, bs_subzero_dmg_skips,
+    bs_ultiatedestruction_cgb_skips, bs_ultiatedestruction_dmg_skips,
+    bs_everymadness_cgb_skips, bs_everymadness_dmg_skips,
+    bs_demonpark_cgb_skips, bs_demonpark_dmg_skips,
+    bs_thelightningroad_cgb_skips, bs_thelightningroad_dmg_skips,
+    bs_test_cgb_skips, bs_test_dmg_skips,
+    bs_test2_cgb_skips, bs_test2_dmg_skips,
+};
+static const uint8_t bs_skip_n[BS_LEVEL_COUNT * 2] = { 6, 6, 6, 6, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 6, 6, 6, 6, 7, 7, 6, 6, 6, 6, 6, 6, 5, 5, 6, 6, 6, 6, 5, 5, 6, 6, 7, 7, 6, 6, 0, 0, 1, 1 };
 static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
     bs_stereomadness_cgb_recs, bs_stereomadness_dmg_recs,
     bs_backontrack_cgb_recs, bs_backontrack_dmg_recs,
@@ -134,29 +208,29 @@ static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
 // per level: its fading cells (tools/compose.py): first metatile, how many; each one's hidden look is that many further
 static const uint8_t bs_fade[BS_LEVEL_COUNT * 2] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 3 };
 static const uint8_t bs_banks[BS_LEVEL_COUNT] = {
-    241,   // stereomadness
-    241,   // backontrack
-    241,   // polargeist
-    241,   // dryout
-    241,   // baseafterbase
-    241,   // cantletgo
-    241,   // jumper
-    240,   // timemachine
-    240,   // cycles
-    240,   // xstep
-    239,   // clutterfunk
-    238,   // theoryofeverything
-    237,   // electromanadventures
-    234,   // clubstep
-    234,   // bestautomaticlvl
-    234,   // leveleasy
-    233,   // subzero
-    233,   // ultiatedestruction
-    233,   // everymadness
-    233,   // demonpark
-    233,   // thelightningroad
-    233,   // test
-    232,   // test2
+    38,   // stereomadness
+    38,   // backontrack
+    38,   // polargeist
+    38,   // dryout
+    38,   // baseafterbase
+    38,   // cantletgo
+    38,   // jumper
+    27,   // timemachine
+    27,   // cycles
+    27,   // xstep
+    19,   // clutterfunk
+    18,   // theoryofeverything
+    17,   // electromanadventures
+    7,   // clubstep
+    7,   // bestautomaticlvl
+    7,   // leveleasy
+    6,   // subzero
+    6,   // ultiatedestruction
+    6,   // everymadness
+    6,   // demonpark
+    6,   // thelightningroad
+    5,   // test
+    5,   // test2
 };
 
 #endif
