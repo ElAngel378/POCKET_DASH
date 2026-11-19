@@ -153,31 +153,34 @@ class Stream:
         # VRAM bank 1 (BANK1_SLOTS), whole: the bank is the cell's attribute, from its palette byte
         # (+ BANK1_PAL; mt_renderer.c bm_info). Only plain cells of the level's own: no palette per
         # quarter, no saws, spinning tiles, fading or ground looks
-        self.b1 = set()
-        if cgb and novel:
-            self.b1 = self.bank1_looks(grid, used, novel, moving)
-
-        def key(m, px):
-            return (px, 1) if m in self.b1 else px
-        pool, index, self.pbank = [], {}, []
-        self.uses = {}          # pool tile -> [(metatile, quarter)]
-        for m in used:
-            for q, px in enumerate(self.mq[m]):
-                if px is None:
-                    continue
-                k = key(m, px)
-                if k not in index:
-                    index[k] = len(pool)
-                    pool.append(px)
-                    self.pbank.append(1 if m in self.b1 else 0)
-                self.uses.setdefault(index[k], [])
-                if not isinstance(m, tuple):
-                    self.uses[index[k]].append((m, q))
-        self.pool, self.index, self.key = pool, index, key
-        self.spin = [index[px] for px in moving]
-        self.col_tiles = [sorted({index[key(m, px)] for m in set(col) for px in self.mq[m]
-                                  if px is not None and len(px) != SPIN_FRAMES}) for col in grid]
-        self.allocate()
+        # A part whose bank 0 slots free just in time brings more tiles in a column than the game
+        # uploads in a frame (PER_COLUMN, item 6 of 2026-11-18): then more looks go to bank 1 (fewer
+        # bank 0 tiles there, so they load earlier): bank 0 counted 4, 8, ... slots smaller
+        best = None
+        for margin in range(0, 41, 4):
+            self.b1 = set()
+            if cgb and novel:
+                self.b1 = self.bank1_looks(grid, used, novel, moving, margin)
+            if best is not None and self.b1 == best[0]:
+                continue
+            try:
+                self.build_pool(used, moving)
+            except SystemExit:
+                if best is None:
+                    raise
+                continue
+            if best is None or len(self.over) < len(best[1]):
+                best = (self.b1, self.over)
+            if not self.over or not (cgb and novel):
+                break
+        if self.b1 != best[0]:
+            self.b1 = best[0]
+            self.build_pool(used, moving)
+        if self.b1:
+            print("  %s (CGB): %d looks in VRAM bank 1" % (name, len(self.b1)))
+        for x in self.over:
+            print("  %s (%s): column %d brings more than %d tiles" % (name, "CGB" if cgb else "DMG", x, PER_COLUMN[cgb]))
+        index, key = self.index, self.key
         self.records[0][:0] = list(zip(self.spin, pinned))
         # repoint[c]: [(slot, id, quarter)] after column c's records: the quarters of the looks column
         # c shows that are not at their tiles yet (another look of the id was shown, or the tile
@@ -216,11 +219,37 @@ class Stream:
                         at[(v[0], q)] = want
                         self.repoint[c].append((want, v[0], q))
 
-    def bank1_looks(self, grid, used, novel, moving):
+    def build_pool(self, used, moving):
+        """The pool of tiles (a look in bank 1: tiles of their own), the columns' tiles, the records"""
+        b1 = self.b1
+
+        def key(m, px):
+            return (px, 1) if m in b1 else px
+        pool, index, self.pbank = [], {}, []
+        self.uses = {}          # pool tile -> [(metatile, quarter)]
+        for m in used:
+            for q, px in enumerate(self.mq[m]):
+                if px is None:
+                    continue
+                k = key(m, px)
+                if k not in index:
+                    index[k] = len(pool)
+                    pool.append(px)
+                    self.pbank.append(1 if m in b1 else 0)
+                self.uses.setdefault(index[k], [])
+                if not isinstance(m, tuple):
+                    self.uses[index[k]].append((m, q))
+        self.pool, self.index, self.key = pool, index, key
+        self.spin = [index[px] for px in moving]
+        self.col_tiles = [sorted({index[key(m, px)] for m in set(col) for px in self.mq[m]
+                                  if px is not None and len(px) != SPIN_FRAMES}) for col in self.grid]
+        self.allocate()
+
+    def bank1_looks(self, grid, used, novel, moving, margin=0):
         """The looks to put in VRAM bank 1: none while the bank 0 slots hold every part of the
         level; else, the part needing the most first, the look there that frees the most bank 0
         tiles, until every part fits (or nothing more can go)"""
-        S0, S1 = len(self.slots), len(self.b1slots)
+        S0, S1 = len(self.slots) - margin, len(self.b1slots)
         hides = {m: novel[m]["hide"] for m in novel if novel[m].get("hide") is not None}
         fades = set(hides) | set(hides.values())
 
@@ -266,9 +295,6 @@ class Stream:
             if max(demand(1)) > S1:
                 b1.discard(best)
                 good.discard(best)
-        if b1:
-            print("  %s (CGB): %d looks in VRAM bank 1: %s" % (self.name, len(b1), ", ".join(
-                "%s from column %d" % (v, min(c for c, col in enumerate(grid) if v in col)) for v in sorted(b1, key=str))))
         return b1
 
     @staticmethod
@@ -337,6 +363,7 @@ class Stream:
                 slot_prev[s] = tile_prev[t] = len(recs)
                 recs.append((c, t, s, ps, pt, min(e, c)))
         moved = [[] for _ in self.records]
+        self.over = []                  # columns bringing more than the budget
         placed, todo = {}, list(range(len(recs)))
         budget = PER_COLUMN[self.cgb]
         for x in range(len(moved)):
@@ -351,8 +378,8 @@ class Stream:
             for n, i in enumerate(sorted(ready, key=lambda i: recs[i][0])):
                 if x and n >= budget and recs[i][0] > x:
                     break
-                if x and n >= budget:
-                    print("  %s (%s): column %d brings more than %d tiles" % (self.name, "CGB" if self.cgb else "DMG", x, budget))
+                if x and n >= budget and x not in self.over:
+                    self.over.append(x)
                 moved[x].append((recs[i][1], recs[i][2]))
                 placed[i] = x
             todo = [i for i in todo if i not in placed]

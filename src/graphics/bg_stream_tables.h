@@ -78,7 +78,7 @@ extern const uint8_t bs_test2_dmg_recs[];
 #define BS_SPIN_BASE 28
 #define BS_SPIN_FRAMES 3
 // per level: its spinning tiles (CGB): first tile in the space, number
-static const uint16_t bs_spin_first[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5398, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12631, 0 };
+static const uint16_t bs_spin_first[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5398, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12637, 0 };
 static const uint8_t bs_spin_count[BS_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0 };
 // per level: the CGB data, then the DMG data (DMG: the tiles, then the same tiles mirrored)
 static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {
@@ -94,17 +94,17 @@ static const uint16_t bs_tile_first[BS_LEVEL_COUNT * 2] = {
     3689, 3812,
     4472, 4556,
     5224, 5473,
-    6513, 7076,
-    8704, 8813,
-    9561, 9619,
-    9851, 9911,
-    10191, 10249,
-    10615, 10663,
-    10901, 10964,
-    11254, 11331,
-    11895, 11954,
-    12388, 12643,
-    13131, 13147,
+    6513, 7082,
+    8710, 8819,
+    9567, 9625,
+    9857, 9917,
+    10197, 10255,
+    10621, 10669,
+    10907, 10970,
+    11260, 11337,
+    11901, 11960,
+    12394, 12649,
+    13137, 13153,
 };
 static const uint8_t * const bs_recs[BS_LEVEL_COUNT * 2] = {
     bs_stereomadness_cgb_recs, bs_stereomadness_dmg_recs,
