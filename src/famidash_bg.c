@@ -290,21 +290,6 @@ static void fade_channels(void) __naked {
 // The cube's colour 2: colour 1 of palette 7 (decorations GDA draws in the player's colour 2)
 palette_color_t famidash_bg_accent2 = RGB(0, 31, 31);
 
-// a + b per 5-bit channel, at most 31: GDA draws the decorations as sprites blended additively
-// with the background under them (BLDCNT OBJ over BG0-2, 16/16), so a decoration in a player
-// colour shows as that colour plus the sky. Palette 2's colour 3 and palette 7's colour 1 are
-// the player's colours plus the sky
-static palette_color_t add_sky(palette_color_t a, palette_color_t b) {
-    uint8_t alo = (uint8_t)a, ahi = (uint8_t)(a >> 8), blo = (uint8_t)b, bhi = (uint8_t)(b >> 8);
-    uint8_t r = (uint8_t)((alo & 31u) + (blo & 31u));
-    uint8_t g = (uint8_t)((uint8_t)((alo >> 5) | ((ahi & 3u) << 3)) + (uint8_t)((blo >> 5) | ((bhi & 3u) << 3)));
-    uint8_t bl = (uint8_t)(((ahi >> 2) & 31u) + ((bhi >> 2) & 31u));
-    if (r > 31u) r = 31u;
-    if (g > 31u) g = 31u;
-    if (bl > 31u) bl = 31u;
-    return RGB(r, g, bl);
-}
-
 // shadow_bkg_palettes' palettes 5..7, from the level palettes (not stored there, see upload_palette):
 // 5 (fake spikes, Famidash PAL_3): sky, darker sky, black, black
 // 6 (GDA's background shades: 1.6 blocks, wave hills): sky, outline colour, sky at a quarter, 3/8 of
@@ -318,7 +303,7 @@ static void shadow_fake_spike_palette(void) {
     shadow_bkg_palettes[21] = famidash_bg_palettes[1];
     shadow_bkg_palettes[22] = shadow_bkg_palettes[23] = 0;
     shadow_bkg_palettes[25] = famidash_bg_palettes[3];
-    shadow_bkg_palettes[29] = add_sky(famidash_bg_accent2, famidash_bg_palettes[0]);
+    shadow_bkg_palettes[29] = famidash_bg_accent2;
     const uint8_t *s = (const uint8_t *)famidash_bg_palettes;
     uint8_t sr = s[0] & 31u, sg = (uint8_t)((s[0] >> 5) | (s[1] << 3)) & 31u, sb = (s[1] >> 2) & 31u;
     uint8_t r = s[6] & 31u, g = (uint8_t)((s[6] >> 5) | (s[7] << 3)) & 31u, b = (s[7] >> 2) & 31u;
@@ -376,10 +361,11 @@ static palette_color_t bg_accent = RGB(15, 31, 0);
 
 void famidash_set_bg_accent(palette_color_t c, palette_color_t c2) BANKED {
     famidash_bg_accent2 = c2;
-    shadow_bkg_palettes[29] = add_sky(c2, famidash_bg_palettes[0]);
+    shadow_bkg_palettes[29] = c2;
     bg_accent = c;
-    famidash_bg_target[11] = add_sky(c, famidash_bg_target[8]);
-    famidash_bg_palettes[11] = shadow_bkg_palettes[11] = add_sky(c, famidash_bg_palettes[8]);
+    famidash_bg_target[11] = c;
+    famidash_bg_palettes[11] = c;
+    shadow_bkg_palettes[11] = c;
     famidash_bkg_palettes_dirty = 1;
 }
 static palette_color_t current_g_color = RGB( 9, 25,  4);
@@ -498,7 +484,7 @@ void famidash_apply_bg_trigger(uint8_t color_id, uint8_t time) BANKED {
     famidash_bg_target[8] = c;
     famidash_bg_target[9] = darker;
     famidash_bg_target[10] = RGB(0, 0, 0);
-    famidash_bg_target[11] = add_sky(bg_accent, c);
+    famidash_bg_target[11] = bg_accent;
 
     // Palette 3: Parallax BG. BG SHADES: the old ones (more contrast) or GDA's (brighter)
     famidash_bg_target[12] = c;
