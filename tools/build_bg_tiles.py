@@ -329,7 +329,9 @@ def main():
                       novel))
 
     import bg_stream
-    bg_stream.write(pools)
+    for name, ids in bg_stream.write(pools).items():
+        for m, v in ids.items():
+            pal_tabs[name][m] = v     # (VRAM bank 1: the attribute's bank bit, bg_stream.py BANK1_SLOTS)
 
     # What the renderer needs per level, and the collision and palette tables of the levels with
     # metatiles of their own; the others use Famidash's (include/bg_level_info.h)

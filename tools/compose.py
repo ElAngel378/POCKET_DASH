@@ -220,10 +220,13 @@ class Composer:
         shade = cgb and self.shade_cell(parts)
         targets = self.targets(parts) if cgb and not shade else None
         # a decoration in a colour its quarter's palette lacks, in a cell with a block, a hazard, an
-        # orb / pad outline or a background shade (wave hills): left out there (as if behind it)
-        # instead of in the nearest colour (a player colour went white)
+        # orb / pad outline or a background shade (wave hills): in that palette's dark shade there
+        # instead of the nearest colour (a player colour went white)
         hard = targets is not None and any(self.kind[p[0]] in ("solid", "deadly", "special")
                                            or p[0] in GO.SHADES for p in parts)
+        # (dark shade only with a hazard: a circle behind a saw; elsewhere left out, the dark
+        # pixels made more different tiles than a busy part of a level has room for)
+        hazard = hard and any(self.kind[p[0]] == "deadly" for p in parts)
         for q in range(4):
             cqx, cqy = q % 2, q // 2
             target = targets[q] if targets else None
@@ -246,7 +249,7 @@ class Composer:
                     px = tuple({3: 1, 1: 2}.get(v, v) for v in px)   # white and dark, in palette 6
                 elif target is not None and self.opal[key] != target:
                     drop = hard and self.kind[key] == "none" and key not in GO.SHADES and key not in FILLS
-                    px = tuple(self.in_palette(v, self.opal[key], target, drop) for v in px)
+                    px = tuple(self.in_palette(v, self.opal[key], target, drop, hazard) for v in px)
                 opaque = (self.kind[key] == "solid" and key not in GO.OUTLINE and key not in GO.GDA_KEYS) or key in FILLS
                 for i in range(64):
                     if opaque or px[i]:
@@ -291,12 +294,17 @@ class Composer:
         return split[1] if split else [self.mixed_palette(parts)] * 4
 
     @staticmethod
-    def in_palette(v, own, target, drop=False):
-        """Colour v of palette own, as a colour of palette target (drop: 0 if target lacks it)"""
+    def in_palette(v, own, target, drop=False, shade=True):
+        """Colour v of palette own, as a colour of palette target (drop: its dark shade if target
+        lacks it)"""
         if own not in COLOURS or target not in COLOURS:
             return v
         role, to = COLOURS[own][v], COLOURS[target]
         if drop and v and role not in to:
+            # in the palette's dark shade if it has one (a circle behind a saw stays a circle)
+            for dark in ("dark", "deep sky", "mid sky") if shade else ():
+                if dark in to:
+                    return to.index(dark)
             return 0
         for wanted in (role,) + NEAR.get(role, ()):
             if wanted in to:

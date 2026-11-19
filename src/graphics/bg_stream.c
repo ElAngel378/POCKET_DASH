@@ -58,7 +58,9 @@ static uint16_t bs_resume;              // bs_reached before the last reset
 // All levels' tiles are one space of 16 byte tiles over consecutive banks from BS_TILE_BANK (1024
 // tiles a bank), so a level can have any number of them. DMG: the tiles, then the same tiles
 // mirrored; CGB mirrors with the X flip attribute
+// (CGB: a tile for a VRAM bank 1 slot has its top bit set, tools/bg_stream.py BANK1_SLOTS)
 static uint16_t tile_of(uint16_t t) {
+    t &= 0x7FFFu;
     return bs_tile_base + (bs_rev ? bs_pool + t : t);
 }
 
@@ -71,6 +73,7 @@ static uint16_t run_tile;
 static void run_flush(void) {
     uint8_t s = run_slot;
     uint16_t g = tile_of(run_tile);
+    if (!bs_dmg) VBK_REG = (run_tile & 0x8000u) ? 1u : 0u;
     while (run_n) {
         uint16_t k = 1024u - (g & 1023u);     // up to the end of the bank
         if (k > run_n) k = run_n;
@@ -82,6 +85,7 @@ static void run_flush(void) {
 }
 static void run_add(uint8_t s, uint16_t t) {
     // (slots 127 and 128 are not next to each other in VRAM: 0x97F0, 0x8800)
+    // (the tile's top bit: its VRAM bank, the same for the whole run)
     if (run_n && s == (uint8_t)(run_slot + run_n) && t == run_tile + run_n && s != 128u && run_n < 255u) {
         run_n++;
         return;
@@ -554,8 +558,10 @@ void bg_stream_feed(void) BANKED {
     uint8_t k = 0, most = bs_dmg ? 2u : BS_UP_MAX;
     while (bs_q_n && k < most) {
         uint8_t i = bs_q_head;
-        bs_up_slot[k] = bs_q_slot[i];
-        uint16_t g = tile_of(bs_q_tile[i]);
+        uint16_t t = bs_q_tile[i];
+        // VRAM bank 1 slots 128..159 as 224..255 (CGB slots in bank 0 end at 159): bs_upload
+        bs_up_slot[k] = (t & 0x8000u) ? (uint8_t)(bs_q_slot[i] + 96u) : bs_q_slot[i];
+        uint16_t g = tile_of(t);
         fur_copy_banked(bs_up_buf + (k << 4), TILE_ADDR(g), 16, TILE_BANK(g));
         bs_q_head = (uint8_t)((i + 1u) & (BS_QUEUE - 1));
         bs_q_n--;

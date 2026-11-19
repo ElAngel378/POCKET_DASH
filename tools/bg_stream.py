@@ -29,6 +29,10 @@ PER_COLUMN = {1: 4, 0: 4}     # records a column may take in play: CGB, DMG (bg_
                               # heavy columns at their own column: 25 tiles at once, the game waited)
 BLACK_FILL_SLOT = 26
 CGB_GROUND_LOOK = {1, 2, 5, 6, 136, 137}   # mt_renderer.c gnd_look_tab
+# CGB VRAM bank 1 tiles 128..159 (no sprite or fixed tile uses them in play): more slots for a part
+# of a level that needs more tiles than bank 0 has. Internally 256 + tile (unique slot ids)
+BANK1_SLOTS = [256 + t for t in range(128, 160)]
+BANK1_PAL = 0x08       # the attribute's VRAM bank bit, in the palette byte of a look there
 
 
 def flipped(px):
@@ -140,24 +144,36 @@ class Stream:
         for m in used:
             self.mq[m] = [px[0] if px is not None and len(px) == SPIN_FRAMES and px not in moving else px
                           for px in self.mq[m]]
-        pool, index = [], {}
+        pinned = list(range(SPIN_BASE, SPIN_BASE + len(moving)))
+        self.slots = [s for s in slots if s not in pinned]
+        # CGB: when a part of the level needs more tiles than the bank 0 slots, some looks go to
+        # VRAM bank 1 (BANK1_SLOTS), whole: the bank is the cell's attribute, from its palette byte
+        # (+ BANK1_PAL; mt_renderer.c bm_info). Only plain cells of the level's own: no palette per
+        # quarter, no saws, spinning tiles, fading or ground looks
+        self.b1 = set()
+        if cgb and novel:
+            self.b1 = self.bank1_looks(grid, used, novel, moving)
+
+        def key(m, px):
+            return (px, 1) if m in self.b1 else px
+        pool, index, self.pbank = [], {}, []
         self.uses = {}          # pool tile -> [(metatile, quarter)]
         for m in used:
             for q, px in enumerate(self.mq[m]):
                 if px is None:
                     continue
-                if px not in index:
-                    index[px] = len(pool)
+                k = key(m, px)
+                if k not in index:
+                    index[k] = len(pool)
                     pool.append(px)
-                self.uses.setdefault(index[px], [])
+                    self.pbank.append(1 if m in self.b1 else 0)
+                self.uses.setdefault(index[k], [])
                 if not isinstance(m, tuple):
-                    self.uses[index[px]].append((m, q))
-        self.pool, self.index = pool, index
+                    self.uses[index[k]].append((m, q))
+        self.pool, self.index, self.key = pool, index, key
         self.spin = [index[px] for px in moving]
-        self.col_tiles = [sorted({index[px] for m in set(col) for px in self.mq[m]
+        self.col_tiles = [sorted({index[key(m, px)] for m in set(col) for px in self.mq[m]
                                   if px is not None and len(px) != SPIN_FRAMES}) for col in grid]
-        pinned = list(range(SPIN_BASE, SPIN_BASE + len(moving)))
-        self.slots = [s for s in slots if s not in pinned]
         self.allocate()
         self.records[0][:0] = list(zip(self.spin, pinned))
         # repoint[c]: [(slot, id, quarter)] after column c's records: the quarters of the looks column
@@ -167,10 +183,21 @@ class Stream:
         # a column shows another of its looks: pal_rec[c] = [(id, palette)]
         self.pal_rec = [[] for _ in grid]
         pal_at = {m: novel[m]["pal_at"] for m in novel if cgb and novel[m].get("pal_at")}
-        pal_now = {m: novel[m]["pal"] for m in pal_at}
-        for c, col in enumerate(real if pal_at else []):
-            for m in sorted(set(col) & set(pal_at)):
+        b1_ids = {v[0] for v in self.b1 if isinstance(v, tuple)}
+        changing = set(pal_at) | b1_ids
+
+        def pal_of(m, c):
+            v = novel[m]["pal"]
+            if m in pal_at:
                 v = pal_at[m][max(i for i, (first, _) in enumerate(pal_at[m]) if first <= c or not i)][1]
+            return v | (BANK1_PAL if shown(m, c) in self.b1 else 0)
+        # the ids' palettes at the start (the level's palette table, build_bg_tiles.py)
+        self.pal_start = {m: novel[m]["pal"] | (BANK1_PAL if shown(m, 0) in self.b1 else 0)
+                          for m in novel} if cgb else {}
+        pal_now = {m: self.pal_start[m] for m in changing}
+        for c, col in enumerate(real if changing else []):
+            for m in sorted(set(col) & changing):
+                v = pal_of(m, c)
                 if pal_now[m] != v:
                     pal_now[m] = v
                     self.pal_rec[c].append((m, v))
@@ -181,16 +208,76 @@ class Stream:
                 slot_of[t] = sl
             for v in sorted(v for v in set(col) if isinstance(v, tuple)):
                 for q, px in enumerate(self.mq[v]):
-                    want = TRANSPARENT if px is None else slot_of[index[px]]
+                    want = TRANSPARENT if px is None else slot_of[index[key(v, px)]]
                     if at.get((v[0], q)) != want:
                         at[(v[0], q)] = want
                         self.repoint[c].append((want, v[0], q))
+
+    def bank1_looks(self, grid, used, novel, moving):
+        """The looks to put in VRAM bank 1: none while the bank 0 slots hold every part of the
+        level; else, the part needing the most first, the look there that frees the most bank 0
+        tiles, until every part fits (or nothing more can go)"""
+        S0, S1 = len(self.slots), len(BANK1_SLOTS)
+        hides = {m: novel[m]["hide"] for m in novel if novel[m].get("hide") is not None}
+        fades = set(hides) | set(hides.values())
+
+        def ok(v):
+            m = v[0] if isinstance(v, tuple) else v
+            if m not in novel or m in fades or m in CGB_GROUND_LOOK or m in BG.SAW_METATILES or m == BG.SAW_CENTER_MT:
+                return False
+            if novel[m]["pal"] >= 8 or any(p >= 8 for _, p in novel[m].get("pal_at") or []):
+                return False
+            pxs = [px for px in self.mq[v] if px is not None]
+            return bool(pxs) and not any(len(px) == SPIN_FRAMES or px in moving for px in pxs)
+        good = {v for v in used if ok(v)}
+        b1 = set()
+        tiles = {v: {px for px in self.mq[v] if px is not None and len(px) != SPIN_FRAMES} for v in used}
+
+        def demand(bank):
+            out, count = [], {}
+            for c, col in enumerate(grid):
+                if c >= RING:
+                    for k in self._keys(grid[c - RING], tiles, b1, bank):
+                        count[k] -= 1
+                        if not count[k]:
+                            del count[k]
+                for k in self._keys(col, tiles, b1, bank):
+                    count[k] = count.get(k, 0) + 1
+                out.append(len(count))
+            return out
+        for _ in range(2000):
+            d0 = demand(0)
+            worst = max(range(len(d0)), key=d0.__getitem__)
+            if d0[worst] <= S0:
+                break
+            window = {v for k in range(max(0, worst - RING + 1), worst + 1) for v in grid[k]}
+            users = {}
+            for v in window - b1:
+                for px in tiles[v]:
+                    users[px] = users.get(px, 0) + 1
+            best = max(((window & good) - b1), default=None,
+                       key=lambda v: (sum(1 for px in tiles[v] if users[px] == 1), -len(tiles[v]), str(v)))
+            if best is None or not any(users[px] == 1 for px in tiles[best]):
+                break
+            b1.add(best)
+            if max(demand(1)) > S1:
+                b1.discard(best)
+                good.discard(best)
+        if b1:
+            print("  %s (CGB): %d looks in VRAM bank 1: %s" % (self.name, len(b1), ", ".join(
+                "%s from column %d" % (v, min(c for c, col in enumerate(grid) if v in col)) for v in sorted(b1, key=str))))
+        return b1
+
+    @staticmethod
+    def _keys(col, tiles, b1, bank):
+        return {px for v in set(col) for px in tiles[v] if (v in b1) == bool(bank)}
 
     def allocate(self):
         """records[c]: [(pool tile, slot)] to apply before column c is drawn. A tile that left the
         ring stays in its slot until the slot is needed (the oldest one goes first): if it comes
         back before that, it is still there and needs no record."""
-        free = list(self.slots)     # not in use by the ring: empty ones first, then oldest freed
+        # not in use by the ring: empty ones first, then oldest freed; per VRAM bank
+        free = {0: list(self.slots), 1: list(BANK1_SLOTS)}
         holder, slot_of, count = {}, {}, {}
         self.records, self.peak = [], 0
         cols = self.col_tiles
@@ -201,17 +288,20 @@ class Stream:
                     count[t] -= 1
                     if not count[t]:
                         del count[t]
-                        free.append(slot_of[t])
+                        free[self.pbank[t]].append(slot_of[t])
             rec = []
             for t in tiles:
                 if t not in count:
+                    b = self.pbank[t]
                     if t in slot_of:
-                        free.remove(slot_of[t])       # still there
+                        free[b].remove(slot_of[t])       # still there
                     else:
-                        if not free:
-                            raise SystemExit("%s (%s): more than %d tiles in %d columns at column %d"
-                                             % (self.name, "CGB" if self.cgb else "DMG", len(self.slots), RING, c))
-                        s = free.pop(0)
+                        if not free[b]:
+                            raise SystemExit("%s (%s): more than %d tiles in %d columns at column %d%s"
+                                             % (self.name, "CGB" if self.cgb else "DMG",
+                                                len(self.slots) if not b else len(BANK1_SLOTS), RING, c,
+                                                " (VRAM bank 1)" if b else ""))
+                        s = free[b].pop(0)
                         if s in holder:
                             del slot_of[holder[s]]
                         holder[s] = t
@@ -304,6 +394,7 @@ def record_bytes(st, starts=None):
     starts: a list to get where each column's records begin"""
     tiles = [t for rec in st.records for t, _ in rec]
     n = len(st.pool)
+    assert n < 0x7E00, "%s: %d tiles" % (st.name, n)
     out = bytearray([n & 0xFF, n >> 8, 1 if len(tiles) == len(set(tiles)) and not any(st.repoint)
                      and not any(st.pal_rec) else 0])
     # the empty quarters of the level's own metatiles show the transparent tile: records of no tile
@@ -327,11 +418,12 @@ def record_bytes(st, starts=None):
         for t, s in rec:
             uses = st.uses[t]
             assert len(uses) < 256, "%s: tile %d in %d metatile quarters" % (st.name, t, len(uses))
-            out += bytes([s, t & 0xFF, t >> 8, len(uses)])
+            # (a VRAM bank 1 slot: the tile's top bit, bs_apply / bg_stream_to)
+            out += bytes([s & 0xFF, t & 0xFF, (t >> 8) | (0x80 if st.pbank[t] else 0), len(uses)])
             for m, q in uses:
                 out += bytes([m, q])
         for sl, g in points.items():
-            out += bytes([sl, 0xFF, 0xFF, len(g)]) + bytes(v for mq in g for v in mq)
+            out += bytes([sl & 0xFF, 0xFF, 0xFF, len(g)]) + bytes(v for mq in g for v in mq)
         if pals:
             out += bytes([0, 0xFF, 0xFE, len(pals)]) + bytes(v for mv in pals for v in mv)
     return bytes(out + bytes([255, 255]))
@@ -356,7 +448,8 @@ def write(pools):
     """pools: (level name, metatile columns, CGB slots, DMG slots) in game_levels order.
     Writes src/graphics/bg_stream_<level>.c (records, packed into free banks from the top),
     bg_stream_tiles_<n>.c (every level's tiles, one space over consecutive banks: a level can have
-    any number of them) and bg_stream_tables.h."""
+    any number of them) and bg_stream_tables.h. Returns {level: {id: palette byte}} of the ids that
+    start in VRAM bank 1 (their palette table entries, build_bg_tiles.py)."""
     import re
     art = Art()
     gfx = ROOT / "src" / "graphics"
@@ -364,6 +457,7 @@ def write(pools):
     space = bytearray()    # the tile space
     first = {}             # (level, platform) -> its first tile in the space
     spin = {}              # level -> (its spinning tiles' first tile in the space, their number)
+    bank1 = {}             # level -> {id: its palette byte at the start} of the ids in VRAM bank 1 there
     for name, cols, cgb_slots, dmg_slots, novel in pools:
         parts, arrays = {}, []
         # (a cell's hidden look is shown in the column of the cell itself: its tiles are needed there)
@@ -382,6 +476,8 @@ def write(pools):
                     if not limit:
                         raise
             st.simulate(cols)
+            if cgb:
+                bank1[name] = {m: v for m, v in st.pal_start.items() if v & BANK1_PAL}
             # DMG: all the tiles, then all of them mirrored (runs of tiles copy in one go)
             tiles = b"".join(tile_bytes(px[0] if len(px) == SPIN_FRAMES else px) for px in st.pool)
             if not cgb:
@@ -492,6 +588,7 @@ def write(pools):
     H += ["static const uint8_t bs_banks[BS_LEVEL_COUNT] = {"]
     H += ["    %d,   // %s" % (bank_of[n], n) for n, _, _, _, _ in pools] + ["};", "", "#endif", ""]
     (gfx / "bg_stream_tables.h").write_text("\n".join(H), encoding="utf-8")
+    return bank1
 
 
 def main():

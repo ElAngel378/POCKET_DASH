@@ -342,8 +342,24 @@ static void bs_upload(void) __naked {
         ld      b, #0
         ld      hl, #_bs_up_slot
         add     hl, bc
-        ld      a, (hl)                 ; slot
+        ld      a, (hl)                 ; slot (CGB 224..255: VRAM bank 1 slot 128..159, bg_stream_feed)
         ld      b, a
+        ld      a, (_bg_gdma_isr_on)
+        or      a, a
+        jr      Z, 6$                   ; DMG: every slot as it is
+        ld      a, b
+        cp      #224
+        jr      C, 4$
+        sub     #96
+        ld      b, a
+        ld      a, #1
+        jr      5$
+    4$:
+        xor     a, a
+    5$:
+        ldh     (_VBK_REG + 0), a
+    6$:
+        ld      a, b
         swap    a
         ld      e, a
         and     #0x0F
@@ -371,7 +387,7 @@ static void bs_upload(void) __naked {
         .endm
         ld      hl, #_bs_up_i
         inc     (hl)
-        jr      1$
+        jp      1$
     __endasm;
 }
 
@@ -508,8 +524,8 @@ void bg_parallax_vbl_isr(void) {
     // Streamed tiles backing up go before the player frame, which would take all of VBlank while
     // the cube spins: a spin step put off is barely seen, a full queue stops the game
     if (bs_q_n >= 4u && bs_up_i < bs_up_n) {
-        VBK_REG = 0;
         bs_upload();
+        VBK_REG = 0;
     }
     // DMG player frame (4 sprite tiles, double buffered by gameplay): as many tiles as still fit,
     // the rest on the next VBlank
@@ -534,8 +550,8 @@ void bg_parallax_vbl_isr(void) {
     FADE_CELLS_TRY();
     // Streamed tiles: a column is drawn a few columns before it is seen, so they have time
     if (bs_up_i < bs_up_n) {
-        VBK_REG = 0;
         bs_upload();
+        VBK_REG = 0;
     }
     // Saw animation chunk (~0.5k dots), last: the map streaming above matters more
     ly = LY_REG;
