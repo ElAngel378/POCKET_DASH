@@ -491,25 +491,15 @@ static void gnd_look_setup(void) {
 static const uint32_t gnd_col_tiles[4][3] = {
     GND_COL(48, 49, 51, 52), GND_COL(49, 49, 52, 52), GND_COL(49, 49, 52, 52), GND_COL(49, 50, 52, 53)
 };
-// The 4 tiles of each look at strip column tl_x (0, 2, 4, 6), then their 4 attributes
-static uint8_t gnd_mt[3][8];
-static uint8_t gnd_mt_x = 0xFF;
-static void gnd_mt_setup(uint8_t tl_x) {
-    if (tl_x == gnd_mt_x) return;
-    gnd_mt_x = tl_x;
-    uint8_t tr_x = tl_x + 1u;
-    uint8_t *m = gnd_mt[GND_FILL];
-    m[0] = m[2] = ground_bot[tl_x]; m[1] = m[3] = ground_bot[tr_x];
-    m[4] = m[5] = m[6] = m[7] = 0x0C;                      // bank 1, palette 4
-    m = gnd_mt[GND_EDGE_BOTTOM];
-    m[0] = ground_bot[tl_x]; m[1] = ground_bot[tr_x];
-    m[2] = ground_top[tl_x]; m[3] = ground_top[tr_x];
-    m[4] = m[5] = m[6] = m[7] = 0x4C;                      // + Y flip
-    m = gnd_mt[GND_EDGE_TOP];
-    m[0] = ground_top[tl_x]; m[1] = ground_top[tr_x];
-    m[2] = ground_bot[tl_x]; m[3] = ground_bot[tr_x];
-    m[4] = m[5] = m[6] = m[7] = 0x0C;
-}
+// The 4 tiles of each look at strip column tl_x (0, 2, 4, 6), then their 4 attributes (bank 1,
+// palette 4; the ceiling's edge Y flipped): gnd_mt[tl_x / 2][look], from ground_top / ground_bot
+// (a table: building it per cell of a row cost ~1/8 of a CGB frame in ground-heavy rows)
+static const uint8_t gnd_mt[4][3][8] = {
+    { { 51, 52, 51, 52, 0x0C, 0x0C, 0x0C, 0x0C }, { 51, 52, 48, 49, 0x4C, 0x4C, 0x4C, 0x4C }, { 48, 49, 51, 52, 0x0C, 0x0C, 0x0C, 0x0C } },
+    { { 52, 52, 52, 52, 0x0C, 0x0C, 0x0C, 0x0C }, { 52, 52, 49, 49, 0x4C, 0x4C, 0x4C, 0x4C }, { 49, 49, 52, 52, 0x0C, 0x0C, 0x0C, 0x0C } },
+    { { 52, 52, 52, 52, 0x0C, 0x0C, 0x0C, 0x0C }, { 52, 52, 49, 49, 0x4C, 0x4C, 0x4C, 0x4C }, { 49, 49, 52, 52, 0x0C, 0x0C, 0x0C, 0x0C } },
+    { { 52, 53, 52, 53, 0x0C, 0x0C, 0x0C, 0x0C }, { 52, 53, 49, 50, 0x4C, 0x4C, 0x4C, 0x4C }, { 49, 50, 52, 53, 0x0C, 0x0C, 0x0C, 0x0C } },
+};
 // CGB parallax tile row of map row m (rows of the parallax pattern repeat every 3), counted from
 // the ground so that the pattern stays put when MAP_ROWS changes: ((m - GROUND_ROW + 32) % 3) * 16,
 // for map rows 0 .. GROUND_ROW + 15 (the band reaches the ground row)
@@ -1234,8 +1224,7 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
         if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
         uint8_t tl_x = (uint8_t)((slot & 3u) << 1);
         if (look) {
-            gnd_mt_setup(tl_x);
-            const uint8_t *m = gnd_mt[look - 1u];
+            const uint8_t *m = gnd_mt[slot & 3u][look - 1u];
             t0[0] = m[0]; t0[1] = m[1]; t0[16] = m[2]; t0[17] = m[3];
             a0[0] = m[4]; a0[1] = m[5]; a0[16] = m[6]; a0[17] = m[7];
         } else {
