@@ -132,6 +132,7 @@ class Composer:
             if key in GO.DRAWN_KIND:
                 self.kind[key] = GO.DRAWN_KIND[key]
         self.spin = {key: LO.spin_frames(key) for key in GO.SPIN}
+        self.rings = frozenset()      # orb rings drawn by sprite on CGB (level_objects.sprite_rings)
         self.ground_keys = {k for k, _tf in self.art[1] for a in [self.art[1][(k, _tf)]] if GROUND in a.values()}
         for key in GO.OBJECTS:
             self.kind.setdefault(key, "none")
@@ -218,6 +219,11 @@ class Composer:
         out = []
         shade = cgb and self.shade_cell(parts)
         targets = self.targets(parts) if cgb and not shade else None
+        # a decoration in a colour its quarter's palette lacks, in a cell with a block, a hazard or a
+        # background shade (wave hills): left out there (as if behind it) instead of in the nearest
+        # colour (a player colour went white)
+        hard = targets is not None and any(self.kind[p[0]] in ("solid", "deadly") or p[0] in GO.SHADES
+                                           for p in parts)
         for q in range(4):
             cqx, cqy = q % 2, q // 2
             target = targets[q] if targets else None
@@ -239,7 +245,8 @@ class Composer:
                 if shade and key not in GO.SHADES:
                     px = tuple({3: 1, 1: 2}.get(v, v) for v in px)   # white and dark, in palette 6
                 elif target is not None and self.opal[key] != target:
-                    px = tuple(self.in_palette(v, self.opal[key], target) for v in px)
+                    drop = hard and self.kind[key] == "none" and key not in GO.SHADES and key not in FILLS
+                    px = tuple(self.in_palette(v, self.opal[key], target, drop) for v in px)
                 opaque = (self.kind[key] == "solid" and key not in GO.OUTLINE and key not in GO.GDA_KEYS) or key in FILLS
                 for i in range(64):
                     if opaque or px[i]:
@@ -284,11 +291,13 @@ class Composer:
         return split[1] if split else [self.mixed_palette(parts)] * 4
 
     @staticmethod
-    def in_palette(v, own, target):
-        """Colour v of palette own, as a colour of palette target"""
+    def in_palette(v, own, target, drop=False):
+        """Colour v of palette own, as a colour of palette target (drop: 0 if target lacks it)"""
         if own not in COLOURS or target not in COLOURS:
             return v
         role, to = COLOURS[own][v], COLOURS[target]
+        if drop and v and role not in to:
+            return 0
         for wanted in (role,) + NEAR.get(role, ()):
             if wanted in to:
                 return to.index(wanted)
@@ -464,13 +473,16 @@ class Composer:
                 warn.append("%s cell %d, %d: %s" % (name, cx, cy, w))
             if col is None:
                 col = 0
-            pal = self.palette(parts)
-            k = (tuple(self.spin_look(parts)), tuple(self.look(0, parts)), pal, col)
+            # CGB: without the orb rings its sprites draw
+            cp = [p for p in parts if p[0] != "fd_orb_ring" or (cx * 16 + p[1], cy * 16 + p[2]) not in self.rings]
+            pal = self.palette(cp) if cp else 0
+            k = (tuple(self.spin_look(cp)), tuple(self.look(0, parts)), pal, col)
             rest = [p for p in parts if p[0] not in GO.FADE]
+            crest = [p for p in cp if p[0] not in GO.FADE]
             spin = sorted({p[0] for p in parts if p[0] in self.spin})
             if len(rest) != len(parts):
-                hidden = (tuple(self.spin_look(rest)), tuple(self.look(0, rest)),
-                          self.palette(rest) if rest else pal, col)
+                hidden = (tuple(self.spin_look(crest)), tuple(self.look(0, rest)),
+                          self.palette(crest) if crest else pal, col)
                 todo.append((cx, cy, k, hidden, spin))
                 plain[(cx, cy)] = None
             else:

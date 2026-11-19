@@ -35,23 +35,11 @@ NOT_LEVEL_SONGS = MENU_SONGS | {"songtemplate"}
 NO_SONG_DIVIDER = 183                     # the music timer of a level without a hUGETracker song
 HAND_WRITTEN_MUSIC = {"music_beats.c", "practice.c"}   # in src/music, not made from a level's song
 
-ORB_TILES = (5, 6, 11)   # objects/sprites.tsx: blue, pink, yellow orb
-
-
 def orbs_without_rings(root):
-    """True when the level has orbs and none of them has a background ring (fd_orb_ring) at its
-    place: the engine draws their rings by sprite (include/player.h LEVEL_ORB_RINGS)"""
+    """True when the level's orbs get their rings by sprite on CGB (include/player.h LEVEL_ORB_RINGS,
+    tools/level_objects.py sprite_rings)"""
     import level_objects
-    first = next((int(t.get('firstgid')) for t in root.findall('tileset') if t.get('source', '').endswith('sprites.tsx')), None)
-    if first is None or not level_objects.is_object_tmx(root):
-        return False
-    orbs = [(int(float(o.get('x'))), int(float(o.get('y'))) - int(float(o.get('height', 16))))
-            for g in root.findall('objectgroup') if g.get('name') == 'SP' for o in g.findall('object')
-            if o.get('gid') and (int(o.get('gid')) & 0x1FFFFFFF) - first in ORB_TILES]
-    if not orbs:
-        return False
-    rings = {(x, y) for k, x, y, _f in level_objects.tmx_objects(root) if k == 'fd_orb_ring'}
-    return not any(o in rings for o in orbs)
+    return level_objects.sprite_rings(root) is not None
 
 
 def level_settings(tmx_path):

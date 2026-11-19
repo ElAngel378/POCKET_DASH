@@ -317,11 +317,13 @@ def convert_grid(name, grid):
     return sorted(objs, key=lambda o: (objs[o], o[1], o[2]))
 
 
-def compile_objects(name, objs, w, h, novel=None, deco=None):
+def compile_objects(name, objs, w, h, novel=None, deco=None, rings=frozenset()):
     """[(key, x, y, flags)] in drawing order (later = on top) -> (metatile rows (h x w), errors).
     novel: a dict to make the cells no Famidash metatile shows in (tools/compose.py: metatile id ->
     (CGB quarters, DMG quarters, collision)); without it they are errors.
-    deco: [{(x, y): colour}], objects painted over the cells' DMG look (tools/dmg_deco.py)."""
+    deco: [{(x, y): colour}], objects painted over the cells' DMG look (tools/dmg_deco.py).
+    rings: positions of orb rings (fd_orb_ring) the CGB draws by sprite (sprite_rings): their cells'
+    CGB look leaves them out (made by tools/compose.py, the DMG look keeps them)."""
     cells = {}
     for z, (key, x, y, flags) in enumerate(objs):
         for c, part in cells_of(key, x, y, flags).items():
@@ -352,8 +354,10 @@ def compile_objects(name, objs, w, h, novel=None, deco=None):
         if not (0 <= cx < w and 0 <= cy < h):
             continue        # the part of an object hanging off the map
         parts = set(zs)
-        found = lookup(frozenset(parts))
-        if not found and any(q[0] in composer().ground_keys for q in parts):
+        ringed = novel is not None and any(k == "fd_orb_ring" and (cx * 16 + dx, cy * 16 + dy) in rings
+                                           for k, dx, dy, _tf in parts)
+        found = [] if ringed else lookup(frozenset(parts))
+        if not found and not ringed and any(q[0] in composer().ground_keys for q in parts):
             # The ground strip can't be mixed with anything (every level): what pokes in from a
             # neighbouring cell is hidden behind it, and of two such objects the one on top shows
             loose = [p for p in parts if cells_of(p[0], p[1], p[2], GO.TRANSFORMS[p[3]]).keys() != {(0, 0)}]
@@ -380,6 +384,7 @@ def compile_objects(name, objs, w, h, novel=None, deco=None):
         grid[cy][cx] = found[0]
     over = deco if novel is not None and deco else []
     if new or over:
+        composer().rings = rings
         made, warn = composer().make(name, grid, new, lookup, over)
         novel.update(made)
         for w_ in warn:
@@ -428,6 +433,29 @@ def tmx_objects(root):
     return objs
 
 
+ORB_TILES = (5, 6, 11)   # objects/sprites.tsx: blue, pink, yellow orb
+
+
+def sprite_rings(root):
+    """The orbs' rings drawn by sprite on CGB (sp_draw.c, include/player.h LEVEL_ORB_RINGS): a level
+    with orbs whose orbs all have a background ring (fd_orb_ring) at their place, or none has one.
+    -> the positions (x, y) of the rings that leave the CGB background (the DMG keeps them), or None
+    when the level does not. A ring's white outline shared its 8x8 tiles with the decorations around
+    it: no CGB palette has white and the player's colours, one of them showed wrong."""
+    first = next((int(t.get('firstgid')) for t in root.findall('tileset') if t.get('source', '').endswith('sprites.tsx')), None)
+    if first is None or not is_object_tmx(root):
+        return None
+    orbs = {(int(float(o.get('x'))), int(float(o.get('y'))) - int(float(o.get('height', 16))))
+            for g in root.findall('objectgroup') if g.get('name') == 'SP' for o in g.findall('object')
+            if o.get('gid') and (int(o.get('gid')) & 0x1FFFFFFF) - first in ORB_TILES}
+    if not orbs:
+        return None
+    rings = {(x, y) for k, x, y, _f in tmx_objects(root) if k == 'fd_orb_ring'}
+    if orbs <= rings or not orbs & rings:
+        return orbs & rings
+    return None
+
+
 def compile_tmx(path, novel=None):
     """The metatile rows of an object TMX (novel: see compile_objects)"""
     root = ET.parse(path).getroot()
@@ -436,7 +464,8 @@ def compile_tmx(path, novel=None):
     if novel is not None:
         import dmg_deco
         deco = dmg_deco.pixels(root, path.stem.lower())
-    grid, errors = compile_objects(path.stem.lower(), tmx_objects(root), w, h, novel, deco)
+    grid, errors = compile_objects(path.stem.lower(), tmx_objects(root), w, h, novel, deco,
+                                   sprite_rings(root) or set())
     if errors:
         raise SystemExit("%s:\n  %s" % (path.name, "\n  ".join(errors[:20])))
     return grid

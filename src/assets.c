@@ -245,7 +245,7 @@ const Level level_polargeist = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_dryout = {
@@ -262,7 +262,7 @@ const Level level_dryout = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_baseafterbase = {
@@ -279,7 +279,7 @@ const Level level_baseafterbase = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_cantletgo = {
@@ -296,7 +296,7 @@ const Level level_cantletgo = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_jumper = {
@@ -313,7 +313,7 @@ const Level level_jumper = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_timemachine = {
@@ -330,7 +330,7 @@ const Level level_timemachine = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_cycles = {
@@ -347,7 +347,7 @@ const Level level_cycles = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_xstep = {
@@ -364,7 +364,7 @@ const Level level_xstep = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_clutterfunk = {
@@ -381,7 +381,7 @@ const Level level_clutterfunk = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_theoryofeverything = {
@@ -398,7 +398,7 @@ const Level level_theoryofeverything = {
   7,
   0,
   1,
-  1
+  3
 };
 
 const Level level_electromanadventures = {
@@ -415,7 +415,7 @@ const Level level_electromanadventures = {
   37,
   0,
   1,
-  1
+  3
 };
 
 const Level level_clubstep = {
@@ -432,7 +432,7 @@ const Level level_clubstep = {
   24,
   0,
   0,
-  1
+  3
 };
 
 const Level level_bestautomaticlvl = {
@@ -466,7 +466,7 @@ const Level level_leveleasy = {
   37,
   0,
   1,
-  0
+  2
 };
 
 const Level level_subzero = {
@@ -483,7 +483,7 @@ const Level level_subzero = {
   37,
   0,
   0,
-  1
+  3
 };
 
 const Level level_ultiatedestruction = {
@@ -500,7 +500,7 @@ const Level level_ultiatedestruction = {
   24,
   0,
   0,
-  1
+  3
 };
 
 const Level level_everymadness = {
@@ -551,7 +551,7 @@ const Level level_thelightningroad = {
   29,
   0,
   0,
-  0
+  2
 };
 
 const Level level_test = {
