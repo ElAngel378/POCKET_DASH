@@ -33,6 +33,10 @@ NAMES = {
     73: "Pulsing ball", 74: "Music note", 112: "Pulsing ring", 113: "Pulsing heart",
 }
 NAMES.update({i: "Decoration %d" % i for i in range(42, 64)})
+# Famidash's cloud / bush ground spikes (its DECOCLOUD art): objects of their own, engine ids 67..70,
+# the cloud versions of decorations 46..49. Their icons: those, with the cloud art
+CLOUD = {67: 46, 68: 47, 69: 48, 70: 49}
+NAMES.update({i: "Decoration %d, cloud" % d for i, d in CLOUD.items()})
 # Colour triggers: properties instead of one sprite per colour. Their icons are the sheet's cells
 TRIGGERS = {256: ("BG colour trigger", 160, True), 257: ("Ground colour trigger", 224, True),
             258: ("Outline colour trigger", 176, False)}
@@ -60,6 +64,40 @@ def mirror_icon(start, ring):
     return icon
 
 
+def cloud_icon(icon, deco):
+    """decoration deco's icon with its ground spike pairs swapped for the cloud ones
+    (sprite_tiles.png bank 1 pairs 86..89 -> the DECO_CLOUD rows' pairs 6..9, as famidash_sprites.c
+    deco_spike_g* / deco_cloud_g* place them: x 0 / 8, flipped upside down for 47 / 49)"""
+    tiles = Image.open(GAME_TILES).convert("L")
+    flip = deco in (47, 49)
+    pairs = (6, 7) if deco in (46, 47) else (8, 9)
+
+    def art(row, p):
+        out = {}
+        for j in range(16):
+            for i in range(8):
+                v = (255 - tiles.getpixel(((p % 16) * 8 + i, (row + p // 16) * 16 + j)) + 42) // 85
+                if v:
+                    out[(i, 15 - j if flip else j)] = v
+        return out
+    normal, cloud = {}, {}
+    for k, p in enumerate(pairs):
+        for (i, j), v in art(8, 80 + p).items():
+            normal[(8 * k + i, j)] = v
+        for (i, j), v in art(16, p).items():
+            cloud[(8 * k + i, j)] = v
+    src = icon.copy()
+    white, green = (255, 255, 255, 255), (71, 200, 32, 255)
+    for x, y in set(normal) - set(cloud):
+        near = [src.getpixel((x + dx, y + dy)) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                if 0 <= x + dx < 16 and 0 <= y + dy < 16]
+        edge = x in (0, 15) or y in (0, 15) or near.count(white) >= 2
+        icon.putpixel((x, y), white if edge else (0, 0, 0, 0))
+    for xy in cloud:
+        icon.putpixel(xy, green)
+    return icon
+
+
 def main():
     OUT_DIR.mkdir(exist_ok=True)
     sheet = Image.open(SHEET).convert("RGBA")
@@ -70,9 +108,11 @@ def main():
         if cell in MIRRORS:
             icon = mirror_icon(*MIRRORS[cell])
         else:
-            source = TRIGGERS[cell][1] if cell in TRIGGERS else cell
+            source = TRIGGERS[cell][1] if cell in TRIGGERS else CLOUD.get(cell, cell)
             x, y = (source % 16) * 16, (source // 16) * 16
             icon = sheet.crop((x, y, x + 16, y + 16))
+            if cell in CLOUD:
+                icon = cloud_icon(icon.convert("RGBA"), source)
         icon.save(OUT_DIR / ("s%d.png" % cell))
         lines.append(' <tile id="%d" type="%s">' % (cell, NAMES[cell]))
         if cell in TRIGGERS:

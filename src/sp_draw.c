@@ -515,14 +515,15 @@ static uint8_t deco_big;
 #define DT_SHAPES_SMALL 66, 68, 70, 72, 74, DB + D_F5, 76, DB + D_F7, 78, 80
 #define DT_GDP_BIG 82, 84
 #define DT_GDP_SMALL 86, 88
+#define DT_CLOUD 90, 92, 94, 96
 // rods 7 / 5 / 3 px, each with the shapes big, then small
 #define DT_ROD7 DT_FIXED_A, DB + D_C9, DB + D_CB, DB + D_CD, DT_FIXED_B
 #define DT_ROD5 DT_FIXED_A, 222, 224, 226, DT_FIXED_B
 #define DT_ROD3 DT_FIXED_A, 228, 230, 232, DT_FIXED_B
 static const uint8_t deco_tile_sets[6][DECO_SET] = {
-    { DT_ROD7, DT_SHAPES_BIG, 250, DT_GDP_BIG }, { DT_ROD7, DT_SHAPES_SMALL, 250, DT_GDP_SMALL },
-    { DT_ROD5, DT_SHAPES_BIG, 252, DT_GDP_BIG }, { DT_ROD5, DT_SHAPES_SMALL, 252, DT_GDP_SMALL },
-    { DT_ROD3, DT_SHAPES_BIG, 254, DT_GDP_BIG }, { DT_ROD3, DT_SHAPES_SMALL, 254, DT_GDP_SMALL },
+    { DT_ROD7, DT_SHAPES_BIG, 250, DT_GDP_BIG, DT_CLOUD }, { DT_ROD7, DT_SHAPES_SMALL, 250, DT_GDP_SMALL, DT_CLOUD },
+    { DT_ROD5, DT_SHAPES_BIG, 252, DT_GDP_BIG, DT_CLOUD }, { DT_ROD5, DT_SHAPES_SMALL, 252, DT_GDP_SMALL, DT_CLOUD },
+    { DT_ROD3, DT_SHAPES_BIG, 254, DT_GDP_BIG, DT_CLOUD }, { DT_ROD3, DT_SHAPES_SMALL, 254, DT_GDP_SMALL, DT_CLOUD },
 };
 #undef DB
 // the set shown this frame: its offset in deco_tile_sets (rod_pulse_update, every frame before drawing)

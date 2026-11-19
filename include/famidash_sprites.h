@@ -30,9 +30,8 @@
 #define DMG_ARROW_TILE        12   // DMG: the arrow decoration (the CGB deco art is in bank 1), tiles 12..13 are free there
 extern const uint8_t famidash_deco_tiles[FAMIDASH_DECO_TILE_COUNT * 16];
 
-// deco_cloud: use the DECOCLOUD decoration art (Famidash picks the deco type per level)
 // All gameplay sprite tiles from levels/chr_data/game_art/sprite_tiles.png (tools/build_sprite_tiles.py)
-void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED;
+void load_gameplay_sprite_tiles(void) BANKED;
 // Only the sprite tiles that share VRAM with background tiles 128..159
 void reload_bg_shared_sprite_tiles(void) BANKED;
 
@@ -83,7 +82,13 @@ extern const metasprite_t * const famidash_sprite_table[38];
 // the right half is drawn mirrored
 #define D_RING  42
 #define D_HEART 44
-#define D_LAST  D_HEART
+// the ground spikes drawn as Famidash's cloud / bush art (its DECOCLOUD set), engine ids 67..70:
+// objects of their own, any level can mix them with the others. CGB bank 1 tiles 90..97
+#define D_CD9 46
+#define D_CDB 48
+#define D_CDD 50
+#define D_CDF 52
+#define D_LAST  D_CDF
 
 typedef struct {
     uint8_t count;

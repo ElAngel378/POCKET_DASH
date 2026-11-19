@@ -37,15 +37,13 @@ static void load_dmg_coin_tiles(void) {
     spr_data(DMG_COIN_TILE_C, 2, coin_tiles_dmg + 20 * 16);
 }
 
-void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED {
+void load_gameplay_sprite_tiles(void) BANKED {
     uint8_t cgb = (_cpu == CGB_TYPE);
     for (uint8_t i = 0; i < SPRITE_LOAD_COUNT; i++) {
         const uint8_t *l = sprite_loads[i];
         uint8_t cond = l[0];
         if (cond == SPR_CGB && !cgb) continue;
         if (cond == SPR_DMG && cgb) continue;
-        if (cond == SPR_CGB_DECO && (!cgb || deco_cloud)) continue;
-        if (cond == SPR_CGB_DECO_CLOUD && (!cgb || !deco_cloud)) continue;
         // DMG: the objects are in the background (tools/dmg_deco.py) and their tiles, 160 and up,
         // are the level's (tools/build_bg_tiles.py DMG_OBJECT_SLOTS)
         if (!cgb && l[2] >= 160u) continue;
@@ -71,7 +69,6 @@ void reload_bg_shared_sprite_tiles(void) BANKED {
         uint8_t cond = l[0];
         if (cond == SPR_CGB && !cgb) continue;
         if (cond == SPR_DMG && cgb) continue;
-        if (cond == SPR_CGB_DECO || cond == SPR_CGB_DECO_CLOUD) continue;
         if (l[1] != 0 || l[2] >= 160u || (uint16_t)l[2] + l[3] <= 128u) continue;
         if (cgb) VBK_REG = 0;
         spr_data(l[2], l[3], sprite_tiles + ((uint16_t)l[4] | ((uint16_t)l[5] << 8)) * 16u);

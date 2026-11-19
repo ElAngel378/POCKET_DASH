@@ -22,13 +22,11 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 PNG = ROOT / "levels" / "chr_data" / "game_art" / "sprite_tiles.png"
 # sprites.tsx tile -> engine id (tools/tmx2sprites.py portals_map), the decorations only
-ENGINE_ID = {**{i: i for i in range(42, 64)}, 73: 73, 74: 74, 112: 65, 113: 66}
+ENGINE_ID = {**{i: i for i in list(range(42, 64)) + list(range(67, 71))}, 73: 73, 74: 74, 112: 65, 113: 66}
 # sprites.tsx tile -> engine id of the objects in the sheet
 SHEET = ROOT / "levels" / "chr_data" / "game_art" / "dmg_bg_objects.png"
 SHEET_IDS = [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 24, 25, 37, 51, 121, 126]
 SHEET_TILE = {**{i: i for i in SHEET_IDS if i not in (4, 20, 21)}, 38: 4, 82: 20, 83: 21, 253: 13, 254: 14}
-# the levels with Famidash's cloud decoration art (src/gameplay.c LEVEL_DECO_CLOUD)
-CLOUD_LEVELS = {"xstep", "clutterfunk", "theoryofeverything", "electromanadventures"}
 S_FLIPX, S_FLIPY = 0x20, 0x40
 
 
@@ -55,10 +53,10 @@ def _table():
     return {int(i): decos[n] for i, n in re.findall(r'\[(\d+)\] = &(\w+)', src)}
 
 
-def _pair(tile, cloud):
+def _pair(tile):
     """the 8 x 16 picture of decoration tile pair D_xx: {(x, y): colour 1..3}"""
     import build_sprite_tiles as ST
-    key = (tile, cloud)
+    key = tile
     if key not in _cache:
         if "png" not in _cache:
             _cache["png"] = Image.open(PNG).convert("L").load()
@@ -73,6 +71,16 @@ def _pair(tile, cloud):
                     dx, dy = abs(x - 3), abs(y - 12)
                     if dx < 3.5 and dy < 3.5 and dx + dy < 4.5:
                         out[(x, y)] = 2
+        elif tile >= _cache["d"]["D_CD9"]:
+            # the cloud ground spikes: pairs 6..9 of the cloud set (build_sprite_tiles.py DECO_CLOUD)
+            p = 6 + (tile - _cache["d"]["D_CD9"]) // 2
+            row = ST.SECTION_ROW["DECO_CLOUD"]
+            x0, y0 = (p % 16) * 8, (row + p // 16) * 16
+            for y in range(16):
+                for x in range(8):
+                    v = idx(px[x0 + x, y0 + y])
+                    if v:
+                        out[(x, y)] = v
         elif tile >= _cache["d"]["D_RING"]:
             x0 = ST.PULSE_GDP[(tile - _cache["d"]["D_RING"]) // 2][0]
             for y in range(16):
@@ -80,8 +88,8 @@ def _pair(tile, cloud):
                     if ST.gdp_pixel(_cache["gdp"], x0 + x, y):
                         out[(x, y)] = 1
         else:
-            p = tile // 2 if cloud else 80 + tile // 2
-            row = ST.SECTION_ROW["DECO_CLOUD" if cloud else "BANK1"]
+            p = 80 + tile // 2
+            row = ST.SECTION_ROW["BANK1"]
             x0, y0 = (p % 16) * 8, (row + p // 16) * 16
             for y in range(16):
                 for x in range(8):
@@ -117,7 +125,6 @@ def pixels(root, name):
                   if t.get("source", "").endswith("sprites.tsx")), None)
     if first is None or os.environ.get("DMG_DECO") == "0":     # (0: without them, to compare builds)
         return []
-    cloud = name in CLOUD_LEVELS
     found = []
     for group in root.findall("objectgroup"):
         if group.get("name") != "SP":
@@ -138,7 +145,7 @@ def pixels(root, name):
             if obj is None or obj not in _cache["table"]:
                 continue
             for x, y, t, fx, fy in _cache["table"][obj]:
-                for (px, py), v in _pair(t, cloud).items():
+                for (px, py), v in _pair(t).items():
                     lx, ly = x + (7 - px if fx else px), y + (15 - py if fy else py)
                     out[(ox + lx, oy + ly)] = shade(v, lx, ly)
             found.append((1, tile, ox, oy, out))

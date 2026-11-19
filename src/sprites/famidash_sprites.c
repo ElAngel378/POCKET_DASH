@@ -140,6 +140,10 @@ static const FamidashDeco deco_spike_g1 = {2, 16, {0,8,0}, {-4,-4,0}, {D_D9,D_DB
 static const FamidashDeco deco_spike_g2 = {2, 16, {0,8,0}, {4,4,0}, {D_D9,D_DB,0}, {DP|S_FLIPY,DP|S_FLIPY,0}};
 static const FamidashDeco deco_spike_g3 = {2, 16, {0,8,0}, {-4,-4,0}, {D_DD,D_DF,0}, {DP,DP,0}};
 static const FamidashDeco deco_spike_g4 = {2, 16, {0,8,0}, {4,4,0}, {D_DD,D_DF,0}, {DP|S_FLIPY,DP|S_FLIPY,0}};
+static const FamidashDeco deco_cloud_g1 = {2, 16, {0,8,0}, {-4,-4,0}, {D_CD9,D_CDB,0}, {DP,DP,0}};
+static const FamidashDeco deco_cloud_g2 = {2, 16, {0,8,0}, {4,4,0}, {D_CD9,D_CDB,0}, {DP|S_FLIPY,DP|S_FLIPY,0}};
+static const FamidashDeco deco_cloud_g3 = {2, 16, {0,8,0}, {-4,-4,0}, {D_CDD,D_CDF,0}, {DP,DP,0}};
+static const FamidashDeco deco_cloud_g4 = {2, 16, {0,8,0}, {4,4,0}, {D_CDD,D_CDF,0}, {DP|S_FLIPY,DP|S_FLIPY,0}};
 static const FamidashDeco deco_diamond = {2, 16, {0,8,0}, {0,0,0}, {D_E1,D_E1,0}, {DP,DP|S_FLIPX,0}};
 static const FamidashDeco deco_diamond_half = {1, 16, {8,0,0}, {0,0,0}, {D_E1,0,0}, {DP|S_FLIPX,0,0}};
 static const FamidashDeco deco_question = {1, 16, {4,0,0}, {0,0,0}, {D_E3,0,0}, {DP,0,0}};
@@ -173,5 +177,6 @@ const FamidashDeco * const famidash_deco_table[FAMIDASH_DECO_TABLE_SIZE] = {
     [60] = &deco_short_up, [61] = &deco_chain_up,
     [62] = &deco_medium_right, [63] = &deco_medium_left,
     [65] = &deco_ring, [66] = &deco_heart,
+    [67] = &deco_cloud_g1, [68] = &deco_cloud_g2, [69] = &deco_cloud_g3, [70] = &deco_cloud_g4,
     [73] = &deco_pulsing_ball, [74] = &deco_music_note
 };

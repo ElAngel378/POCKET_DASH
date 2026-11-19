@@ -111,7 +111,7 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
         sprites_firstgid + 254: 14,  # Blue Pad (invisible)
     }
 
-    for i in range(42, 64):
+    for i in list(range(42, 64)) + list(range(67, 71)):   # 67..70: the cloud ground spikes
         portals_map[sprites_firstgid + i] = i
 
     portal_data = []

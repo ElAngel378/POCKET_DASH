@@ -56,15 +56,6 @@ static void apply_custom_player_palette(void) {
 
 #define BKG_MT_W 16
 
-// Famidash chooses the decoration art per level: only Xstep (index 9) uses DECOCLOUD
-// (ground "spikes" drawn as round bushes); every other level uses DECO1.
-#define LEVEL_XSTEP 9
-#define LEVEL_CLUTTERFUNK 10
-#define LEVEL_TOE 11
-#define LEVEL_ELECTROMAN 12
-#define LEVEL_DECO_CLOUD(idx) ((idx) == LEVEL_XSTEP || (idx) == LEVEL_CLUTTERFUNK || (idx) == LEVEL_TOE || (idx) == LEVEL_ELECTROMAN)
-// ... and spike set B (background spikes drawn as round bushes, see mt_renderer.c)
-#define LEVEL_SPIKES_B(idx) ((idx) == LEVEL_XSTEP)
 #define BKG_MT_H 16
 #define VIEW_MT_W 10
 #define VIEW_MT_H 9
@@ -590,7 +581,7 @@ static void reload_level_state(uint8_t idx) {
         set_bkg_data(12, 1, blank_bg_tile);
     }
 
-    load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));   // sprite_tiles.png
+    load_gameplay_sprite_tiles();   // sprite_tiles.png
     reapply_bg_shared_slots(idx, 0);   // DMG: saw tiles in sprite tiles it overwrote
     if (practice_mode) load_checkpoint_tiles();
     debug_load_hud_tiles();
@@ -1331,7 +1322,7 @@ static void practice_respawn(uint8_t idx) {
         sgb_flush();
     }
 
-    load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));
+    load_gameplay_sprite_tiles();
     reapply_bg_shared_slots(idx, 0);   // DMG: saw tiles in sprite tiles it overwrote
     cube_icon_reset();
     load_checkpoint_tiles();
@@ -1533,7 +1524,7 @@ void play_level(uint8_t idx) BANKED {
     if (!setting_show_bg_enabled) {
         set_bkg_data(12, 1, blank_bg_tile);
     }
-    load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));   // sprite_tiles.png
+    load_gameplay_sprite_tiles();   // sprite_tiles.png
     reapply_bg_shared_slots(idx, 0);   // DMG: saw tiles in sprite tiles it overwrote
     cube_icon_reset();
     debug_load_hud_tiles();

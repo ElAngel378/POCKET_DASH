@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="sprites" tilewidth="16" tileheight="16" tilecount="60" columns="0">
+<tileset version="1.10" tiledversion="1.11.2" name="sprites" tilewidth="16" tileheight="16" tilecount="64" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="0" type="Cube portal">
   <image width="16" height="16" source="sprites/s0.png"/>
@@ -141,6 +141,18 @@
  </tile>
  <tile id="63" type="Decoration 63">
   <image width="16" height="16" source="sprites/s63.png"/>
+ </tile>
+ <tile id="67" type="Decoration 46, cloud">
+  <image width="16" height="16" source="sprites/s67.png"/>
+ </tile>
+ <tile id="68" type="Decoration 47, cloud">
+  <image width="16" height="16" source="sprites/s68.png"/>
+ </tile>
+ <tile id="69" type="Decoration 48, cloud">
+  <image width="16" height="16" source="sprites/s69.png"/>
+ </tile>
+ <tile id="70" type="Decoration 49, cloud">
+  <image width="16" height="16" source="sprites/s70.png"/>
  </tile>
  <tile id="73" type="Pulsing ball">
   <image width="16" height="16" source="sprites/s73.png"/>
