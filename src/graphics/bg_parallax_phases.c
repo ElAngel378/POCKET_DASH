@@ -342,13 +342,13 @@ static void bs_upload(void) __naked {
         ld      b, #0
         ld      hl, #_bs_up_slot
         add     hl, bc
-        ld      a, (hl)                 ; slot (CGB 224..255: VRAM bank 1 slot 128..159, bg_stream_feed)
+        ld      a, (hl)                 ; slot (CGB 160..255: VRAM bank 1 slot 64..159, bg_stream_feed)
         ld      b, a
         ld      a, (_bg_gdma_isr_on)
         or      a, a
         jr      Z, 6$                   ; DMG: every slot as it is
         ld      a, b
-        cp      #224
+        cp      #160
         jr      C, 4$
         sub     #96
         ld      b, a

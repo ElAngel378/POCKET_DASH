@@ -277,6 +277,7 @@ def main():
     pools = []     # (level name, metatile columns, CGB slots, DMG slots, own metatiles): tools/bg_stream.py
     col_tabs = {}  # level name -> its collision table (levels with metatiles of their own)
     import json
+    import bg_stream
     fsrc = (ROOT / "include" / "famidash_metatiles_dmg.c").read_text()
     a = fsrc.index("famidash_metatile_collision[FAMIDASH_NUM_METATILES] =")
     fd_col = list(map(int, re.findall(r'\d+', fsrc[fsrc.index("{", a):fsrc.index("};", a)])))
@@ -306,8 +307,10 @@ def main():
         # streamed (tools/bg_stream.py): the lists only hold what stays put.
         # CGB: the saws (bank bit 7: never load mirrored, CGB mirrors them with the X flip
         # attribute) and the black fill code uses
-        cgb = stream([(0x81, SAW_VRAM_BASE, SAW_TILES, first["SAWS_0"]),
-                      (0, BLACK_FILL_SLOT, 1, first["BLACK_FILL"])], [], [],
+        # (a level without saws: none, their tiles stream the level's, bg_stream.py BANK1_SAW_SLOTS)
+        saws = any(m in saw_mts for m in fd_mts)
+        cgb = stream(([(0x81, SAW_VRAM_BASE, SAW_TILES, first["SAWS_0"])] if saws else []) +
+                     [(0, BLACK_FILL_SLOT, 1, first["BLACK_FILL"])], [], [],
                      [])
 
         # DMG: the saw tiles the level shows, in sprite tiles DMG never draws (DMG_SHARED_SLOTS,
@@ -321,12 +324,12 @@ def main():
         overrides = [(m, q, saw_slot[saw_mts[m][q]]) for m in sorted(fd_mts) if m in saw_mts
                      for q in range(4) if saw_mts[m][q] is not None]
         dmg = stream(loads, [], [], overrides)
-        streams.append((lv, name, cgb, dmg, big_saw, any(m in saw_mts for m in fd_mts)))
+        streams.append((lv, name, cgb, dmg, big_saw, saws))
         pools.append((name, [level_map[x * 64:(x + 1) * 64] for x in range(len(level_map) // 64)],
                       [t for t in range(160) if t not in (12, BLACK_FILL_SLOT)],
                       [t for t in list(range(DMG_BG_SLOTS)) + DMG_OBJECT_SLOTS
                        if t not in DMG_RESERVED_TILES and t not in saw_slot.values()],
-                      novel))
+                      novel, ([] if saws else bg_stream.BANK1_SAW_SLOTS) + bg_stream.BANK1_SLOTS))
 
     import bg_stream
     for name, ids in bg_stream.write(pools).items():

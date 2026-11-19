@@ -559,7 +559,7 @@ void bg_stream_feed(void) BANKED {
     while (bs_q_n && k < most) {
         uint8_t i = bs_q_head;
         uint16_t t = bs_q_tile[i];
-        // VRAM bank 1 slots 128..159 as 224..255 (CGB slots in bank 0 end at 159): bs_upload
+        // VRAM bank 1 slots 64..159 as 160..255 (CGB slots in bank 0 end at 159): bs_upload
         bs_up_slot[k] = (t & 0x8000u) ? (uint8_t)(bs_q_slot[i] + 96u) : bs_q_slot[i];
         uint16_t g = tile_of(t);
         fur_copy_banked(bs_up_buf + (k << 4), TILE_ADDR(g), 16, TILE_BANK(g));
