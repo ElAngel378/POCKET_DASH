@@ -37,7 +37,7 @@ typedef struct { uint8_t val, frac, step_lo, step_hi; } FadeCh;
 static FadeCh fade_ch[60];
 static uint8_t fade_col[20];
 static uint8_t fade_n;
-static uint8_t fade_nch;            // 3 * fade_n, read by fade_channels
+static uint8_t fade_nch;            // DMG: frames into a tick (famidash_dmg_band_step)
 uint8_t famidash_fade_left;                  // steps to go, 0: not fading (DMG: band steps)
 static uint8_t fade_div, fade_wait; // frames a step (10 s: 5, else 1), frames to the next step
 static uint8_t fade_restart;        // a trigger changed famidash_bg_target this frame
@@ -57,9 +57,6 @@ static const uint8_t step_tab_hi[2][63] = {
     { 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
     { 254, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1 },
 };
-// Green channel g (0..31) in the two bytes of an RGB555 colour
-static const uint8_t g_to_lo[32] = { 0x00, 0x20, 0x40, 0x60, 0x80, 0xA0, 0xC0, 0xE0, 0x00, 0x20, 0x40, 0x60, 0x80, 0xA0, 0xC0, 0xE0, 0x00, 0x20, 0x40, 0x60, 0x80, 0xA0, 0xC0, 0xE0, 0x00, 0x20, 0x40, 0x60, 0x80, 0xA0, 0xC0, 0xE0 };
-static const uint8_t g_to_hi[32] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03 };
 
 static FadeCh *ch_p;
 static const uint8_t *step_lo, *step_hi;   // the fade time's row of step_tab_lo / _hi
@@ -141,11 +138,26 @@ static void setup_ch(void) __naked {
 
 // Colours that differ between the screen and the target: index into fade_col, their 3 channels set up
 // (fade_n = how many). In assembly: in C, this loop made the frame a trigger fires drop on CGB.
+// Colours fade_nch .. fade_nch + 9 (CGB: fade_nch is free there), fade_n going on from its value:
+// the scan is split over 2 frames (both halves took ~1/5 of a frame, on a portal's busiest frame)
 static void fade_scan(void) __naked {
     __asm
+        ld      a, (_fade_nch)
+        ld      b, a                    ; b = colour
+        add     a, #10
+        push    af                      ; (the last colour + 1, on the stack all through)
+        ld      a, b
+        add     a, a
+        ld      e, a
+        ld      d, #0
+        ld      hl, #_famidash_bg_target
+        add     hl, de
+        push    hl
         ld      hl, #_famidash_bg_palettes
-        ld      de, #_famidash_bg_target
-        ld      bc, #0                  ; b = colour, c = n
+        add     hl, de
+        pop     de
+        ld      a, (_fade_n)
+        ld      c, a                    ; c = n
     1$:
         ld      a, (de)
         cp      a, (hl)
@@ -234,9 +246,11 @@ static void fade_scan(void) __naked {
         inc     de
         inc     de
         inc     b
-        ld      a, b
-        cp      a, #20
-        jr      NZ, 1$
+        pop     af
+        push    af
+        cp      a, b
+        jp      NZ, 1$
+        pop     af
         ld      a, c
         ld      (_fade_n), a
         ret
@@ -244,35 +258,50 @@ static void fade_scan(void) __naked {
 }
 
 // The fade starts from the colours on screen (a trigger during a fade continues smoothly)
+// In 2 halves (fade_scan): colours 0..9, then on the next frame 10..19 and the fade's length
 static void start_fade(void) {
-    uint8_t n;
     uint8_t row = (fade_time > FAMIDASH_FADE_INSTANT);
     step_lo = step_tab_lo[row];
     step_hi = step_tab_hi[row];
     step_shift = (fade_time == FAMIDASH_FADE_10S) ? 2 : row ? (uint8_t)(fade_time - FAMIDASH_FADE_HALF_S) : 0;
     fade_div = fade_wait = (fade_time == FAMIDASH_FADE_10S) ? 5 : 1;
     ch_p = fade_ch;
+    fade_n = 0;
+    fade_nch = 0;
+    famidash_fade_left = 0;
     fade_scan();
-    n = fade_n;
-    fade_nch = (uint8_t)(n * 3u);
-    famidash_fade_left = n ? bg_fade_frames[fade_time] : 0;
+}
+static void start_fade_rest(void) {
+    fade_nch = 10;
+    fade_scan();
+    famidash_fade_left = fade_n ? bg_fade_frames[fade_time] : 0;
 }
 
-// Adds every channel's 8.8 step (fade_nch > 0 channels)
-static void fade_channels(void) __naked {
+// Every fading colour one step on: its 3 channels' 8.8 steps added (fade_ch), the colour written
+// to famidash_bg_palettes[fade_col[k]]. Assembly: the C loop writing the colours took ~8 % of a
+// CGB frame on every frame of a fade (colour triggers mostly fire at portals, the busiest frames)
+static void fade_apply(void) __naked {
     __asm
-        ld      a, (_fade_nch)
+        ld      a, (_fade_n)
+        or      a, a
+        ret     Z
         ld      b, a
         ld      hl, #_fade_ch
+        ld      de, #_fade_col
     1$:
-        ld      c, (hl)         ; value
+        push    bc
+        ld      a, (de)             ; the colour
+        inc     de
+        push    de
+        push    af
+        ld      c, (hl)             ; value
         inc     hl
-        ld      a, (hl+)        ; fraction
-        add     a, (hl)         ; + step lo
+        ld      a, (hl+)            ; fraction
+        add     a, (hl)             ; + step lo
         inc     hl
         ld      e, a
         ld      a, c
-        adc     a, (hl)         ; value + step hi + carry
+        adc     a, (hl)             ; value + step hi + carry
         dec     hl
         dec     hl
         ld      (hl), e
@@ -281,8 +310,75 @@ static void fade_channels(void) __naked {
         inc     hl
         inc     hl
         inc     hl
+        ld      d, a                ; red
+        ld      c, (hl)             ; value
+        inc     hl
+        ld      a, (hl+)            ; fraction
+        add     a, (hl)             ; + step lo
+        inc     hl
+        ld      e, a
+        ld      a, c
+        adc     a, (hl)             ; value + step hi + carry
+        dec     hl
+        dec     hl
+        ld      (hl), e
+        dec     hl
+        ld      (hl+), a
+        inc     hl
+        inc     hl
+        inc     hl
+        ld      b, a                ; green
+        ld      c, (hl)             ; value
+        inc     hl
+        ld      a, (hl+)            ; fraction
+        add     a, (hl)             ; + step lo
+        inc     hl
+        ld      e, a
+        ld      a, c
+        adc     a, (hl)             ; value + step hi + carry
+        dec     hl
+        dec     hl
+        ld      (hl), e
+        dec     hl
+        ld      (hl+), a
+        inc     hl
+        inc     hl
+        inc     hl
+        add     a, a                ; blue << 2
+        add     a, a
+        ld      c, a
+        ld      a, b
+        rrca
+        rrca
+        rrca
+        and     a, #3               ; green >> 3
+        or      a, c
+        ld      c, a                ; high byte
+        ld      a, b
+        swap    a
+        add     a, a
+        and     a, #0xE0            ; (green & 7) << 5
+        or      a, d
+        ld      e, a                ; low byte
+        pop     af
+        push    hl
+        ld      l, a
+        ld      h, #0
+        add     hl, hl
+        ld      a, l
+        add     a, #<_famidash_bg_palettes
+        ld      l, a
+        ld      a, h
+        adc     a, #>_famidash_bg_palettes
+        ld      h, a
+        ld      (hl), e
+        inc     hl
+        ld      (hl), c
+        pop     hl
+        pop     de
+        pop     bc
         dec     b
-        jr      NZ, 1$
+        jp      NZ, 1$
         ret
     __endasm;
 }
@@ -333,8 +429,20 @@ static void shadow_fake_spike_palette(void) {
 // Once per frame (CGB): next step of a running fade
 void famidash_bg_fade_step(void) BANKED {
     if (fade_restart) {
-        // set up this frame, first step on the next one (spreads the work)
-        fade_restart = 0;
+        // set up over this frame and the next one, first step on the one after (spreads the work:
+        // the set-up took ~1/5 of a CGB frame, and a trigger mostly fires at a portal, on its
+        // busiest frame). A frame already this late waits for the next one (at most 2 frames).
+        // fade_restart 1..3: the first half to do, 4: the second
+        if (fade_restart >= 4u) {
+            fade_restart = 0;
+            start_fade_rest();
+            return;
+        }
+        if (LY_REG >= 96u && LY_REG < 144u && fade_restart < 3u) {
+            fade_restart++;
+            return;
+        }
+        fade_restart = 4;
         start_fade();
         return;
     }
@@ -347,14 +455,7 @@ void famidash_bg_fade_step(void) BANKED {
         memcpy(shadow_bkg_palettes, famidash_bg_palettes, 20 * sizeof(palette_color_t));
         shadow_fake_spike_palette();
     } else {
-        fade_channels();
-        const FadeCh *c = fade_ch;
-        for (uint8_t k = 0; k < fade_n; k++, c += 3) {
-            uint8_t *p = (uint8_t *)&famidash_bg_palettes[fade_col[k]];
-            uint8_t g = c[1].val;
-            p[0] = c[0].val | g_to_lo[g];
-            p[1] = g_to_hi[g] | (uint8_t)(c[2].val << 2);
-        }
+        fade_apply();
         shadow_fake_spike_palette();   // (palette 7 follows the sky: it is uploaded from there)
     }
     famidash_bkg_palettes_dirty = 1;

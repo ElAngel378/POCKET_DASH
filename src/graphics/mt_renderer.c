@@ -1026,6 +1026,8 @@ static void row_tiles_dmg(void) __naked {
 // for every half row while climbing, the game's worst frames (Theory of Everything).
 static uint8_t rt_k, rt_slot, rt_dir, rt_r0, rt_pf, rt_pal, rt_tlx;
 static void row_tiles_cgb(void) __naked {
+    // (per slot: the 4 quarter tiles in b, c, d, e; the tiles, then the attributes written
+    // through one pointer each: ~half the time of a call per quarter)
     __asm
         xor     a, a
         ld      (_rt_k), a              ; k = 2 * slot index: column in row_tiles / row_attrs
@@ -1034,14 +1036,14 @@ static void row_tiles_cgb(void) __naked {
         ld      a, (_rt_k)
         srl     a
         add     a, #<_rt_ids
-        ld      e, a
+        ld      l, a
         ld      a, #>_rt_ids
         adc     a, #0
-        ld      d, a
-        ld      a, (de)
-        ld      c, a
+        ld      h, a
+        ld      c, (hl)
         ; rt_pal = (bm_info[id] & 0x7F) | rt_pf: the level's palette (bm_info is built by the
         ; columns, which are drawn before any row; saw / ground look bits are fixed up in C)
+        ld      a, c
         add     a, #<_bm_info
         ld      l, a
         ld      a, #>_bm_info
@@ -1049,20 +1051,23 @@ static void row_tiles_cgb(void) __naked {
         ld      h, a
         ld      a, (hl)
         and     a, #0x7F
-        ld      h, a
+        ld      b, a
         ld      a, (_rt_pf)
-        or      a, h
+        or      a, b
         ld      (_rt_pal), a
-        ; rt_tlx = (rt_slot & 3) * 2; rt_slot += rt_dir
+        ; rt_tlx = r0 + (rt_slot & 3) * 2: the parallax tile of the top left quarter; rt_slot += rt_dir
         ld      a, (_rt_slot)
         ld      b, a
         and     a, #3
         add     a, a
+        ld      e, a
+        ld      a, (_rt_r0)
+        add     a, e
         ld      (_rt_tlx), a
         ld      a, (_rt_dir)
         add     a, b
         ld      (_rt_slot), a
-        ; hl = rt_mt + id * 4
+        ; hl = rt_mt + id * 4: b, c, d, e = the quarters
         ld      l, c
         ld      h, #0
         add     hl, hl
@@ -1073,44 +1078,94 @@ static void row_tiles_cgb(void) __naked {
         ld      a, (_rt_mt + 1)
         adc     a, h
         ld      h, a
-        ; b = r0 + tlx (parallax tile of the top left quarter), c = k
-        ld      a, (_rt_r0)
+        ld      a, (hl+)
         ld      b, a
-        ld      a, (_rt_tlx)
-        add     a, b
-        ld      b, a
-        ld      a, (_rt_k)
+        ld      a, (hl+)
         ld      c, a
-        ; top left
-        ld      d, b
-        ld      e, c
         ld      a, (hl+)
-        call    6$
-        ; top right
-        ld      d, b
-        inc     d
-        ld      e, c
-        inc     e
-        ld      a, (hl+)
-        call    6$
-        ; bottom left (the bottom tile row is 16 bytes on; parallax row + 8)
+        ld      d, a
+        ld      e, (hl)
+        ; tiles (a quarter with tile 12 shows the parallax: its tile there)
+        ld      a, (_rt_k)
+        add     a, #<_row_tiles
+        ld      l, a
+        ld      a, #>_row_tiles
+        adc     a, #0
+        ld      h, a
         ld      a, b
+        cp      a, #12
+        jr      NZ, 10$
+        ld      a, (_rt_tlx)
+    10$:
+        ld      (hl+), a
+        ld      a, c
+        cp      a, #12
+        jr      NZ, 11$
+        ld      a, (_rt_tlx)
+        inc     a
+    11$:
+        ld      (hl), a
+        ld      a, l                    ; the bottom tile row: 16 bytes on
+        add     a, #15
+        ld      l, a
+        jr      NC, 12$
+        inc     h
+    12$:
+        ld      a, d
+        cp      a, #12
+        jr      NZ, 13$
+        ld      a, (_rt_tlx)
         add     a, #8
-        ld      d, a
-        ld      a, c
-        add     a, #16
-        ld      e, a
-        ld      a, (hl+)
-        call    6$
-        ; bottom right
-        ld      a, b
+    13$:
+        ld      (hl+), a
+        ld      a, e
+        cp      a, #12
+        jr      NZ, 14$
+        ld      a, (_rt_tlx)
         add     a, #9
-        ld      d, a
+    14$:
+        ld      (hl), a
+        ; attributes: rt_pal, the parallax 0x0B
+        ld      a, (_rt_k)
+        add     a, #<_row_attrs
+        ld      l, a
+        ld      a, #>_row_attrs
+        adc     a, #0
+        ld      h, a
+        ld      a, b
+        cp      a, #12
+        ld      a, (_rt_pal)
+        jr      NZ, 20$
+        ld      a, #0x0B
+    20$:
+        ld      (hl+), a
         ld      a, c
-        add     a, #17
-        ld      e, a
-        ld      a, (hl)
-        call    6$
+        cp      a, #12
+        ld      a, (_rt_pal)
+        jr      NZ, 21$
+        ld      a, #0x0B
+    21$:
+        ld      (hl), a
+        ld      a, l
+        add     a, #15
+        ld      l, a
+        jr      NC, 22$
+        inc     h
+    22$:
+        ld      a, d
+        cp      a, #12
+        ld      a, (_rt_pal)
+        jr      NZ, 23$
+        ld      a, #0x0B
+    23$:
+        ld      (hl+), a
+        ld      a, e
+        cp      a, #12
+        ld      a, (_rt_pal)
+        jr      NZ, 24$
+        ld      a, #0x0B
+    24$:
+        ld      (hl), a
         ; next slot
         ld      a, (_rt_n)
         add     a, a
@@ -1121,43 +1176,12 @@ static void row_tiles_cgb(void) __naked {
         cp      a, b
         jp      C, 1$
         ret
-    6$:
-        ; a = the quarter's tile, d = its parallax tile, e = column: row_tiles[e], row_attrs[e]
-        push    hl
-        cp      a, #12
-        jr      NZ, 7$
-        ld      a, d
-        ld      d, #0x0B
-        jr      8$
-    7$:
-        ld      d, a
-        ld      a, (_rt_pal)
-        ld      h, a
-        ld      a, d
-        ld      d, h
-    8$:
-        ld      hl, #_row_tiles
-        push    af
-        ld      a, l
-        add     a, e
-        ld      l, a
-        ld      a, h
-        adc     a, #0
-        ld      h, a
-        pop     af
-        ld      (hl), a
-        ld      hl, #_row_attrs
-        ld      a, l
-        add     a, e
-        ld      l, a
-        ld      a, h
-        adc     a, #0
-        ld      h, a
-        ld      (hl), d
-        pop     hl
-        ret
     __endasm;
 }
+
+// a quarter's place in row_tiles / row_attrs (from its slot's), its parallax tile (from the top left's)
+static const uint8_t rq_off[4] = { 0, 1, 16, 17 };
+static const uint8_t rq_px[4] = { 0, 1, 8, 9 };
 
 static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
     const uint8_t (*mt_table)[4] = reversed ? mt_tab_rev : mt_tab;
@@ -1194,30 +1218,39 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
     rt_pf = (reversed && mt_cgb_flip) ? 0x20 : 0;
     row_tiles_cgb();
     if (bm_mixed) quarter_pals_row(n, reversed);
-    // saw parts and the ground look metatiles: from the plain tiles just built
+    // saw parts and the ground look metatiles: over the plain tiles just built, written in place
+    // (through copies and put_saw, a row of saw pieces took ~1/5 of a CGB frame)
     uint8_t ram_tab = (&mt_tab[0][0] == &mt_ram[0][0][0]);
-    for (uint8_t i = 0; i < n; i++) {
+    uint8_t saws = mt_saws, big = mt_big_saws;
+    uint8_t *t0 = row_tiles[0], *a0 = row_attrs[0];
+    for (uint8_t i = 0; i < n; i++, t0 += 2, a0 += 2) {
         uint8_t mt_id = rt_ids[i];
+        // (bm_info: 0x80 a saw, 0x10 a ground look; also some others, sorted out below)
+        if (!(bm_info[mt_id] & 0x90u)) continue;
         uint8_t si = saw_mt_index[mt_id];
         uint8_t look = ram_tab ? gnd_look_tab[mt_id] : 0;
-        if (!look && !(si && mt_saws && (mt_id != SAW_CENTER_MT || mt_big_saws))) continue;
+        if (!look && !(si && saws && (mt_id != SAW_CENTER_MT || big))) continue;
         uint8_t slot = first + i;
         if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
         uint8_t tl_x = (uint8_t)((slot & 3u) << 1);
-        uint8_t k = (uint8_t)(i << 1);
-        uint8_t tiles[4], attrs[4];
-        tiles[0] = row_tiles[0][k]; tiles[1] = row_tiles[0][k + 1u]; tiles[2] = row_tiles[1][k]; tiles[3] = row_tiles[1][k + 1u];
-        attrs[0] = row_attrs[0][k]; attrs[1] = row_attrs[0][k + 1u]; attrs[2] = row_attrs[1][k]; attrs[3] = row_attrs[1][k + 1u];
         if (look) {
             gnd_mt_setup(tl_x);
             const uint8_t *m = gnd_mt[look - 1u];
-            memcpy(tiles, m, 4); memcpy(attrs, m + 4, 4);
+            t0[0] = m[0]; t0[1] = m[1]; t0[16] = m[2]; t0[17] = m[3];
+            a0[0] = m[4]; a0[1] = m[5]; a0[16] = m[6]; a0[17] = m[7];
         } else {
-            saw_dst = tiles; saw_dst_attr = attrs;
-            put_saw(si, reversed, r0, (uint8_t)(r0 + 8u), tl_x, (uint8_t)(tl_x + 1u));
+            // (put_saw's order: quarter i from saw_mt_tiles[i ^ reversed]; 0xFF: the parallax)
+            const uint8_t *st = saw_mt_tiles[si - 1u];
+            uint8_t at = reversed ? 0x28 : 0x08;   // bank 1, palette 0 (+ X flip)
+            uint8_t o = reversed ? 1u : 0u;
+            uint8_t px = (uint8_t)(r0 + tl_x);
+            for (uint8_t q = 0; q < 4u; q++) {
+                uint8_t v = st[q ^ o], at_q = at, k = rq_off[q];
+                if (v == 0xFF) { v = (uint8_t)(px + rq_px[q]); at_q = 0x0B; }
+                t0[k] = v;
+                a0[k] = at_q;
+            }
         }
-        row_tiles[0][k] = tiles[0]; row_tiles[0][k + 1u] = tiles[1]; row_tiles[1][k] = tiles[2]; row_tiles[1][k + 1u] = tiles[3];
-        row_attrs[0][k] = attrs[0]; row_attrs[0][k + 1u] = attrs[1]; row_attrs[1][k] = attrs[2]; row_attrs[1][k + 1u] = attrs[3];
     }
 }
 
