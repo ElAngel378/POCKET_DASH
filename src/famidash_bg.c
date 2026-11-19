@@ -392,9 +392,11 @@ palette_color_t famidash_bg_accent2 = RGB(0, 31, 31);
 // the player's colours plus the sky
 static palette_color_t add_sky(palette_color_t a, palette_color_t b) {
     uint8_t alo = (uint8_t)a, ahi = (uint8_t)(a >> 8), blo = (uint8_t)b, bhi = (uint8_t)(b >> 8);
-    uint8_t r = (uint8_t)((alo & 31u) + (blo & 31u));
-    uint8_t g = (uint8_t)((uint8_t)((alo >> 5) | ((ahi & 3u) << 3)) + (uint8_t)((blo >> 5) | ((bhi & 3u) << 3)));
-    uint8_t bl = (uint8_t)(((ahi >> 2) & 31u) + ((bhi >> 2) & 31u));
+    // half the sky (not GDA's full add, which turned most player colours almost white: the user
+    // wanted the player colour to show more)
+    uint8_t r = (uint8_t)((alo & 31u) + ((blo & 31u) >> 1));
+    uint8_t g = (uint8_t)((uint8_t)((alo >> 5) | ((ahi & 3u) << 3)) + ((uint8_t)((blo >> 5) | ((bhi & 3u) << 3)) >> 1));
+    uint8_t bl = (uint8_t)(((ahi >> 2) & 31u) + (((bhi >> 2) & 31u) >> 1));
     if (r > 31u) r = 31u;
     if (g > 31u) g = 31u;
     if (bl > 31u) bl = 31u;
