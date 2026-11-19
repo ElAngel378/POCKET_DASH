@@ -219,11 +219,11 @@ class Composer:
         out = []
         shade = cgb and self.shade_cell(parts)
         targets = self.targets(parts) if cgb and not shade else None
-        # a decoration in a colour its quarter's palette lacks, in a cell with a block, a hazard or a
-        # background shade (wave hills): left out there (as if behind it) instead of in the nearest
-        # colour (a player colour went white)
-        hard = targets is not None and any(self.kind[p[0]] in ("solid", "deadly") or p[0] in GO.SHADES
-                                           for p in parts)
+        # a decoration in a colour its quarter's palette lacks, in a cell with a block, a hazard, an
+        # orb / pad outline or a background shade (wave hills): left out there (as if behind it)
+        # instead of in the nearest colour (a player colour went white)
+        hard = targets is not None and any(self.kind[p[0]] in ("solid", "deadly", "special")
+                                           or p[0] in GO.SHADES for p in parts)
         for q in range(4):
             cqx, cqy = q % 2, q // 2
             target = targets[q] if targets else None

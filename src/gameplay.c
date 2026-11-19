@@ -2090,7 +2090,10 @@ void play_level(uint8_t idx) BANKED {
                 row0_job_pos = 0;
                 row0_job_issued = 0;
                 bg_rj_pending = 0;
-                if (fade_n | broken_n) fade_view_again();   // (a pending list has rows of the old band)
+                // a cell job still pending writes ring rows of the old band: redo the view. Without one
+                // the cells on screen keep their looks (the new row gets its slot's look, fade_row):
+                // a reset rebuilt every fading column, one a frame, all through a climb
+                if (bg_fj_n) fade_view_again();
                 if (mj_active) {
                     // the other map needs the row too (two moves before it got the first: rebuild)
                     if (mj_row_pending != 0xFF) mj_next = 0;
