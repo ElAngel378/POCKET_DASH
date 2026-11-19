@@ -143,7 +143,7 @@ class Stream:
             if len(moving) + len(new) <= spin_max:
                 moving += new
             else:
-                print("  %s: no room for %s to spin (%d tiles, %d of %d used)" % (name, key, len(new), len(moving), spin_max))
+                print("  %s: no room for %s to spin (%d tiles, %d of %d used; a tile layer with the property Spin = false keeps its objects still)" % (name, key, len(new), len(moving), spin_max))
         for m in used:
             self.mq[m] = [px[0] if px is not None and len(px) == SPIN_FRAMES and px not in moving else px
                           for px in self.mq[m]]

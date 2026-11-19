@@ -174,7 +174,7 @@ class Composer:
         """pixels (64) of object quarter oq placed with tf (spinning objects: in that frame; DMG only
         has frame 0), None if it is empty"""
         if key in self.spin:
-            art = self.spin[key][frame if cgb else 0]
+            art = self.spin[key][frame if cgb and not flags_of(tf) & GO.STILL else 0]
             w, h = GO.OBJECTS[key][2]
             img = {(qx * 8 + i % 8, qy * 8 + i // 8): p[i] for (qx, qy), p in art.items() for i in range(64)}
             if tf:
@@ -261,7 +261,7 @@ class Composer:
         """look(1, parts), a quarter that changes between the frames of a spinning object being
         (frame 0, frame 1, ...)"""
         looks = [self.look(1, parts, f) for f in range(GO.SPIN_FRAMES)]
-        if not any(p[0] in self.spin for p in parts):
+        if not any(p[0] in self.spin and not flags_of(p[3]) & GO.STILL for p in parts):
             return looks[0]
         zero = (0,) * 64
         return [q[0] if len(set(q)) == 1 else tuple(p or zero for p in q) for q in zip(*looks)]
@@ -487,7 +487,7 @@ class Composer:
             k = (tuple(self.spin_look(cp)), tuple(self.look(0, parts)), pal, col)
             rest = [p for p in parts if p[0] not in GO.FADE]
             crest = [p for p in cp if p[0] not in GO.FADE]
-            spin = sorted({p[0] for p in parts if p[0] in self.spin})
+            spin = sorted({p[0] for p in parts if p[0] in self.spin and not flags_of(p[3]) & GO.STILL})
             if len(rest) != len(parts):
                 hidden = (tuple(self.spin_look(crest)), tuple(self.look(0, rest)),
                           self.palette(crest) if crest else pal, col)

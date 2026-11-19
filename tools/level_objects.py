@@ -419,6 +419,9 @@ def tmx_objects(root):
         if ox % 8 or oy % 8:
             raise SystemExit("layer %s: offset %d, %d is not a multiple of 8 px" % (layer.get("name"), ox, oy))
         vals = [int(v) for v in layer.find("data").text.replace("\n", "").split(",") if v.strip()]
+        # the layer's property Spin = false: its spinning objects stand still (CGB; DMG never spins)
+        still = any(p.get("name", "").lower() == "spin" and p.get("value", "true") == "false"
+                    for p in layer.iter("property"))
         for i, g in enumerate(vals):
             if not g:
                 continue
@@ -428,6 +431,8 @@ def tmx_objects(root):
                                  % (layer.get("name"), i % w, i // w, g & ~FLAGS, TILESET_NAME))
             key = KEY_OF_TID[tid]
             fl = g & (GO.FLIP_H | GO.FLIP_V | GO.FLIP_D)
+            if still and key in GO.SPIN:
+                fl |= GO.STILL
             ow, oh = size(key, fl)
             objs.append((key, (i % w) * 16 + ox, (i // w + 1) * 16 + oy - oh, fl))
     return objs

@@ -23,6 +23,10 @@ FLIP_H, FLIP_V, FLIP_D = 0x80000000, 0x40000000, 0x20000000
 TRANSFORMS = {"": 0, "H": FLIP_H, "V": FLIP_V, "R90": FLIP_D | FLIP_H,
               "R180": FLIP_H | FLIP_V, "R270": FLIP_D | FLIP_V, "D": FLIP_D,
               "DHV": FLIP_D | FLIP_H | FLIP_V}
+# A spinning object placed in a tile layer with the property Spin = false stands still (its first
+# frame): this bit next to the flips (tools/level_objects.py tmx_objects), "s" before the name
+STILL = 0x10000000
+TRANSFORMS.update({"s" + name: fl | STILL for name, fl in list(TRANSFORMS.items())})
 
 FD_BASE = 5000
 
